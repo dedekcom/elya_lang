@@ -1,0 +1,544 @@
+game MK1 : DziejeGame	{
+	init	{
+		DziejeGame::init("mk1");
+		.path = ("mk");
+		
+		.gamebg;
+		
+// 		bg1.pyz     cheti21.pyz  chlopy1.pyz   cynthia21.pyz  rzut.pyz    straz2.pyz
+// bgrzut.pyz  cheti31.pyz  cynthia1.pyz  haset1.pyz     straz1.pyz
+		.imgs = (A, "bg1.pyz", "chlopy1.pyz 10", "cynthia1.pyz 10", "straz1.pyz 10", "straz2.pyz 10", "haset1.pyz 10");
+		anhaset1.addmethod("onfinish", func {
+			match( .actionname )	{
+				"talk", "krzycz" => .play(-1);
+				"patrz" => {
+					anhaset1.play("krzycz");
+					.cbplay("haset3");
+					anstraz1.play(1);
+					anstraz2.play(1);
+				}
+				? => ;
+			}
+			} );
+		.sounds = (A,
+			":cyn1", "Uwolnij mnie ³otrze a darujê ci ¿ycie", func { .hasplay("haset1"); },
+			":haset1", "Nie roz¶mieszaj mnie Cynthio; Nikt nie wie ¿e to ja ciê porwa³em a ca³a wina posz³a na Chetiego; Ha ha jaka s³odka jest zemsta", func {
+				.hastop; .cbplay("cyn2"); },
+			":cyn2", "Och zap³acisz za to! Nie doceniasz Chetiego on przyjdzie mnie uwolniæ", func { .hasplay("haset2"); },
+			":haset2", "Ten ch³opta¶? Raz uda³o mu siê mnie wykiwaæ ale tym razem bêdzie musia³ sobie poradziæ z krokodylami; £achacha", func { <GAME> {
+				.cbplay("cheti1");
+				.hastop;
+				.imgs = (A, "cheti21.pyz 100", "cheti31.pyz 110");
+				}; },
+			":cheti1", "Oby¶ siê nie zdziwi³ wieprzu!", func { <GAME> {
+				delete ancheti31;
+				.img = ("cynthia21.pyz 120");
+				ancynthia21.advclip;
+				.cbplay("cyn3");
+				}; },
+			":cyn3", "Cheti!!", func { <GAME> {
+				delete ancynthia21;
+				.cbplay("cheti2");
+				}; },
+			":cheti2", "Idê po ciebie Cynthio", func { <GAME> {
+				delete ancheti21;
+				anhaset1.play("patrz");
+				}; },
+			":haset3", "Braæ go! Tym razem siê nie wywinie! Zróbcie z niego papirus!", func {
+				.hastop;
+				ccs.close( func { gameapi.play("MK2"); } );
+				}
+			);
+		ccs.enter( func { .cbplay("cyn1"); } );
+	}
+	hastop	{
+		if( anhaset1.isplaying("talk") ) anhaset1.play("stand");
+		else anhaset1.play("standup");
+	}
+	hasplay(string s)	{	.cbplay(s); anhaset1.play("talk");	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}
+
+class mklive	{
+	init(string s)	{
+		new img im1;
+		im1.setz(150);
+		im1.create(100->igetsc,6->igetsc1,.red,192);
+		new string san = s;
+		new img im2;
+		im2.create(96->igetsc,4->igetsc1,.green,255);
+		im2.setz(160);
+		new int damage = 0;
+		<san>.var2("mklive", this);
+	}
+	update	{
+		im1.setpos( <san>.getposx - im1.getw/2, <san>.getposy-250->igetsc );
+		im2.setpos( im1.getpx+2->igetsc1, im1.getpy+1 );
+		im2.move( -damage,0);
+		im2.clip( im1.getpx+2->igetsc1, 0, im1.getex-2->igetsc1, iResY );
+	}
+	bool lup(int id)	{
+		damage += id;
+		.update;
+		damage>=im2.getw;
+	}
+	refresh	{
+		_ = .lup(-damage);
+	}
+	end	{
+		im1.hide;
+		im2.hide;
+	}
+}
+
+game MK2 : DziejeGame	{
+	init	{
+		DziejeGame::init("mk2");
+		.path = ("mk");
+		
+		.gamebg;
+		.imgs = (A, "bg1.pyz", "woj1.pyzL 50", "woj2.pyz 70", "bari3.pyzP 5", "haset3.pyzP 5", "cheti3.pyz 60", "cyn3P.pyz 5", "klawisze.pyz 10");
+		.minitpos;
+		
+		// 13.02.2011
+		new Button butpad;
+		new gmimgvec grpad;
+		new bool butpadclicked = false;
+		"grpad" .* "klaw2.pyz";
+		grpad.eval( func {
+			.setz(15);
+			.Button_std;
+			//.addmethod("butclick", func {} );
+			butpad.add(this);
+			} );
+		
+		if( !igmipad )	{
+			grpad.hide;
+		}
+		
+		.newancounterh("cntbum", "bums", "bum.pyz", 200, 10);
+		
+		.sfxs = (A, "zbijaszklo 50", "wyrzut 50", "zwiewa 50", "au1 30", "au2 30");
+		//("woj1-ch : "+(ancheti3.getposx-anwoj1.getposx))->print;
+		//("woj2-ch : "+(ancheti3.getposx-anwoj2.getposx))->print;
+		
+		new classsndbank bbum;
+		bbum.load("sfx/cios", 1, 3, 0, 1);
+		bbum.setvol(40);
+		
+		anwoj1.ansetsframe("hit", "bum");
+		anwoj2.ansetsframe("hit", "bum");
+		ancheti3.ansetsframe("hit", "bum");
+		int x[2];
+		|x0, x1| = classansearcher::firstnotrexy1("anwoj1");
+		anwoj1.vars2(A, "ihit", 230->igetsc, "borl", 360->igetsc, "borr", 618->igetsc, "dir", "r", "speed", 8->igetsc, "wojx",x0-anwoj1.getpx,"wojy",x1-anwoj1.getpy);
+		|x0, x1| = classansearcher::firstnotrexy1("anwoj2");
+		anwoj2.vars2(A, "ihit", 296->igetsc, "borl", 243->igetsc, "borr", 618->igetsc, "dir", "r", "speed", 7->igetsc, "wojx",x0-anwoj2.getpx,"wojy",x1-anwoj2.getpy);
+		|x0, x1| = classansearcher::firstnotrxy1("ancheti3");
+		ancheti3.vars2(A, "ihit", 112->igetsc, "borl", 529->igetsc, "borr", 793->igetsc, "dir", "l", "speed", 9->igetsc, "wojx",x0-ancheti3.getpx,"wojy",x1-ancheti3.getpy );
+		ancheti3.ansetsframe("kick", "bum");
+		|x0, x1| = classansearcher::firstnotrxy1("ancheti3");
+		ancheti3.vars2(A,"kickx", x0-ancheti3.getpx-5->igetsc, "kicky", x1-ancheti3.getpy+10->igetsc);
+		anwoj1.addmethod("onfinish", "finwoj");
+		anwoj2.addmethod("onfinish", "finwoj");
+		anwoj1.addmethod("onendframe", "framewoj");
+		anwoj2.addmethod("onendframe", "framewoj");
+		
+		new gmimgvec grwoj;
+		grwoj.add("anwoj1");
+		grwoj.add("anwoj2");
+		anwoj2.play("stand");
+		anwoj1.play("stand");
+		ancheti3.addmethod("onfinish", "chetiend");
+		ancheti3.addmethod("onendframe", "framecheti");
+		ancheti3.play("stand");
+		
+		new mklive mkw1("anwoj1");
+		new mklive mkw2("anwoj2");
+		new mklive mkch("ancheti3");
+		
+		.sounds = (A,
+			":bari1", "Trzymaj siê Cheti zaraz ci pomogê!", func { anbari3.anplayfin(1, func { <GAME> {
+				.imgs = (A, "bgrzut.pyz 400", "rzut.pyz 410", "wazon.pyzH 420", "maska3.pyz", "bari4.pyz 5");
+				.minitpos;
+				fxwyrzut.playloop;
+				anrzut.anplayfin(0, func { <GAME> {
+					delete anbgrzut;
+					delete anbari3;
+					anrzut.hide;
+					anwazon.addmethod("onendframe", func {
+						if( .framename=="bum" )	{
+							igmstate = 4;
+							fxwyrzut.stop(false);
+							fxzbijaszklo.play;
+							anwoj1.play("bum");
+							anwoj2.play("bum");
+						}
+						} );
+					anwazon.play(0);
+					}; } );
+				}; } ); },
+			":bari2", "Hurra! Zwyciê¿yli¶my!", func {	ccs.close( func { gameapi.play("MK3"); } ); }
+			);
+		
+		igmstate = 1;
+	}
+	minitpos	{
+		anwoj1.setpos(382->igetsc, 612->igetsc);
+		anwoj2.setpos(273->igetsc, 638->igetsc);
+		
+		ancheti3.setpos(781->igetsc,621->igetsc);
+	}
+	// 13.02.2011
+	butpad_lclick	{	butpadclicked = true;	}
+	butpad_lrel	{	butpadclicked = false;	}
+	mpushed(string s)	{
+		if( butpadclicked && grpad.isin(mouse.getpos,1,1) )	{
+			<grpad.getsfound>.actionname==s;
+		} else false;
+	}
+	// end
+	chetiend	{
+		if( igmstate!=1 )	{
+			.play("stand");
+			return;
+		}
+		if( keyboard.iskeydown("z") || .mpushed("punch") )	{
+			.play("hit");
+		} else if( keyboard.iskeydown("x") || .mpushed("kick") )	{
+			.play("kick");
+		} else if( keyboard.iskeydown("left") || .mpushed("left") )	{
+			.mgo("l");
+		} else if (keyboard.iskeydown("right") || .mpushed("right") )	{
+			.mgo("r");
+		} else .play("stand");
+	}
+	chetister	{
+		if( .isplaying("stand") )	.chetiend;
+	}
+	fromcheti	{	ancheti3.getposx - .getposx; }
+	finwoj	{
+		if( igmstate==3 )	{
+			.play("stand");
+			return;
+		} else if (igmstate==4)	{
+			if( this == "anwoj2") {
+				.hide;
+				.cbplay("bari2");
+				anbari4.play(0);
+			}
+			return;
+		}
+		@x = .fromcheti;
+		@x2 = ihit + ancheti3.ihit;
+		if( x<x2 ) {
+			@id = 4->rand;
+			if( id==0 )	.mgo("l");
+			else if(id==1) .play("unik");
+			else .play("hit");
+		} else if( x <= x2+50->igetsc )	{
+			if( 3->rand )
+				.play("hit");
+			else {
+				.mgo("l");
+			}
+		} else if( 2->rand==0 )	{
+			.mgo("r");
+		} else .play("stand");
+	}
+	mgo(string s)	{
+		dir = s;
+		.play("go");
+	}
+	framewoj	{
+		@s;
+		<mklive>.update;
+		if( .isplaying("go") )	{
+			if( dir=="l" )	{
+				if( .getposx > borl ) .move(-speed,0);
+			} else {
+				if( .getposx < borr ) .move(speed,0);
+			}
+		} else if (.isplaying("hit") && .framename=="bum" )	{
+			@x = .getpx+wojx;
+			@y = .getpy+wojy;
+			if( ancheti3.isin(x,y,1,1) )	{
+				s = cntbum.get;
+				<s>.setpos(x, y);
+				<s>.play(0);
+				bbum.play;
+				ancheti3.play("ups");
+				ancheti3.damage(12);
+				if( mkch.lup )	{
+					igmstate = 2;
+					ancheti3.stop(false);
+					anwoj1.stop(false);
+					anwoj2.stop(false);
+					ccs.playfin( func {
+						mkch.refresh;
+						mkw1.refresh;
+						mkw2.refresh;
+						anwoj1.setpos( anwoj1.borl, anwoj1.getposy );
+						anwoj2.setpos( anwoj2.borl, anwoj2.getposy );
+						ancheti3.setpos( ancheti3.borr, ancheti3.getposy );
+						ancheti3.play("stand");
+						anwoj1.play("stand");
+						anwoj2.play("stand");
+						}, func { igmstate = 1; } );
+				}
+			}
+		}
+	}
+	framecheti	{
+		@s;
+		<mklive>.update;
+		if( .isplaying("go") )	{
+			if( dir=="l" )	{
+				if( .getposx > borl ) .move(-speed,0);
+			} else {
+				if( .getposx < borr ) .move(speed,0);
+			}
+		} else if (.isplaying("hit") && .framename=="bum" )	{
+			@x = .getpx+wojx;
+			@y = .getpy+wojy;
+			if( grwoj.isin(x,y,1,1) )	{
+				@s2 = grwoj.getsfound;
+				<"fxau"+(grwoj.getfound+1)>.playif;
+				s = cntbum.get;
+				<s>.setpos(x, y);
+				<s>.play(0);
+				bbum.play;
+				.mdamage(s2, 10);
+			}
+		} else if (.isplaying("kick") && .framename=="bum" )	{
+			@x = .getpx+wojx;
+			@y = .getpy+wojy;
+			if( grwoj.isin(x,y,1,1) )	{
+				@s2 = grwoj.getsfound;
+				<"fxau"+(grwoj.getfound+1)>.playif;
+				s = cntbum.get;
+				<s>.setpos(x, y);
+				<s>.play(0);
+				bbum.play;
+				.mdamage(s2, 20);
+			}
+		}
+	}
+	mdamage(string s, int id)	{
+		id = id->igetsc1;
+		<s>.play("ups");
+		string s2 = <s>.mklive;
+		<s2>.damage(id);
+		if( <s2>.lup )	{
+			igmstate = 3;
+			ancheti3.stop(false);
+			anwoj1.stop(false);
+			anwoj2.stop(false);
+			anwoj1.play("stand");
+			anwoj2.play("stand");
+			ancheti3.play("stand");
+			mkw1.end;
+			mkw2.end;
+			mkch.end;
+			.cbplay("bari1");
+		}
+	}
+	keyboard_keydown	{
+		if( igmstate==1 )	{
+			ancheti3.chetister;
+		}
+	}
+}
+
+game MK3 : DziejeGame	{
+	init	{
+		DziejeGame::init("mk3");
+		.path = ("mk");
+		
+		.gamebg;
+// 		bari5.pyz  bg5.pyz  cheti5.pyz  cynthia5.pyz  haset5.pyz
+		.imgs = (A, "bg5.pyz", "bari5P.pyz 5", "cheti5.pyz 5", "cynthia5.pyz 5", "haset5.pyz 5");
+		.sounds = (A,
+			":haset1", "Cheti; Wybacz! Nie mam nic na swoje usprawiedliwienie; Nie pozwól rzuciæ mnie krokodylom na po¿arcie; buu", func {
+				.cbplay("cheti1"); anhaset5.play(1); ancheti5.play(0);
+				},
+			":cheti1", "Masz szczê¶cie Hasecie ¿e ksiê¿niczka Cynthia nie jest m¶ciwa; Ale twoja kariera w Egipcie siê skoñczy³a", func {
+				.cbplay("cheti2"); ancheti5.play(1);
+				},
+			":cheti2", "Masz 5 obrotów klepsydry ¿eby znikn±æ z Egiptu inaczej skoñczysz jako przynêta w Nilu", func {
+				ccs.close( func { gameapi.play("MK4"); } );
+				}
+			);
+		ccs.enter( func { anhaset5.play(0); .cbplay("haset1"); } );
+	}
+}
+
+game MK4 : DziejeGame	{
+	init	{
+		DziejeGame::init("mk4");
+		.path = ("mk");
+		
+		.gamebg;
+// 		bg6.pyz  ptak6.pyz  ship6.pyz
+		.imgs = (A, "bg6.pyz", "ptak6.pyz 5", "ship6.pyz 10");
+		anbg6.advclip;
+		anptak6.advclip;
+		anship6.advclip;
+		anbg6.ansetbpos(X2 - anbg6.getw,Y1);
+		anship6.ansetbpos(X1,Y1);
+		anptak6.ansetbpos(X1-anptak6.getw, Y1+60);
+		new int ikoniec = 0;
+		.sounds = (A,
+			"snd1", "Jeszcze tego samego wieczora Haset zbieg³ z Egiptu do Fenicji; Wkrótce i stamt±d musia³ uciekaæ kiedy okaza³o siê ¿e za³o¿ony przez niego bank po¿ycza³ podrabiane z³oto; Ale to ju¿ temat na inn± opowie¶æ", "mcheckend"
+			);
+		igmstate = 1;
+		ccs.enter( func {
+			.cbplay("snd1");
+			anptak6.play(0);
+			.cycle = ("timcyk", func {
+				match(igmstate)	{
+					1 => {
+						anbg6.move(1,0);
+						anptak6.move(2,0);
+						if( anbg6.getpx==X1 )	{
+							igmstate = 2;
+						}
+					}
+					2 => {
+						anship6.move(-1,0);
+						anptak6.move(1,0);
+						if( anship6.getex<X1 )	igmstate = 3;
+					}
+					3 => .mcheckend;
+					? => ;
+				}
+				.play;
+				} );
+			timcyk.play;
+			} );
+	}
+	mcheckend	{
+		ikoniec++;
+		if( ikoniec==2 )	{
+			ccs.close( func { gameapi.play("CSend1"); } );
+		}
+	}
+}
+
+game CSend1 : DziejeGame	{
+	init	{
+		DziejeGame::init("csend");
+		
+		.gamebg;
+// 		bari2.pyz  bari4.pyz  bari6.pyz  bg2.pyz  bg4.pyz  bg6.pyz
+// bari3.pyz  bari5.pyz  bg1.pyz    bg3.pyz  bg5.pyz  prof6.pyz
+		.img = ("bg1.pyz");
+		.sounds = (A,
+			"snd1", "Faraon by³ tak szczê¶liwy ¿e Cheti uratowa³ jego ukochan± córkê ¿e pozwoli³ im siê pobraæ; Cheti zosta³ te¿ ksiêciem jednej z prowincji", func { <GAME> {
+				delete anbg1;
+				new gmimgvec grel2;
+				"grel2" ..< "bg2.pyz";
+				grel2.hide;
+				<grel2.first>.show;
+				.img = ("bari2.pyzP");
+				anbari2.setpos(X1, Y2);
+				anbari2.advclip;
+				anbari2.addmethod("onendframe", func { .move(10,0); });
+				new int idtim2 = 1;
+				new int iend2 = 0;
+				.timer = ("tim2", 500, func {
+					<grel2.get(idtim2)>.show;
+					idtim2++;
+					if( idtim2<grel2.size )	{
+						.play;
+					} else .mend2;
+					} );
+				tim2.play;
+				.cbplay("snd2");
+				}; },
+			"snd2", "Pod panowaniem Chetiego i Cynthii prowincja szybko rozkwita³a; Ludzie siê bogacili budowali pa³ace ¶wi±tynie i piramidy; A ja codziennie drepta³em do szko³y", "mend2",
+			"snd3", "Pilnie uczy³em siê hieroglifów; Postanowi³em zostaæ kronikarzem i latami æwiczy³em sztukê pisania", func { <GAME> {
+				delete anbg3;
+				delete anbari3;
+				.imgs = (A, "bg4.pyz", "bari4P.pyz 5");
+				.cbplay("snd4");
+				}; },
+			"snd4", "Cheti z Cynthi± bardzo siê kochali do koñca ziemskiego ¿ycia; Byli moimi najlepszymi przyjació³mi", func { <GAME> {
+				delete anbg4;
+				delete anbari4;
+				.imgs = (A, "bg5.pyz", "bari5P.pyz 5");
+				.cbplay("snd5");
+				}; },
+			"snd5", "Teraz po³±czyli siê na wieki a ja nied³ugo do nich do³±czê; Najpierw jednak ukoñczê dom dla ich ziemskich cia³", func { <GAME> {
+				delete anbg5;
+				delete anbari5;
+				.imgs = (A, "bg6.pyz", "bari6P.pyz 5", "prof6H.pyz 5");
+				.cbplay("snd6");
+				new filter ftbari;
+				new filter ftprof;
+				ftbari.link("anbari6");
+				ftprof.link("anprof6");
+				.timer = ("tim6", 600, func {
+					@id = ftbari.getopacity - 50;
+					if( id>0 )	{
+						ftprof.setopacity(255 - id);
+						ftbari.setopacity(id);
+						.play;
+					} else {
+						anbari6.stop(false);
+						anbari6.hide;
+						ftprof.setopacity(255);
+						ftprof.unlink;
+						ftbari.unlink;
+						.cbplay("prof1");
+					}
+					} );
+				}; },
+			"snd6", "Ostatnie obrazy wieñcz± dzie³o mojego ¿ycia; Oto ja Bari uwolniony przez Chetiego dziêkujê mu za przyja¼ñ i wykszta³cenie; Niech moje obrazy towarzysz± jemu i Cynthii na wieczno¶æ; ¯egnajcie najdro¿si", func { tim6.play; ftprof.setopacity(0); anprof6.show; },
+			":prof1", "Wspania³a historia; Witaj piêkna Cynthio witaj dzielny Cheti witaj utalentowany Bari; Jestem szczê¶liwy ¿e was pozna³em", func { ccs.close( func {
+				ccs.show;
+				new string sfont = .stdfont(64);
+				.lang_db("dbend", "end");
+				.newtext("txtend", dbend.get(0,0), sfont, .white);
+				txtend.setz( ccs.getz+1 );
+				txtend.setpos( (iResX-txtend.getw)/2, (iResY-txtend.geth)/2 );
+				new int igrey = 255;
+				.cycle = ("tim7", func {
+					igrey-=5;
+					if( igrey>=0 )	{
+						txtend.createtxt( .grey(igrey) );
+						.play;
+					} else .mkoniec;
+					} );
+				.timer = ("tim72", 3000, func { tim7.play; } );
+				tim72.play;
+				} ); }
+			);
+		ccs.enter( func { .cbplay("snd1"); } );
+	}
+	mend2	{	<GAME> {
+		iend2++;
+		if( iend2==2 )	{
+			delete anbari2;
+			grel2.deleteallgm;
+			delete grel2;
+			.imgs = (A, "bg3.pyz", "bari3.pyzP 5");
+			.cbplay("snd3");
+		}
+	}; }
+	mkoniec	{
+		ccs.hide;
+		gameapi.play("MenuBaj");
+	}
+	mouse_rclick	{
+		if( igmdebug ) .mend2;
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

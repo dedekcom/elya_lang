@@ -1,0 +1,47 @@
+class classadvkleo : classadv	{
+	init()	{
+		igmstate = 0;
+		classadv::init();
+		this.setwavpath("sounds/kleolicz/");
+		this.newsnd("sfxgetitem", "sfx/getitem.wav");
+		bsms.setstd();		// ustawia standardowo 
+		//clmusic.play();
+		//clbuts.reset();
+	}
+	exit()	{
+		bsms.setstd();
+	}
+	/*cloadterrain(string spath, string sbkg, string ster)	{
+		this.setgraphpath( spath );
+		this.csetbkg( sbkg );	
+		this.cloadbgelem( ster );
+	}*/
+	/***********************************************************/
+	mbuildmask(string sstr, string sact, string sname)	{
+		this.caddelemtomask("clm", sstr, sact, sname, "mclickmask");
+	}
+	/***********************************************************/
+	advclick()	{
+		if(igmstate==0 || igmstate==5)	{
+			if(igmdebug==true)	{
+				this.cactsndstop(true);
+			}
+		} else if(igmstate==1)	{
+			//ptpiast.goto( mouse.getpx(), mouse.getpy() );
+		}
+	}
+	/***********************************************************/
+	keydown()	{
+		if( igmdebug==false )	{	return;	}
+		if( keyboard.iskey("p")==true )	{
+			clpause.pause();
+		} else if( keyboard.iskey("escape")==true )	{
+			claskexit.askexittomenu();
+		} else {
+// 			clnextgm.checkkey();
+		}
+	}
+	/***********************************************************/
+}
+
+

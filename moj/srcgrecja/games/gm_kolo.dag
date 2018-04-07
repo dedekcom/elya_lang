@@ -1,0 +1,31 @@
+game Kolo : DziejeGame, TPainter	{
+	init(int id)	{
+		new int ikolololevel = id;
+		DziejeGame::init("kolo");
+		.tinit(null, null, "bkg.pyz", "pedzel.pyz", "draw"+id+".pyz", "farby.pyz", "ld", "kolo_"+ikolololevel+".db");
+		.imgs = (A, "farbymask.pyz", "o" + (1+ikolololevel) + ".pyz", "ozdobnik.pyz" );
+		
+		.sounds = (A,
+			"sndhelp", "Aby wyczy¶ciæ obrazek kliknij przycisk restart", null
+			);
+		.sfxs=(A,"pedzel", "pedzel2");
+		
+		.unlock;
+	}
+	clbuts_help_butclick	{	.crplay("sndhelp");	}
+	onpaint	{	fxpedzel.play;	}
+	onsetbrush	{	fxpedzel2.play;	}
+	but1_lclick	{	if( sobject!=null ) .savekols;	}
+	clbuts_reset_butclick	{
+		fxpedzel.play;
+		.tp_default_erase;
+	}
+	claskexit_ask	{	mouse.show;	}
+	claskexit_no	{	mouse.hide;	}
+	mouse_lclick	{	.tp_mouse_lclick;	}
+	mouse_move	{	.tp_mouse_move;	}
+	game_exit	{
+		.tp_exit;
+		.tp_savekols;
+	}
+}

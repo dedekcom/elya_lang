@@ -1,0 +1,59 @@
+// engine.setdebugstate(1);
+
+new int igmdebug = 0;
+
+/**************************************************************/
+new int igmwinlocal = 1;		// special folder windows
+new int igmmac = 0;
+new int igmipad = 0;
+new int ibigfish = 0;
+new int igamehouse = 0;
+
+new string sgmdeveloper = "PlayWay";
+new string sgmproject = "TitanicKeysToThePast";
+
+if( igmdebug && (igmipad||igmmac) )	{
+	engine.addmethod("getsavepath", func { "saves/"; } );
+}
+
+
+/**************************************************************/
+
+public string getwinpath(string spath)	{
+	//("searching: " + spath)->print;
+	string s = engine.getspecialpath("appdata");
+	if( s!=null )	{
+		s + "/" + sgmdeveloper + "/" + sgmproject + "/" + spath;
+	} else spath;
+}
+
+public getsavepath	{
+	if( igmipad || igmmac )	{
+		engine.getsavepath;
+	} else {
+		(igmwinlocal ?  .getwinpath("saves/") :  "saves/");	
+	}
+}
+
+/**************************************************************/
+
+public buildsavedir	{
+	if( igmwinlocal && !igmipad && !igmmac )	{
+		string s = engine.getspecialpath("appdata");
+		if( s!=null )	{
+			s += "/" + sgmdeveloper;
+			int odp = engine.mkdir(s);
+			odp = 0;
+			if( odp==0 || odp==1 )	{
+				s +=  "/" + sgmproject;
+				odp = engine.mkdir(s);
+				odp = 0;
+				if( odp==0 || odp==1 )	{
+					s+= "/saves";
+					_ = engine.mkdir(s);
+				}
+			}
+		}
+	}
+}
+.buildsavedir;

@@ -1,0 +1,69 @@
+
+gameapi.play("ElTest1");
+
+|new int iResX, new int iResY| = engine.getscreenres;
+
+
+game ElTest1	{
+	init	{
+// 		iResX.print;
+// 		iResY.print;
+		
+		new font ftvera;
+		ftvera.load("configs/fonts/Vera.ttf", 20);
+		
+		//z1 - pokaze jedna grafike. (nie moze byc png)
+		new img imgbkg;
+		imgbkg.load("gfx/bkg.jpg");
+		
+		//z2 - poczeka 3 sekundy
+		.timer = ("tim1", 3000, func { sndsowa.play; } );
+		
+		//z3 - odpali muzyczke
+		new snd sndsowa;
+		sndsowa.load("sounds/sfx/sowa1.wav");
+		sndsowa.addmethod("onfinish", func { tim2.play; } );
+		
+		//z4 - poczeka 3 sekundy
+		.timer = ("tim2", 3000, func { txt1.show; tim3.play; } );
+		
+		//z4 - napisze cos fontem ttf
+		new text txt1;
+		txt1.setfont("ftvera");
+		txt1.set("Hello World!");
+		txt1.createtxt( 210,110,210 );
+		txt1.hide;
+		txt1.setpos( (iResX-txt1.getw)/2, (iResY-txt1.geth)/2 );
+		
+		new anima ankajko;
+		ankajko.load("gfx/kajko2.pyz");
+		ankajko.hide;
+		ankajko.setpos(700, 400);
+		ankajko.addmethod("onfinish", func {
+			.play( (.actionnr(-1)+1) % .nofactions );
+			} );
+			
+		//z5 - poczeka 3 sekundy
+		.timer = ("tim3", 3000, func {
+			txt1.set("a teraz napis number 2, ale leci: bgrsowa.ogg a kajko tanczy");
+			txt1.createtxt( 2,11,21 );
+			txt1.setpos( 10, 10 );
+			txt1.show;
+			sndsowa.load("sounds/sfx/bgrsowa.ogg");
+			sndsowa.playloop;
+			ankajko.play(0);
+			} );
+		
+		//z6 - zrobi goto do z1 i zaladuje inna grafike muzyke i napisze cos innego fontem ttf
+		tim1.play;
+	}
+	txtset(string s)	{
+		.set(s);
+		.create;
+	}
+	timer=(string sname, int itime, string sfun)	{
+		new timer <sname>;
+		<sname>.setdelay(itime);
+		<sname>.addmethod("onfinish", sfun);
+	}
+}

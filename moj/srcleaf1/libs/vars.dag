@@ -1,0 +1,245 @@
+/**************************************************************/
+	// zmienne globalna - stany gry
+new int igmstate;
+new int igmdebug;
+new int igmeasy;
+new int igmdemo;
+new int igmbegin;
+
+new int igmwinlocal;		// special folder windows
+new string sgmproject = "DagielLeaf1";
+
+new string sgmfontfile = "configs/fonts/normal.ttf";
+new string sgmfontmono = "configs/fonts/mono.ttf";
+new string sgmfontmonobold = "configs/fonts/monobold.ttf";
+new string sgmfontbold = "configs/fonts/monobold.ttf";
+new string sgmfontitalic = "configs/fonts/timesit.ttf";
+
+new string SFXPATH = "sounds/sfx/";
+new string BGRPATH = "sounds/bgr/";
+new string MUSICPATH = "sounds/music/";
+new string LANG = "pl";	// pl, eng, cze, slo
+new string SNDPATH = "sounds/";
+if( LANG=="pl" ) LANG="";
+if( LANG.length > 0 ) SNDPATH += LANG + "/";
+
+new int iResX = 800;
+new int iResY = 600;
+
+/**************************************************************/
+	// standardowa klasa do tworzenia zmiennych
+class newvars		{
+	init()	{
+		new string _sclpath = "";
+		new string _sclwavpath = "";
+	}
+	string _checkfont(string sfont, int isize, string sfnt)	{
+		if( sfont==null )	sfont=sgmfontfile;
+		if( sfont.contains(".ttf") )	{
+			new font <sfnt>;
+			<sfnt>.load( sfont, isize );
+			sfont = sfnt;
+		}
+		sfont;
+	}
+	string checkfont(string sfont, int isize)	{
+		._checkfont(sfont, isize, "_fnt");
+	}
+	bool begingame()	{
+		igmbegin = !igmbegin;
+		!igmbegin;
+	}
+	newarray(string styp, string sbase, int size)	{
+		if( size<= 0 )	return;
+		size--;
+		while(size>=0)	{
+			new <styp> <sbase+size>;
+			size--;
+		}
+	}
+	setgraphpath(string spath)	{	_sclpath = spath;	}
+	setwavpath(string spath)	{ _sclwavpath = spath; }
+	string getgraphpath()	{	return _sclpath; }
+	string getsndpath()	{	return _sclwavpath; }
+	getpath(string sfile)	{
+		if( sfile.getb(0,1)=="$" ) sfile.strsubb(1);
+		else .getgraphpath + sfile;
+	}
+	newanima(string sname, string sfile, int z)	{
+		new anima <sname>;
+		<sname>.load( .getpath(sfile) );
+		<sname>.setz(z);
+	}
+	newstdanima(string sname, string sfile, int z)	{
+		this.newanima(sname, sfile, z);
+		this.stdanaction(sname);
+	}
+	copyanimaactz(string ssrc, string sdest, string saction, int z)	{
+		this.copyanimaact(ssrc, sdest, saction);
+		<sdest>.setz(z);
+	}
+	copyanimaact(string ssrc, string sdest, string saction)	{
+		this.copyanima(ssrc, sdest);
+		<sdest>.setframe( saction, 0 );
+	}
+	copyanima(string ssrc, string sdest)	{
+		new anima <sdest>;
+		<sdest>.copy( ssrc );
+	}
+	copyanimas(string san, string sname, int istart, int ilosc)	{
+		if (ilosc<0)	return;
+		for(int i=0; i<ilosc; i++)	this.copyanima( san, sname + (istart + i)  );
+	}
+	newanimas(string sname, string sfile, int z, int ilosc)	{
+		if(ilosc<0) return; 
+		this.newanima(sname+"0", sfile, z);		// pierwsza load z zerem
+		this.copyanimas(sname+"0", sname, 1, ilosc-1);		// pozostale kopiowane z niej
+	}
+	int newanframesgr(string san, string sname, int iaction, string sgr)	{	// tworzy animacje z klatek
+		int ile = <san>.nofframes( iaction );
+		this.copyanimas( san, sname, 0, ile );
+		for(int i=0; i<ile; i++)	{
+			<sname+i>.setframe(iaction, i);
+			if( sgr!=null )	{	<sgr>.add( sname+i );	}
+		}
+		return ile;		// zwraca ilosc stworzonych animacji
+	}
+	int newanframes(string san, string sname, int iaction)	{	// tworzy animacje z klatek
+		return this.newanframesgr(san,sname,iaction,null);
+	}
+	newcanvas(string sname, int w, int h, int r, int g, int b, int a, int z)	{
+		new img <sname>;
+		<sname>.create(w,h,r,g,b,a);
+		<sname>.setz(z);
+	}
+	newimg(string sname, string sfile, int z)	{
+		new img <sname>;
+		<sname>.load( .getpath( sfile ) );
+		<sname>.setz(z);
+	}
+	copyimg(string ssrc, string sdest)	{
+		new img <sdest>;
+		<sdest>.copy(ssrc);
+	}
+	playmusic(string sfile)	{gameapi.playmusic( MUSICPATH + sfile );	}
+	newsndfree(string sname, string sfile)	{
+		new snd <sname>;
+		<sname>.setstartstopflag(false, true);
+		<sname>.load( this.getsndpath() + sfile);
+	}
+	snewsnd(string sname, string sfile)	{
+		this.newsnd(sname,sfile);
+		<sname>.addmethod("onfinish","__std_finish");
+	}
+	_newsnd(string sname, string sfile)	{
+		new snd <sname>;
+		if( !sfile.contains(".") ) sfile += ".wav";
+		<sname>.load( sfile);
+		if( igmsubtitle )	{
+			subtitle.register(sname, sfile);
+		}
+	}
+	newsfx(string sname, string sfile)	{	._newsnd(sname, SFXPATH + sfile);	}
+	newbgr(string sname, string sfile)	{	._newsnd(sname, BGRPATH + sfile);	}
+	newbgrloop(string s, string s2)	{	.newbgr(s,s2); .sndplayloop(s);	}
+	newsnd(string sname, string sfile)	{	._newsnd(sname, .getsndpath+sfile);	}
+	newsndloop(string sname, string sfile)	{
+		this.newsnd(sname,sfile);
+		this.looponfinish1( sname );
+	}
+	looponfinish1( string sob )	{<sob>.addmethod("onfinish","_stdsndloop");	}
+	sndplayloop(string sob)	{
+		this.looponfinish1( sob );
+		<sob>.play();
+	}
+	newsnds(string sbase, int inamestart, string sfilebase, int ifilefrom, int ifileto)	{
+		string s;
+		int ile = ifileto-ifilefrom+1;
+		for(int i=0; i<ile; i++)	{
+			s = sbase + (inamestart + i);
+			new snd <s>;
+			<s>.load( this.getsndpath() + sfilebase + (ifilefrom+i) + ".wav" );
+		}
+	}
+	newtimer(string sname, int idelay, int iticks)	{
+		new timer <sname>;
+		<sname>.settick(iticks);
+		<sname>.delay(idelay);
+	}
+	newtimercycle(string sname, int icycle, int iticks)	{
+		new timer <sname>;
+		<sname>.settick(iticks);
+		<sname>.setcycle(icycle);
+	}
+	stdanaction(string san)	{
+		string s = <san>.actionname();
+		if( s.contains("L")  )	this.looponfinish(san);
+		else if( s.contains("H")  )	this.hideonfinish(san);
+		if( s.contains("P")  )	<san>.play(-1);
+	}
+	int newanactionsgr(string san, string sname, string sgr)	{
+		int ile = <san>.nofactions();
+		this.copyanimas( san, sname, 0, ile );
+		string s;
+		for(int i=0; i<ile; i++)	{
+			s = sname+i;
+			<s>.setframe(i,0);
+			this.stdanaction(s);
+			if( sgr!=null )	{<sgr>.add( s );}
+		}
+		return ile;
+	}
+	int newanactions(string san, string sname)	{return this.newanactionsgr(san,sname,null);	}
+	int newanfrbyactgr(string san, string sname, string sgr)	{
+		int ile = <san>.nofactions();
+		for( int i=0; i<ile; i++)	_ = this.newanframesgr(san, sname+i+"_", i, sgr);
+		return ile;
+	}
+	int newanfrbyact(string san, string sname)	{return this.newanfrbyactgr(san,sname,null);	}
+	int loadanfrbyact(string san, string sfile, int z)	{
+		string s = "_"+san;
+		this.newanima(s,sfile,z);
+		int ile = this.newanfrbyact(s, san);
+		<s>.hide();
+		return ile;
+	}
+	int loadanactions(string san, string sfile, int z)	{
+		string s = "_"+san;
+		this.newanima(s, sfile, z);
+		int ile = this.newanactions(s, san);
+		<s>.hide();
+		return ile;
+	}
+	int loadanframes(string san, string sfile, int iaction, int z)	{
+		string s = "_"+san;
+		this.newanima(s, sfile, z);
+		int ile = this.newanframes(s, san, iaction);
+		<s>.hide();
+		return ile;
+	}
+	newbutimg(string sbut, string sstd, string smov, string sclick, string smouse)	{
+		new button <sbut>;
+		<sbut>.set(sstd, smov, sclick);
+		<sbut>.setmouse(smouse);
+	}
+	newbutan(string sbut, string sanstd, string sanmov, string sanclick, string smouse)	{
+		new button <sbut>;
+		<sbut>.setan(sanstd, sanmov, sanclick);
+		<sbut>.setmouse(smouse);
+	}
+	/*****************************************************/
+	newdb(string sdb, string sfile)	{
+		new db <sdb>;
+		<sdb>.load( .getpath(sfile) );
+	}
+	newdbscript(string sdb, string sfile)	{
+		new db <sdb>;
+		//<sdb>.loadscript( this.getgraphpath() + sfile );
+		<sdb>.loadscritp( .getpath(sfile) );
+	}
+	vargmset(string svar, def val)	{
+		string sg = gameapi.getgamename();
+		if( !<sg>.hasvar(svar) )	<sg>.varnew( val.gettype(), svar );
+		<svar> = val;
+	}
+}

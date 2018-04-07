@@ -1,0 +1,7 @@
+
+/****************************************************/
+game gamedefadv : classadvcontroller	{
+	init()	{
+		classadvcontroller::init();
+	}
+}

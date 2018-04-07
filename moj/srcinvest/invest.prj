@@ -1,0 +1,17 @@
+path:
+	srcinvest/
+
+src:
+	system.dag
+	basetypes.dag
+	containers.dag
+	buttons.dag
+	texts.dag
+	invest.dag
+	invest2.dag
+	
+all:
+	dd1.dag
+
+out:
+	srcinvest/invest.odd

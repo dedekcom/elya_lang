@@ -1,0 +1,5 @@
+game Pole : DziejeGame	{
+	init	{
+		DziejeGame::init("pole");
+	}
+}

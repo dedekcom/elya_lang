@@ -1,0 +1,60 @@
+
+game Witraz : StdGame	{
+	init	{
+		StdGame::init("witraz");
+		
+		.imgs = (A, "bkg.pyz", "konturpod.pyz 10");
+		new gmimgvec grels;
+		"grels" ..< "witraz.pyz";
+		grels.hash;
+		.restorels;
+		
+		new Rect rec(256,26,750,420);
+		new Rect rec2(120,15,1012-120,642-15);
+		rec.fitgrouprand("grels");
+		
+		.sfxs = (A, "muruje1", "stepl1");
+		mus.playstr("logiczne.ogg -l");
+		
+		new DelayMover cmov;
+		
+		.sounds = (A, ":kajko1", "Spójrz ze szkie³ek mo¿na utworzyæ witra¿yk", func { cmov.unlock; } );
+		ccs.enter( func { .cbplay("kajko1"); } );
+	}
+	cmov_GET	{
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxstepl1.play;
+			@s = grels.getsfound;
+			grels.remove(s);
+			<s>.setz(200);
+			.mssetobj( s );
+		}
+	}
+	mend	{
+		ccs.close( func { .gotoadv("adpokojkk", "gameadpokojkk0"); } );
+	}
+	cmov_PUT	{
+		string s = .getfree;
+		fxmuruje1.play;
+		if( <s>.aninlod(30) )	{
+			<s>.setz(11);
+			<s>.setpos(0,0);
+			if( grels.empty )	{
+				.mend;
+			} else {
+				
+			}
+		} else {
+			grels.add(s);
+			.restorels;
+			rec2.fit(s);
+		}
+	}
+	restorels	{	grels.sortz(20);	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .mend;
+	}
+}

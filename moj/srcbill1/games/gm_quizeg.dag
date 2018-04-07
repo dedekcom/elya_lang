@@ -1,0 +1,253 @@
+
+new string QuizMode = "l";		// easy, medium, hard
+
+game Quiz : DziejeGame	{
+	init	{
+		DziejeGame::init("quiz");
+		
+		.sounds = (A,
+			"sndl1", "który obrazek przedstawia pieczywo wypiekane w Egipcie?", "mgo",
+			"sndl2", "wskaż głowicę egipskiej kolumny", "mgo",
+			"sndl3", "jaka bronią posługiwał się egipski łucznik?", "mgo",
+			"sndl4", "wskaż insygnia królewskie faraona", "mgo",
+			"sndl5", "podobizny których zwierząt widzisz na koronie faraona?", "mgo",
+			"sndl6", "którą koronę faraon nosił podczas bitwy?", "mgo",
+			"sndl7", "który obrazek przedstawia kontynent afrykański?", "mgo",
+			"sndl8", "podobiznę którego zwierzęcia można rozpoznać na widocznym stole ceremonialnym?", "mgo",
+			"sndl9", "które rzeczy widoczne na obrazkach wytwarzano z lnu?", "mgo",
+			"sndl10", "wskaż rydwan egipski", "mgo",
+			"sndl11", "wskaż rydwan egipski", "mgo",
+			"sndl12", "Które narzędzie zastępowało egipcjanom współczesną wiertarkę elektyczną?", "mgo",
+			"sndl13", "Pokaż wiertarkę do robienia dużych otworów w kamieniu", "mgo",
+			"sndl14", "Które narzędzia zastąpiły egipską piłę?", "mgo",
+			"sndl15", "które narzędzia zastąpiły egipską piłę?", "mgo",
+			"sndl16", "które zwierzęta egipcjanie wpuszczali do fosy?", "mgo",
+			"sndl17", "wskaż mumię", "mgo",
+			"sndl18", "do którego zwierzęcia należy czaszka widoczna na obrazku?", "mgo",
+			"sndl19", "Które zwierzę zastępowało egipcjanom współczesny ciągnik?", "mgo",
+			"sndl20", "Które zwierzę zastępowało egipcjanom współczesnyy ciągnik?", "mgo",
+			"sndl21", "Która figura geometryczna podobna jest do piramidy?", "mgo",
+			"sndl22", "wskaż egipski wachlarz", "mgo",
+			"sndl23", "wskaż egipską fryzurę", "mgo",
+			"sndl24", "wskaż egipski statek", "mgo",
+			"sndl25", "wskaż obelisk", "mgo",
+			"sndl26", "wskaż piramidę", "mgo",
+			"sndl27", "wskaż świątynię", "mgo",
+			"sndl28", "wskaz egipskiego łucznika", "mgo",
+			"sndl29", "wskaż lektykę egipską", "mgo",
+			"sndl30", "wskaż egipską biżuterię", "mgo",
+			"sndl31", "wskaż egipskie ubranie", "mgo",
+			"sndl32", "wskaz egipski wachlarz", "mgo",
+			"sndl33", "wskaż egipską fryzurę", "mgo",
+			"sndl34", "wskaż szkielet kota", "mgo",
+			
+			"sndm1", "wskaz egipski sposób zapisywania liczb", "mgo",
+			"sndm2", "wskaz egipski sposób liczenia", "mgo",
+			"sndm3", "które zwierzę było czczone w egipcie?", "mgo",
+			"sndm4", "wskaż posąg nefretete", "mgo",
+			"sndm5", "wsakaż postać o ciele lwa i człowieka", "mgo",
+			"sndm6", "wsakaż postać o ciele lwa i człowieka", "mgo",
+			"sndm7", "wskaz nemes", "mgo",
+			"sndm8", "wskaz egipskie nakrycie głowy króla", "mgo",
+			"sndm9", "wskaz egipskie nakrycie głowy króla", "mgo",
+			"sndm10", "jaką długość ma klawiatura komputera wg egipskich miar długości?", "mgo",
+			"sndm11", "wskaż głowicę egipskiej kolumny", "mgo",
+			"sndm12", "wskaż głowicę egipskiej kolumny", "mgo",
+			"sndm13", "wskaż egipskie kolumny", "mgo",
+			"sndm14", "wskaż egipski topór piechoty", "mgo",
+			"sndm15", "w jakich naczyniach egipcjanie przechowywali wino?", "mgo",
+			"sndm16", "wskaż egipski hełm chroniący głowę żołnierza", "mgo",
+			"sndm17", "który helm nie pasuje do epoki starozytnego egiptu?", "mgo",
+			"sndm18", "wskaż berło królowej egiptu", "mgo",
+			"sndm19", "która tarcza nie pochodzi ze starozytnego egiptu?", "mgo",
+			"sndm20", "która tarcza nie pochodzi ze starozytnego egiptu?", "mgo",
+			"sndm21", "wskaz tarcze egipską wg wzoru hetyckiego?", "mgo",
+			"sndm22", "wskaz tarcze urzywane przez egipcjan?", "mgo",
+			"sndm23", "wskaz egipskie odważniki do wagi", "mgo",
+			"sndm24", "wskaz egipskiego zołnierza", "mgo",
+			"sndm25", "wskaz egipskiego zołnierza", "mgo",
+			"sndm26", "który wojownik nie pasuje do epoki starożytnego egiptu", "mgo",
+			"sndm27", "która waga nie pasuje do starożytnego egiptu", "mgo",
+			"sndm28", "który obrazek przedstawia egipcjankę?", "mgo",
+			"sndm29", "który obrazek przedstawia egipcjankę?", "mgo",
+			"sndm30", "jaką wysokość miała piramida heopsa?", "mgo",
+			"sndm31", "wskaż miecz egipskiego wojownika", "mgo",
+			"sndm32", "wskaż obuwie egipskie", "mgo",
+			"sndm33", "wskaż egipski odpowiednik współczesnej gitary", "mgo",
+			"sndm34", "wskaż egipski odpowiednik współczesnej perkusji", "mgo",
+			"sndm35", "przy pomocy jakich metod budowano piramidy?", "mgo",
+			"sndm36", "z jakiego materiału robiono egipskie lekkie łodzie rybackie", "mgo",
+			"sndm37", "co współczesnemu rolnikowi zastępuje egipską sochę?", "mgo",
+			"sndm38", "które z widocznych poniżej polowych prac egipskiego rolnika wykonuje współczesny kombajn?", "mgo",
+			"sndm39", "które z widocznych poniżej polowych prac egipskiego rolnika wykonuje współczesny kombajn?", "mgo",
+			"sndm40", "Która bryła geometryczna podobna jest do piramidy?", "mgo",
+			"sndm41", "z czego egipcjanie robili mąkę?", "mgo",
+			"sndm42", "z jakiej rośliny wykonywano papirus do pisania", "mgo",
+			"sndm43", "które zwierzę nie występuje w egipcie?", "mgo",
+			"sndm44", "które zwierze nie występuje w egipcie?", "mgo",
+			"sndm45", "w której świątyni znajdują się kolumny z głowicami widocznymi na obrazku?", "mgo",
+			"sndm46", "wskaż państwo egipt na kontynencie afrykńskim", "mgo",
+			"sndm47", "na którym kontynencie rozwinęła się cywilizacja starożytnych egipcjan", "mgo",
+			"sndm48", "egipcjanie wierzyli że księżyc porusza się po niebie", "mgo",
+			"sndm49", "wskaż egipskiego pisarza", "mgo",
+			"sndm50", "wskaż egipskie przyrządy do pisania", "mgo",
+			"sndm51", "które zwierzę przystosowane jest do długich wędrówek po pustyni", "mgo",
+			"sndm52", "wskaż szkielet wielbłąda", "mgo",
+			"sndm53", "wskaż szkielet konia", "mgo",
+
+			"sndh1", "Ile łokci wysokości ma Piramida hufu, zwana też piramidą heopsa", "mgo",
+			"sndh2", "wskaż świątynię ramzesa", "mgo",
+			"sndh3", "wskaż świątynię ramzesa", "mgo",
+			"sndh4", "który fragment tekstu kamiena z rozety jest napisany greką?", "mgo",
+			"sndh5", "która współczesna budowla jest wyższa od piramidy heopsa?", "mgo",
+			"sndh6", "która współczesna budowla jest wyższa od piramidy heopsa?", "mgo",
+			"sndh7", "wskaż świątynię hator w denderze", "mgo",
+			"sndh8", "wskaż pismo egipskie", "mgo",
+			"sndh9", "wskaż pismo egipskie", "mgo",
+			"sndh10", "wskaż pismo piktograficzne", "mgo",
+			"sndh11", "Wsaż statek faraona heopsa", "mgo",
+			"sndh12", "co symbolizuja insygnia królweskie", "mgo",
+			"sndh13", "wskaż ureusz", "mgo",
+			"sndh14", "wskaz karusz", "mgo",
+			"sndh15", "wskaz wielką harfę obrzędową", "mgo",
+			"sndh16", "jaka to liczba?", "mgo",
+			"sndh17", "jaka to liczba?", "mgo",
+			"sndh18", "który obrazek przedstawia lirę?", "mgo",
+			"sndh19", "który zaznaczony na czerwono obszar wskazuje morze śródziemne", "mgo",
+			"sndh20", "który zaznaczony na czerwono obszar wsazuje morze czerwone", "mgo",
+			"sndh21", "które palny przedstawiają świątynię egipską", "mgo",
+			"sndh22", "którym kolorem zaznaczono górny bieg rzeki nil?", "mgo",
+			"sndh23", "z jakich owoców egipcjanie wytwarzali wino?", "mgo",
+			"sndh24", "w której części afryki obfite deszcze powodowały wylewy nilu w egipcie?", "mgo",
+			"sndh25", "wskaż szkielety zwierząt występujących w egipcie", "mgo",
+			"sndh26", "wskaż wielbłąda występującego w egipcie", "mgo",
+			
+			"sndgo", "Witaj w quizie wiedzy o Starożytnym Egipcie; Kliknij na mnie jeśli chcesz żebym powtórzył pytanie; Uważaj; Nie zawsze poprawna jest tylko jedna odpowiedź; Zaczynamy", "mfight",
+			"sndno", "Niee", null,
+			"sndyes", "Tak", null
+		);
+		.imgs = (A, "bkg.pyz", "kolo.pyz 5", "lapki.pyz 5", "logo.pyz 5", "prof.pyz 10");
+		
+		new Button buts;
+		anprof.Button_isinalpha;
+		anprof.Button_moveonms;
+		anprof.Button_moveoffms;
+		anprof.addmethod("butclick", func {
+			if( igmstate==1 )	{
+				.mpytaj;
+			}
+			} );
+		buts.add("anprof");
+		
+		new gmimgvec grok;
+		"grok" .* "okeje.pyz";
+		grok.hide;
+		
+		new gmimgvec grels;
+		new vector vtmp;
+		new int ilepyt;
+		new int idpyt = -1;
+		new string sbgimg = null;
+		match( QuizMode )	{
+			"l" => {	vtmp.vecnewint(34);	ilepyt = 10;	}
+			"m" => {	vtmp.vecnewint(53);	ilepyt = 20;	}
+			"h" => {	vtmp.vecnewint(26);	ilepyt = 26;	}
+			? => ;
+		}
+		vtmp.hash;
+		for( int i=0; i<ilepyt; i++)	{
+			grels.add( QuizMode + (vtmp.get(i)+1) );
+		}
+		new gmimgvec grsq;
+		"grsq" .* "kwadraty.pyz";
+		grsq.hide;
+		grsq.eval( func {
+			.Button_isinvis;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate==1 )	{
+					if( .isvisible )	.hide;
+					else .show;
+				}
+				} );
+			buts.add(this);
+			} );
+		new gmimgvec grodp;
+		
+		buts.load("grprzyc", "przyciski.pyz", func { (@id)
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( igmstate==1 )	{
+					bool odp = true;
+					for( int i=0; i<3; i++)	{
+						@s = <grodp.get(i)>.framename;
+						@s2 = grsq.get(i);
+						if( (<s2>.isvisible && s.contains("ok")) || (!<s2>.isvisible && !s.contains("ok")) )	<grok.get(i)>.show;
+						else odp = false;
+					}
+					igmstate = 0;
+					if( odp )	{
+						anprof.play("yes");
+						.cbplay("sndyes");
+					} else {
+						anprof.play("no");
+						.cbplay("sndno");
+					}
+				}
+				} );
+			} );
+		
+		buts.unlock;
+		
+		.timer = ("timwait", 1000, "mfight");
+		anprof.addmethod("onfinish", func { if(.actionname=="yes" || .actionname=="no") timwait.play; } );
+		
+		.mprof("sndgo");
+	}
+	mgetpyt	{	grels.get(idpyt); }
+	mpytaj	{
+		.mprof( "snd" + .mgetpyt );
+	}
+	mprof(string s)	{
+		anprof.play("talk");
+		igmstate = 0;
+		.cbplay(s);
+	}
+	mendpro	{	anprof.play("stand"); }
+	mgo	{
+		igmstate = 1;
+		.mendpro;
+	}
+	mprepare	{
+		idpyt++;
+		grok.hide;
+		grodp.deleteallgm;
+		grodp.free;
+		if( sbgimg!=null )	{
+			delete <sbgimg>;
+			sbgimg = null;
+		}
+		"grodp" ..< (.mgetpyt+".pyz");
+		sbgimg = grodp.first;
+		grodp.removefirst;
+		grodp.hash;
+		grsq.hide;
+		for( int i=0; i<3; i++)	{
+			@s = grodp.get(i);
+			@s2 = grsq.get(i);
+			<s>.setpos( <s2>.getpx, 0 );
+		}
+	}
+	mfight	{
+		if( idpyt>=grels.size )	{
+			igmstate = 2;
+		} else {
+			.mprepare;
+			.mpytaj;
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

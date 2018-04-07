@@ -1,0 +1,48 @@
+/* modul do obliczen odleglosci */
+
+module cllen	{
+	init()	{
+		new int il1;
+		new int ilx;
+		new int ily;
+	}
+	int ilenx()	{ return ilx; }
+	int ileny()	{ return ily; }
+	int ilen4(int x1, int x2)	{
+		return x1.abs( x1-x2 );
+	}
+	int ilen3(string simg1, string simg2)	{
+		return this.ilen( <simg1>.getcx(), <simg1>.getcy(), <simg2>.getcx(), <simg2>.getcy() );
+	}
+	int ilen2(string simg1, int x, int y)	{
+		return this.ilen( <simg1>.getcx(), <simg1>.getcy(), x,  y );
+	}
+	int ilen(int x1, int y1, int x2, int y2)	{
+		ilx = x1-x2;
+		ily = y1-y2;
+		return il1.length( ilx, ily );
+	}
+	int iclenx(string simg1, int x)	{
+		return <simg1>.getcx() - x;
+	}
+	int iclenx2(string simg1, string simg2)	{
+		return <simg1>.getcx() - <simg2>.getcx();
+	}
+	int icleny(string simg1, int y)	{
+		return <simg1>.getcy() - y;
+	}
+	int icleny2(string simg1, string simg2)	{
+		return <simg1>.getcy() - <simg2>.getcy();
+	}
+	int isbetween2(string simg1, string simg2, int x1, int y1, int x2, int y2)	{
+		return this.isbetween(simg1, <simg2>.getcx(), <simg2>.getcy(), x1, y1, x2, y2);
+	}
+	int isbetween(string simg1, int xx, int yy, int x1, int y1, int x2, int y2)	{
+		il1 = this.ilen( simg1, xx, yy );
+		if( ilx>=x1 && ilx<=x2 && ily>=y1 && ily<=y2)	{
+			return true;
+		} else {
+			return false;
+		}
+	}
+}

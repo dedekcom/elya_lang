@@ -1,0 +1,45 @@
+
+game CoverBook : StdGame	{
+	init	{
+		StdGame::init("intropuz");
+		.img = ("intro.jpg");
+		.timer = ("timend", 3000, "mgo");
+		timend.play;
+		.cutscene;
+		ccs.enter(null);
+	}
+	mgo	{
+		if( igmstate==0 )	{
+			igmstate=1;
+			ccs.close( func { gameapi.play("MenuPuzzle"); } );
+		}
+	}
+	mouse_lclick	{
+		.mgo;
+	}
+}
+
+game OutroPuz : StdGame	{
+	init	{
+		StdGame::init("outropuz");
+		.path = ( sgmversion + "/intropuz");
+		
+		.img = ("outro.jpg");
+		
+		.timer = ("timend", 4000, "mgo");
+		.cutscene;
+		ccs.enter( func { timend.play; } );
+		//timend.play;
+	}
+	mgo	{
+		if( igmstate==0 )	{
+			igmstate=1;
+			ccs.close( func { gameapi.exit; } );
+			//gameapi.exit;
+		}
+	}
+	mouse_lclick	{
+		.mgo;
+	}
+}
+

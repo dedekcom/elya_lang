@@ -1,0 +1,16594 @@
+; Dominik Dagiel   ix 2005
+
+	new string,A
+	push "!!!"
+	pop A
+	new real,PI
+	push 3.14159265358979323846
+	pop PI
+	new int,BYTE0
+	push "0"
+	spushs
+	push 0
+	spop $h
+	call $h,getbyte
+	pop BYTE0
+	new int,BYTE9
+	push "9"
+	spushs
+	push 0
+	spop $h
+	call $h,getbyte
+	pop BYTE9
+	new int,BYTEa
+	push "a"
+	spushs
+	push 0
+	spop $h
+	call $h,getbyte
+	pop BYTEa
+	new int,BYTEz
+	push "z"
+	spushs
+	push 0
+	spop $h
+	call $h,getbyte
+	pop BYTEz
+	new int,BYTEA
+	push "A"
+	spushs
+	push 0
+	spop $h
+	call $h,getbyte
+	pop BYTEA
+	new int,BYTEZ
+	push "Z"
+	spushs
+	push 0
+	spop $h
+	call $h,getbyte
+	pop BYTEZ
+	new int,BYTE_
+	push "_"
+	spushs
+	push 0
+	spop $h
+	call $h,getbyte
+	pop BYTE_
+	method varget
+	localstring $1
+	pop $1
+	push $1
+	popax
+	mov $a,[$a]
+	psax
+	end method
+	method varset
+	localstring $1
+	localdef $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	push $2
+	spop $b
+	popax
+	mov [$b],$a
+	end method
+	method varnew
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	push $2
+	spushs
+	spop $e
+	spop $d
+	new [$d],[$e]
+	end method
+	method varnewif
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $2
+	cthis hasvar
+	neg
+	cmp0
+	je l2
+	push $1
+	push $2
+	cthis varnew
+l2:
+	end method
+	method vardelif
+	localstring $1
+	pop $1
+	push $1
+	cthis hasvar
+	cmp0
+	je l4
+	push $1
+	cthis vardel
+l4:
+	end method
+	method vardel
+	localstring $1
+	pop $1
+	push $1
+	spushs
+	spop $d
+	delete [$d]
+	end method
+	method reader
+	localstring $1
+	pop $1
+	push "def"
+	push $1
+	cthis varnewif
+	push $1
+	push "global0"
+	cthis addmethod
+	end method
+	method global0
+	cthis methodname
+	popax
+	mov $a,[$a]
+	psax
+	end method
+	method writer
+	localstring $1
+	pop $1
+	push "def"
+	push $1
+	cthis varnewif
+	push $1
+	push "="
+	pop $b
+	popax
+	add $a,$b
+	push "global1"
+	cthis addmethod
+	end method
+	method global1
+	localdef $1
+	pop $1
+	cthis methodname
+	spushs
+	push 1
+	spop $a
+	call $a,strsube
+	spushs
+	push $1
+	spop $b
+	popax
+	mov [$b],$a
+	end method
+	method var
+	localstring $1
+	pop $1
+	push $1
+	cthis reader
+	push $1
+	cthis writer
+	end method
+	method var2
+	localstring $1
+	localdef $2
+	pop $2
+	pop $1
+	push $1
+	cthis var
+	push $1
+	spushs
+	push $2
+	spop $b
+	popax
+	mov [$b],$a
+	end method
+	method withlist
+	localstring $1
+	pop $1
+	localdef $2
+	pop $2
+l5:
+	push A
+	push $2
+	cmpjne
+	cmp0
+	je l6
+	push $1
+	spushs
+	push $2
+	spop $d
+	cthis [$d]
+	localdef $2
+	pop $2
+	jmp l5
+l6:
+	end method
+	method withlist2
+	localstring $1
+	pop $1
+	localdef $2
+	pop $2
+l7:
+	push A
+	push $2
+	cmpjne
+	cmp0
+	je l8
+	localdef $3
+	pop $3
+	push $1
+	spushs
+	push $3
+	push $2
+	spop $d
+	cthis [$d]
+	localdef $2
+	pop $2
+	jmp l7
+l8:
+	end method
+	method vars
+	push "var"
+	cthis withlist
+	end method
+	method vars2
+	push "var2"
+	cthis withlist2
+	end method
+	method in
+	localint $1
+	push 0
+	pop $1
+	localdef $2
+	cthis get
+	pop $2
+	localdef $3
+	pop $3
+l9:
+	push A
+	push $3
+	cmpjne
+	cmp0
+	je l10
+	push $1
+	neg
+	cmp0
+	je l12
+	push $2
+	push $3
+	cmpje
+	pop $1
+l12:
+	localdef $3
+	pop $3
+	jmp l9
+l10:
+	push $1
+	end method
+	method with
+	localstring $1
+	pop $1
+	localstring $2
+	pop $2
+l13:
+	push $2
+	push A
+	cmpjne
+	cmp0
+	je l14
+	push $2
+	spushs
+	push $1
+	spushs
+	spop $d
+	spop $a
+	call [$a],[$d]
+	pop $2
+	jmp l13
+l14:
+	end method
+	method copycall
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	localstring $3
+	push "__call"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	pop $3
+	push $3
+	spushs
+	spop $e
+	new string,[$e]
+	push $3
+	spushs
+	push $2
+	spop $b
+	popax
+	mov [$b],$a
+	push $1
+	push "global2"
+	cthis addmethod
+	end method
+	method global2
+	localstring $1
+	cthis methodname
+	pop $1
+	push "__call"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	popax
+	mov $a,[$a]
+	psax
+	spushs
+	push $1
+	spushs
+	spop $d
+	spop $a
+	call [$a],[$d]
+	end method
+	method copycalls
+	localstring $1
+	pop $1
+	localstring $2
+	pop $2
+l15:
+	push $2
+	push A
+	cmpjne
+	cmp0
+	je l16
+	push $2
+	push $1
+	cthis copycall
+	pop $2
+	jmp l15
+l16:
+	end method
+	method mresize
+	cthis gettype
+	push "_pack"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	cthis getname
+	spop $a
+	 clparent [$a],resizemethods
+	end method
+	method times
+	localstring $1
+	pop $1
+	push 0
+	cthis get
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push $1
+	cthis for_plus
+	end method
+	method upto
+	localint $1
+	localstring $2
+	pop $2
+	pop $1
+	cthis get
+	push $1
+	push $2
+	cthis for_plus
+	end method
+	method downto
+	localint $1
+	localstring $2
+	pop $2
+	pop $1
+	cthis get
+	push $1
+	push $2
+	cthis for_minus
+	end method
+	method for_plus
+	localint $1
+	localint $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $2
+	push $1
+	pop $b
+	popax
+	sub $a,$b
+	push 0
+	cmpjle
+	cmp0
+	je l18
+	ret
+l18:
+l19:
+	push $1
+	push $2
+	cmpjle
+	cmp0
+	je l20
+	jmp l22
+l21:
+	add $1,1
+	pop $1
+	jmp l19
+l22:
+	push $3
+	spushs
+	push $1
+	spop $d
+	cthis [$d]
+	jmp l21
+l20:
+	end method
+	method for_minus
+	localint $1
+	localint $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	pop $b
+	popax
+	sub $a,$b
+	push 0
+	cmpjle
+	cmp0
+	je l24
+	ret
+l24:
+l25:
+	push $1
+	push $2
+	cmpjae
+	cmp0
+	je l26
+	jmp l28
+l27:
+	sub $1,1
+	pop $1
+	jmp l25
+l28:
+	push $3
+	spushs
+	push $1
+	spop $d
+	cthis [$d]
+	jmp l27
+l26:
+	end method
+	method double_for
+	localint $1
+	localint $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	localint $4
+	localint $5
+	push 0
+	pop $5
+l29:
+	push $5
+	push $1
+	cmpjl
+	cmp0
+	je l30
+	jmp l32
+l31:
+	add $5,1
+	pop $5
+	jmp l29
+l32:
+	push 0
+	pop $4
+l33:
+	push $4
+	push $2
+	cmpjl
+	cmp0
+	je l34
+	jmp l36
+l35:
+	add $4,1
+	pop $4
+	jmp l33
+l36:
+	push $3
+	spushs
+	push $5
+	push $4
+	spop $d
+	cthis [$d]
+	jmp l35
+l34:
+	jmp l31
+l30:
+	end method
+	class classobjcounter
+	method init
+	localstring $1
+	pop $1
+	new string,_sprefix
+	push $1
+	pop _sprefix
+	new int,_iile
+	push 0
+	pop _iile
+	end method
+	method get
+	add _iile,1
+	pop _iile
+	push _sprefix
+	push _iile
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $b
+	popax
+	add $a,$b
+	ret
+	end method
+	method size
+	push _iile
+	end method
+	end class
+
+	class classsignals
+	method init
+	end method
+	method stdfinish
+	localstring $1
+	pop $1
+	push $1
+	spushs
+	push "onfinish"
+	push "classsignals0"
+	spop $a
+	call [$a],addmethod
+	end method
+	method classsignals0
+	cthis getname
+	push "_FINISH"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	cthis [$d]
+	end method
+	method stdstart
+	localstring $1
+	pop $1
+	push $1
+	spushs
+	push "onstart"
+	push "classsignals1"
+	spop $a
+	call [$a],addmethod
+	end method
+	method classsignals1
+	cthis getname
+	push "_START"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	cthis [$d]
+	end method
+	method stdsigs
+	localstring $1
+	pop $1
+	push $1
+	cthis stdstart
+	push $1
+	cthis stdfinish
+	end method
+	method buildanima
+	localstring $1
+	pop $1
+	push $1
+	cthis stdsigs
+	push $1
+	spushs
+	push "onendframe"
+	push "classsignals2"
+	spop $a
+	call [$a],addmethod
+	end method
+	method classsignals2
+	cthis getname
+	push "_ENDFRAME"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	cthis [$d]
+	end method
+	method buildsnd
+	localstring $1
+	pop $1
+	push $1
+	cthis stdsigs
+	end method
+	method buildtimer
+	localstring $1
+	pop $1
+	push $1
+	cthis stdsigs
+	push $1
+	spushs
+	push "ontick"
+	push "classsignals3"
+	spop $a
+	call [$a],addmethod
+	end method
+	method classsignals3
+	cthis getname
+	push "_TICK"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	cthis [$d]
+	end method
+	method buildbut
+	localstring $1
+	pop $1
+	push $1
+	spushs
+	push "onclick"
+	push "classsignals4"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "onrel"
+	push "classsignals5"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "onmoveon"
+	push "classsignals6"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "onmoveoff"
+	push "classsignals7"
+	spop $a
+	call [$a],addmethod
+	end method
+	method classsignals4
+	cthis getname
+	push "_CLICK"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	cthis [$d]
+	end method
+	method classsignals5
+	cthis getname
+	push "_REL"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	cthis [$d]
+	end method
+	method classsignals6
+	cthis getname
+	push "_MOVEON"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	cthis [$d]
+	end method
+	method classsignals7
+	cthis getname
+	push "_MOVEOFF"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	cthis [$d]
+	end method
+	end class
+
+	class classlocker
+	method init
+	new int,_block
+	push 1
+	pop _block
+	end method
+	method lock
+	push 1
+	pop _block
+	end method
+	method unlock
+	push 0
+	pop _block
+	end method
+	method setlock
+	localint $1
+	pop $1
+	push $1
+	pop _block
+	end method
+	method getlock
+	push _block
+	ret
+	end method
+	method unlocked
+	push _block
+	push 0
+	cmpje
+	end method
+	end class
+
+	module classdbreader
+	method init
+	new db,dbl
+	end method
+	method readdb
+	localstring $1
+	pop $1
+	localint $2
+	push 0
+	pop $2
+	localint $3
+	call dbl,getrowsno
+	pop $3
+l37:
+	push $2
+	push $3
+	cmpjl
+	cmp0
+	je l38
+	push $1
+	spushs
+	push $2
+	spop $d
+	cthis [$d]
+	add $2,1
+	pop $2
+	jmp l37
+l38:
+	end method
+	method readrow
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	localint $3
+	push $1
+	call dbl,findbyrow
+	pop $3
+	push $3
+	push 0
+	cmpjae
+	cmp0
+	je l40
+	push $2
+	spushs
+	push $3
+	spop $d
+	cthis [$d]
+l40:
+	end method
+	end module
+
+	class collection
+	method init
+	localstring $1
+	pop $1
+	new string,stype
+	push $1
+	pop stype
+	end method
+	method type
+	push stype
+	ret
+	end method
+	end class
+
+	class array
+	parent collection
+	method init
+	localstring $1
+	localint $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	clparent collection,init
+	new int,idim
+	push $2
+	pop idim
+	new int,isize
+	push $3
+	pop isize
+	new vector,vec
+	push $1
+	call vec,type
+	push $2
+	push 0
+	cmpjle
+	cmp0
+	jne l43
+	push $3
+	push 0
+	cmpjle
+	jmp l44
+l42:
+	push 0
+	jmp l44
+l43:
+	push 1
+l44:
+	cmp0
+	je l45
+	ret
+l45:
+	push $2
+	call $3,pow
+	push 0
+	call vec,resize
+	end method
+	method getid
+	localint $1
+	push 0
+	pop $1
+	localint $2
+	push idim
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $2
+l46:
+	push $2
+	push 0
+	cmpja
+	cmp0
+	je l47
+	popax
+	add $1,$a
+	pop $1
+	push isize
+	popax
+	mul $1,$a
+	pop $1
+	sub $2,1
+	pop $2
+	jmp l46
+l47:
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	ret
+	end method
+	method get
+	cthis getid
+	call vec,get
+	ret
+	end method
+	method set
+	localdef $1
+	pop $1
+	cthis getid
+	push $1
+	call vec,set
+	end method
+	method getsize
+	push isize
+	ret
+	end method
+	method getdim
+	push idim
+	ret
+	end method
+	end class
+
+	class stack
+	parent collection
+	method init
+	localstring $1
+	pop $1
+	push $1
+	clparent collection,init
+	new vector,vec
+	push $1
+	call vec,type
+	push $1
+	spushs
+	spop $d
+	new [$d],var
+	end method
+	method push
+	localstring $1
+	pop $1
+	push $1
+	call vec,add
+	end method
+	method top
+	call vec,last
+	ret
+	end method
+	method pop
+	cthis top
+	pop var
+	call vec,size
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	call vec,removeat
+	push var
+	ret
+	end method
+	method free
+	call vec,free
+	end method
+	end class
+
+	class map
+	parent collection
+	method init
+	localstring $1
+	pop $1
+	push $1
+	clparent collection,init
+	new int,isize
+	push 0
+	pop isize
+	end method
+	method set
+	localstring $1
+	localdef $2
+	pop $2
+	pop $1
+	push $1
+	cthis hasvar
+	neg
+	cmp0
+	je l49
+	push $1
+	cthis add
+l49:
+	push "v"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $2
+	spop $a
+	call [$a],set
+	end method
+	method add
+	localstring $1
+	pop $1
+	push stype
+	spushs
+	push "v"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $e
+	spop $d
+	new [$d],[$e]
+	end method
+	method get
+	localstring $1
+	pop $1
+	push "v"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	popax
+	mov $a,[$a]
+	psax
+	ret
+	end method
+	method remove
+	localstring $1
+	pop $1
+	push "v"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	delete [$d]
+	end method
+	method contains
+	localstring $1
+	pop $1
+	push "v"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	cthis hasvar
+	ret
+	end method
+	end class
+
+	class map2
+	parent collection
+	method init
+	localstring $1
+	pop $1
+	push $1
+	clparent collection,init
+	new vector,vn
+	push "string"
+	call vn,type
+	new vector,vec
+	push $1
+	call vec,type
+	end method
+	method add
+	localstring $1
+	localdef $2
+	pop $2
+	pop $1
+	push $1
+	call vn,add
+	push $2
+	call vec,add
+	end method
+	method set
+	localstring $1
+	localdef $2
+	pop $2
+	pop $1
+	push $1
+	call vn,find
+	push $2
+	call vec,set
+	end method
+	method contains
+	localstring $1
+	pop $1
+	push $1
+	call vn,contains
+	ret
+	end method
+	method get
+	localstring $1
+	pop $1
+	push $1
+	call vn,find
+	call vec,get
+	ret
+	end method
+	method remove
+	localstring $1
+	pop $1
+	localint $2
+	push $1
+	call vn,find
+	pop $2
+	push $2
+	push 0
+	cmpjae
+	cmp0
+	je l51
+	push $2
+	call vec,removeat
+	push $2
+	call vn,removeat
+l51:
+	end method
+	method free
+	call vn,free
+	call vec,free
+	end method
+	end class
+
+	class classgamemusic
+	parent classdbreader
+	method init
+	clparent classdbreader,init
+	new string,smuspath
+	push ""
+	pop smuspath
+	new string,sbgrpath
+	push ""
+	pop sbgrpath
+	new snd,_sndbgr
+	push "onfinish"
+	push "_stdsndloop"
+	call _sndbgr,addmethod
+	end method
+	method reset
+	call gameapi,stopmusic
+	cthis stopbgr
+	end method
+	method _stdsndloop
+	cthis play
+	end method
+	method load
+	localstring $1
+	pop $1
+	push $1
+	call dbl,loadscript
+	end method
+	method musicpath
+	localstring $1
+	pop $1
+	push $1
+	pop smuspath
+	end method
+	method sndbgrpath
+	localstring $1
+	pop $1
+	push $1
+	pop sbgrpath
+	end method
+	method _play
+	localint $1
+	pop $1
+	localint $2
+	localint $3
+	localint $4
+	localstring $5
+	localstring $6
+	push 1
+	pop $2
+	push $1
+	call dbl,getcolsno
+	pop $3
+l52:
+	push $2
+	push $3
+	cmpjl
+	cmp0
+	je l53
+	push $1
+	push $2
+	call dbl,get
+	pop $5
+	add $2,1
+	pop $2
+	push $5
+	push "music"
+	cmpje
+	cmp0
+	je l55
+	push smuspath
+	push $1
+	push $2
+	call dbl,get
+	pop $b
+	popax
+	add $a,$b
+	pop $6
+	add $2,1
+	pop $2
+	push $2
+	push $3
+	cmpjl
+	cmp0
+	je l57
+	push $1
+	push $2
+	call dbl,get
+	push "vol"
+	cmpje
+	cmp0
+	je l59
+	add $2,1
+	pop $2
+	push $1
+	push $2
+	call dbl,get
+	call gameapi,setmusicvol
+	add $2,1
+	pop $2
+l59:
+	jmp l56
+l57:
+	push 100
+	call gameapi,setmusicvol
+l56:
+	push $6
+	call gameapi,playmusic
+	jmp l54
+l55:
+	push $5
+	push "bgr"
+	cmpje
+	cmp0
+	je l61
+	push sbgrpath
+	push $1
+	push $2
+	call dbl,get
+	pop $b
+	popax
+	add $a,$b
+	call _sndbgr,load
+	add $2,1
+	pop $2
+	push $2
+	push $3
+	cmpjl
+	cmp0
+	je l63
+	push $1
+	push $2
+	call dbl,get
+	push "vol"
+	cmpje
+	cmp0
+	je l65
+	add $2,1
+	pop $2
+	push $1
+	push $2
+	call dbl,get
+	call _sndbgr,setvol
+	add $2,1
+	pop $2
+l65:
+	jmp l62
+l63:
+	push 100
+	call _sndbgr,setvol
+l62:
+	cthis playbgr
+	jmp l60
+l61:
+	add $2,1
+	pop $2
+l60:
+l54:
+	jmp l52
+l53:
+	end method
+	method play
+	cthis reset
+	call gameapi,getgamename
+	push "_play"
+	cthis readrow
+	end method
+	method playbgr
+	call _sndbgr,play
+	end method
+	method stopbgr
+	push 0
+	call _sndbgr,stop
+	end method
+	end class
+
+	new int,igmstate
+	new int,igmdebug
+	new int,igmeasy
+	new int,igmdemo
+	new int,igmbegin
+	new string,sgmfontfile
+	push "configs/fonts/ala.ttf"
+	pop sgmfontfile
+	new string,sgmfontmono
+	push "configs/fonts/mono.ttf"
+	pop sgmfontmono
+	new int,iResX
+	push 800
+	pop iResX
+	new int,iResY
+	push 600
+	pop iResY
+	class newvars
+	method init
+	new string,_sclpath
+	push ""
+	pop _sclpath
+	new string,_sclwavpath
+	push ""
+	pop _sclwavpath
+	end method
+	method _checkfont
+	localstring $1
+	localint $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push "null"
+	cmpje
+	cmp0
+	je l67
+	push sgmfontfile
+	pop $1
+l67:
+	push ".ttf"
+	call $1,contains
+	cmp0
+	je l69
+	push $3
+	spushs
+	spop $e
+	new font,[$e]
+	push $3
+	spushs
+	push $1
+	push $2
+	spop $a
+	call [$a],load
+	push $3
+	pop $1
+l69:
+	push $1
+	end method
+	method checkfont
+	localstring $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push "_fnt"
+	cthis _checkfont
+	end method
+	method begingame
+	push igmbegin
+	neg
+	pop igmbegin
+	push igmbegin
+	neg
+	end method
+	method newarray
+	localstring $1
+	localstring $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $3
+	push 0
+	cmpjle
+	cmp0
+	je l71
+	ret
+l71:
+	sub $3,1
+	pop $3
+l72:
+	push $3
+	push 0
+	cmpjae
+	cmp0
+	je l73
+	push $1
+	spushs
+	push $2
+	push $3
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $e
+	spop $d
+	new [$d],[$e]
+	sub $3,1
+	pop $3
+	jmp l72
+l73:
+	end method
+	method setgraphpath
+	localstring $1
+	pop $1
+	push $1
+	pop _sclpath
+	end method
+	method setwavpath
+	localstring $1
+	pop $1
+	push $1
+	pop _sclwavpath
+	end method
+	method getgraphpath
+	push _sclpath
+	ret
+	end method
+	method getsndpath
+	push _sclwavpath
+	ret
+	end method
+	method newanima
+	localstring $1
+	localstring $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new anima,[$e]
+	push $1
+	spushs
+	cthis getgraphpath
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spop $a
+	call [$a],load
+	push $1
+	spushs
+	push $3
+	spop $a
+	call [$a],setz
+	end method
+	method newstdanima
+	localstring $1
+	localstring $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	cthis newanima
+	push $1
+	cthis stdanaction
+	end method
+	method copyanimaactz
+	localstring $1
+	localstring $2
+	localstring $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	cthis copyanimaact
+	push $2
+	spushs
+	push $4
+	spop $a
+	call [$a],setz
+	end method
+	method copyanimaact
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis copyanima
+	push $2
+	spushs
+	push $3
+	push 0
+	spop $a
+	call [$a],setframe
+	end method
+	method copyanima
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $2
+	spushs
+	spop $e
+	new anima,[$e]
+	push $2
+	spushs
+	push $1
+	spop $a
+	call [$a],copy
+	end method
+	method copyanimas
+	localstring $1
+	localstring $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $4
+	push 0
+	cmpjl
+	cmp0
+	je l75
+	ret
+l75:
+	localint $5
+	push 0
+	pop $5
+l76:
+	push $5
+	push $4
+	cmpjl
+	cmp0
+	je l77
+	jmp l79
+l78:
+	add $5,1
+	pop $5
+	jmp l76
+l79:
+	push $1
+	push $2
+	push $3
+	push $5
+	pop $b
+	popax
+	add $a,$b
+	pop $b
+	popax
+	add $a,$b
+	cthis copyanima
+	jmp l78
+l77:
+	end method
+	method newanimas
+	localstring $1
+	localstring $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $4
+	push 0
+	cmpjl
+	cmp0
+	je l81
+	ret
+l81:
+	push $1
+	push "0"
+	pop $b
+	popax
+	add $a,$b
+	push $2
+	push $3
+	cthis newanima
+	push $1
+	push "0"
+	pop $b
+	popax
+	add $a,$b
+	push $1
+	push 1
+	push $4
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	cthis copyanimas
+	end method
+	method newanframesgr
+	localstring $1
+	localstring $2
+	localint $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localint $5
+	push $1
+	spushs
+	push $3
+	spop $a
+	call [$a],nofframes
+	pop $5
+	push $1
+	push $2
+	push 0
+	push $5
+	cthis copyanimas
+	localint $6
+	push 0
+	pop $6
+l82:
+	push $6
+	push $5
+	cmpjl
+	cmp0
+	je l83
+	jmp l85
+l84:
+	add $6,1
+	pop $6
+	jmp l82
+l85:
+	push $2
+	push $6
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $3
+	push $6
+	spop $a
+	call [$a],setframe
+	push $4
+	push "null"
+	cmpjne
+	cmp0
+	je l87
+	push $4
+	spushs
+	push $2
+	push $6
+	pop $b
+	popax
+	add $a,$b
+	spop $a
+	call [$a],add
+l87:
+	jmp l84
+l83:
+	push $5
+	ret
+	end method
+	method newanframes
+	localstring $1
+	localstring $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	push "null"
+	cthis newanframesgr
+	ret
+	end method
+	method newcanvas
+	localstring $1
+	localint $2
+	localint $3
+	localint $4
+	localint $5
+	localint $6
+	localint $7
+	localint $8
+	pop $8
+	pop $7
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new img,[$e]
+	push $1
+	spushs
+	push $2
+	push $3
+	push $4
+	push $5
+	push $6
+	push $7
+	spop $a
+	call [$a],create
+	push $1
+	spushs
+	push $8
+	spop $a
+	call [$a],setz
+	end method
+	method newimg
+	localstring $1
+	localstring $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new img,[$e]
+	push $1
+	spushs
+	cthis getgraphpath
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spop $a
+	call [$a],load
+	push $1
+	spushs
+	push $3
+	spop $a
+	call [$a],setz
+	end method
+	method copyimg
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $2
+	spushs
+	spop $e
+	new img,[$e]
+	push $2
+	spushs
+	push $1
+	spop $a
+	call [$a],copy
+	end method
+	method playmusic
+	localstring $1
+	pop $1
+	cthis getsndpath
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	call gameapi,playmusic
+	end method
+	method newsndfree
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new snd,[$e]
+	push $1
+	spushs
+	push 0
+	push 1
+	spop $a
+	call [$a],setstartstopflag
+	push $1
+	spushs
+	cthis getsndpath
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spop $a
+	call [$a],load
+	end method
+	method snewsnd
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis newsnd
+	push $1
+	spushs
+	push "onfinish"
+	push "__std_finish"
+	spop $a
+	call [$a],addmethod
+	end method
+	method newsnd
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new snd,[$e]
+	push $1
+	spushs
+	cthis getsndpath
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spop $a
+	call [$a],load
+	end method
+	method newsndloop
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis newsnd
+	push $1
+	cthis looponfinish1
+	end method
+	method looponfinish1
+	localstring $1
+	pop $1
+	push $1
+	spushs
+	push "onfinish"
+	push "_stdsndloop"
+	spop $a
+	call [$a],addmethod
+	end method
+	method sndplayloop
+	localstring $1
+	pop $1
+	push $1
+	cthis looponfinish1
+	push $1
+	spushs
+	spop $a
+	call [$a],play
+	end method
+	method newsnds
+	localstring $1
+	localint $2
+	localstring $3
+	localint $4
+	localint $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localstring $6
+	localint $7
+	push $5
+	push $4
+	pop $b
+	popax
+	sub $a,$b
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	pop $7
+	localint $8
+	push 0
+	pop $8
+l88:
+	push $8
+	push $7
+	cmpjl
+	cmp0
+	je l89
+	jmp l91
+l90:
+	add $8,1
+	pop $8
+	jmp l88
+l91:
+	push $1
+	push $2
+	push $8
+	pop $b
+	popax
+	add $a,$b
+	pop $b
+	popax
+	add $a,$b
+	pop $6
+	push $6
+	spushs
+	spop $e
+	new snd,[$e]
+	push $6
+	spushs
+	cthis getsndpath
+	push $3
+	pop $b
+	popax
+	add $a,$b
+	push $4
+	push $8
+	pop $b
+	popax
+	add $a,$b
+	pop $b
+	popax
+	add $a,$b
+	push ".wav"
+	pop $b
+	popax
+	add $a,$b
+	spop $a
+	call [$a],load
+	jmp l90
+l89:
+	end method
+	method newtimer
+	localstring $1
+	localint $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new timer,[$e]
+	push $1
+	spushs
+	push $3
+	spop $a
+	call [$a],settick
+	push $1
+	spushs
+	push $2
+	spop $a
+	call [$a],delay
+	end method
+	method newtimercycle
+	localstring $1
+	localint $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new timer,[$e]
+	push $1
+	spushs
+	push $3
+	spop $a
+	call [$a],settick
+	push $1
+	spushs
+	push $2
+	spop $a
+	call [$a],setcycle
+	end method
+	method stdanaction
+	localstring $1
+	pop $1
+	localstring $2
+	push $1
+	spushs
+	spop $a
+	call [$a],actionname
+	pop $2
+	push "L"
+	call $2,contains
+	cmp0
+	je l93
+	push $1
+	cthis looponfinish
+	jmp l92
+l93:
+	push "H"
+	call $2,contains
+	cmp0
+	je l95
+	push $1
+	cthis hideonfinish
+l95:
+l92:
+	push "P"
+	call $2,contains
+	cmp0
+	je l97
+	push $1
+	spushs
+	push 1
+	popax
+	sub 0,$a
+	spop $a
+	call [$a],play
+l97:
+	end method
+	method newanactionsgr
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	localint $4
+	push $1
+	spushs
+	spop $a
+	call [$a],nofactions
+	pop $4
+	push $1
+	push $2
+	push 0
+	push $4
+	cthis copyanimas
+	localstring $5
+	localint $6
+	push 0
+	pop $6
+l98:
+	push $6
+	push $4
+	cmpjl
+	cmp0
+	je l99
+	jmp l101
+l100:
+	add $6,1
+	pop $6
+	jmp l98
+l101:
+	push $2
+	push $6
+	pop $b
+	popax
+	add $a,$b
+	pop $5
+	push $5
+	spushs
+	push $6
+	push 0
+	spop $a
+	call [$a],setframe
+	push $5
+	cthis stdanaction
+	push $3
+	push "null"
+	cmpjne
+	cmp0
+	je l103
+	push $3
+	spushs
+	push $5
+	spop $a
+	call [$a],add
+l103:
+	jmp l100
+l99:
+	push $4
+	ret
+	end method
+	method newanactions
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push "null"
+	cthis newanactionsgr
+	ret
+	end method
+	method newanfrbyactgr
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	localint $4
+	push $1
+	spushs
+	spop $a
+	call [$a],nofactions
+	pop $4
+	localint $5
+	push 0
+	pop $5
+l104:
+	push $5
+	push $4
+	cmpjl
+	cmp0
+	je l105
+	jmp l107
+l106:
+	add $5,1
+	pop $5
+	jmp l104
+l107:
+	push $1
+	push $2
+	push $5
+	pop $b
+	popax
+	add $a,$b
+	push "_"
+	pop $b
+	popax
+	add $a,$b
+	push $5
+	push $3
+	cthis newanframesgr
+	popax
+	jmp l106
+l105:
+	push $4
+	ret
+	end method
+	method newanfrbyact
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push "null"
+	cthis newanfrbyactgr
+	ret
+	end method
+	method loadanfrbyact
+	localstring $1
+	localstring $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	localstring $4
+	push "_"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	pop $4
+	push $4
+	push $2
+	push $3
+	cthis newanima
+	localint $5
+	push $4
+	push $1
+	cthis newanfrbyact
+	pop $5
+	push $4
+	spushs
+	spop $a
+	call [$a],hide
+	push $5
+	ret
+	end method
+	method loadanactions
+	localstring $1
+	localstring $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	localstring $4
+	push "_"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	pop $4
+	push $4
+	push $2
+	push $3
+	cthis newanima
+	localint $5
+	push $4
+	push $1
+	cthis newanactions
+	pop $5
+	push $4
+	spushs
+	spop $a
+	call [$a],hide
+	push $5
+	ret
+	end method
+	method loadanframes
+	localstring $1
+	localstring $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localstring $5
+	push "_"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	pop $5
+	push $5
+	push $2
+	push $4
+	cthis newanima
+	localint $6
+	push $5
+	push $1
+	push $3
+	cthis newanframes
+	pop $6
+	push $5
+	spushs
+	spop $a
+	call [$a],hide
+	push $6
+	ret
+	end method
+	method newbutimg
+	localstring $1
+	localstring $2
+	localstring $3
+	localstring $4
+	localstring $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new button,[$e]
+	push $1
+	spushs
+	push $2
+	push $3
+	push $4
+	spop $a
+	call [$a],set
+	push $1
+	spushs
+	push $5
+	spop $a
+	call [$a],setmouse
+	end method
+	method newbutan
+	localstring $1
+	localstring $2
+	localstring $3
+	localstring $4
+	localstring $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new button,[$e]
+	push $1
+	spushs
+	push $2
+	push $3
+	push $4
+	spop $a
+	call [$a],setan
+	push $1
+	spushs
+	push $5
+	spop $a
+	call [$a],setmouse
+	end method
+	method newdb
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new db,[$e]
+	push $1
+	spushs
+	cthis getgraphpath
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spop $a
+	call [$a],load
+	end method
+	method newdbscript
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new db,[$e]
+	push $1
+	spushs
+	cthis getgraphpath
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spop $a
+	call [$a],loadscript
+	end method
+	method vargmset
+	localstring $1
+	localdef $2
+	pop $2
+	pop $1
+	localstring $3
+	call gameapi,getgamename
+	pop $3
+	push $3
+	spushs
+	push $1
+	spop $a
+	call [$a],hasvar
+	neg
+	cmp0
+	je l109
+	push $3
+	spushs
+	call $2,gettype
+	push $1
+	spop $a
+	call [$a],varnew
+l109:
+	push $1
+	spushs
+	push $2
+	spop $b
+	popax
+	mov [$b],$a
+	end method
+	end class
+
+	new img,imglobcurs
+	push "configs/kursorstd.png"
+	push "configs/kursoract.png"
+	call bsms,load
+	module bsms
+	method init
+	new img,imgstd
+	new img,imgact
+	new int,msid
+	push 0
+	pop msid
+	end method
+	method load
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	call imgstd,load
+	push $2
+	call imgact,load
+	push "imgact"
+	call imglobcurs,copy
+	call imglobcurs,hide
+	call imgstd,hide
+	call imgact,hide
+	cthis reset
+	push "imgstd"
+	call engine,stdbutcursor
+	end method
+	method setinitial
+	call mouse,stdcursor
+	push 0
+	pop msid
+	end method
+	method setstd
+	push "imgstd"
+	call mouse,setcursor
+	push "imgstd"
+	call engine,stdbutcursor
+	push 1
+	pop msid
+	end method
+	method setact
+	push "imgact"
+	call mouse,setcursor
+	push 2
+	pop msid
+	end method
+	method setown
+	push 3
+	pop msid
+	end method
+	method isinitial
+	push msid
+	push 0
+	cmpje
+	end method
+	method isstd
+	push msid
+	push 1
+	cmpje
+	end method
+	method isact
+	push msid
+	push 2
+	cmpje
+	end method
+	method isown
+	push msid
+	push 3
+	cmpje
+	end method
+	end module
+
+	class classquest
+	method init
+	new vector,vqst
+	push "string"
+	call vqst,type
+	end method
+	method isdone
+	localstring $1
+	pop $1
+	push $1
+	call vqst,contains
+	ret
+	end method
+	method notdone
+	localstring $1
+	pop $1
+	push $1
+	call vqst,contains
+	neg
+	ret
+	end method
+	method done
+	localstring $1
+	pop $1
+	push $1
+	call vqst,contains
+	neg
+	cmp0
+	je l111
+	push $1
+	call vqst,add
+l111:
+	end method
+	method reset
+	call vqst,free
+	end method
+	method save
+	localstring $1
+	pop $1
+	push $1
+	call vqst,save
+	end method
+	method load
+	localstring $1
+	pop $1
+	push $1
+	call vqst,load
+	end method
+	end class
+
+	new classquest,clqs
+	class classfullsave
+	method init
+	localstring $1
+	pop $1
+	new db,dbsav
+	new string,sstdfile
+	push $1
+	cthis setfile
+	end method
+	method save
+	localstring $1
+	pop $1
+	push $1
+	call dbsav,save
+	end method
+	method load
+	localstring $1
+	pop $1
+	push $1
+	call dbsav,load
+	end method
+	method print
+	call dbsav,print
+	end method
+	method setfile
+	localstring $1
+	pop $1
+	push $1
+	pop sstdfile
+	end method
+	method stdload
+	push sstdfile
+	cthis load
+	end method
+	method stdsave
+	push sstdfile
+	cthis save
+	end method
+	method free
+	call dbsav,free
+	end method
+	method set
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	localint $3
+	push $1
+	call dbsav,findbyrow
+	pop $3
+	push $3
+	push 0
+	cmpjae
+	cmp0
+	je l113
+	push $3
+	push 1
+	push $2
+	call dbsav,set
+	jmp l112
+l113:
+	call dbsav,addrow
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $3
+	push $3
+	push $1
+	call dbsav,add
+	push $3
+	push $2
+	call dbsav,add
+l112:
+	end method
+	method bset
+	localstring $1
+	pop $1
+	push $1
+	push 1
+	cthis _set
+	end method
+	method get
+	localstring $1
+	pop $1
+	localint $2
+	push $1
+	call dbsav,findbyrow
+	pop $2
+	push $2
+	push 0
+	cmpjae
+	cmp0
+	je l115
+	push $2
+	push 1
+	call dbsav,get
+	jmp l114
+l115:
+	push "null"
+l114:
+	ret
+	end method
+	method is
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	localint $3
+	push $1
+	call dbsav,findbyrow
+	pop $3
+	push $3
+	push 0
+	cmpjae
+	cmp0
+	je l117
+	push $3
+	push 1
+	call dbsav,get
+	push $2
+	cmpje
+	jmp l116
+l117:
+	push 0
+l116:
+	ret
+	end method
+	method bis
+	localstring $1
+	pop $1
+	push $1
+	push 1
+	cthis _is
+	ret
+	end method
+	end class
+
+	module clsurf
+	method init
+	end method
+	method isin
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	localint $5
+	localint $6
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $3
+	cmpjae
+	cmp0
+	je l118
+	push $1
+	push $5
+	cmpjle
+	cmp0
+	je l118
+	push $2
+	push $4
+	cmpjae
+	cmp0
+	je l118
+	push $2
+	push $6
+	cmpjle
+	jmp l120
+l118:
+	push 0
+	jmp l120
+l119:
+	push 1
+l120:
+	end method
+	method isin2
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	localint $5
+	localint $6
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $3
+	cmpjae
+	cmp0
+	je l121
+	push $1
+	push $3
+	push $5
+	pop $b
+	popax
+	add $a,$b
+	cmpjl
+	cmp0
+	je l121
+	push $2
+	push $4
+	cmpjae
+	cmp0
+	je l121
+	push $2
+	push $4
+	push $6
+	pop $b
+	popax
+	add $a,$b
+	cmpjl
+	jmp l123
+l121:
+	push 0
+	jmp l123
+l122:
+	push 1
+l123:
+	end method
+	method inscreen
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push 0
+	push $3
+	pop $b
+	popax
+	sub $a,$b
+	push 0
+	push $4
+	pop $b
+	popax
+	sub $a,$b
+	push 800
+	push $3
+	pop $b
+	popax
+	add $a,$b
+	push 600
+	push $4
+	pop $b
+	popax
+	add $a,$b
+	cthis isin
+	end method
+	method insurf
+	localint $1
+	localint $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	spushs
+	spop $a
+	call [$a],getpx
+	push $3
+	spushs
+	spop $a
+	call [$a],getpy
+	push $3
+	spushs
+	spop $a
+	call [$a],getex
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push $3
+	spushs
+	spop $a
+	call [$a],getey
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	cthis isin
+	end method
+	method issurfin
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	localint $5
+	localint $6
+	localint $7
+	localint $8
+	pop $8
+	pop $7
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $5
+	push $6
+	push $7
+	push $8
+	cthis isin
+	cmp0
+	jne l125
+	push $3
+	push $2
+	push $5
+	push $6
+	push $7
+	push $8
+	cthis isin
+	cmp0
+	jne l125
+	push $1
+	push $4
+	push $5
+	push $6
+	push $7
+	push $8
+	cthis isin
+	cmp0
+	jne l125
+	push $3
+	push $4
+	push $5
+	push $6
+	push $7
+	push $8
+	cthis isin
+	jmp l126
+l124:
+	push 0
+	jmp l126
+l125:
+	push 1
+l126:
+	end method
+	method commonsurface
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	localint $5
+	localint $6
+	localint $7
+	localint $8
+	pop $8
+	pop $7
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	push $4
+	push $5
+	push $6
+	push $7
+	push $8
+	cthis issurfin
+	cmp0
+	jne l128
+	push $5
+	push $6
+	push $7
+	push $8
+	push $1
+	push $2
+	push $3
+	push $4
+	cthis issurfin
+	jmp l129
+l127:
+	push 0
+	jmp l129
+l128:
+	push 1
+l129:
+	end method
+	method commonimgs
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getpx
+	push $1
+	spushs
+	spop $a
+	call [$a],getpy
+	push $1
+	spushs
+	spop $a
+	call [$a],getex
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push $1
+	spushs
+	spop $a
+	call [$a],getey
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push $2
+	spushs
+	spop $a
+	call [$a],getpx
+	push $2
+	spushs
+	spop $a
+	call [$a],getpy
+	push $2
+	spushs
+	spop $a
+	call [$a],getex
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push $2
+	spushs
+	spop $a
+	call [$a],getey
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	cthis commonsurface
+	end method
+	method surfwithinsurf
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	localint $5
+	localint $6
+	localint $7
+	localint $8
+	pop $8
+	pop $7
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $5
+	push $6
+	push $7
+	push $8
+	cthis isin
+	cmp0
+	je l130
+	push $3
+	push $2
+	push $5
+	push $6
+	push $7
+	push $8
+	cthis isin
+	cmp0
+	je l130
+	push $1
+	push $4
+	push $5
+	push $6
+	push $7
+	push $8
+	cthis isin
+	cmp0
+	je l130
+	push $3
+	push $4
+	push $5
+	push $6
+	push $7
+	push $8
+	cthis isin
+	jmp l132
+l130:
+	push 0
+	jmp l132
+l131:
+	push 1
+l132:
+	end method
+	method imgwithinimg
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getpx
+	push $1
+	spushs
+	spop $a
+	call [$a],getpy
+	push $1
+	spushs
+	spop $a
+	call [$a],getex
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push $1
+	spushs
+	spop $a
+	call [$a],getey
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push $2
+	spushs
+	spop $a
+	call [$a],getpx
+	push $2
+	spushs
+	spop $a
+	call [$a],getpy
+	push $2
+	spushs
+	spop $a
+	call [$a],getex
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push $2
+	spushs
+	spop $a
+	call [$a],getey
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	cthis surfwithinsurf
+	end method
+	end module
+
+	module cllen
+	method init
+	new int,il1
+	new int,ilx
+	new int,ily
+	end method
+	method ilenx
+	push ilx
+	ret
+	end method
+	method ileny
+	push ily
+	ret
+	end method
+	method ilen4
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	pop $b
+	popax
+	sub $a,$b
+	spushs
+	spop $h
+	call $h,abs
+	ret
+	end method
+	method ilen3
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getcx
+	push $1
+	spushs
+	spop $a
+	call [$a],getcy
+	push $2
+	spushs
+	spop $a
+	call [$a],getcx
+	push $2
+	spushs
+	spop $a
+	call [$a],getcy
+	cthis ilen
+	ret
+	end method
+	method ilen5
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getpx
+	push $1
+	spushs
+	spop $a
+	call [$a],getpy
+	push $2
+	spushs
+	spop $a
+	call [$a],getpx
+	push $2
+	spushs
+	spop $a
+	call [$a],getpy
+	cthis ilen
+	ret
+	end method
+	method ilen2
+	localstring $1
+	localint $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getcx
+	push $1
+	spushs
+	spop $a
+	call [$a],getcy
+	push $2
+	push $3
+	cthis ilen
+	ret
+	end method
+	method ilen
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $3
+	pop $b
+	popax
+	sub $a,$b
+	pop ilx
+	push $2
+	push $4
+	pop $b
+	popax
+	sub $a,$b
+	pop ily
+	push ilx
+	push ily
+	call il1,length
+	ret
+	end method
+	method iclenx
+	localstring $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getcx
+	push $2
+	pop $b
+	popax
+	sub $a,$b
+	ret
+	end method
+	method iclenx2
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getcx
+	push $2
+	spushs
+	spop $a
+	call [$a],getcx
+	pop $b
+	popax
+	sub $a,$b
+	ret
+	end method
+	method icleny
+	localstring $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getcy
+	push $2
+	pop $b
+	popax
+	sub $a,$b
+	ret
+	end method
+	method icleny2
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getcy
+	push $2
+	spushs
+	spop $a
+	call [$a],getcy
+	pop $b
+	popax
+	sub $a,$b
+	ret
+	end method
+	method isbetween2
+	localstring $1
+	localstring $2
+	localint $3
+	localint $4
+	localint $5
+	localint $6
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	spushs
+	spop $a
+	call [$a],getcx
+	push $2
+	spushs
+	spop $a
+	call [$a],getcy
+	push $3
+	push $4
+	push $5
+	push $6
+	cthis isbetween
+	ret
+	end method
+	method isbetween
+	localstring $1
+	localint $2
+	localint $3
+	localint $4
+	localint $5
+	localint $6
+	localint $7
+	pop $7
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	cthis ilen
+	pop il1
+	push ilx
+	push $4
+	cmpjae
+	cmp0
+	je l133
+	push ilx
+	push $6
+	cmpjle
+	cmp0
+	je l133
+	push ily
+	push $5
+	cmpjae
+	cmp0
+	je l133
+	push ily
+	push $7
+	cmpjle
+	jmp l135
+l133:
+	push 0
+	jmp l135
+l134:
+	push 1
+l135:
+	ret
+	end method
+	method ilodlen
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],lodx
+	push $1
+	spushs
+	spop $a
+	call [$a],lody
+	push $2
+	spushs
+	spop $a
+	call [$a],lodx
+	push $2
+	spushs
+	spop $a
+	call [$a],lody
+	cthis ilen
+	end method
+	method iposlen
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getpos
+	push $2
+	spushs
+	spop $a
+	call [$a],getpos
+	cthis ilen
+	end method
+	end module
+
+	class classansearcher
+	method init
+	end method
+	method _findnotr
+	localstring $1
+	localint $2
+	localint $3
+	localint $4
+	localint $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localint $6
+	push $1
+	spushs
+	spop $a
+	call [$a],getex
+	pop $6
+	localint $7
+	push $1
+	spushs
+	spop $a
+	call [$a],getey
+	pop $7
+l136:
+	push $2
+	push $6
+	cmpjne
+	cmp0
+	je l137
+	push $3
+	push $7
+	cmpjne
+	jmp l139
+l137:
+	push 0
+	jmp l139
+l138:
+	push 1
+l139:
+	cmp0
+	je l140
+	push $1
+	spushs
+	push $2
+	push $3
+	push 0
+	push 1
+	spop $a
+	call [$a],isin
+	cmp0
+	je l142
+	push $2
+	push $3
+	ret
+l142:
+	push $4
+	popax
+	add $2,$a
+	pop $2
+	push $5
+	popax
+	add $3,$a
+	pop $3
+	jmp l136
+l140:
+	push 1
+	popax
+	sub 0,$a
+	push 1
+	popax
+	sub 0,$a
+	ret
+	end method
+	method firstnotrx1y
+	localstring $1
+	pop $1
+	push $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getpx
+	push $1
+	spushs
+	spop $a
+	call [$a],getpy
+	push 1
+	push 0
+	cthis _findnotr
+	ret
+	end method
+	method firstnotrexy1
+	localstring $1
+	pop $1
+	push $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getex
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push $1
+	spushs
+	spop $a
+	call [$a],getpy
+	push 0
+	push 1
+	cthis _findnotr
+	ret
+	end method
+	method firstnotrxy1
+	localstring $1
+	pop $1
+	push $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getpx
+	push $1
+	spushs
+	spop $a
+	call [$a],getpy
+	push 0
+	push 1
+	cthis _findnotr
+	ret
+	end method
+	method firstnotrx1ey
+	localstring $1
+	pop $1
+	push $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getpx
+	push $1
+	spushs
+	spop $a
+	call [$a],getey
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push 1
+	push 0
+	cthis _findnotr
+	ret
+	end method
+	end class
+
+	class signal_pack
+	method init
+	end method
+	method addsignals
+	localstring $1
+	pop $1
+	push $1
+	spushs
+	push "operator<"
+	push "signal_pack0"
+	spop $a
+	call [$a],addmethod
+	end method
+	method signal_pack0
+	localstring $1
+	pop $1
+	push "onfinish"
+	push $1
+	cthis addmethod
+	end method
+	end class
+
+	class anima_pack
+	parent signal_pack
+	method init
+	end method
+	method resizemethods
+	localstring $1
+	pop $1
+	push $1
+	spushs
+	push "_clanbuildpomvars"
+	push "anima_pack0"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	spop $a
+	call [$a],_clanbuildpomvars
+	push $1
+	spushs
+	push "setbpos"
+	push "anima_pack1"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "saverelpos"
+	push "anima_pack2"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "setrelpos"
+	push "anima_pack3"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "mssaverelpos"
+	push "anima_pack4"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "mssetrelpos"
+	push "anima_pack5"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "rplay"
+	push "anima_pack6"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "setcpos"
+	push "anima_pack7"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "operator="
+	push "anima_pack8"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "operator=="
+	push "anima_pack9"
+	spop $a
+	call [$a],addmethod
+	push $1
+	cthis addsignals
+	end method
+	method anima_pack0
+	new int,_ixp
+	new int,_iyp
+	end method
+	method anima_pack1
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	cthis lodx
+	pop $b
+	popax
+	sub $a,$b
+	push $2
+	cthis lody
+	pop $b
+	popax
+	sub $a,$b
+	cthis setpos
+	end method
+	method anima_pack2
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	cthis getpx
+	pop $b
+	popax
+	sub $a,$b
+	pop _ixp
+	push $2
+	cthis getpy
+	pop $b
+	popax
+	sub $a,$b
+	pop _iyp
+	end method
+	method anima_pack3
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push _ixp
+	pop $b
+	popax
+	sub $a,$b
+	push $2
+	push _iyp
+	pop $b
+	popax
+	sub $a,$b
+	cthis setbpos
+	end method
+	method anima_pack4
+	call mouse,getpos
+	cthis saverelpos
+	end method
+	method anima_pack5
+	call mouse,getpos
+	cthis setrelpos
+	end method
+	method anima_pack6
+	localstring $1
+	pop $1
+	push $1
+	cthis isplaying
+	neg
+	cmp0
+	je l144
+	push $1
+	cthis play
+l144:
+	end method
+	method anima_pack7
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	cthis getw
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	pop $b
+	popax
+	sub $a,$b
+	push $2
+	cthis geth
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	pop $b
+	popax
+	sub $a,$b
+	cthis setbpos
+	end method
+	method anima_pack8
+	localstring $1
+	pop $1
+	push $1
+	cthis copy
+	end method
+	method anima_pack9
+	localstring $1
+	pop $1
+	cthis actionnr
+	push $1
+	spushs
+	spop $a
+	call [$a],actionnr
+	cmpje
+	cmp0
+	je l145
+	cthis framenr
+	push $1
+	spushs
+	spop $a
+	call [$a],framenr
+	cmpje
+	jmp l147
+l145:
+	push 0
+	jmp l147
+l146:
+	push 1
+l147:
+	end method
+	end class
+
+	class timer_pack
+	parent signal_pack
+	method init
+	end method
+	method resizemethods
+	localstring $1
+	pop $1
+	push $1
+	cthis addsignals
+	end method
+	end class
+
+	class vector_pack
+	method init
+	end method
+	method each
+	localstring $1
+	pop $1
+	localint $2
+	push 0
+	pop $2
+l148:
+	push $2
+	cthis size
+	cmpjl
+	cmp0
+	je l149
+	jmp l151
+l150:
+	add $2,1
+	pop $2
+	jmp l148
+l151:
+	push $1
+	spushs
+	push $2
+	cthis get
+	spop $d
+	cthis [$d]
+	jmp l150
+l149:
+	end method
+	method resizemethods
+	localstring $1
+	pop $1
+	push $1
+	spushs
+	push "each"
+	push "each"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "operator-"
+	push "vector_pack0"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "operator+"
+	push "vector_pack1"
+	spop $a
+	call [$a],addmethod
+	end method
+	method vector_pack0
+	localdef $1
+	pop $1
+	push $1
+	cthis remove
+	cthis getname
+	end method
+	method vector_pack1
+	localdef $1
+	pop $1
+	push $1
+	cthis add
+	cthis getname
+	end method
+	end class
+
+	method new_object
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	push $2
+	spushs
+	spop $e
+	spop $d
+	new [$d],[$e]
+	push $1
+	push "_pack"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $2
+	spop $a
+	 clparent [$a],resizemethods
+	end method
+	method new_anima
+	localstring $1
+	pop $1
+	push "anima"
+	push $1
+	cthis new_object
+	end method
+	method new_vector
+	localstring $1
+	pop $1
+	push "vector"
+	push $1
+	cthis new_object
+	end method
+	class classanfilter
+	method init
+	end method
+	method buildanfilter
+	new filter,ft
+	cthis getname
+	call ft,link
+	push 1
+	call ft,setpivottype
+	end method
+	method build
+	localstring $1
+	pop $1
+	push $1
+	spushs
+	push "buildanfilter"
+	push "buildanfilter"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	spop $a
+	call [$a],buildanfilter
+	push $1
+	spushs
+	push "setopacity"
+	push "classanfilter0"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "setzoom"
+	push "classanfilter1"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "setangle"
+	push "classanfilter2"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "getangle"
+	push "classanfilter3"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "rotate"
+	push "classanfilter4"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "setpivottype"
+	push "classanfilter5"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "unlink"
+	push "classanfilter6"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "link"
+	push "classanfilter7"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "blend"
+	push "classanfilter8"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "mask"
+	push "classanfilter9"
+	spop $a
+	call [$a],addmethod
+	end method
+	method classanfilter0
+	localint $1
+	pop $1
+	push $1
+	call ft,setopacity
+	end method
+	method classanfilter1
+	localreal $1
+	pop $1
+	push $1
+	call ft,setzoom
+	end method
+	method classanfilter2
+	localreal $1
+	pop $1
+	push $1
+	call ft,setangle
+	end method
+	method classanfilter3
+	call ft,getangle
+	ret
+	end method
+	method classanfilter4
+	localreal $1
+	pop $1
+	push $1
+	call ft,rotate
+	end method
+	method classanfilter5
+	localint $1
+	pop $1
+	push $1
+	call ft,setpivottype
+	end method
+	method classanfilter6
+	call ft,unlink
+	end method
+	method classanfilter7
+	cthis getname
+	call ft,link
+	end method
+	method classanfilter8
+	localstring $1
+	pop $1
+	push $1
+	call ft,blend
+	end method
+	method classanfilter9
+	localstring $1
+	pop $1
+	push $1
+	call ft,mask
+	end method
+	end class
+
+	class classancounter
+	method init
+	new int,iile
+	new int,id
+	new string,_san
+	new vector,_vs
+	new int,_pos
+	end method
+	method set
+	localstring $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	pop _san
+	push $2
+	pop iile
+	push 0
+	pop id
+	call $1,length
+	pop _pos
+	push $2
+	push 0
+	call _vs,resize
+	end method
+	method get
+	localstring $1
+	push _san
+	push id
+	pop $b
+	popax
+	add $a,$b
+	pop $1
+	push id
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	push iile
+	pop $b
+	popax
+	div $a,$b
+	push $d
+	pop id
+	push $1
+	ret
+	end method
+	method getf
+	localint $1
+	push 0
+	pop $1
+l152:
+	push $1
+	push iile
+	cmpjl
+	cmp0
+	je l153
+	jmp l155
+l154:
+	add $1,1
+	pop $1
+	jmp l152
+l155:
+	push $1
+	call _vs,get
+	neg
+	cmp0
+	je l157
+	push $1
+	push 1
+	call _vs,set
+	push _san
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	ret
+l157:
+	jmp l154
+l153:
+	push "null"
+	ret
+	end method
+	method retf
+	localstring $1
+	pop $1
+	push _pos
+	push 10
+	call $1,getb
+	push 0
+	call _vs,set
+	end method
+	method isfree
+	localint $1
+	pop $1
+	push $1
+	call _vs,get
+	ret
+	end method
+	method getile
+	push iile
+	ret
+	end method
+	end class
+
+	class gmobjvec
+	method init
+	new vector,lsim
+	push "string"
+	call lsim,type
+	end method
+	method operator=
+	localstring $1
+	pop $1
+	push $1
+	call engine,varexist
+	cmp0
+	je l159
+	push $1
+	spushs
+	spop $a
+	call [$a],gettype
+	spushs
+	push "vector"
+	cmpst
+	jne l161
+	spop $a
+	push $1
+	cthis copy
+	jmp l160
+l161:
+	push "gmobjvec"
+	cmpst
+	jne l162
+	spop $a
+	push $1
+	cthis copy
+	jmp l160
+l162:
+	push "gmimgvec"
+	cmpst
+	jne l163
+	spop $a
+	push $1
+	cthis copy
+	jmp l160
+l163:
+	spop $a
+	cthis free
+	push $1
+	cthis add
+l160:
+	jmp l158
+l159:
+	cthis free
+	push $1
+	cthis add
+l158:
+	end method
+	method operator+
+	localstring $1
+	pop $1
+	push $1
+	cthis add
+	cthis getname
+	ret
+	end method
+	method operator-
+	localstring $1
+	pop $1
+	push $1
+	cthis remove
+	cthis getname
+	ret
+	end method
+	method removegr
+	localstring $1
+	pop $1
+	localint $2
+	push 0
+	pop $2
+l164:
+	push $2
+	push $1
+	spushs
+	spop $a
+	call [$a],size
+	cmpjl
+	cmp0
+	je l165
+	jmp l167
+l166:
+	add $2,1
+	pop $2
+	jmp l164
+l167:
+	push $1
+	spushs
+	push $2
+	spop $a
+	call [$a],get
+	cthis remove
+	jmp l166
+l165:
+	end method
+	method addtogr
+	localstring $1
+	pop $1
+	localint $2
+	push 0
+	pop $2
+l168:
+	push $2
+	cthis size
+	cmpjl
+	cmp0
+	je l169
+	jmp l171
+l170:
+	add $2,1
+	pop $2
+	jmp l168
+l171:
+	push $1
+	spushs
+	push $2
+	cthis get
+	spop $a
+	call [$a],add
+	jmp l170
+l169:
+	end method
+	method addgr
+	localstring $1
+	pop $1
+	localint $2
+	push 0
+	pop $2
+l172:
+	push $2
+	push $1
+	spushs
+	spop $a
+	call [$a],size
+	cmpjl
+	cmp0
+	je l173
+	jmp l175
+l174:
+	add $2,1
+	pop $2
+	jmp l172
+l175:
+	push $1
+	spushs
+	push $2
+	spop $a
+	call [$a],get
+	cthis add
+	jmp l174
+l173:
+	end method
+	method addgroups
+	push "addgr"
+	cthis withlist
+	end method
+	method copy
+	localstring $1
+	pop $1
+	cthis free
+	push $1
+	cthis addgr
+	end method
+	method free
+	call lsim,free
+	end method
+	method size
+	call lsim,size
+	ret
+	end method
+	method empty
+	cthis size
+	push 0
+	cmpje
+	ret
+	end method
+	method hash
+	call lsim,hash
+	end method
+	method first
+	push 0
+	call lsim,get
+	ret
+	end method
+	method last
+	call lsim,size
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	call lsim,get
+	ret
+	end method
+	method print
+	call lsim,print
+	end method
+	method get
+	localint $1
+	pop $1
+	push $1
+	call lsim,get
+	ret
+	end method
+	method add
+	localstring $1
+	pop $1
+	push $1
+	call lsim,add
+	end method
+	method additer
+	localstring $1
+	localint $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+l176:
+	push $3
+	push 0
+	cmpja
+	cmp0
+	je l177
+	push $1
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	cthis add
+	add $2,1
+	pop $2
+	sub $3,1
+	pop $3
+	jmp l176
+l177:
+	end method
+	method buildarray
+	localstring $1
+	localstring $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	call gameapi,getgamename
+	spushs
+	push $1
+	push $2
+	push $3
+	spop $a
+	call [$a],newarray
+	push $2
+	push 0
+	push $3
+	cthis additer
+	end method
+	method deleteall
+	localint $1
+	push 0
+	pop $1
+l178:
+	push $1
+	cthis size
+	cmpjl
+	cmp0
+	je l179
+	jmp l181
+l180:
+	add $1,1
+	pop $1
+	jmp l178
+l181:
+	push $1
+	cthis get
+	spushs
+	spop $d
+	delete [$d]
+	jmp l180
+l179:
+	end method
+	method deleteallgm
+	localdef $1
+	call gameapi,getgamename
+	pop $1
+	localint $2
+	push 0
+	pop $2
+l182:
+	push $2
+	cthis size
+	cmpjl
+	cmp0
+	je l183
+	jmp l185
+l184:
+	add $2,1
+	pop $2
+	jmp l182
+l185:
+	push $1
+	spushs
+	push $2
+	cthis get
+	spop $a
+	call [$a],vardel
+	jmp l184
+l183:
+	end method
+	method addbegin
+	localstring $1
+	pop $1
+	push $1
+	call lsim,addbegin
+	end method
+	method swap
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	call lsim,swap
+	end method
+	method addonce
+	localstring $1
+	pop $1
+	push $1
+	call lsim,contains
+	neg
+	cmp0
+	je l187
+	push $1
+	call lsim,add
+l187:
+	end method
+	method sepadd
+	localstring $1
+	pop $1
+	localstring $2
+	pop $2
+l188:
+	push $2
+	push $1
+	cmpjne
+	cmp0
+	je l189
+	push $2
+	cthis addbegin
+	pop $2
+	jmp l188
+l189:
+	end method
+	method addlist
+	push A
+	cthis sepadd
+	end method
+	method insertat
+	localstring $1
+	localint $2
+	pop $2
+	pop $1
+	localdef $3
+	cthis size
+	pop $3
+	push $2
+	push 0
+	cmpjle
+	cmp0
+	je l191
+	push $1
+	cthis addbegin
+	jmp l190
+l191:
+	push $2
+	push $3
+	cmpjae
+	cmp0
+	je l193
+	push $1
+	cthis add
+	jmp l192
+l193:
+	push "null"
+	cthis add
+	localdef $4
+	push $3
+	pop $4
+l194:
+	push $4
+	push $2
+	cmpja
+	cmp0
+	je l195
+	jmp l197
+l196:
+	sub $4,1
+	pop $4
+	jmp l194
+l197:
+	push $4
+	push $4
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	cthis get
+	cthis set
+	jmp l196
+l195:
+	push $2
+	push $1
+	cthis set
+l192:
+l190:
+	end method
+	method remove
+	localstring $1
+	pop $1
+	push $1
+	call lsim,remove
+	end method
+	method removeat
+	localint $1
+	pop $1
+	push $1
+	call lsim,removeat
+	end method
+	method removefirst
+	push 0
+	call lsim,removeat
+	end method
+	method removelast
+	cthis size
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	call lsim,removeat
+	end method
+	method removealloccurs
+	localstring $1
+	pop $1
+l198:
+	push $1
+	cthis contains
+	cmp0
+	je l199
+	push $1
+	cthis remove
+	jmp l198
+l199:
+	end method
+	method removeif
+	localstring $1
+	pop $1
+	localint $2
+	push 0
+	pop $2
+l200:
+	push $2
+	cthis size
+	cmpjl
+	cmp0
+	je l201
+	jmp l203
+l202:
+	add $2,1
+	pop $2
+	jmp l200
+l203:
+	push $2
+	cthis get
+	spushs
+	push $1
+	spushs
+	spop $d
+	spop $a
+	call [$a],[$d]
+	cmp0
+	je l205
+	push $2
+	cthis removeat
+l205:
+	jmp l202
+l201:
+	end method
+	method find
+	localstring $1
+	pop $1
+	push $1
+	call lsim,find
+	ret
+	end method
+	method contains
+	localstring $1
+	pop $1
+	push $1
+	call lsim,contains
+	ret
+	end method
+	method addgroup
+	localstring $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push 0
+	push $2
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	cthis addgroup2
+	end method
+	method addgroup2
+	localstring $1
+	localint $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+l206:
+	push $2
+	push $3
+	cmpjle
+	cmp0
+	je l207
+	push $1
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	cthis add
+	add $2,1
+	pop $2
+	jmp l206
+l207:
+	end method
+	method rand
+	localint $1
+	cthis size
+	pop $1
+	push $1
+	push 0
+	cmpja
+	cmp0
+	je l209
+	call $1,rand
+	cthis get
+	jmp l208
+l209:
+	push "null"
+l208:
+	end method
+	method randdiff
+	localstring $1
+	pop $1
+	localint $2
+	cthis size
+	pop $2
+	push $2
+	push 0
+	cmpja
+	cmp0
+	je l211
+	localint $3
+	call $2,rand
+	pop $3
+	localint $4
+	push $3
+	pop $4
+l212:
+	push $3
+	cthis get
+	push $1
+	cmpje
+	cmp0
+	je l213
+	push $3
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	push $2
+	pop $b
+	popax
+	div $a,$b
+	push $d
+	pop $3
+	push $3
+	push $4
+	cmpje
+	cmp0
+	je l215
+	push "null"
+	ret
+l215:
+	jmp l212
+l213:
+	push $3
+	cthis get
+	ret
+l211:
+	push "null"
+	end method
+	method buildfullvars
+	push "gmobjvec0"
+	cthis each
+	end method
+	method gmobjvec0
+	localdef $1
+	pop $1
+	cthis buildfullname
+	end method
+	method buildvars
+	push "gmobjvec1"
+	cthis each
+	end method
+	method gmobjvec1
+	localdef $1
+	pop $1
+	cthis getname
+	cthis addtogamevars
+	end method
+	method movefrom
+	localstring $1
+	localint $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	localint $4
+	push $1
+	cthis find
+	pop $4
+	push $4
+	push 0
+	cmpjae
+	cmp0
+	je l217
+l218:
+	push $4
+	call lsim,size
+	cmpjl
+	cmp0
+	je l219
+	push $4
+	call lsim,get
+	spushs
+	push $2
+	push $3
+	spop $a
+	call [$a],move
+	add $4,1
+	pop $4
+	jmp l218
+l219:
+l217:
+	end method
+	method move
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push "move"
+	push $1
+	push $2
+	cthis eval2
+	end method
+	method setpos
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push "setpos"
+	push $1
+	push $2
+	cthis eval2
+	end method
+	method show
+	push "show"
+	cthis eval
+	end method
+	method hide
+	push "hide"
+	cthis eval
+	end method
+	method stop
+	localint $1
+	pop $1
+	push "stop"
+	push $1
+	cthis eval1
+	end method
+	method play
+	push "play"
+	cthis eval
+	end method
+	method setdelay
+	localint $1
+	pop $1
+	push "setdelay"
+	push $1
+	cthis eval1
+	end method
+	method graddmethod
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push "addmethod"
+	push $1
+	push $2
+	cthis eval2
+	end method
+	method getimg
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localint $5
+	call lsim,size
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $5
+l220:
+	push $5
+	push 0
+	cmpjae
+	cmp0
+	je l221
+	jmp l223
+l222:
+	sub $5,1
+	pop $5
+	jmp l220
+l223:
+	push $5
+	call lsim,get
+	spushs
+	push $1
+	push $2
+	push $3
+	push $4
+	spop $a
+	call [$a],isin
+	cmp0
+	je l225
+	push $5
+	call lsim,get
+	ret
+l225:
+	jmp l222
+l221:
+	push "null"
+	ret
+	end method
+	method isin
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localint $5
+	call lsim,size
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $5
+l226:
+	push $5
+	push 0
+	cmpjae
+	cmp0
+	je l227
+	jmp l229
+l228:
+	sub $5,1
+	pop $5
+	jmp l226
+l229:
+	push $5
+	call lsim,get
+	spushs
+	push $1
+	push $2
+	push $3
+	push $4
+	spop $a
+	call [$a],isin
+	cmp0
+	je l231
+	push $5
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	ret
+l231:
+	jmp l228
+l227:
+	push 0
+	ret
+	end method
+	method setframe
+	localdef $1
+	localint $2
+	pop $2
+	pop $1
+	push "setframe"
+	push $1
+	push $2
+	cthis eval2
+	end method
+	method setz
+	localint $1
+	pop $1
+	push "setz"
+	push $1
+	cthis eval1
+	end method
+	method eval
+	localstring $1
+	pop $1
+	localint $2
+	push 0
+	pop $2
+l232:
+	push $2
+	call lsim,size
+	cmpjl
+	cmp0
+	je l233
+	jmp l235
+l234:
+	add $2,1
+	pop $2
+	jmp l232
+l235:
+	push $2
+	call lsim,get
+	spushs
+	push $1
+	spushs
+	spop $d
+	spop $a
+	call [$a],[$d]
+	jmp l234
+l233:
+	end method
+	method eval1
+	localstring $1
+	localdef $2
+	pop $2
+	pop $1
+	localint $3
+	push 0
+	pop $3
+l236:
+	push $3
+	call lsim,size
+	cmpjl
+	cmp0
+	je l237
+	jmp l239
+l238:
+	add $3,1
+	pop $3
+	jmp l236
+l239:
+	push $3
+	call lsim,get
+	spushs
+	push $1
+	spushs
+	push $2
+	spop $d
+	spop $a
+	call [$a],[$d]
+	jmp l238
+l237:
+	end method
+	method eval2
+	localstring $1
+	localdef $2
+	localdef $3
+	pop $3
+	pop $2
+	pop $1
+	localint $4
+	push 0
+	pop $4
+l240:
+	push $4
+	call lsim,size
+	cmpjl
+	cmp0
+	je l241
+	jmp l243
+l242:
+	add $4,1
+	pop $4
+	jmp l240
+l243:
+	push $4
+	call lsim,get
+	spushs
+	push $1
+	spushs
+	push $2
+	push $3
+	spop $d
+	spop $a
+	call [$a],[$d]
+	jmp l242
+l241:
+	end method
+	method eval3
+	localstring $1
+	localdef $2
+	localdef $3
+	localdef $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localint $5
+	push 0
+	pop $5
+l244:
+	push $5
+	call lsim,size
+	cmpjl
+	cmp0
+	je l245
+	jmp l247
+l246:
+	add $5,1
+	pop $5
+	jmp l244
+l247:
+	push $5
+	call lsim,get
+	spushs
+	push $1
+	spushs
+	push $2
+	push $3
+	push $4
+	spop $d
+	spop $a
+	call [$a],[$d]
+	jmp l246
+l245:
+	end method
+	method _find
+	localstring $1
+	localdef $2
+	pop $2
+	pop $1
+	localint $3
+	push 0
+	pop $3
+l248:
+	push $3
+	cthis size
+	cmpjl
+	cmp0
+	je l249
+	jmp l251
+l250:
+	add $3,1
+	pop $3
+	jmp l248
+l251:
+	push $3
+	cthis get
+	spushs
+	push $1
+	spushs
+	spop $d
+	spop $a
+	call [$a],[$d]
+	push $2
+	cmpje
+	cmp0
+	je l253
+	push $3
+	ret
+l253:
+	jmp l250
+l249:
+	push 1
+	popax
+	sub 0,$a
+	end method
+	method _find1
+	localstring $1
+	localdef $2
+	pop $2
+	pop $1
+	localint $3
+	push 0
+	pop $3
+l254:
+	push $3
+	cthis size
+	cmpjl
+	cmp0
+	je l255
+	jmp l257
+l256:
+	add $3,1
+	pop $3
+	jmp l254
+l257:
+	push $3
+	cthis get
+	spushs
+	push $1
+	spushs
+	push $2
+	spop $d
+	spop $a
+	call [$a],[$d]
+	cmp0
+	je l259
+	push $3
+	ret
+l259:
+	jmp l256
+l255:
+	push 1
+	popax
+	sub 0,$a
+	end method
+	method each
+	localstring $1
+	pop $1
+	localint $2
+	push 0
+	pop $2
+l260:
+	push $2
+	cthis size
+	cmpjl
+	cmp0
+	je l261
+	jmp l263
+l262:
+	add $2,1
+	pop $2
+	jmp l260
+l263:
+	push $2
+	cthis get
+	spushs
+	push $1
+	spushs
+	push $2
+	spop $d
+	spop $a
+	call [$a],[$d]
+	jmp l262
+l261:
+	end method
+	method each1
+	localstring $1
+	localdef $2
+	pop $2
+	pop $1
+	localint $3
+	push 0
+	pop $3
+l264:
+	push $3
+	cthis size
+	cmpjl
+	cmp0
+	je l265
+	jmp l267
+l266:
+	add $3,1
+	pop $3
+	jmp l264
+l267:
+	push $3
+	cthis get
+	spushs
+	push $1
+	spushs
+	push $3
+	push $2
+	spop $d
+	spop $a
+	call [$a],[$d]
+	jmp l266
+l265:
+	end method
+	method each2
+	localstring $1
+	localdef $2
+	localdef $3
+	pop $3
+	pop $2
+	pop $1
+	localint $4
+	push 0
+	pop $4
+l268:
+	push $4
+	cthis size
+	cmpjl
+	cmp0
+	je l269
+	jmp l271
+l270:
+	add $4,1
+	pop $4
+	jmp l268
+l271:
+	push $4
+	cthis get
+	spushs
+	push $1
+	spushs
+	push $4
+	push $2
+	push $3
+	spop $d
+	spop $a
+	call [$a],[$d]
+	jmp l270
+l269:
+	end method
+	method ineach
+	localstring $1
+	pop $1
+	localint $2
+	push 0
+	pop $2
+l272:
+	push $2
+	cthis size
+	cmpjl
+	cmp0
+	je l273
+	jmp l275
+l274:
+	add $2,1
+	pop $2
+	jmp l272
+l275:
+	push $2
+	cthis get
+	spushs
+	push $1
+	spushs
+	push $2
+	spop $d
+	spop $a
+	call [$a],[$d]
+	neg
+	cmp0
+	je l277
+	push 0
+	ret
+l277:
+	jmp l274
+l273:
+	push 1
+	end method
+	method find_closest
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	cthis empty
+	cmp0
+	je l279
+	ret
+l279:
+	localint $3
+	push 0
+	pop $3
+	localreal $4
+	localreal $5
+	push 0
+	cthis get
+	spushs
+	push $2
+	spushs
+	push $1
+	spop $d
+	spop $a
+	call [$a],[$d]
+	pop $5
+	localint $6
+	push 1
+	pop $6
+l280:
+	push $6
+	cthis size
+	cmpjl
+	cmp0
+	je l281
+	jmp l283
+l282:
+	add $6,1
+	pop $6
+	jmp l280
+l283:
+	push $6
+	cthis get
+	spushs
+	push $2
+	spushs
+	push $1
+	spop $d
+	spop $a
+	call [$a],[$d]
+	pop $4
+	push $4
+	push $5
+	cmpjl
+	cmp0
+	je l285
+	push $6
+	pop $3
+	push $5
+	pop $4
+l285:
+	jmp l282
+l281:
+	push $3
+	end method
+	method sortimgsfun
+	localstring $1
+	pop $1
+	push $1
+	call lsim,vecsort
+	end method
+	method sortimgs
+	push "_scmpimg1"
+	call lsim,vecsort
+	end method
+	method _scmpimg1
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getz
+	push $2
+	spushs
+	spop $a
+	call [$a],getz
+	cmpjl
+	cmp0
+	jne l287
+	push $1
+	spushs
+	spop $a
+	call [$a],getz
+	push $2
+	spushs
+	spop $a
+	call [$a],getz
+	cmpje
+	cmp0
+	je l288
+	push $1
+	spushs
+	spop $a
+	call [$a],getidobj
+	push $2
+	spushs
+	spop $a
+	call [$a],getidobj
+	cmpjl
+	jmp l290
+l288:
+	push 0
+	jmp l290
+l289:
+	push 1
+l290:
+	jmp l291
+l286:
+	push 0
+	jmp l291
+l287:
+	push 1
+l291:
+	ret
+	end method
+	end class
+
+	class gmimgvec
+	parent gmobjvec
+	method init
+	clparent gmobjvec,init
+	new int,_ix
+	push 0
+	pop _ix
+	new int,_iy
+	push 0
+	pop _iy
+	new int,_iz
+	push 0
+	pop _iz
+	new int,_ifound
+	push 1
+	popax
+	sub 0,$a
+	pop _ifound
+	end method
+	method _setpos
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	pop _iy
+	pop _ix
+	end method
+	method lodx
+	push 0
+	end method
+	method lody
+	push 0
+	end method
+	method getposx
+	push _ix
+	ret
+	end method
+	method getposy
+	push _iy
+	ret
+	end method
+	method getpos
+	push _ix
+	push _iy
+	ret
+	end method
+	method getpx
+	push _ix
+	ret
+	end method
+	method getpy
+	push _iy
+	ret
+	end method
+	method getw
+	cthis getex
+	cthis getpx
+	pop $b
+	popax
+	sub $a,$b
+	ret
+	end method
+	method geth
+	cthis getey
+	cthis getpy
+	pop $b
+	popax
+	sub $a,$b
+	ret
+	end method
+	method getcx
+	cthis getpx
+	cthis getw
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	pop $b
+	popax
+	add $a,$b
+	ret
+	end method
+	method getcy
+	cthis getpy
+	cthis geth
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	pop $b
+	popax
+	add $a,$b
+	ret
+	end method
+	method getz
+	push _iz
+	ret
+	end method
+	method getex
+	localint $1
+	cthis size
+	pop $1
+	push $1
+	push 0
+	cmpjle
+	cmp0
+	je l293
+	push _ix
+	ret
+l293:
+	localint $2
+	push 0
+	cthis get
+	spushs
+	spop $a
+	call [$a],getex
+	pop $2
+	localint $3
+	localint $4
+	push 1
+	pop $4
+l294:
+	push $4
+	push $1
+	cmpjl
+	cmp0
+	je l295
+	jmp l297
+l296:
+	add $4,1
+	pop $4
+	jmp l294
+l297:
+	push $4
+	cthis get
+	spushs
+	spop $a
+	call [$a],getex
+	pop $3
+	push $3
+	push $2
+	cmpja
+	cmp0
+	je l299
+	push $3
+	pop $2
+l299:
+	jmp l296
+l295:
+	push $2
+	ret
+	end method
+	method getey
+	localint $1
+	cthis size
+	pop $1
+	push $1
+	push 0
+	cmpjle
+	cmp0
+	je l301
+	push _iy
+	ret
+l301:
+	localint $2
+	push 0
+	cthis get
+	spushs
+	spop $a
+	call [$a],getey
+	pop $2
+	localint $3
+	localint $4
+	push 1
+	pop $4
+l302:
+	push $4
+	push $1
+	cmpjl
+	cmp0
+	je l303
+	jmp l305
+l304:
+	add $4,1
+	pop $4
+	jmp l302
+l305:
+	push $4
+	cthis get
+	spushs
+	spop $a
+	call [$a],getey
+	pop $3
+	push $3
+	push $2
+	cmpja
+	cmp0
+	je l307
+	push $3
+	pop $2
+l307:
+	jmp l304
+l303:
+	push $2
+	ret
+	end method
+	method _getpx
+	localint $1
+	cthis size
+	pop $1
+	push $1
+	push 0
+	cmpjle
+	cmp0
+	je l309
+	push _ix
+	ret
+l309:
+	localint $2
+	push 0
+	cthis get
+	spushs
+	spop $a
+	call [$a],getpx
+	pop $2
+	localint $3
+	localint $4
+	push 1
+	pop $4
+l310:
+	push $4
+	push $1
+	cmpjl
+	cmp0
+	je l311
+	jmp l313
+l312:
+	add $4,1
+	pop $4
+	jmp l310
+l313:
+	push $4
+	cthis get
+	spushs
+	spop $a
+	call [$a],getpx
+	pop $3
+	push $3
+	push $2
+	cmpjl
+	cmp0
+	je l315
+	push $3
+	pop $2
+l315:
+	jmp l312
+l311:
+	push $2
+	ret
+	end method
+	method _getpy
+	localint $1
+	cthis size
+	pop $1
+	push $1
+	push 0
+	cmpjle
+	cmp0
+	je l317
+	push _iy
+	ret
+l317:
+	localint $2
+	push 0
+	cthis get
+	spushs
+	spop $a
+	call [$a],getpy
+	pop $2
+	localint $3
+	localint $4
+	push 1
+	pop $4
+l318:
+	push $4
+	push $1
+	cmpjl
+	cmp0
+	je l319
+	jmp l321
+l320:
+	add $4,1
+	pop $4
+	jmp l318
+l321:
+	push $4
+	cthis get
+	spushs
+	spop $a
+	call [$a],getpy
+	pop $3
+	push $3
+	push $2
+	cmpjl
+	cmp0
+	je l323
+	push $3
+	pop $2
+l323:
+	jmp l320
+l319:
+	push $2
+	ret
+	end method
+	method setz
+	localint $1
+	pop $1
+	push $1
+	pop _iz
+	push "setz"
+	push $1
+	cthis eval1
+	end method
+	method move
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	popax
+	add _ix,$a
+	pop _ix
+	push $2
+	popax
+	add _iy,$a
+	pop _iy
+	push "move"
+	push $1
+	push $2
+	cthis eval2
+	end method
+	method setpos
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	pop _ix
+	push $2
+	pop _iy
+	push "setpos"
+	push $1
+	push $2
+	cthis eval2
+	end method
+	method setpos2
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	pop _ix
+	push $2
+	pop _iy
+	cthis empty
+	neg
+	cmp0
+	je l325
+	push 0
+	cthis get
+	spushs
+	spop $a
+	call [$a],getpx
+	popax
+	sub $1,$a
+	pop $1
+	push 0
+	cthis get
+	spushs
+	spop $a
+	call [$a],getpy
+	popax
+	sub $2,$a
+	pop $2
+	push $1
+	popax
+	sub 0,$a
+	push $2
+	popax
+	sub 0,$a
+	cthis move
+l325:
+	end method
+	method changeframe
+	localint $1
+	pop $1
+	localstring $2
+	localint $3
+	push 0
+	pop $3
+l326:
+	push $3
+	cthis size
+	cmpjl
+	cmp0
+	je l327
+	jmp l329
+l328:
+	add $3,1
+	pop $3
+	jmp l326
+l329:
+	push $3
+	cthis get
+	pop $2
+	push $2
+	spushs
+	push $2
+	spushs
+	push 1
+	popax
+	sub 0,$a
+	spop $a
+	call [$a],actionnr
+	push $1
+	spop $a
+	call [$a],setframe
+	jmp l328
+l327:
+	end method
+	method txtreset
+	localint $1
+	push 0
+	pop $1
+l330:
+	push $1
+	cthis size
+	cmpjl
+	cmp0
+	je l331
+	jmp l333
+l332:
+	add $1,1
+	pop $1
+	jmp l330
+l333:
+	push $1
+	cthis get
+	spushs
+	push ""
+	spop $a
+	call [$a],txtset
+	jmp l332
+l331:
+	end method
+	method anputgr
+	push "anputgr"
+	cthis eval
+	end method
+	method anputy
+	localint $1
+	pop $1
+	push "anputy"
+	push ipos
+	cthis eval1
+	end method
+	method isin
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localint $5
+	call lsim,size
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $5
+l334:
+	push $5
+	push 0
+	cmpjae
+	cmp0
+	je l335
+	jmp l337
+l336:
+	sub $5,1
+	pop $5
+	jmp l334
+l337:
+	push $5
+	call lsim,get
+	spushs
+	push $1
+	push $2
+	push $3
+	push $4
+	spop $a
+	call [$a],isin
+	cmp0
+	je l339
+	push $5
+	pop _ifound
+	push $5
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	ret
+l339:
+	jmp l336
+l335:
+	push 1
+	popax
+	sub 0,$a
+	pop _ifound
+	push 0
+	ret
+	end method
+	method isinfunc
+	localint $1
+	localint $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	localint $4
+	call lsim,size
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $4
+l340:
+	push $4
+	push 0
+	cmpjae
+	cmp0
+	je l341
+	jmp l343
+l342:
+	sub $4,1
+	pop $4
+	jmp l340
+l343:
+	push $4
+	call lsim,get
+	spushs
+	push $3
+	spushs
+	push $1
+	push $2
+	spop $d
+	spop $a
+	call [$a],[$d]
+	cmp0
+	je l345
+	push $4
+	pop _ifound
+	push $4
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	ret
+l345:
+	jmp l342
+l341:
+	push 1
+	popax
+	sub 0,$a
+	pop _ifound
+	push 0
+	ret
+	end method
+	method isincut
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localint $5
+	call lsim,size
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $5
+l346:
+	push $5
+	push 0
+	cmpjae
+	cmp0
+	je l347
+	jmp l349
+l348:
+	sub $5,1
+	pop $5
+	jmp l346
+l349:
+	push $5
+	call lsim,get
+	spushs
+	push $1
+	push $2
+	spop $a
+	call [$a],withincut
+	cmp0
+	je l351
+	push $5
+	call lsim,get
+	spushs
+	push $1
+	push $2
+	push $3
+	push $4
+	spop $a
+	call [$a],isin
+	jmp l353
+l351:
+	push 0
+	jmp l353
+l352:
+	push 1
+l353:
+	cmp0
+	je l354
+	push $5
+	pop _ifound
+	push $5
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	ret
+l354:
+	jmp l348
+l347:
+	push 1
+	popax
+	sub 0,$a
+	pop _ifound
+	push 0
+	ret
+	end method
+	method findif
+	localstring $1
+	pop $1
+	push $1
+	push 1
+	cthis _find
+	end method
+	method getfound
+	push _ifound
+	ret
+	end method
+	method getsfound
+	push _ifound
+	cthis get
+	ret
+	end method
+	method findfr
+	localint $1
+	pop $1
+	push "framenr"
+	push $1
+	cthis _find
+	end method
+	method findsfr
+	localstring $1
+	pop $1
+	push "framename"
+	push $1
+	cthis _find
+	end method
+	method findac
+	localint $1
+	pop $1
+	push "actionnr"
+	push $1
+	cthis _find
+	end method
+	method findsac
+	localstring $1
+	pop $1
+	push "actionname"
+	push $1
+	cthis _find
+	end method
+	method nearest_to
+	localstring $1
+	pop $1
+	push $1
+	push "gmimgvec0"
+	cthis find_closest
+	end method
+	method gmimgvec0
+	localstring $1
+	pop $1
+	cthis getname
+	push $1
+	call cllen,ilen5
+	end method
+	method loadallan
+	localstring $1
+	localstring $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	localstring $4
+	call gameapi,getgamename
+	pop $4
+	push $4
+	spushs
+	push $1
+	push $2
+	push $3
+	spop $a
+	call [$a],newanima
+	push $4
+	spushs
+	push $1
+	push $1
+	cthis getname
+	spop $a
+	call [$a],newanfrbyactgr
+	popax
+	push $1
+	spushs
+	spop $a
+	call [$a],hide
+	end method
+	method operator*
+	localstring $1
+	pop $1
+	localstring $2
+	call gameapi,getgamename
+	pop $2
+	localstring $3
+	push ".pyz"
+	call $1,contains
+	cmp0
+	je l356
+	push "an"
+	push ".pyz"
+	call $1,strsubes
+	pop $b
+	popax
+	add $a,$b
+	pop $3
+	push $2
+	spushs
+	push $3
+	push $1
+	push 0
+	spop $a
+	call [$a],newanima
+	jmp l355
+l356:
+	push $1
+	pop $3
+l355:
+	push $2
+	spushs
+	push $3
+	push $3
+	cthis getname
+	spop $a
+	call [$a],newanactionsgr
+	popax
+	push $3
+	spushs
+	spop $a
+	call [$a],hide
+	end method
+	method operator<
+	localstring $1
+	pop $1
+	localstring $2
+	call gameapi,getgamename
+	pop $2
+	localstring $3
+	push ".pyz"
+	call $1,contains
+	cmp0
+	je l358
+	push "an"
+	push ".pyz"
+	call $1,strsubes
+	pop $b
+	popax
+	add $a,$b
+	pop $3
+	push $2
+	spushs
+	push $3
+	push $1
+	push 0
+	spop $a
+	call [$a],newanima
+	jmp l357
+l358:
+	push $1
+	pop $3
+l357:
+	push $2
+	spushs
+	push $3
+	push $3
+	cthis getname
+	spop $a
+	call [$a],newanfrbyactgr
+	popax
+	push $3
+	spushs
+	spop $a
+	call [$a],hide
+	end method
+	end class
+
+	class gmmaskvec
+	parent gmimgvec
+	method init
+	clparent gmimgvec,init
+	end method
+	method isin
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push 0
+	push $4
+	clparent gmimgvec,isin
+	ret
+	end method
+	end class
+
+	class classsound
+	method init
+	new string,_csplay
+	push "null"
+	pop _csplay
+	end method
+	method creset
+	push "null"
+	pop _csplay
+	end method
+	method cgetactsnd
+	push _csplay
+	ret
+	end method
+	method crselfplay
+	localstring $1
+	pop $1
+	cthis cisplaying
+	neg
+	cmp0
+	je l360
+	push $1
+	cthis cbplay
+	jmp l359
+l360:
+	cthis cgetactsnd
+	push $1
+	cmpjne
+	cmp0
+	je l362
+	push $1
+	cthis cbplay
+l362:
+l359:
+	end method
+	method cbplay
+	localstring $1
+	pop $1
+	cthis cisplaying
+	cmp0
+	je l364
+	push _csplay
+	spushs
+	push 1
+	spop $a
+	call [$a],stop
+l364:
+	push $1
+	pop _csplay
+	push $1
+	push "null"
+	cmpjne
+	cmp0
+	je l366
+	push $1
+	spushs
+	spop $a
+	call [$a],play
+l366:
+	end method
+	method cbplay2
+	localstring $1
+	pop $1
+	cthis cisplaying
+	cmp0
+	je l368
+	push _csplay
+	spushs
+	push 0
+	spop $a
+	call [$a],stop
+l368:
+	push $1
+	pop _csplay
+	push $1
+	push "null"
+	cmpjne
+	cmp0
+	je l370
+	push $1
+	spushs
+	spop $a
+	call [$a],play
+l370:
+	end method
+	method crplay
+	localstring $1
+	pop $1
+	push _csplay
+	push "null"
+	cmpjne
+	cmp0
+	je l372
+	push _csplay
+	spushs
+	spop $a
+	call [$a],isplaying
+	jmp l374
+l372:
+	push 0
+	jmp l374
+l373:
+	push 1
+l374:
+	cmp0
+	je l375
+	ret
+l375:
+	push $1
+	pop _csplay
+	push $1
+	push "null"
+	cmpjne
+	cmp0
+	je l377
+	push $1
+	spushs
+	spop $a
+	call [$a],play
+l377:
+	end method
+	method crbgplay
+	localstring $1
+	pop $1
+	push $1
+	push "null"
+	cmpjne
+	cmp0
+	je l379
+	push $1
+	spushs
+	spop $a
+	call [$a],isplaying
+	neg
+	jmp l381
+l379:
+	push 0
+	jmp l381
+l380:
+	push 1
+l381:
+	cmp0
+	je l382
+	push $1
+	spushs
+	spop $a
+	call [$a],play
+l382:
+	end method
+	method crandplay
+	localstring $1
+	localint $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	call $2,rand
+	push 0
+	cmpje
+	cmp0
+	je l384
+	push "c"
+	push $3
+	pop $b
+	popax
+	add $a,$b
+	push "play"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $1
+	spop $d
+	cthis [$d]
+l384:
+	end method
+	method cplayf
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push "c"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	push "play"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $2
+	spop $d
+	cthis [$d]
+	push $2
+	spushs
+	spop $a
+	call [$a],isplaying
+	cmp0
+	je l386
+	push $3
+	push "null"
+	cmpjne
+	jmp l388
+l386:
+	push 0
+	jmp l388
+l387:
+	push 1
+l388:
+	cmp0
+	je l389
+	push $2
+	spushs
+	push "onfinish"
+	push $3
+	spop $a
+	call [$a],addmethod
+l389:
+	end method
+	method cactsndstop
+	localint $1
+	pop $1
+	cthis cisplaying
+	cmp0
+	je l391
+	push _csplay
+	spushs
+	push $1
+	spop $a
+	call [$a],stop
+l391:
+	end method
+	method cisplaying
+	push _csplay
+	push "null"
+	cmpjne
+	cmp0
+	je l393
+	push _csplay
+	spushs
+	spop $a
+	call [$a],isplaying
+	jmp l392
+l393:
+	push 0
+l392:
+	end method
+	end class
+
+	class classsndbank
+	method init
+	new int,itype
+	new int,ilicz
+	push 0
+	pop ilicz
+	new int,iile
+	new string,splay
+	push "null"
+	pop splay
+	new string,ssnd
+	push "snd"
+	pop ssnd
+	end method
+	method loadsingle
+	localstring $1
+	localint $2
+	pop $2
+	pop $1
+	push $2
+	push 0
+	cmpjle
+	cmp0
+	je l395
+	push 0
+	pop iile
+	ret
+l395:
+	push $2
+	pop iile
+	push 0
+	pop itype
+	localint $3
+	push 0
+	pop $3
+l396:
+	push $3
+	push $2
+	cmpjl
+	cmp0
+	je l397
+	jmp l399
+l398:
+	add $3,1
+	pop $3
+	jmp l396
+l399:
+	push ssnd
+	push $3
+	pop $b
+	popax
+	add $a,$b
+	push $1
+	clparent newvars,newsnd
+	jmp l398
+l397:
+	end method
+	method load
+	localstring $1
+	localint $2
+	localint $3
+	localint $4
+	localint $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $3
+	push $2
+	pop $b
+	popax
+	sub $a,$b
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	pop iile
+	push iile
+	push 0
+	cmpjle
+	cmp0
+	je l401
+	push 0
+	pop iile
+	ret
+l401:
+	push ssnd
+	push 0
+	push $1
+	push $2
+	push $3
+	clparent newvars,newsnds
+	push $4
+	pop itype
+	push $5
+	push 1
+	cmpje
+	cmp0
+	je l403
+	call iile,rand
+	pop ilicz
+l403:
+	end method
+	method addmethod
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	localint $3
+	push 0
+	pop $3
+l404:
+	push $3
+	push iile
+	cmpjl
+	cmp0
+	je l405
+	jmp l407
+l406:
+	add $3,1
+	pop $3
+	jmp l404
+l407:
+	push ssnd
+	push $3
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $1
+	push $2
+	spop $a
+	call [$a],addmethod
+	jmp l406
+l405:
+	end method
+	method stop
+	localint $1
+	pop $1
+	push splay
+	push "null"
+	cmpjne
+	cmp0
+	je l409
+	push splay
+	spushs
+	push $1
+	spop $a
+	call [$a],stop
+l409:
+	end method
+	method isplaying
+	push splay
+	push "null"
+	cmpjne
+	cmp0
+	je l411
+	push splay
+	spushs
+	spop $a
+	call [$a],isplaying
+	jmp l410
+l411:
+	push 0
+l410:
+	end method
+	method randplay
+	localint $1
+	pop $1
+	call $1,rand
+	push 0
+	cmpje
+	cmp0
+	je l413
+	cthis play
+l413:
+	end method
+	method playid
+	localint $1
+	pop $1
+	push $1
+	push iile
+	pop $b
+	popax
+	div $a,$b
+	push $d
+	pop ilicz
+	cthis play
+	end method
+	method play
+	push 0
+	cthis stop
+	cthis bgplay
+	end method
+	method reset
+	push 0
+	pop ilicz
+	end method
+	method rbgplay
+	cthis isplaying
+	neg
+	cmp0
+	je l415
+	cthis bgplay
+l415:
+	end method
+	method rplay
+	cthis isplaying
+	neg
+	cmp0
+	je l417
+	cthis play
+l417:
+	end method
+	method bgplay
+	push ssnd
+	push ilicz
+	pop $b
+	popax
+	add $a,$b
+	pop splay
+	push splay
+	spushs
+	spop $a
+	call [$a],play
+	push itype
+	push 0
+	cmpje
+	cmp0
+	je l419
+	push ilicz
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	push iile
+	pop $b
+	popax
+	div $a,$b
+	push $d
+	pop ilicz
+	jmp l418
+l419:
+	push itype
+	push 1
+	cmpje
+	cmp0
+	je l421
+	call iile,rand
+	pop ilicz
+l421:
+l418:
+	end method
+	method setvol
+	localint $1
+	pop $1
+	localint $2
+	push 0
+	pop $2
+l422:
+	push $2
+	push iile
+	cmpjl
+	cmp0
+	je l423
+	jmp l425
+l424:
+	add $2,1
+	pop $2
+	jmp l422
+l425:
+	push ssnd
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $1
+	spop $a
+	call [$a],setvol
+	jmp l424
+l423:
+	end method
+	end class
+
+	class classgame
+	parent newvars
+	parent classsound
+	method init
+	clparent newvars,init
+	clparent classsound,init
+	new int,_iconstid
+	end method
+	method bkg=
+	localdef $1
+	pop $1
+	push ".pyz"
+	call $1,contains
+	cmp0
+	je l427
+	push "anbkg"
+	push $1
+	push 0
+	cthis newanima
+	jmp l426
+l427:
+	push "imgbkg"
+	push $1
+	push 0
+	cthis newimg
+l426:
+	end method
+	method bgr=
+	localdef $1
+	pop $1
+	push "sndbgr"
+	push $1
+	cthis csndplayloop
+	end method
+	method path=
+	localdef $1
+	pop $1
+	push "scripts/"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	push "/"
+	pop $b
+	popax
+	add $a,$b
+	cthis setgraphpath
+	end method
+	method cycle=
+	localdef $1
+	localdef $2
+	pop $2
+	pop $1
+	push $1
+	push 1
+	push 1
+	push $2
+	cthis cnewtimercyclefin
+	end method
+	method timer=
+	localdef $1
+	localdef $2
+	localdef $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push 1
+	push $3
+	cthis cnewtimerfin
+	end method
+	method _getflags
+	localstring $1
+	pop $1
+	localdef $2
+	push 0
+	pop $2
+	push "L"
+	call $1,contains
+	cmp0
+	je l429
+	push "L"
+	call $1,strremove
+	push 1
+	pop $2
+l429:
+	localdef $3
+	push 0
+	pop $3
+	push "P"
+	call $1,contains
+	cmp0
+	je l431
+	push "P"
+	call $1,strremove
+	push 1
+	pop $3
+l431:
+	localdef $4
+	push 0
+	pop $4
+	push "H"
+	call $1,contains
+	cmp0
+	je l433
+	push "H"
+	call $1,strremove
+	push 1
+	pop $4
+l433:
+	push $1
+	push $2
+	push $3
+	push $4
+	ret
+	end method
+	method img=
+	localdef $1
+	pop $1
+	localdef $2
+	localdef $3
+	localdef $4
+	push $1
+	cthis _getflags
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localdef $5
+	push 0
+	pop $5
+	push " "
+	call $1,contains
+	cmp0
+	je l435
+	push " "
+	call $1,strgetfrom
+	pop $5
+	push " "
+	call $1,strgetto
+	pop $1
+l435:
+	localstring $6
+	push 4
+	call $1,strsube
+	pop $6
+	localstring $7
+	push ".pyz"
+	call $1,contains
+	cmp0
+	je l437
+	push "an"
+	push $6
+	pop $b
+	popax
+	add $a,$b
+	pop $7
+	push $7
+	push $1
+	push $5
+	cthis newanima
+	jmp l436
+l437:
+	push "img"
+	push $6
+	pop $b
+	popax
+	add $a,$b
+	pop $7
+	push $7
+	push $1
+	push $5
+	cthis newimg
+l436:
+	push $2
+	cmp0
+	je l439
+	push $7
+	spushs
+	spop $a
+	call [$a],anloopfin
+l439:
+	push $3
+	cmp0
+	je l441
+	push $7
+	spushs
+	push 1
+	popax
+	sub 0,$a
+	spop $a
+	call [$a],play
+l441:
+	push $4
+	cmp0
+	je l443
+	push $7
+	spushs
+	spop $a
+	call [$a],hide
+l443:
+	end method
+	method imgs=
+	push "img="
+	cthis withlist
+	end method
+	method clone
+	localstring $1
+	pop $1
+	call gameapi,getgamename
+	spushs
+	cthis getname
+	cthis gettype
+	push $1
+	spop $a
+	call [$a],classgame0
+	end method
+	method classgame0
+	localdef $1
+	localdef $2
+	localdef $3
+	pop $3
+	pop $2
+	pop $1
+	push $2
+	spushs
+	push $3
+	spushs
+	spop $e
+	spop $d
+	new [$d],[$e]
+	push $3
+	spushs
+	push $1
+	spop $a
+	call [$a],copy
+	end method
+	method clones=
+	push "clone"
+	cthis withlist
+	end method
+	method list=
+	localdef $1
+	pop $1
+	localdef $2
+	pop $2
+	push $1
+	spushs
+	spop $e
+	new gmobjvec,[$e]
+l444:
+	push A
+	push $2
+	cmpjne
+	cmp0
+	je l445
+	push $1
+	spushs
+	push $2
+	spop $a
+	call [$a],addbegin
+	pop $2
+	jmp l444
+l445:
+	end method
+	method list2=
+	localdef $1
+	push "gmobjvec"
+	cthis newconst
+	pop $1
+	push $1
+	cthis list=
+	push $1
+	end method
+	method debug=
+	localdef $1
+	pop $1
+	push $1
+	call engine,setdebugstate
+	end method
+	method sfx=
+	localstring $1
+	pop $1
+	localdef $2
+	localdef $3
+	push $1
+	cthis _getflags
+	popax
+	pop $3
+	pop $2
+	pop $1
+	localdef $4
+	push 100
+	pop $4
+	push " "
+	call $1,contains
+	cmp0
+	je l447
+	push " "
+	call $1,strgetfrom
+	pop $4
+	push " "
+	call $1,strgetto
+	pop $1
+l447:
+	localstring $5
+	push "fx"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	pop $5
+	push $5
+	push "sfx/"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	push ".wav"
+	pop $b
+	popax
+	add $a,$b
+	cthis newsnd
+	push $5
+	spushs
+	push $4
+	spop $a
+	call [$a],setvol
+	push $2
+	cmp0
+	je l449
+	push $5
+	spushs
+	push "onfinish"
+	push "_stdsndloop"
+	spop $a
+	call [$a],addmethod
+l449:
+	push $3
+	cmp0
+	je l451
+	push $5
+	spushs
+	spop $a
+	call [$a],play
+l451:
+	end method
+	method sfxs=
+	push "sfx="
+	cthis withlist
+	end method
+	method tickstart
+	push "__timspeed"
+	cthis hasvar
+	neg
+	cmp0
+	je l453
+	new TicksCounter,__timspeed
+l453:
+	call __timspeed,start
+	end method
+	method tickstop
+	push "ticker: "
+	call __timspeed,print
+	end method
+	method csndplayloop
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis newsndloop
+	push $1
+	spushs
+	spop $a
+	call [$a],play
+	end method
+	method csndbgr
+	localstring $1
+	pop $1
+	push "sndbgr"
+	push $1
+	cthis csndplayloop
+	end method
+	method cloadcursor
+	localstring $1
+	pop $1
+	push "."
+	call $1,contains
+	cmp0
+	je l455
+	push "imgkursor"
+	push $1
+	push 0
+	cthis newimg
+	push "imgkursor"
+	pop $1
+l455:
+	push $1
+	spushs
+	spop $a
+	call [$a],hide
+	push $1
+	call mouse,setcursor
+	push $1
+	call engine,stdbutcursor
+	call bsms,setown
+	end method
+	method newimgarray
+	localstring $1
+	localstring $2
+	localstring $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new gmimgvec,[$e]
+	push $1
+	spushs
+	push $2
+	push $3
+	push $4
+	spop $a
+	call [$a],buildarray
+	end method
+	method newfont
+	localstring $1
+	localstring $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new font,[$e]
+	push $1
+	spushs
+	push $2
+	push $3
+	spop $a
+	call [$a],load
+	end method
+	method monofont
+	localstring $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push sgmfontmono
+	push $2
+	cthis newfont
+	end method
+	method snewfont
+	localstring $1
+	localint $2
+	pop $2
+	pop $1
+	localstring $3
+	push "font"
+	cthis newconst
+	pop $3
+	push $3
+	spushs
+	push $1
+	push $2
+	spop $a
+	call [$a],load
+	push $3
+	ret
+	end method
+	method stdfont
+	localint $1
+	pop $1
+	push sgmfontfile
+	push $1
+	cthis snewfont
+	end method
+	method getconstid
+	add _iconstid,1
+	pop _iconstid
+	push _iconstid
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	end method
+	method newconst
+	localstring $1
+	pop $1
+	localstring $2
+	push "const"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	cthis getconstid
+	pop $b
+	popax
+	add $a,$b
+	pop $2
+	push $1
+	spushs
+	push $2
+	spushs
+	spop $e
+	spop $d
+	new [$d],[$e]
+	push $2
+	ret
+	end method
+	method consttext
+	localstring $1
+	localint $2
+	localint $3
+	localint $4
+	localint $5
+	localint $6
+	localint $7
+	pop $7
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localstring $8
+	push "text"
+	cthis newconst
+	pop $8
+	localstring $9
+	push $4
+	cthis stdfont
+	pop $9
+	push $8
+	spushs
+	push $9
+	spop $a
+	call [$a],setfont
+	push $8
+	spushs
+	push $1
+	spop $a
+	call [$a],set
+	push $8
+	spushs
+	push $5
+	push $6
+	push $7
+	spop $a
+	call [$a],createtxt
+	push $8
+	spushs
+	push $2
+	push $3
+	spop $a
+	call [$a],setpos
+	push $8
+	ret
+	end method
+	method newtext
+	localstring $1
+	localstring $2
+	localstring $3
+	localint $4
+	localint $5
+	localint $6
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new text,[$e]
+	push $1
+	spushs
+	push $2
+	spop $a
+	call [$a],set
+	push $1
+	spushs
+	push $3
+	spop $a
+	call [$a],setfont
+	push $1
+	spushs
+	push $4
+	push $5
+	push $6
+	spop $a
+	call [$a],createtxt
+	end method
+	method newtextposz
+	localstring $1
+	localstring $2
+	localstring $3
+	localint $4
+	localint $5
+	localint $6
+	localint $7
+	localint $8
+	localint $9
+	pop $9
+	pop $8
+	pop $7
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	push $4
+	push $5
+	push $6
+	cthis newtext
+	push $1
+	spushs
+	push $7
+	push $8
+	push $9
+	spop $a
+	call [$a],anposz
+	end method
+	method cfinmethod
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	push "onfinish"
+	push $2
+	spop $a
+	call [$a],addmethod
+	end method
+	method cnewsndfin
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis newsnd
+	push $1
+	push $3
+	cthis cfinmethod
+	end method
+	method cnewsndsfin
+	localstring $1
+	localint $2
+	localstring $3
+	localint $4
+	localint $5
+	localstring $6
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	push $4
+	push $5
+	cthis newsnds
+	push $1
+	push $2
+	push $2
+	push $5
+	push $4
+	pop $b
+	popax
+	sub $a,$b
+	pop $b
+	popax
+	add $a,$b
+	push $6
+	cthis caddobjsfunfin
+	end method
+	method cnewsndfinbplay
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	cthis cnewsndfin
+	push $1
+	cthis cbplay
+	end method
+	method cnewtimerfin
+	localstring $1
+	localint $2
+	localint $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	cthis newtimer
+	push $1
+	push $4
+	cthis cfinmethod
+	end method
+	method cnewtimercyclefin
+	localstring $1
+	localint $2
+	localint $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	cthis newtimercycle
+	push $1
+	push $4
+	cthis cfinmethod
+	end method
+	method caddobjsfun
+	localstring $1
+	localint $2
+	localint $3
+	localstring $4
+	localstring $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+l456:
+	push $2
+	push $3
+	cmpjle
+	cmp0
+	je l457
+	push $1
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $4
+	push $5
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spop $a
+	call [$a],addmethod
+	add $2,1
+	pop $2
+	jmp l456
+l457:
+	end method
+	method caddobjsfunfin
+	localstring $1
+	localint $2
+	localint $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	push "onfinish"
+	push $4
+	cthis caddobjsfun
+	end method
+	method newancounter
+	localstring $1
+	localstring $2
+	localstring $3
+	localint $4
+	localint $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $2
+	push $3
+	push $4
+	push $5
+	cthis newanimas
+	push $1
+	spushs
+	spop $e
+	new classancounter,[$e]
+	push $1
+	spushs
+	push $2
+	push $5
+	spop $a
+	call [$a],set
+	end method
+	method newancounterh
+	localstring $1
+	localstring $2
+	localstring $3
+	localint $4
+	localint $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	push $4
+	push $5
+	cthis newancounter
+	localint $6
+	push 0
+	pop $6
+l458:
+	push $6
+	push $5
+	cmpjl
+	cmp0
+	je l459
+	jmp l461
+l460:
+	add $6,1
+	pop $6
+	jmp l458
+l461:
+	push $2
+	push $6
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $a
+	call [$a],hide
+	jmp l460
+l459:
+	end method
+	method newancounterf
+	localstring $1
+	localstring $2
+	localstring $3
+	localint $4
+	localint $5
+	localstring $6
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	push $4
+	push $5
+	cthis newancounter
+	localint $7
+	push 0
+	pop $7
+l462:
+	push $7
+	push $5
+	cmpjl
+	cmp0
+	je l463
+	jmp l465
+l464:
+	add $7,1
+	pop $7
+	jmp l462
+l465:
+	push $2
+	push $7
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push "onfinish"
+	push $6
+	spop $a
+	call [$a],addmethod
+	jmp l464
+l463:
+	end method
+	method newancounterhf
+	localstring $1
+	localstring $2
+	localstring $3
+	localint $4
+	localint $5
+	localstring $6
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	push $4
+	push $5
+	cthis newancounter
+	localint $7
+	push 0
+	pop $7
+l466:
+	push $7
+	push $5
+	cmpjl
+	cmp0
+	je l467
+	jmp l469
+l468:
+	add $7,1
+	pop $7
+	jmp l466
+l469:
+	push $2
+	push $7
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push "onfinish"
+	push $6
+	spop $a
+	call [$a],addmethod
+	push $2
+	push $7
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $a
+	call [$a],hide
+	jmp l468
+l467:
+	end method
+	method cnewanimafin
+	localstring $1
+	localstring $2
+	localint $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	cthis newanima
+	push $1
+	spushs
+	push "onfinish"
+	push $4
+	spop $a
+	call [$a],addmethod
+	end method
+	method ccopyanimafin
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis copyanima
+	push $2
+	spushs
+	push "onfinish"
+	push $3
+	spop $a
+	call [$a],addmethod
+	end method
+	method cloadwavs
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis newdb
+	localint $3
+	push 0
+	pop $3
+	localint $4
+	push $1
+	spushs
+	spop $a
+	call [$a],getrowsno
+	pop $4
+	localint $5
+	localint $6
+	localint $7
+	localint $8
+	localint $9
+	localint $10
+	localstring $11
+	localstring $12
+	localstring $13
+	localstring $14
+	localstring $15
+l470:
+	push $3
+	push $4
+	cmpjl
+	cmp0
+	je l471
+	push $1
+	spushs
+	push $3
+	spop $a
+	call [$a],getcolsno
+	pop $6
+	push 0
+	pop $7
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $12
+	add $7,1
+	pop $7
+	push 0
+	push 1
+	call $12,getb
+	push "#"
+	cmpjne
+	cmp0
+	je l473
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $14
+	add $7,1
+	pop $7
+	push $12
+	push "wav"
+	cmpje
+	cmp0
+	jne l476
+	push $12
+	push "sfx"
+	cmpje
+	jmp l477
+l475:
+	push 0
+	jmp l477
+l476:
+	push 1
+l477:
+	cmp0
+	je l478
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $13
+	add $7,1
+	pop $7
+	push $12
+	push "sfx"
+	cmpje
+	cmp0
+	je l480
+	push $14
+	push "sfx/"
+	push $13
+	pop $b
+	popax
+	add $a,$b
+	cthis newsnd
+	jmp l479
+l480:
+	push $14
+	push $13
+	cthis newsnd
+l479:
+	push $7
+	push $6
+	cmpjl
+	cmp0
+	je l482
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $12
+	add $7,1
+	pop $7
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $13
+	add $7,1
+	pop $7
+	push $12
+	push "method"
+	cmpje
+	cmp0
+	je l484
+	push $14
+	spushs
+	push "onfinish"
+	push $13
+	spop $a
+	call [$a],addmethod
+	jmp l483
+l484:
+	push 0
+	push 4
+	call $12,gete
+	push "play"
+	cmpje
+	cmp0
+	je l486
+	push "c"
+	push 4
+	push 10
+	call $12,gete
+	pop $b
+	popax
+	add $a,$b
+	push "playonfin"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $14
+	push $13
+	spop $d
+	cthis [$d]
+	jmp l485
+l486:
+	push $12
+	push "vol"
+	cmpje
+	cmp0
+	je l488
+	push $14
+	spushs
+	push $13
+	spop $a
+	call [$a],setvol
+l488:
+l485:
+l483:
+l482:
+	jmp l474
+l478:
+	push $12
+	push "group"
+	cmpje
+	cmp0
+	je l490
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $13
+	add $7,1
+	pop $7
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $8
+	add $7,1
+	pop $7
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $9
+	add $7,1
+	pop $7
+	push $7
+	push $6
+	cmpjl
+	cmp0
+	je l492
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $12
+	add $7,1
+	pop $7
+	push $12
+	push "method"
+	cmpje
+	cmp0
+	je l494
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $15
+	add $7,1
+	pop $7
+	push $14
+	push $8
+	push $13
+	push $8
+	push $9
+	push $15
+	cthis cnewsndsfin
+l494:
+	jmp l491
+l492:
+	push $14
+	push $8
+	push $13
+	push $8
+	push $9
+	cthis newsnds
+l491:
+	jmp l489
+l490:
+	push $12
+	push "bank"
+	cmpje
+	cmp0
+	je l496
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $13
+	add $7,1
+	pop $7
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $5
+	add $7,1
+	pop $7
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $8
+	add $7,1
+	pop $7
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $9
+	add $7,1
+	pop $7
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $10
+	add $7,1
+	pop $7
+	push $14
+	spushs
+	spop $e
+	new classsndbank,[$e]
+	push $14
+	spushs
+	push $13
+	push $5
+	push $8
+	push $9
+	push $10
+	spop $a
+	call [$a],load
+	push $7
+	push $6
+	cmpjl
+	cmp0
+	je l498
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $12
+	add $7,1
+	pop $7
+	push $12
+	push "method"
+	cmpje
+	cmp0
+	je l500
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $15
+	add $7,1
+	pop $7
+	push $14
+	spushs
+	push "onfinish"
+	push $15
+	spop $a
+	call [$a],addmethod
+	jmp l499
+l500:
+	push $12
+	push "vol"
+	cmpje
+	cmp0
+	je l502
+	push $14
+	spushs
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	spop $a
+	call [$a],setvol
+l502:
+l499:
+l498:
+	jmp l495
+l496:
+	push $12
+	push "method"
+	cmpje
+	cmp0
+	je l504
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $13
+	add $7,1
+	pop $7
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $8
+	add $7,1
+	pop $7
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $9
+	add $7,1
+	pop $7
+l505:
+	push $8
+	push $9
+	cmpjle
+	cmp0
+	je l506
+	push $13
+	push $8
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push "onfinish"
+	push $14
+	spop $a
+	call [$a],addmethod
+	add $8,1
+	pop $8
+	jmp l505
+l506:
+	jmp l503
+l504:
+	push $12
+	push "singlebank"
+	cmpje
+	cmp0
+	je l508
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $13
+	add $7,1
+	pop $7
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	pop $8
+	add $7,1
+	pop $7
+	push $14
+	spushs
+	spop $e
+	new classsndbank,[$e]
+	push $14
+	spushs
+	push $13
+	push $8
+	spop $a
+	call [$a],loadsingle
+	jmp l507
+l508:
+	push $12
+	push "bgr"
+	cmpje
+	cmp0
+	je l510
+	push $14
+	cthis csndbgr
+	push $7
+	push $6
+	cmpjl
+	cmp0
+	je l512
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	push "vol"
+	cmpje
+	cmp0
+	je l514
+	add $7,1
+	pop $7
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	call sndbgr,setvol
+	add $7,1
+	pop $7
+l514:
+l512:
+	jmp l509
+l510:
+	push $12
+	push "music"
+	cmpje
+	cmp0
+	je l516
+	push $14
+	cthis playmusic
+	push $7
+	push $6
+	cmpjl
+	cmp0
+	je l518
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	push "vol"
+	cmpje
+	cmp0
+	je l520
+	add $7,1
+	pop $7
+	push $1
+	spushs
+	push $3
+	push $7
+	spop $a
+	call [$a],get
+	call sndbgr,setvol
+	add $7,1
+	pop $7
+l520:
+l518:
+l516:
+l509:
+l507:
+l503:
+l495:
+l489:
+l474:
+l473:
+	add $3,1
+	pop $3
+	jmp l470
+l471:
+	end method
+	method crestart
+	call gameapi,getgamename
+	call gameapi,play
+	end method
+	end class
+
+	class clfindfunc
+	method init
+	end method
+	method _stdfindfunc
+	localstring $1
+	localint $2
+	localint $3
+	localstring $4
+	localstring $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+l521:
+	push $2
+	push $3
+	cmpjle
+	cmp0
+	je l522
+	push $1
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $5
+	spushs
+	spop $d
+	spop $a
+	call [$a],[$d]
+	push $4
+	cmpje
+	cmp0
+	je l524
+	push $2
+	ret
+l524:
+	add $2,1
+	pop $2
+	jmp l521
+l522:
+	push 1
+	popax
+	sub 0,$a
+	end method
+	method _stdfindfunc2
+	localstring $1
+	localint $2
+	localstring $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push 0
+	push $2
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push $3
+	push $4
+	cthis _stdfindfunc
+	end method
+	method cfindandeval2
+	localstring $1
+	localint $2
+	localstring $3
+	localstring $4
+	localstring $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push 0
+	push $2
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push $3
+	push $4
+	push $5
+	cthis cfindandeval
+	end method
+	method cfindandeval
+	localstring $1
+	localint $2
+	localint $3
+	localstring $4
+	localstring $5
+	localstring $6
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localint $7
+	push $1
+	push $2
+	push $3
+	push $4
+	push $5
+	cthis _stdfindfunc
+	pop $7
+	push $7
+	push 0
+	cmpjae
+	cmp0
+	je l526
+	push $1
+	push $7
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $6
+	spushs
+	spop $d
+	spop $a
+	call [$a],[$d]
+l526:
+	end method
+	end class
+
+	class classbutton
+	method init
+	new string,san
+	push "anbut"
+	pop san
+	new string,sbut
+	push "but"
+	pop sbut
+	new int,iilebut
+	push 0
+	pop iilebut
+	new string,sfxmon
+	push "null"
+	pop sfxmon
+	end method
+	method _cbuildbutname
+	localstring $1
+	pop $1
+	new string,_sbutname
+	push $1
+	pop _sbutname
+	end method
+	method cgetbutname
+	push _sbutname
+	ret
+	end method
+	method build
+	localstring $1
+	localint $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	push "null"
+	cthis build2
+	end method
+	method build2
+	localstring $1
+	localint $2
+	localstring $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localstring $5
+	push "_"
+	push san
+	pop $b
+	popax
+	add $a,$b
+	pop $5
+	push $5
+	spushs
+	spop $e
+	new anima,[$e]
+	push $5
+	spushs
+	push $1
+	spop $a
+	call [$a],load
+	push $5
+	spushs
+	push $2
+	spop $a
+	call [$a],setz
+	localint $6
+	push $5
+	spushs
+	spop $a
+	call [$a],nofactions
+	pop $6
+	localint $7
+	localint $8
+	localint $9
+	push 0
+	pop $9
+	localstring $10
+	localstring $11
+	localstring $12
+	localstring $13
+	localint $14
+	push 0
+	pop $14
+l527:
+	push $14
+	push $6
+	cmpjl
+	cmp0
+	je l528
+	jmp l530
+l529:
+	add $14,1
+	pop $14
+	jmp l527
+l530:
+	push "null"
+	pop $10
+	push "null"
+	pop $11
+	push "null"
+	pop $12
+	push $5
+	spushs
+	push $14
+	spop $a
+	call [$a],nofframes
+	pop $7
+	push 1
+	pop $8
+l531:
+	push $8
+	push $7
+	cmpjle
+	cmp0
+	je l532
+	jmp l534
+l533:
+	add $8,1
+	pop $8
+	jmp l531
+l534:
+	push san
+	push $9
+	pop $b
+	popax
+	add $a,$b
+	pop $13
+	push $8
+	push 1
+	cmpje
+	cmp0
+	je l536
+	push $13
+	pop $10
+	jmp l535
+l536:
+	push $8
+	push 2
+	cmpje
+	cmp0
+	je l538
+	push $13
+	pop $11
+	jmp l537
+l538:
+	push $8
+	push 3
+	cmpje
+	cmp0
+	je l540
+	push $13
+	pop $12
+l540:
+l537:
+l535:
+	push $5
+	push $13
+	clparent newvars,copyanima
+	push $13
+	spushs
+	push $14
+	push $8
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	spop $a
+	call [$a],setframe
+	add $9,1
+	pop $9
+	jmp l533
+l532:
+	push $4
+	push "null"
+	cmpjne
+	cmp0
+	je l542
+	push $4
+	spushs
+	push $5
+	spushs
+	push $14
+	spop $a
+	call [$a],nameofaction
+	spop $a
+	call [$a],contains
+	jmp l544
+l542:
+	push 0
+	jmp l544
+l543:
+	push 1
+l544:
+	cmp0
+	je l545
+	push $10
+	spushs
+	push $2
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	spop $a
+	call [$a],setz
+	jmp l541
+l545:
+	push $10
+	push $11
+	push $12
+	push $3
+	cthis addbut
+l541:
+	jmp l529
+l528:
+	push $5
+	spushs
+	spop $a
+	call [$a],hide
+	end method
+	method _buildfuncclick
+	localstring $1
+	pop $1
+	new string,_sfunclick
+	push $1
+	pop _sfunclick
+	end method
+	method _stdbutclick
+	push _sfunclick
+	spushs
+	cthis getbutname
+	spop $d
+	cthis [$d]
+	end method
+	method _buildfuncrel
+	localstring $1
+	pop $1
+	new string,_sfuncrel
+	push $1
+	pop _sfuncrel
+	end method
+	method _stdbutrel
+	push _sfuncrel
+	spushs
+	cthis getbutname
+	spop $d
+	cthis [$d]
+	end method
+	method _buildfuncmovon
+	localstring $1
+	pop $1
+	new string,_sfunmovon
+	push $1
+	pop _sfunmovon
+	end method
+	method _stdbutmovon
+	push sfxmon
+	push "null"
+	cmpjne
+	cmp0
+	je l547
+	push sfxmon
+	spushs
+	spop $a
+	call [$a],play
+l547:
+	push _sfunmovon
+	spushs
+	cthis getbutname
+	spop $d
+	cthis [$d]
+	end method
+	method _buildfuncmovoff
+	localstring $1
+	pop $1
+	new string,_sfunmovoff
+	push $1
+	pop _sfunmovoff
+	end method
+	method _stdbutmovoff
+	push _sfunmovoff
+	spushs
+	cthis getbutname
+	spop $d
+	cthis [$d]
+	end method
+	method butsigfun
+	localstring $1
+	localstring $2
+	localstring $3
+	localstring $4
+	localstring $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $2
+	push "null"
+	cmpje
+	cmp0
+	je l549
+	ret
+l549:
+	push $1
+	spushs
+	push $4
+	push $4
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push $4
+	spushs
+	push $2
+	spop $d
+	spop $a
+	call [$a],[$d]
+	push $1
+	spushs
+	push $3
+	push $5
+	spop $a
+	call [$a],addmethod
+	end method
+	method sigfunc
+	localstring $1
+	localstring $2
+	localstring $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localint $5
+	push 0
+	pop $5
+l550:
+	push $5
+	push iilebut
+	cmpjl
+	cmp0
+	je l551
+	jmp l553
+l552:
+	add $5,1
+	pop $5
+	jmp l550
+l553:
+	push sbut
+	push $5
+	pop $b
+	popax
+	add $a,$b
+	push $1
+	push $2
+	push $3
+	push $4
+	cthis butsigfun
+	jmp l552
+l551:
+	end method
+	method print
+	localint $1
+	push 0
+	pop $1
+l554:
+	push $1
+	push iilebut
+	cmpjl
+	cmp0
+	je l555
+	jmp l557
+l556:
+	add $1,1
+	pop $1
+	jmp l554
+l557:
+	push sbut
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $a
+	call [$a],getbutname
+	call engine,print
+	jmp l556
+l555:
+	end method
+	method setrect
+	localstring $1
+	localint $2
+	push 0
+	pop $2
+l558:
+	push $2
+	push iilebut
+	cmpjl
+	cmp0
+	je l559
+	jmp l561
+l560:
+	add $2,1
+	pop $2
+	jmp l558
+l561:
+	push sbut
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $a
+	call [$a],getimg
+	pop $1
+	push sbut
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $1
+	spushs
+	spop $a
+	call [$a],getpx
+	push $1
+	spushs
+	spop $a
+	call [$a],getpy
+	push $1
+	spushs
+	spop $a
+	call [$a],getex
+	push $1
+	spushs
+	spop $a
+	call [$a],getey
+	spop $a
+	call [$a],setrect
+	jmp l560
+l559:
+	end method
+	method setflags
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	localint $3
+	push 0
+	pop $3
+l562:
+	push $3
+	push iilebut
+	cmpjl
+	cmp0
+	je l563
+	jmp l565
+l564:
+	add $3,1
+	pop $3
+	jmp l562
+l565:
+	push sbut
+	push $3
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $1
+	push $2
+	spop $a
+	call [$a],setflags
+	jmp l564
+l563:
+	end method
+	method sfxonmovon
+	localstring $1
+	pop $1
+	push $1
+	pop sfxmon
+	end method
+	method clickfunc
+	localstring $1
+	pop $1
+	push $1
+	push "onclick"
+	push "_buildfuncclick"
+	push "_stdbutclick"
+	cthis sigfunc
+	end method
+	method relfunc
+	localstring $1
+	pop $1
+	push $1
+	push "onrel"
+	push "_buildfuncrel"
+	push "_stdbutrel"
+	cthis sigfunc
+	end method
+	method movonfunc
+	localstring $1
+	pop $1
+	push $1
+	push "onmoveon"
+	push "_buildfuncmovon"
+	push "_stdbutmovon"
+	cthis sigfunc
+	end method
+	method movofffunc
+	localstring $1
+	pop $1
+	push $1
+	push "onmoveoff"
+	push "_buildfuncmovoff"
+	push "_stdbutmovoff"
+	cthis sigfunc
+	end method
+	method ilebuts
+	push iilebut
+	ret
+	end method
+	method ifind
+	localstring $1
+	pop $1
+	push sbut
+	push iilebut
+	push $1
+	push "getbutname"
+	clparent clfindfunc,_stdfindfunc2
+	ret
+	end method
+	method sfind
+	localstring $1
+	pop $1
+	localint $2
+	push sbut
+	push iilebut
+	push $1
+	push "getbutname"
+	clparent clfindfunc,_stdfindfunc2
+	pop $2
+	push $2
+	push 0
+	cmpjae
+	cmp0
+	je l567
+	push sbut
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	jmp l566
+l567:
+	push "null"
+l566:
+	ret
+	end method
+	method _cbutfun
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push sbut
+	cthis ilebuts
+	push $1
+	push "getbutname"
+	push $2
+	clparent clfindfunc,cfindandeval2
+	end method
+	method _callbutfunc
+	localstring $1
+	pop $1
+	localint $2
+	push 0
+	pop $2
+l568:
+	push $2
+	push iilebut
+	cmpjl
+	cmp0
+	je l569
+	jmp l571
+l570:
+	add $2,1
+	pop $2
+	jmp l568
+l571:
+	push sbut
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $1
+	spushs
+	spop $d
+	spop $a
+	call [$a],[$d]
+	jmp l570
+l569:
+	end method
+	method _cibutfunc
+	localstring $1
+	localint $2
+	pop $2
+	pop $1
+	push $2
+	push iilebut
+	cmpja
+	cmp0
+	je l573
+	push iilebut
+	pop $2
+l573:
+	localint $3
+	push 0
+	pop $3
+l574:
+	push $3
+	push $2
+	cmpjl
+	cmp0
+	je l575
+	jmp l577
+l576:
+	add $3,1
+	pop $3
+	jmp l574
+l577:
+	push sbut
+	push $3
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $1
+	spushs
+	spop $d
+	spop $a
+	call [$a],[$d]
+	jmp l576
+l575:
+	end method
+	method ienable
+	localint $1
+	pop $1
+	push "enable"
+	push $1
+	cthis _cibutfunc
+	end method
+	method benableall
+	cthis resumeall
+	cthis enableall
+	end method
+	method pauseall
+	push "pause"
+	cthis _callbutfunc
+	end method
+	method resumeall
+	push "resume"
+	cthis _callbutfunc
+	end method
+	method enableall
+	push "enable"
+	cthis _callbutfunc
+	end method
+	method disableall
+	push "disable"
+	cthis _callbutfunc
+	end method
+	method benable
+	localstring $1
+	pop $1
+	push $1
+	cthis resume
+	push $1
+	cthis enable
+	end method
+	method disable
+	localstring $1
+	pop $1
+	push $1
+	push "disable"
+	cthis _cbutfun
+	end method
+	method enable
+	localstring $1
+	pop $1
+	push $1
+	push "enable"
+	cthis _cbutfun
+	end method
+	method pause
+	localstring $1
+	pop $1
+	push $1
+	push "pause"
+	cthis _cbutfun
+	end method
+	method resume
+	localstring $1
+	pop $1
+	push $1
+	push "resume"
+	cthis _cbutfun
+	end method
+	method getimg
+	localstring $1
+	pop $1
+	localstring $2
+	push $1
+	cthis sfind
+	pop $2
+	push $2
+	push "null"
+	cmpjne
+	cmp0
+	je l579
+	push $2
+	spushs
+	spop $a
+	call [$a],getimg
+	jmp l578
+l579:
+	push "null"
+l578:
+	ret
+	end method
+	method newmouse
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	localstring $3
+	push $1
+	cthis sfind
+	pop $3
+	push $3
+	push "null"
+	cmpjne
+	cmp0
+	je l581
+	push $3
+	spushs
+	push $2
+	spop $a
+	call [$a],setmouse
+l581:
+	end method
+	method addbut
+	localstring $1
+	localstring $2
+	localstring $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localstring $5
+	push sbut
+	push iilebut
+	pop $b
+	popax
+	add $a,$b
+	pop $5
+	push $5
+	push $1
+	push $2
+	push $3
+	push $4
+	clparent newvars,newbutan
+	push $5
+	spushs
+	push "getbutname"
+	push "cgetbutname"
+	spop $a
+	call [$a],addmethod
+	push $5
+	spushs
+	push $1
+	spushs
+	spop $a
+	call [$a],actionname
+	spop $a
+	call [$a],_cbuildbutname
+	add iilebut,1
+	pop iilebut
+	end method
+	method _addfunc
+	localstring $1
+	localstring $2
+	localstring $3
+	localstring $4
+	localstring $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push "null"
+	cmpje
+	cmp0
+	je l583
+	ret
+l583:
+	push $1
+	push $2
+	push "onclick"
+	push "_buildfuncclick"
+	push "_stdbutclick"
+	cthis butsigfun
+	push $1
+	push $3
+	push "onrel"
+	push "_buildfuncrel"
+	push "_stdbutrel"
+	cthis butsigfun
+	push $1
+	push $4
+	push "onmoveon"
+	push "_buildfuncmovon"
+	push "_stdbutmovon"
+	cthis butsigfun
+	push $1
+	push $5
+	push "onmoveoff"
+	push "_buildfuncmovoff"
+	push "_stdbutmovoff"
+	cthis butsigfun
+	end method
+	method addfuncto
+	localstring $1
+	localstring $2
+	localstring $3
+	localstring $4
+	localstring $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	cthis sfind
+	push $2
+	push $3
+	push $4
+	push $5
+	cthis _addfunc
+	end method
+	method addfunctolast
+	localstring $1
+	localstring $2
+	localstring $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push sbut
+	push iilebut
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $b
+	popax
+	add $a,$b
+	push $1
+	push $2
+	push $3
+	push $4
+	cthis _addfunc
+	end method
+	method _transmet
+	localstring $1
+	localstring $2
+	localstring $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push "_sob"
+	push $4
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $e
+	new string,[$e]
+	push $1
+	pop [$e]
+	push "_sf"
+	push $4
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $e
+	new string,[$e]
+	push $2
+	pop [$e]
+	push $3
+	spushs
+	push "_trf"
+	push $4
+	pop $b
+	popax
+	add $a,$b
+	spop $d
+	cthis [$d]
+	end method
+	method transclickfunc
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push "clickfunc"
+	push "cl"
+	cthis _transmet
+	end method
+	method transrelfunc
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push "relfunc"
+	push "rl"
+	cthis _transmet
+	end method
+	method transmovonfunc
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push "movonfunc"
+	push "mn"
+	cthis _transmet
+	end method
+	method transmovofffunc
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push "movofffunc"
+	push "mf"
+	cthis _transmet
+	end method
+	method _trfcl
+	localstring $1
+	pop $1
+	push _sobcl
+	spushs
+	push _sfcl
+	spushs
+	push $1
+	spop $d
+	spop $a
+	call [$a],[$d]
+	end method
+	method _trfrl
+	localstring $1
+	pop $1
+	push _sobrl
+	spushs
+	push _sfrl
+	spushs
+	push $1
+	spop $d
+	spop $a
+	call [$a],[$d]
+	end method
+	method _trfmn
+	localstring $1
+	pop $1
+	push sfxmon
+	push "null"
+	cmpjne
+	cmp0
+	je l585
+	push sfxmon
+	spushs
+	spop $a
+	call [$a],play
+l585:
+	push _sobmn
+	spushs
+	push _sfmn
+	spushs
+	push $1
+	spop $d
+	spop $a
+	call [$a],[$d]
+	end method
+	method _trfmf
+	localstring $1
+	pop $1
+	push _sobmf
+	spushs
+	push _sfmf
+	spushs
+	push $1
+	spop $d
+	spop $a
+	call [$a],[$d]
+	end method
+	end class
+
+	class classsimplebutton
+	method init
+	new string,simgob
+	push "null"
+	pop simgob
+	new gmimgvec,grbut
+	end method
+	method stdbuild
+	localstring $1
+	localstring $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	cthis getgraphpath
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	push $2
+	push 0
+	push 0
+	push $3
+	push 0
+	cthis build
+	end method
+	method getimgfunc
+	localstring $1
+	pop $1
+	push simgob
+	push "null"
+	cmpje
+	cmp0
+	je l587
+	push 0
+	jmp l586
+l587:
+	push simgob
+	spushs
+	push $1
+	spushs
+	spop $d
+	spop $a
+	call [$a],[$d]
+l586:
+	end method
+	method setbutpos
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	call grbut,setpos
+	end method
+	method build
+	localstring $1
+	localstring $2
+	localint $3
+	localint $4
+	localint $5
+	localint $6
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	new button,but1
+	cthis getname
+	call but1,classsimplebutton0
+	push "onclick"
+	push "classsimplebutton1"
+	call but1,addmethod
+	push "onrel"
+	push "classsimplebutton2"
+	call but1,addmethod
+	push "onmoveon"
+	push "classsimplebutton3"
+	call but1,addmethod
+	push "onmoveoff"
+	push "classsimplebutton4"
+	call but1,addmethod
+	push ".pyz"
+	call $1,contains
+	cmp0
+	je l589
+	new anima,anbut0
+	push $1
+	call anbut0,load
+	push $3
+	push $4
+	call anbut0,setpos
+	push $5
+	call anbut0,setz
+	push $6
+	push 0
+	call anbut0,setframe
+	push "anbut0"
+	pop simgob
+	push simgob
+	call grbut,add
+	localstring $7
+	push "anbut0"
+	pop $7
+	localstring $8
+	push "null"
+	pop $8
+	localstring $9
+	push "null"
+	pop $9
+	localint $10
+	push $6
+	call anbut0,nofframes
+	pop $10
+	push $10
+	push 1
+	cmpja
+	cmp0
+	je l591
+	new anima,anbut1
+	push "anbut0"
+	call anbut1,copy
+	push $6
+	push 1
+	call anbut1,setframe
+	push "anbut1"
+	pop $8
+	push $8
+	call grbut,add
+l591:
+	push $10
+	push 2
+	cmpja
+	cmp0
+	je l593
+	new anima,anbut2
+	push "anbut0"
+	call anbut2,copy
+	push $6
+	push 2
+	call anbut2,setframe
+	push "anbut2"
+	pop $8
+	push $8
+	call grbut,add
+l593:
+	push $7
+	push $8
+	push $9
+	call but1,setan
+	jmp l588
+l589:
+	new img,imgbut
+	push "imgbut"
+	pop simgob
+	push simgob
+	call grbut,add
+	push $1
+	call imgbut,load
+	push $3
+	push $4
+	call imgbut,setpos
+	push $5
+	call imgbut,setz
+	push "imgbut"
+	push "null"
+	push "null"
+	call but1,set
+l588:
+	push $2
+	call but1,setmouse
+	end method
+	method classsimplebutton0
+	localstring $1
+	pop $1
+	new string,sbut
+	push $1
+	pop sbut
+	end method
+	method classsimplebutton1
+	push sbut
+	push "_CLICK"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	cthis [$d]
+	end method
+	method classsimplebutton2
+	push sbut
+	push "_REL"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	cthis [$d]
+	end method
+	method classsimplebutton3
+	push sbut
+	push "_MOVEON"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	cthis [$d]
+	end method
+	method classsimplebutton4
+	push sbut
+	push "_MOVEOFF"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	cthis [$d]
+	end method
+	end class
+
+	class classmask
+	parent classbutton
+	method init
+	clparent classbutton,init
+	end method
+	method buildmask
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push 0
+	push $2
+	cthis build
+	localint $3
+	cthis ilebuts
+	pop $3
+	localint $4
+	push 0
+	pop $4
+l594:
+	push $4
+	push $3
+	cmpjl
+	cmp0
+	je l595
+	jmp l597
+l596:
+	add $4,1
+	pop $4
+	jmp l594
+l597:
+	push sbut
+	push $4
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push 0
+	push 0
+	spop $a
+	call [$a],setflags
+	push sbut
+	push $4
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $a
+	call [$a],hide
+	jmp l596
+l595:
+	end method
+	method buildmaskfunc
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis buildmask
+	push $3
+	cthis clickfunc
+	end method
+	method addmask
+	localstring $1
+	localstring $2
+	localstring $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	localstring $5
+	push sbut
+	push iilebut
+	pop $b
+	popax
+	add $a,$b
+	pop $5
+	push $5
+	push $1
+	push "null"
+	push "null"
+	push $3
+	clparent newvars,newbutan
+	push $5
+	spushs
+	push "getbutname"
+	push "cgetbutname"
+	spop $a
+	call [$a],addmethod
+	push $2
+	push "null"
+	cmpje
+	cmp0
+	je l599
+	push $5
+	spushs
+	push $1
+	spushs
+	spop $a
+	call [$a],actionname
+	spop $a
+	call [$a],_cbuildbutname
+	jmp l598
+l599:
+	push $5
+	spushs
+	push $2
+	spop $a
+	call [$a],_cbuildbutname
+l598:
+	push $4
+	cmp0
+	je l601
+	push $5
+	spushs
+	push 0
+	push 0
+	spop $a
+	call [$a],setflags
+	push $5
+	spushs
+	spop $a
+	call [$a],hide
+l601:
+	add iilebut,1
+	pop iilebut
+	end method
+	method addadvmask
+	localstring $1
+	localstring $2
+	localstring $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	push 0
+	cthis addmask
+	push $4
+	push "null"
+	push "null"
+	push "null"
+	cthis addfunctolast
+	end method
+	end class
+
+	method callfun
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $2
+	push "null"
+	cmpjne
+	cmp0
+	je l603
+	push $1
+	push "null"
+	cmpje
+	cmp0
+	je l605
+	push $2
+	spushs
+	spop $d
+	cthis [$d]
+	jmp l604
+l605:
+	push $1
+	spushs
+	push $2
+	spushs
+	spop $d
+	spop $a
+	call [$a],[$d]
+l604:
+l603:
+	end method
+	method _stdanloop
+	push 1
+	popax
+	sub 0,$a
+	cthis play
+	end method
+	method _stdanhide
+	cthis hide
+	end method
+	method _stdsndloop
+	cthis play
+	end method
+	method __std_finish
+	cthis getname
+	push "_FINISH"
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	cthis [$d]
+	end method
+	method looponfinish
+	localstring $1
+	pop $1
+	push $1
+	spushs
+	push "onfinish"
+	push "_stdanloop"
+	spop $a
+	call [$a],addmethod
+	end method
+	method hideonfinish
+	localstring $1
+	pop $1
+	push $1
+	spushs
+	push "onfinish"
+	push "_stdanhide"
+	spop $a
+	call [$a],addmethod
+	end method
+	method strsube
+	localint $1
+	pop $1
+	push 0
+	cthis length
+	push $1
+	pop $b
+	popax
+	sub $a,$b
+	cthis getb
+	ret
+	end method
+	method strsubb
+	localint $1
+	pop $1
+	push $1
+	cthis length
+	push $1
+	pop $b
+	popax
+	sub $a,$b
+	cthis getb
+	ret
+	end method
+	method strsubbs
+	localstring $1
+	pop $1
+	call $1,length
+	cthis strsubb
+	ret
+	end method
+	method strsubes
+	localstring $1
+	pop $1
+	call $1,length
+	cthis strsube
+	ret
+	end method
+	method strgetto
+	localstring $1
+	pop $1
+	localdef $2
+	push $1
+	cthis find
+	pop $2
+	push $2
+	push 0
+	cmpjl
+	cmp0
+	je l607
+	cthis get
+	jmp l606
+l607:
+	push 0
+	push $2
+	cthis getb
+l606:
+	end method
+	method strgetfromto
+	localint $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis find
+	cthis getb
+	ret
+	end method
+	method strgetfrom
+	localstring $1
+	pop $1
+	push $1
+	cthis find
+	call $1,length
+	pop $b
+	popax
+	add $a,$b
+	cthis length
+	cthis getb
+	ret
+	end method
+	method strremove
+	localstring $1
+	pop $1
+	push $1
+	cthis strgetto
+	push $1
+	cthis strgetfrom
+	pop $b
+	popax
+	add $a,$b
+	cthis set
+	end method
+	method strisbetween
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	localint $3
+	localint $4
+	push 0
+	pop $4
+l608:
+	push $4
+	cthis length
+	cmpjl
+	cmp0
+	je l609
+	jmp l611
+l610:
+	add $4,1
+	pop $4
+	jmp l608
+l611:
+	push $4
+	cthis getbyte
+	pop $3
+	push $3
+	push $1
+	cmpjl
+	cmp0
+	jne l614
+	push $3
+	push $2
+	cmpja
+	jmp l615
+l613:
+	push 0
+	jmp l615
+l614:
+	push 1
+l615:
+	cmp0
+	je l616
+	push 0
+	ret
+l616:
+	jmp l610
+l609:
+	push 1
+	end method
+	method strisint
+	push BYTE0
+	push BYTE9
+	cthis strisbetween
+	end method
+	method strisbin
+	push BYTE0
+	push BYTE0
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	cthis strisbetween
+	end method
+	method strisalpha
+	push BYTEa
+	push BYTEz
+	cthis strisbetween
+	end method
+	method streach
+	localstring $1
+	pop $1
+	localstring $2
+	localint $3
+	push 0
+	pop $3
+l617:
+	push $3
+	cthis length
+	cmpjl
+	cmp0
+	je l618
+	jmp l620
+l619:
+	add $3,1
+	pop $3
+	jmp l617
+l620:
+	push $3
+	push 1
+	cthis getb
+	pop $2
+	push $2
+	spushs
+	push $1
+	spushs
+	push $3
+	spop $d
+	spop $a
+	call [$a],[$d]
+	jmp l619
+l618:
+	end method
+	method swap
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	popax
+	mov $a,[$a]
+	psax
+	push $1
+	spushs
+	push $2
+	popax
+	mov $a,[$a]
+	psax
+	spop $b
+	popax
+	mov [$b],$a
+	push $2
+	spushs
+	spop $b
+	popax
+	mov [$b],$a
+	end method
+	method stats
+	localint $1
+	pop $1
+	push $1
+	push 0
+	cmpjle
+	cmp0
+	je l622
+	push 0
+	jmp l621
+l622:
+	push 100
+	spushs
+	spop $h
+	call $h,rand
+	push $1
+	cmpjle
+l621:
+	end method
+	method between
+	localint $1
+	localint $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $2
+	push $1
+	cmpjl
+	cmp0
+	je l624
+	push $1
+	jmp l623
+l624:
+	push $2
+	push $3
+	cmpja
+	cmp0
+	je l626
+	push $3
+	jmp l625
+l626:
+	push $2
+l625:
+l623:
+	end method
+	method max
+	localdef $1
+	localdef $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cmpja
+	cmp0
+	je l628
+	push $1
+	jmp l627
+l628:
+	push $2
+l627:
+	end method
+	method min
+	localdef $1
+	localdef $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cmpjl
+	cmp0
+	je l630
+	push $1
+	jmp l629
+l630:
+	push $2
+l629:
+	end method
+	method anresizemets
+	cthis getname
+	clparent anima_pack,resizemethods
+	end method
+	method anfirstnontr
+	cthis getname
+	clparent classansearcher,firstnotrx1y
+	end method
+	method anloopfin
+	push "onfinish"
+	push "_stdanloop"
+	cthis addmethod
+	end method
+	method anloopplay
+	localint $1
+	pop $1
+	cthis anloopfin
+	push $1
+	cthis play
+	end method
+	method anloopsplay
+	localstring $1
+	pop $1
+	cthis anloopfin
+	push $1
+	cthis play
+	end method
+	method anhidefin
+	push "onfinish"
+	push "_stdanhide"
+	cthis addmethod
+	end method
+	method anputgr
+	cthis getey
+	cthis setz
+	end method
+	method anputy
+	localint $1
+	pop $1
+	push 0
+	push $1
+	cthis geth
+	pop $b
+	popax
+	sub $a,$b
+	cthis getpy
+	pop $b
+	popax
+	sub $a,$b
+	cthis move
+	end method
+	method anputx
+	localint $1
+	pop $1
+	push 0
+	push $1
+	cthis geth
+	pop $b
+	popax
+	sub $a,$b
+	cthis getpy
+	pop $b
+	popax
+	sub $a,$b
+	cthis move
+	end method
+	method ansetposgr
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis setpos
+	cthis anputgr
+	end method
+	method anplayz
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $2
+	cthis setz
+	push $1
+	cthis play
+	end method
+	method anplaygr
+	localint $1
+	pop $1
+	push $1
+	cthis play
+	cthis anputgr
+	end method
+	method anplayzpos
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $3
+	push $4
+	cthis setpos
+	push $1
+	push $2
+	cthis anplayz
+	end method
+	method anplaypos
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis setpos
+	push 1
+	popax
+	sub 0,$a
+	cthis play
+	end method
+	method anplayposgr
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis ansetposgr
+	push 1
+	popax
+	sub 0,$a
+	cthis play
+	end method
+	method anplaypos2
+	localint $1
+	localint $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis setpos
+	push $3
+	cthis play
+	end method
+	method anplaypos3
+	localint $1
+	localint $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis setpos
+	push $3
+	cthis play
+	end method
+	method anhide
+	push 0
+	cthis stop
+	cthis hide
+	end method
+	method andownpos
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis geth
+	pop $b
+	popax
+	sub $a,$b
+	cthis setpos
+	end method
+	method ansetbpos
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	cthis lodx
+	pop $b
+	popax
+	sub $a,$b
+	push $2
+	cthis lody
+	pop $b
+	popax
+	sub $a,$b
+	cthis setpos
+	end method
+	method ansetcpos
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	cthis getw
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	pop $b
+	popax
+	sub $a,$b
+	push $2
+	cthis geth
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	pop $b
+	popax
+	sub $a,$b
+	cthis ansetbpos
+	end method
+	method ansetframe
+	localint $1
+	pop $1
+	push 1
+	popax
+	sub 0,$a
+	cthis actionnr
+	push $1
+	cthis setframe
+	end method
+	method ansetsframe
+	localdef $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push 0
+	cthis setframe
+	localint $3
+	push 0
+	pop $3
+l631:
+	push $3
+	push 1
+	popax
+	sub 0,$a
+	cthis nofframes
+	cmpjl
+	cmp0
+	je l632
+	cthis framename
+	push $2
+	cmpjne
+	jmp l634
+l632:
+	push 0
+	jmp l634
+l633:
+	push 1
+l634:
+	cmp0
+	je l635
+	add $3,1
+	pop $3
+	push 1
+	popax
+	sub 0,$a
+	push $3
+	cthis setframe
+	jmp l631
+l635:
+	end method
+	method anonscreen
+	cthis getcx
+	cthis getcy
+	cthis getw
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	cthis geth
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	call clsurf,inscreen
+	ret
+	end method
+	method objplayfin
+	localstring $1
+	pop $1
+	push "onfinish"
+	push $1
+	cthis addmethod
+	cthis play
+	end method
+	method objloop
+	push "onfinish"
+	push "_stdsndloop"
+	cthis addmethod
+	end method
+	method objplayloop
+	cthis objloop
+	cthis play
+	end method
+	method anplayfin
+	localint $1
+	localstring $2
+	pop $2
+	pop $1
+	push "onfinish"
+	push $2
+	cthis addmethod
+	push $1
+	cthis play
+	end method
+	method anytoz
+	cthis getposy
+	cthis setz
+	end method
+	method anposz
+	localint $1
+	localint $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis setpos
+	push $3
+	cthis setz
+	end method
+	method annextaction
+	localstring $1
+	pop $1
+	push $1
+	cthis actionnr
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	cthis nofactions
+	pop $b
+	popax
+	div $a,$b
+	push $d
+	cthis nameofaction
+	ret
+	end method
+	method ansetnextact
+	push 1
+	popax
+	sub 0,$a
+	cthis actionnr
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	cthis nofactions
+	pop $b
+	popax
+	div $a,$b
+	push $d
+	push 0
+	cthis setframe
+	end method
+	method ansetnextfr
+	push 1
+	popax
+	sub 0,$a
+	cthis framenr
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	push 1
+	popax
+	sub 0,$a
+	cthis nofframes
+	pop $b
+	popax
+	div $a,$b
+	push $d
+	cthis setframe
+	end method
+	method anaddfilter
+	cthis getname
+	clparent classanfilter,build
+	end method
+	method anaddfx
+	cthis getname
+	clparent AnimaFx,build
+	end method
+	method anputc
+	localint $1
+	localint $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis ansetbpos
+	push $3
+	push $1
+	pop $b
+	popax
+	sub $a,$b
+	cthis getw
+	pop $b
+	popax
+	sub $a,$b
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	push $4
+	push $2
+	pop $b
+	popax
+	sub $a,$b
+	cthis geth
+	pop $b
+	popax
+	sub $a,$b
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	cthis move
+	end method
+	method aninlod
+	localint $1
+	pop $1
+	cthis getpx
+	cthis lodx
+	pop $b
+	popax
+	sub $a,$b
+	cthis getpy
+	cthis lody
+	pop $b
+	popax
+	sub $a,$b
+	call $1,length
+	push $1
+	cmpjle
+	end method
+	method angetcpos
+	cthis getcx
+	cthis getcy
+	ret
+	end method
+	method angetcrgba
+	cthis getcx
+	cthis getcy
+	cthis getrgba
+	end method
+	method txtset
+	localstring $1
+	pop $1
+	push $1
+	cthis set
+	cthis create
+	end method
+	method txtsetcol
+	localstring $1
+	localint $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	cthis set
+	push $2
+	push $3
+	push $4
+	cthis createtxt
+	end method
+	method txtshadow
+	localint $1
+	localstring $2
+	pop $2
+	pop $1
+	push "txts"
+	cthis hasvar
+	neg
+	cmp0
+	je l637
+	new text,txts
+	push $2
+	call txts,setfont
+l637:
+	cthis get
+	call txts,set
+	cthis getpx
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	cthis getpy
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	call txts,setpos
+	cthis getz
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	call txts,setz
+	call txts,show
+	push 0
+	push 0
+	push 0
+	call txts,createtxt
+	end method
+	method txthides
+	cthis hide
+	push "txts"
+	cthis hasvar
+	cmp0
+	je l639
+	call txts,hide
+l639:
+	end method
+	method txtisin
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	cthis getpx
+	cmpjae
+	cmp0
+	je l640
+	push $1
+	cthis getpx
+	cthis getw
+	pop $b
+	popax
+	add $a,$b
+	cmpjl
+	cmp0
+	je l640
+	push $2
+	cthis getpy
+	cmpjae
+	cmp0
+	je l640
+	push $2
+	cthis getpy
+	cthis geth
+	pop $b
+	popax
+	add $a,$b
+	cmpjle
+	jmp l642
+l640:
+	push 0
+	jmp l642
+l641:
+	push 1
+l642:
+	end method
+	method vecinc
+	localint $1
+	pop $1
+	push $1
+	push $1
+	cthis get
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	cthis set
+	end method
+	method vecdec
+	localint $1
+	pop $1
+	push $1
+	push $1
+	cthis get
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	cthis set
+	end method
+	method vecnewint
+	localint $1
+	pop $1
+	cthis free
+	push $1
+	push 0
+	cmpja
+	cmp0
+	je l644
+	localint $2
+	push 0
+	pop $2
+l645:
+	push $2
+	push $1
+	cmpjl
+	cmp0
+	je l646
+	jmp l648
+l647:
+	add $2,1
+	pop $2
+	jmp l645
+l648:
+	push $2
+	cthis add
+	jmp l647
+l646:
+l644:
+	end method
+	method veccopy
+	localstring $1
+	pop $1
+	cthis free
+	localint $2
+	push 0
+	pop $2
+l649:
+	push $2
+	push $1
+	spushs
+	spop $a
+	call [$a],size
+	cmpjl
+	cmp0
+	je l650
+	jmp l652
+l651:
+	add $2,1
+	pop $2
+	jmp l649
+l652:
+	push $1
+	spushs
+	push $2
+	spop $a
+	call [$a],get
+	cthis add
+	jmp l651
+l650:
+	end method
+	method vecnextid
+	localdef $1
+	pop $1
+	localint $2
+	push $1
+	cthis find
+	pop $2
+	push $2
+	push 0
+	cmpjae
+	cmp0
+	je l654
+	push $2
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	cthis size
+	pop $b
+	popax
+	div $a,$b
+	push $d
+	pop $2
+l654:
+	push $2
+	end method
+	method vecprevid
+	localdef $1
+	pop $1
+	localint $2
+	push $1
+	cthis find
+	pop $2
+	push $2
+	push 0
+	cmpja
+	cmp0
+	je l656
+	sub $2,1
+	pop $2
+	jmp l655
+l656:
+	push $2
+	push 0
+	cmpje
+	cmp0
+	je l658
+	cthis size
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $2
+l658:
+l655:
+	push $2
+	end method
+	method vecget
+	localint $1
+	pop $1
+	push $1
+	push 0
+	cmpjae
+	cmp0
+	je l659
+	push $1
+	cthis size
+	cmpjl
+	jmp l661
+l659:
+	push 0
+	jmp l661
+l660:
+	push 1
+l661:
+	cmp0
+	je l663
+	push $1
+	cthis get
+	jmp l662
+l663:
+	push "null"
+l662:
+	end method
+	method vecnext
+	localdef $1
+	pop $1
+	push $1
+	cthis vecnextid
+	cthis vecget
+	end method
+	method vecprev
+	localdef $1
+	pop $1
+	push $1
+	cthis vecprevid
+	cthis vecget
+	end method
+	method veclast
+	localint $1
+	cthis size
+	pop $1
+	push $1
+	push 0
+	cmpja
+	cmp0
+	je l665
+	push $1
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	cthis get
+	jmp l664
+l665:
+	push "null"
+l664:
+	end method
+	method vecpop
+	localdef $1
+	cthis last
+	pop $1
+	cthis size
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	cthis removeat
+	push $1
+	end method
+	method veclimes
+	localint $1
+	pop $1
+l666:
+	cthis size
+	push $1
+	cmpja
+	cmp0
+	je l667
+	cthis vecpop
+	popax
+	jmp l666
+l667:
+	end method
+	method vecpopfront
+	localdef $1
+	push 0
+	cthis get
+	pop $1
+	push 0
+	cthis removeat
+	push $1
+	ret
+	end method
+	method insertsort
+	localint $1
+	localstring $2
+	localstring $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push 1
+	cmpjle
+	cmp0
+	je l669
+	ret
+l669:
+	localdef $5
+	localdef $6
+	localint $7
+	localint $8
+	localint $9
+	push 0
+	pop $8
+l670:
+	push $8
+	push $1
+	cmpjl
+	cmp0
+	je l671
+	jmp l673
+l672:
+	add $8,1
+	pop $8
+	jmp l670
+l673:
+	push $2
+	spushs
+	push $8
+	spop $d
+	cthis [$d]
+	pop $5
+	push $8
+	pop $7
+	push $8
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	pop $9
+l674:
+	push $9
+	push $1
+	cmpjl
+	cmp0
+	je l675
+	jmp l677
+l676:
+	add $9,1
+	pop $9
+	jmp l674
+l677:
+	push $2
+	spushs
+	push $9
+	spop $d
+	cthis [$d]
+	pop $6
+	push $3
+	spushs
+	push $6
+	push $5
+	spop $d
+	cthis [$d]
+	cmp0
+	je l679
+	push $6
+	pop $5
+	push $9
+	pop $7
+l679:
+	jmp l676
+l675:
+	push $4
+	spushs
+	push $8
+	push $7
+	spop $d
+	cthis [$d]
+	jmp l672
+l671:
+	end method
+	method obbuildfromstring
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	localint $4
+	push $2
+	call $1,find
+	pop $4
+l680:
+	push $4
+	push 1
+	popax
+	sub 0,$a
+	cmpja
+	cmp0
+	je l681
+	push $3
+	spushs
+	push 0
+	push $4
+	call $1,getb
+	spop $d
+	cthis [$d]
+	push $4
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	call $1,strsubb
+	pop $1
+	push $2
+	call $1,find
+	pop $4
+	jmp l680
+l681:
+	call $1,length
+	push 0
+	cmpja
+	cmp0
+	je l683
+	push $3
+	spushs
+	push $1
+	spop $d
+	cthis [$d]
+l683:
+	end method
+	method obbuildfromstring2
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	localint $4
+	push $2
+	call $1,find
+	pop $4
+l684:
+	push $4
+	push 1
+	popax
+	sub 0,$a
+	cmpja
+	cmp0
+	je l685
+	push $4
+	push 0
+	cmpja
+	cmp0
+	je l687
+	push $3
+	spushs
+	push 0
+	push $4
+	call $1,getb
+	spop $d
+	cthis [$d]
+l687:
+	push $4
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	call $1,strsubb
+	pop $1
+	push $2
+	call $1,find
+	pop $4
+	jmp l684
+l685:
+	call $1,length
+	push 0
+	cmpja
+	cmp0
+	je l689
+	push $3
+	spushs
+	push $1
+	spop $d
+	cthis [$d]
+l689:
+	end method
+	method vecsort
+	localstring $1
+	pop $1
+	cthis size
+	push "get"
+	push $1
+	push "swap"
+	cthis insertsort
+	end method
+	method vecbuildfromstring
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	cthis free
+	push $1
+	push $2
+	push "add"
+	cthis obbuildfromstring
+	end method
+	method vecbuildfromstring2
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	cthis free
+	push $1
+	push $2
+	push "add"
+	cthis obbuildfromstring2
+	end method
+	method vecremoveto
+	localint $1
+	pop $1
+	localint $2
+	push 0
+	pop $2
+l690:
+	push $2
+	push $1
+	cmpjl
+	cmp0
+	je l691
+	jmp l693
+l692:
+	add $2,1
+	pop $2
+	jmp l690
+l693:
+	push 0
+	cthis removeat
+	jmp l692
+l691:
+	end method
+	method vecremovefrom
+	localint $1
+	pop $1
+l694:
+	push $1
+	cthis size
+	cmpjl
+	cmp0
+	je l695
+	push $1
+	cthis removeat
+	jmp l694
+l695:
+	end method
+	method vecposfromto
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cmpje
+	cmp0
+	jne l698
+	cthis size
+	push 0
+	cmpje
+	jmp l699
+l697:
+	push 0
+	jmp l699
+l698:
+	push 1
+l699:
+	cmp0
+	je l700
+	ret
+l700:
+	localdef $3
+	push $1
+	cthis get
+	pop $3
+	push $1
+	push $2
+	cmpja
+	cmp0
+	je l702
+	localint $4
+	push $1
+	pop $4
+l703:
+	push $4
+	push $2
+	cmpja
+	cmp0
+	je l704
+	jmp l706
+l705:
+	sub $4,1
+	pop $4
+	jmp l703
+l706:
+	push $4
+	push $4
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	cthis get
+	cthis set
+	jmp l705
+l704:
+	jmp l701
+l702:
+	push $1
+	push $2
+	cmpjl
+	cmp0
+	je l708
+	localint $4
+	push $1
+	pop $4
+l709:
+	push $4
+	push $2
+	cmpjl
+	cmp0
+	je l710
+	jmp l712
+l711:
+	add $4,1
+	pop $4
+	jmp l709
+l712:
+	push $4
+	push $4
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	cthis get
+	cthis set
+	jmp l711
+l710:
+l708:
+l701:
+	push $2
+	push $3
+	cthis set
+	end method
+	method vecposfirst
+	localdef $1
+	pop $1
+	localint $2
+	push $1
+	cthis find
+	pop $2
+	push $2
+	push 0
+	cmpjae
+	cmp0
+	je l714
+	push $2
+	push 0
+	cthis vecposfromto
+	jmp l713
+l714:
+	push $1
+	cthis addbegin
+l713:
+	end method
+	method vecposlast
+	localdef $1
+	pop $1
+	localint $2
+	push $1
+	cthis find
+	pop $2
+	push $2
+	push 0
+	cmpjae
+	cmp0
+	je l716
+	push $2
+	cthis size
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	cthis vecposfromto
+	jmp l715
+l716:
+	push $1
+	cthis addbegin
+l715:
+	end method
+	method vecset
+	localdef $1
+	localdef $2
+	pop $2
+	pop $1
+	localint $3
+	push $1
+	cthis find
+	pop $3
+	push $3
+	push 0
+	cmpjae
+	cmp0
+	je l718
+	push $3
+	push $2
+	cthis set
+l718:
+	end method
+	method veceq
+	localstring $1
+	pop $1
+	localint $2
+	cthis size
+	pop $2
+	push $2
+	push $1
+	spushs
+	spop $a
+	call [$a],size
+	cmpjne
+	cmp0
+	je l720
+	push 0
+	ret
+l720:
+	localint $3
+	push 0
+	pop $3
+l721:
+	push $3
+	push $2
+	cmpjl
+	cmp0
+	je l722
+	jmp l724
+l723:
+	add $3,1
+	pop $3
+	jmp l721
+l724:
+	push $3
+	cthis get
+	push $1
+	spushs
+	push $3
+	spop $a
+	call [$a],get
+	cmpjne
+	cmp0
+	je l726
+	push 0
+	ret
+l726:
+	jmp l723
+l722:
+	push 1
+	end method
+	method vecbuild
+	push "addbegin"
+	cthis withlist
+	end method
+	method veceq2
+	new vector,___v
+	cthis getvectype
+	call ___v,type
+	call ___v,vecbuild
+	localint $1
+	push "___v"
+	cthis veceq
+	pop $1
+	delete ___v
+	push $1
+	end method
+	method veccopydbrow
+	localstring $1
+	localint $2
+	pop $2
+	pop $1
+	cthis free
+	localint $3
+	push 0
+	pop $3
+l727:
+	push $3
+	push $1
+	spushs
+	push $2
+	spop $a
+	call [$a],getcolsno
+	cmpjl
+	cmp0
+	je l728
+	jmp l730
+l729:
+	add $3,1
+	pop $3
+	jmp l727
+l730:
+	push $1
+	spushs
+	push $2
+	push $3
+	spop $a
+	call [$a],get
+	cthis add
+	jmp l729
+l728:
+	end method
+	method dbbuild
+	localint $1
+	pop $1
+	push $1
+	push 0
+	cmpjle
+	cmp0
+	je l732
+	ret
+l732:
+	sub $1,1
+	pop $1
+	cthis free
+	localstring $2
+	pop $2
+	localint $3
+	localint $4
+	push 0
+	pop $4
+l733:
+	push $2
+	push A
+	cmpjne
+	cmp0
+	je l734
+	jmp l736
+l735:
+	jmp l733
+l736:
+	push $4
+	push 0
+	cmpje
+	cmp0
+	je l738
+	cthis addbeginrow
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $3
+l738:
+	push 0
+	push $2
+	cthis addbegin
+	pop $2
+	push $4
+	push $1
+	cmpjl
+	cmp0
+	je l740
+	push $4
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	jmp l739
+l740:
+	push 0
+l739:
+	pop $4
+	jmp l735
+l734:
+	end method
+	method dbbuild2
+	cthis free
+	localstring $1
+	pop $1
+l741:
+	push $1
+	push A
+	cmpjne
+	cmp0
+	je l742
+	push $1
+	push "null"
+	cmpje
+	cmp0
+	je l744
+	cthis addbeginrow
+	popax
+	jmp l743
+l744:
+	push 0
+	push $1
+	cthis addbegin
+l743:
+	pop $1
+	jmp l741
+l742:
+	end method
+	method dbcopy
+	localstring $1
+	pop $1
+	cthis free
+	localint $2
+	localint $3
+	push 0
+	pop $2
+l745:
+	push $2
+	push $1
+	spushs
+	spop $a
+	call [$a],getrowsno
+	cmpjl
+	cmp0
+	je l746
+	jmp l748
+l747:
+	add $2,1
+	pop $2
+	jmp l745
+l748:
+	cthis addrow
+	popax
+	push 0
+	pop $3
+l749:
+	push $3
+	push $1
+	spushs
+	push $2
+	spop $a
+	call [$a],getcolsno
+	cmpjl
+	cmp0
+	je l750
+	jmp l752
+l751:
+	add $3,1
+	pop $3
+	jmp l749
+l752:
+	push $2
+	push $1
+	spushs
+	push $2
+	push $3
+	spop $a
+	call [$a],get
+	cthis add
+	jmp l751
+l750:
+	jmp l747
+l746:
+	end method
+	method dbremovelast
+	cthis getrowsno
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	cthis removerow
+	end method
+	method dbcuttosize
+	localint $1
+	pop $1
+	push $1
+	push 0
+	cmpja
+	cmp0
+	je l754
+l755:
+	cthis getrowsno
+	push $1
+	cmpja
+	cmp0
+	je l756
+	cthis dbremovelast
+	jmp l755
+l756:
+	jmp l753
+l754:
+	cthis free
+l753:
+	end method
+	method dbaddlast
+	localstring $1
+	pop $1
+	cthis getrowsno
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push $1
+	cthis add
+	end method
+	method dbaddstringrow
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	cthis addrow
+	popax
+	push $1
+	push $2
+	push "dbaddlast"
+	cthis obbuildfromstring
+	end method
+	method dbaddrow
+	localdef $1
+	cthis addrow
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $1
+	localdef $2
+	pop $2
+l757:
+	push A
+	push $2
+	cmpjne
+	cmp0
+	je l758
+	push $1
+	push $2
+	cthis addbegin
+	localdef $2
+	pop $2
+	jmp l757
+l758:
+	end method
+	method dbaddrowfrom
+	localstring $1
+	localint $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	push $2
+	spop $a
+	call [$a],rowinrange
+	cmp0
+	je l760
+	push $3
+	push 0
+	cmpjae
+	jmp l762
+l760:
+	push 0
+	jmp l762
+l761:
+	push 1
+l762:
+	cmp0
+	je l763
+	localint $4
+	cthis addrow
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $4
+	localint $5
+	push $1
+	spushs
+	push $2
+	spop $a
+	call [$a],getcolsno
+	pop $5
+l764:
+	push $3
+	push $5
+	cmpjl
+	cmp0
+	je l765
+	push $4
+	push $1
+	spushs
+	push $2
+	push $3
+	spop $a
+	call [$a],get
+	cthis add
+	add $3,1
+	pop $3
+	jmp l764
+l765:
+l763:
+	end method
+	method dbchecknext
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	add $2,1
+	pop $2
+	push $2
+	push $1
+	cthis getcolsno
+	cmpjl
+	cmp0
+	je l767
+	push $1
+	push $2
+	cthis get
+	jmp l766
+l767:
+	push "null"
+l766:
+	end method
+	method dbgets
+	localstring $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	cthis findbyrow
+	push $2
+	cthis get
+	ret
+	end method
+	method dbinsertless
+	localint $1
+	pop $1
+	localint $2
+	cthis addrow
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $2
+	push $2
+	push $1
+	cthis add
+	push "cmpless"
+	cthis dbsort
+l768:
+	push $2
+	push 0
+	cmpjae
+	cmp0
+	je l769
+	push $1
+	push $2
+	push 0
+	cthis get
+	cmpje
+	cmp0
+	je l771
+	push $2
+	ret
+l771:
+	sub $2,1
+	pop $2
+	jmp l768
+l769:
+	push 1
+	popax
+	sub 0,$a
+	ret
+	end method
+	method dbdelvar
+	localint $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push 1
+	cthis dbdelvarn
+	ret
+	end method
+	method dbdelvarn
+	localint $1
+	localstring $2
+	localint $3
+	pop $3
+	pop $2
+	pop $1
+	localint $4
+	push $1
+	push $2
+	cthis dbfindinrow
+	pop $4
+	push $4
+	push 0
+	cmpjae
+	cmp0
+	je l773
+	push $1
+	push $4
+	push $3
+	cthis removen
+	push 1
+	ret
+l773:
+	push 0
+	ret
+	end method
+	method dbfindinrow
+	localint $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	cthis rowinrange
+	cmp0
+	je l775
+	localint $3
+	push 0
+	pop $3
+l776:
+	push $3
+	push $1
+	cthis getcolsno
+	cmpjl
+	cmp0
+	je l777
+	jmp l779
+l778:
+	add $3,1
+	pop $3
+	jmp l776
+l779:
+	push $1
+	push $3
+	cthis get
+	push $2
+	cmpje
+	cmp0
+	je l781
+	push $3
+	ret
+l781:
+	jmp l778
+l777:
+l775:
+	push 1
+	popax
+	sub 0,$a
+	ret
+	end method
+	method dbfindbycol
+	localint $1
+	localstring $2
+	pop $2
+	pop $1
+	localint $3
+	push 0
+	pop $3
+l782:
+	push $3
+	cthis getrowsno
+	cmpjl
+	cmp0
+	je l783
+	jmp l785
+l784:
+	add $3,1
+	pop $3
+	jmp l782
+l785:
+	push $3
+	push $1
+	cthis get
+	push $2
+	cmpje
+	cmp0
+	je l787
+	push $3
+	ret
+l787:
+	jmp l784
+l783:
+	push 1
+	popax
+	sub 0,$a
+	ret
+	end method
+	method dbrowcontains
+	localint $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis dbfindinrow
+	push 1
+	popax
+	sub 0,$a
+	cmpjne
+	ret
+	end method
+	method dbfirst
+	localint $1
+	pop $1
+	push $1
+	push 0
+	cthis get
+	ret
+	end method
+	method cmpless
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cmpjl
+	ret
+	end method
+	method cmpabove
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cmpja
+	end method
+	method dbfirstless
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push 0
+	cthis get
+	push $2
+	push 0
+	cthis get
+	cmpjl
+	end method
+	method dbsort
+	localstring $1
+	pop $1
+	cthis getrowsno
+	push "dbfirst"
+	push $1
+	push "swap"
+	cthis insertsort
+	end method
+	method dbsetall
+	localstring $1
+	pop $1
+	localdef $2
+	push 0
+	pop $2
+l788:
+	push $2
+	cthis getrowsno
+	cmpjl
+	cmp0
+	je l789
+	jmp l791
+l790:
+	add $2,1
+	pop $2
+	jmp l788
+l791:
+	localdef $3
+	push 0
+	pop $3
+l792:
+	push $3
+	push $2
+	cthis getcolsno
+	cmpjl
+	cmp0
+	je l793
+	jmp l795
+l794:
+	add $3,1
+	pop $3
+	jmp l792
+l795:
+	push $2
+	push $3
+	push $1
+	cthis set
+	jmp l794
+l793:
+	jmp l790
+l789:
+	end method
+	method dbeach_row
+	localstring $1
+	pop $1
+	localdef $2
+	push 0
+	pop $2
+l796:
+	push $2
+	cthis getrowsno
+	cmpjl
+	cmp0
+	je l797
+	jmp l799
+l798:
+	add $2,1
+	pop $2
+	jmp l796
+l799:
+	push $1
+	spushs
+	push $2
+	spop $d
+	cthis [$d]
+	jmp l798
+l797:
+	end method
+	method randdiff
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push 1
+	cmpjle
+	cmp0
+	je l801
+	push 1
+	popax
+	sub 0,$a
+	ret
+l801:
+	localint $3
+	call $1,rand
+	pop $3
+l802:
+	push $3
+	push $2
+	cmpje
+	cmp0
+	je l803
+	jmp l805
+l804:
+	call $1,rand
+	pop $3
+	jmp l802
+l805:
+	jmp l804
+l803:
+	push $3
+	ret
+	end method
+	method bin_to_i
+	localstring $1
+	cthis get
+	pop $1
+	localint $2
+	push 1
+	pop $2
+	localint $3
+	push 0
+	pop $3
+	localint $4
+	call $1,length
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $4
+l806:
+	push $4
+	push 0
+	cmpjae
+	cmp0
+	je l807
+	jmp l809
+l808:
+	sub $4,1
+	pop $4
+	jmp l806
+l809:
+	push $4
+	push 1
+	call $1,getb
+	push "1"
+	cmpje
+	cmp0
+	je l811
+	push $2
+	popax
+	add $3,$a
+	pop $3
+l811:
+	push 2
+	popax
+	mul $2,$a
+	pop $2
+	jmp l808
+l807:
+	push $3
+	end method
+	class classgamepause
+	method init
+	new button,butpause
+	push 0
+	push 0
+	push 800
+	push 600
+	call butpause,setrect
+	push "onclick"
+	push "resume"
+	call butpause,addmethod
+	call butpause,disable
+	end method
+	method resume
+	call butpause,disable
+	call gameapi,resume
+	end method
+	method pause
+	call gameapi,pause
+	call butpause,enable
+	call butpause,resume
+	end method
+	end class
+
+	class TicksCounter
+	method init
+	new int,istart
+	end method
+	method start
+	call engine,getticks
+	pop istart
+	end method
+	method stop
+	call engine,getticks
+	push istart
+	pop $b
+	popax
+	sub $a,$b
+	pop istart
+	end method
+	method get
+	push istart
+	ret
+	end method
+	method stopget
+	cthis stop
+	cthis get
+	ret
+	end method
+	method print
+	localstring $1
+	pop $1
+	push $1
+	push " delay: "
+	pop $b
+	popax
+	add $a,$b
+	cthis stopget
+	pop $b
+	popax
+	add $a,$b
+	push " ms"
+	pop $b
+	popax
+	add $a,$b
+	call engine,print
+	end method
+	method put
+	push ""
+	cthis print
+	end method
+	end class
+
+	class ObjController
+	method init
+	new string,_sme
+	cthis getname
+	pop _sme
+	push GAME
+	spushs
+	push _sme
+	spop $a
+	call [$a],addgmobj
+	end method
+	method removefromgame
+	push GAME
+	spushs
+	push _sme
+	spop $a
+	call [$a],removegmobj
+	end method
+	end class
+
+	class LObjController
+	parent ObjController
+	parent classlocker
+	method init
+	clparent ObjController,init
+	clparent classlocker,init
+	end method
+	end class
+
+	class gmbankvec
+	parent gmobjvec
+	method init
+	clparent gmobjvec,init
+	push "iid"
+	push 1
+	popax
+	sub 0,$a
+	cthis var2
+	end method
+	method startrand
+	cthis size
+	push 0
+	cmpja
+	cmp0
+	je l813
+	cthis size
+	spushs
+	spop $h
+	call $h,rand
+	pop iid
+l813:
+	end method
+	method play
+	push 0
+	cthis stop
+	localint $1
+	cthis size
+	pop $1
+	push $1
+	push 0
+	cmpje
+	cmp0
+	je l815
+	ret
+l815:
+	push iid
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	push $1
+	pop $b
+	popax
+	div $a,$b
+	push $d
+	pop iid
+	push iid
+	cthis get
+	spushs
+	spop $a
+	call [$a],play
+	end method
+	method onfinish
+	end method
+	method stop
+	localint $1
+	pop $1
+	cthis isplaying
+	cmp0
+	je l817
+	cthis getplay
+	spushs
+	push $1
+	spop $a
+	call [$a],stop
+	push $1
+	cmp0
+	je l819
+	cthis onfinish
+l819:
+l817:
+	end method
+	method isplaying
+	push iid
+	push 0
+	cmpjae
+	cmp0
+	je l821
+	cthis getplay
+	spushs
+	spop $a
+	call [$a],isplaying
+	jmp l820
+l821:
+	push 0
+l820:
+	end method
+	method getplay
+	push iid
+	cthis get
+	ret
+	end method
+	end class
+
+	class GameController
+	parent classlocker
+	method init
+	localstring $1
+	pop $1
+	clparent classlocker,init
+	new gmobjvec,__grobj
+	new db,_dbsnd
+	push "|"
+	call _dbsnd,setseparator
+	new string,_sndbase
+	push $1
+	pop _sndbase
+	new string,GAME
+	cthis getname
+	pop GAME
+	end method
+	method game_exit
+	end method
+	method setsndbase
+	localstring $1
+	pop $1
+	push $1
+	pop _sndbase
+	end method
+	method say
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push "null"
+	cthis sayf
+	end method
+	method sayf
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	localstring $4
+	push $2
+	cthis getsndtxt
+	pop $4
+	push $4
+	spushs
+	push 0
+	push 1
+	spop $a
+	call [$a],setstartstopflag
+	push $1
+	push $4
+	push $3
+	cthis cplayf
+	end method
+	method getsndtxt
+	localstring $1
+	pop $1
+	localstring $2
+	push "snd"
+	push _sndbase
+	pop $b
+	popax
+	add $a,$b
+	call _dbsnd,getrowsno
+	pop $b
+	popax
+	add $a,$b
+	pop $2
+	push $2
+	push $1
+	cthis addsnd
+	push $2
+	ret
+	end method
+	method _sndtimerstart
+	localint $1
+	push 1
+	cthis getname
+	call _dbsnd,dbfindbycol
+	pop $1
+	push $1
+	push 0
+	cmpjae
+	cmp0
+	je l823
+	push $1
+	push 2
+	call _dbsnd,get
+	call engine,print
+	jmp l822
+l823:
+	cthis getname
+	push " not in _dbsnd"
+	pop $b
+	popax
+	add $a,$b
+	call engine,print
+l822:
+	push ""
+	call engine,print
+	end method
+	method addsndf
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis addsnd
+	push $3
+	push "null"
+	cmpjne
+	cmp0
+	je l825
+	push $1
+	spushs
+	push "onfinish"
+	push $3
+	spop $a
+	call [$a],addmethod
+l825:
+	end method
+	method asf
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push "snd"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	push $2
+	push "end"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	cthis addsndff
+	end method
+	method addsndff
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	cthis addsndf
+	end method
+	method gmconsnd
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new snd,[$e]
+	push $1
+	spushs
+	push 0
+	push 1
+	spop $a
+	call [$a],setstartstopflag
+	push $1
+	spushs
+	cthis getsndpath
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	spop $a
+	call [$a],load
+	end method
+	method addsnd
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	localint $3
+	call _dbsnd,addrow
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop $3
+	localstring $4
+	push _sndbase
+	push $3
+	pop $b
+	popax
+	add $a,$b
+	push ".wav"
+	pop $b
+	popax
+	add $a,$b
+	pop $4
+	localstring $5
+	call gameapi,getgamename
+	pop $5
+	cthis getsndpath
+	push $4
+	pop $b
+	popax
+	add $a,$b
+	call engine,fileexist
+	cmp0
+	je l827
+	push $5
+	spushs
+	push $1
+	push $4
+	spop $a
+	call [$a],gmconsnd
+	jmp l826
+l827:
+	push $5
+	spushs
+	push $1
+	call $2,length
+	push 40
+	pop $b
+	popax
+	mul $a,$b
+	push 1
+	spop $a
+	call [$a],newtimer
+	push $1
+	spushs
+	push "onstart"
+	push "_sndtimerstart"
+	spop $a
+	call [$a],addmethod
+	push $1
+	spushs
+	push "setstartstopflag"
+	push "GameController0"
+	spop $a
+	call [$a],addmethod
+l826:
+	push $3
+	push $4
+	call _dbsnd,add
+	push $3
+	push $1
+	call _dbsnd,add
+	push $3
+	push $2
+	call _dbsnd,add
+	end method
+	method GameController0
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	end method
+	method addbank
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new gmbankvec,[$e]
+	localstring $3
+	pop $3
+	localstring $4
+l828:
+	push $3
+	push A
+	cmpjne
+	cmp0
+	je l829
+	push $3
+	cthis getsndtxt
+	pop $4
+	push $1
+	spushs
+	push $4
+	spop $a
+	call [$a],addbegin
+	push $2
+	push "null"
+	cmpjne
+	cmp0
+	je l831
+	push $4
+	spushs
+	push "onfinish"
+	push $2
+	spop $a
+	call [$a],addmethod
+l831:
+	pop $3
+	jmp l828
+l829:
+	end method
+	method exportbank
+	localstring $1
+	pop $1
+	push "__db"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	push $1
+	spop $e
+	new db,[$e]
+	call [$e],GameController1
+	push "__db"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $d
+	delete [$d]
+	end method
+	method GameController1
+	localdef $1
+	pop $1
+	push 1
+	cthis dbbuild
+	push "|"
+	cthis setseparator
+	push "GameController2"
+	cthis dbeach_row
+	push igmdebug
+	cmp0
+	je l833
+	push "exports/"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	push ".dlg"
+	pop $b
+	popax
+	add $a,$b
+	cthis save
+l833:
+	end method
+	method GameController2
+	localdef $1
+	pop $1
+	localdef $2
+	cthis getname
+	spushs
+	push "__db"
+	spop $h
+	call $h,strsubbs
+	pop $2
+	push $1
+	push "snd"
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	cthis addbegin
+	push $1
+	push $2
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	push ".wav"
+	pop $b
+	popax
+	add $a,$b
+	cthis addbegin
+	end method
+	method importbank
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new gmbankvec,[$e]
+	push $2
+	push $3
+	push "null"
+	push $1
+	cthis importgroupto
+	end method
+	method exportsnd
+	localstring $1
+	pop $1
+	push igmdebug
+	cmp0
+	je l835
+	push $1
+	call _dbsnd,save
+l835:
+	end method
+	method stdexportsnd
+	push "exports/"
+	push _sndbase
+	pop $b
+	popax
+	add $a,$b
+	push ".dlg"
+	pop $b
+	popax
+	add $a,$b
+	cthis exportsnd
+	end method
+	method sounds=
+	cthis buildsnds
+	end method
+	method sounds_from
+	localstring $1
+	pop $1
+	new db,__tmpdb
+	localdef $2
+	push _sndbase
+	pop $2
+	push $1
+	cthis setsndbase
+	push "exports/"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	push ".dlg"
+	pop $b
+	popax
+	add $a,$b
+	call __tmpdb,load
+	call _dbsnd,free
+	localdef $3
+	pop $3
+	localint $4
+	localstring $5
+l836:
+	push A
+	push $3
+	cmpjne
+	cmp0
+	je l837
+	localdef $6
+	pop $6
+	push 1
+	push $6
+	call __tmpdb,dbfindbycol
+	pop $4
+	push $4
+	push 0
+	cmpjae
+	cmp0
+	je l839
+	cthis getsndpath
+	push $4
+	push 0
+	call __tmpdb,get
+	pop $b
+	popax
+	add $a,$b
+	pop $5
+	push $5
+	call engine,fileexist
+	cmp0
+	je l841
+	push GAME
+	spushs
+	push $6
+	push $4
+	push 0
+	call __tmpdb,get
+	spop $a
+	call [$a],gmconsnd
+	push $6
+	spushs
+	push "onfinish"
+	push $3
+	spop $a
+	call [$a],addmethod
+	jmp l840
+l841:
+	push $6
+	push $4
+	push 1
+	call __tmpdb,get
+	push $3
+	cthis addsndf
+l840:
+l839:
+	localdef $3
+	pop $3
+	jmp l836
+l837:
+	call _dbsnd,free
+	delete __tmpdb
+	push $2
+	cthis setsndbase
+	end method
+	method buildsnds
+	call _dbsnd,free
+	new db,__dbsnd
+	push 3
+	call __dbsnd,dbbuild
+	push "__dbsnd"
+	cthis buildfromdb
+	delete __dbsnd
+	end method
+	method buildfromdb
+	localstring $1
+	pop $1
+	localint $2
+	push 0
+	pop $2
+l842:
+	push $2
+	push $1
+	spushs
+	spop $a
+	call [$a],getrowsno
+	cmpjl
+	cmp0
+	je l843
+	jmp l845
+l844:
+	add $2,1
+	pop $2
+	jmp l842
+l845:
+	push $1
+	spushs
+	push $2
+	push 0
+	spop $a
+	call [$a],get
+	push $1
+	spushs
+	push $2
+	push 1
+	spop $a
+	call [$a],get
+	push $1
+	spushs
+	push $2
+	push 2
+	spop $a
+	call [$a],get
+	cthis addsndf
+	jmp l844
+l843:
+	cthis stdexportsnd
+	end method
+	method importsnd
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push "null"
+	cthis importgroup
+	end method
+	method importgroup
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	push $2
+	push $3
+	push "null"
+	cthis importgroupto
+	end method
+	method importgroupto
+	localstring $1
+	localstring $2
+	localstring $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	new db,__tmpdb
+	localdef $5
+	push _sndbase
+	pop $5
+	push $1
+	cthis setsndbase
+	push "exports/"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	push ".dlg"
+	pop $b
+	popax
+	add $a,$b
+	call __tmpdb,load
+	call _dbsnd,free
+	localstring $6
+	localint $7
+	push 0
+	pop $7
+l846:
+	push $7
+	call __tmpdb,getrowsno
+	cmpjl
+	cmp0
+	je l847
+	jmp l849
+l848:
+	add $7,1
+	pop $7
+	jmp l846
+l849:
+	push $7
+	push 1
+	call __tmpdb,get
+	pop $6
+	push $3
+	push "null"
+	cmpje
+	cmp0
+	jne l852
+	push $3
+	spushs
+	push $6
+	spop $a
+	call [$a],contains
+	jmp l853
+l851:
+	push 0
+	jmp l853
+l852:
+	push 1
+l853:
+	cmp0
+	je l854
+	push $6
+	push $7
+	push 2
+	call __tmpdb,get
+	push $2
+	cthis addsndf
+	push $4
+	push "null"
+	cmpjne
+	cmp0
+	je l856
+	push $4
+	spushs
+	push $6
+	spop $a
+	call [$a],add
+l856:
+l854:
+	jmp l848
+l847:
+	call _dbsnd,free
+	call __tmpdb,free
+	delete __tmpdb
+	push $5
+	cthis setsndbase
+	end method
+	method freesnd
+	call _dbsnd,free
+	end method
+	method addgmobj
+	localstring $1
+	pop $1
+	push $1
+	call __grobj,add
+	end method
+	method removegmobj
+	localstring $1
+	pop $1
+	push $1
+	call __grobj,remove
+	end method
+	method deletegmobj
+	localstring $1
+	pop $1
+	push $1
+	cthis hasvar
+	cmp0
+	je l858
+	push $1
+	cthis removegmobj
+	push $1
+	spushs
+	spop $d
+	delete [$d]
+l858:
+	end method
+	method lockall
+	push "lock"
+	call __grobj,eval
+	cthis lock
+	end method
+	method unlockall
+	push "unlock"
+	call __grobj,eval
+	cthis unlock
+	end method
+	method gmunlockall
+	push GAME
+	spushs
+	spop $a
+	call [$a],unlockall
+	end method
+	method gmlockall
+	push GAME
+	spushs
+	spop $a
+	call [$a],lockall
+	end method
+	method mousemove
+	push "onmousemove"
+	call __grobj,eval
+	cthis mouse_move
+	end method
+	method mouselclick
+	push "onmouselclick"
+	call __grobj,eval
+	cthis mouse_lclick
+	end method
+	method mouserclick
+	push "onmouserclick"
+	call __grobj,eval
+	cthis mouse_rclick
+	end method
+	method mouselrel
+	push "onmouselrel"
+	call __grobj,eval
+	cthis mouse_lrel
+	end method
+	method mouserrel
+	push "onmouserrel"
+	call __grobj,eval
+	cthis mouse_rrel
+	end method
+	method keydown
+	push "onkeydown"
+	call __grobj,eval
+	cthis key_down
+	end method
+	end class
+
+	class classadv
+	parent classgame
+	method init
+	clparent classgame,init
+	end method
+	method newclpathf
+	localstring $1
+	localstring $2
+	localstring $3
+	localint $4
+	localint $5
+	localreal $6
+	localint $7
+	pop $7
+	pop $6
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new classpathf,[$e]
+	push $1
+	spushs
+	push $2
+	cthis getgraphpath
+	push $3
+	pop $b
+	popax
+	add $a,$b
+	push $4
+	push $5
+	push $6
+	push $7
+	spop $a
+	call [$a],build
+	end method
+	method newclpathfcopy
+	localstring $1
+	localstring $2
+	localstring $3
+	localreal $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new classpathf,[$e]
+	push $1
+	spushs
+	push $2
+	push $3
+	push $4
+	spop $a
+	call [$a],buildfrom
+	end method
+	method newpathf
+	localstring $1
+	localstring $2
+	localint $3
+	localint $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new path,[$e]
+	push $1
+	spushs
+	cthis getgraphpath
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	push $3
+	push $4
+	push 2.0
+	push 1
+	spop $a
+	call [$a],build
+	end method
+	method newclbut
+	localstring $1
+	localstring $2
+	localint $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new classbutton,[$e]
+	push $1
+	spushs
+	cthis getgraphpath
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	push $3
+	push $4
+	spop $a
+	call [$a],build
+	end method
+	method newclmask
+	localstring $1
+	localstring $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new classmask,[$e]
+	push $1
+	spushs
+	cthis getgraphpath
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	push $3
+	spop $a
+	call [$a],buildmask
+	end method
+	method newclmaskfunc
+	localstring $1
+	localstring $2
+	localstring $3
+	localstring $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new classmask,[$e]
+	push $1
+	spushs
+	cthis getgraphpath
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	push $3
+	push $4
+	spop $a
+	call [$a],buildmaskfunc
+	end method
+	end class
+
+	class classbgplan
+	parent gmobjvec
+	method init
+	clparent gmobjvec,init
+	new real,rpx
+	new real,rpy
+	new real,scalex
+	new real,scaley
+	end method
+	method setscale
+	localreal $1
+	localreal $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	pop scaley
+	pop scalex
+	end method
+	method move
+	localreal $1
+	localreal $2
+	pop $2
+	pop $1
+	push $1
+	popax
+	add rpx,$a
+	pop rpx
+	push $2
+	popax
+	add rpy,$a
+	pop rpy
+	localint $3
+	push rpx
+	pop $3
+	localint $4
+	push rpy
+	pop $4
+	push $3
+	popax
+	sub rpx,$a
+	pop rpx
+	push $4
+	popax
+	sub rpy,$a
+	pop rpy
+	push $3
+	cmp0
+	jne l861
+	push $4
+	jmp l862
+l860:
+	push 0
+	jmp l862
+l861:
+	push 1
+l862:
+	cmp0
+	je l863
+	push $3
+	push $4
+	clparent gmobjvec,move
+l863:
+	end method
+	method movebgr
+	localreal $1
+	localreal $2
+	pop $2
+	pop $1
+	push scalex
+	push $1
+	pop $b
+	popax
+	mul $a,$b
+	push scaley
+	push $2
+	pop $b
+	popax
+	mul $a,$b
+	cthis move
+	end method
+	end class
+
+	class classgrplans
+	parent gmobjvec
+	method init
+	clparent gmobjvec,init
+	new real,_rxp
+	new real,_ryp
+	end method
+	method move
+	localreal $1
+	localreal $2
+	pop $2
+	pop $1
+	push $1
+	popax
+	add _rxp,$a
+	pop _rxp
+	push $2
+	popax
+	add _ryp,$a
+	pop _ryp
+	push "movebgr"
+	push $1
+	push $2
+	cthis eval2
+	end method
+	method getposx
+	push _rxp
+	ret
+	end method
+	method getposy
+	push _ryp
+	ret
+	end method
+	method shift
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	popax
+	add _rxp,$a
+	pop _rxp
+	push $2
+	popax
+	add _ryp,$a
+	pop _ryp
+	push "move"
+	push $1
+	push $2
+	cthis eval2
+	end method
+	end class
+
+	class classadvcamera
+	method init
+	new classgrplans,grbgrs
+	new string,sancamera
+	push "null"
+	pop sancamera
+	new string,smsmvfun
+	push "null"
+	pop smsmvfun
+	new real,_rxmod
+	new real,_rymod
+	push 0.05
+	push 0.05
+	pop _rymod
+	pop _rxmod
+	new real,rleft
+	new real,rtop
+	new real,rright
+	new real,rbottom
+	push 0.0
+	push 0.0
+	push 799.0
+	push 599.0
+	pop rbottom
+	pop rright
+	pop rtop
+	pop rleft
+	new int,icamx
+	new int,icamy
+	push 400
+	push 300
+	pop icamy
+	pop icamx
+	new real,rborx
+	new real,rbory
+	push 799
+	push 599
+	pop rbory
+	pop rborx
+	new timer,timcamera
+	push 1
+	call timcamera,settick
+	push 1
+	call timcamera,setcycle
+	push "onfinish"
+	push "_camerafin"
+	call timcamera,addmethod
+	end method
+	method _camerafin
+	cthis checkcamera
+	cthis play
+	end method
+	method setcenter
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	pop icamy
+	pop icamx
+	end method
+	method setborders
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	push $2
+	push 1
+	pop $b
+	popax
+	sub $a,$b
+	pop rbottom
+	pop rright
+	end method
+	method getposx
+	call grbgrs,getposx
+	ret
+	end method
+	method getposy
+	call grbgrs,getposy
+	ret
+	end method
+	method setmetonmsmove
+	localstring $1
+	pop $1
+	push $1
+	pop smsmvfun
+	end method
+	method start
+	call timcamera,play
+	end method
+	method stop
+	push 0
+	call timcamera,stop
+	end method
+	method setactor
+	localstring $1
+	pop $1
+	push $1
+	pop sancamera
+	end method
+	method isactor
+	localstring $1
+	pop $1
+	push $1
+	push sancamera
+	cmpje
+	ret
+	end method
+	method getactor
+	push sancamera
+	ret
+	end method
+	method scalemodifiers
+	localreal $1
+	localreal $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	pop _rymod
+	pop _rxmod
+	end method
+	method newbgr
+	localstring $1
+	localreal $2
+	localreal $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new classbgplan,[$e]
+	push $1
+	push $2
+	push $3
+	cthis addbgr
+	end method
+	method addbgr
+	localstring $1
+	localreal $2
+	localreal $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	push $2
+	push $3
+	spop $a
+	call [$a],setscale
+	push $1
+	call grbgrs,add
+	end method
+	method addtobgr
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	push $1
+	spushs
+	push $2
+	spop $a
+	call [$a],add
+	end method
+	method setscene
+	push 1.0
+	push 1.0
+	cthis _setscene
+	end method
+	method _setscene
+	localreal $1
+	localreal $2
+	pop $2
+	pop $1
+	localreal $3
+	push icamx
+	push sancamera
+	spushs
+	spop $a
+	call [$a],getposx
+	pop $b
+	popax
+	sub $a,$b
+	pop $3
+	push $1
+	popax
+	mul $3,$a
+	pop $3
+	localreal $4
+	push icamy
+	push sancamera
+	spushs
+	spop $a
+	call [$a],getposy
+	pop $b
+	popax
+	sub $a,$b
+	pop $4
+	push $2
+	popax
+	mul $4,$a
+	pop $4
+	localreal $5
+	cthis getposx
+	push $3
+	pop $b
+	popax
+	add $a,$b
+	pop $5
+	localreal $6
+	cthis getposy
+	push $4
+	pop $b
+	popax
+	add $a,$b
+	pop $6
+	push $5
+	push rleft
+	cmpjae
+	cmp0
+	je l865
+	cthis getposx
+	popax
+	sub 0,$a
+	pop $3
+	jmp l864
+l865:
+	push $5
+	push rright
+	pop $b
+	popax
+	add $a,$b
+	push rborx
+	cmpjl
+	cmp0
+	je l867
+	push rborx
+	cthis getposx
+	push rright
+	pop $b
+	popax
+	add $a,$b
+	pop $b
+	popax
+	sub $a,$b
+	pop $3
+l867:
+l864:
+	push $6
+	push rtop
+	cmpjae
+	cmp0
+	je l869
+	cthis getposy
+	popax
+	sub 0,$a
+	pop $4
+	jmp l868
+l869:
+	push $6
+	push rbottom
+	pop $b
+	popax
+	add $a,$b
+	push rbory
+	cmpjl
+	cmp0
+	je l871
+	push rbory
+	cthis getposy
+	push rbottom
+	pop $b
+	popax
+	add $a,$b
+	pop $b
+	popax
+	sub $a,$b
+	pop $4
+l871:
+l868:
+	push $3
+	cmp0
+	jne l874
+	push $4
+	jmp l875
+l873:
+	push 0
+	jmp l875
+l874:
+	push 1
+l875:
+	cmp0
+	je l876
+	push $3
+	push $4
+	call grbgrs,move
+	push smsmvfun
+	push "null"
+	cmpjne
+	cmp0
+	je l878
+	push smsmvfun
+	spushs
+	spop $d
+	cthis [$d]
+l878:
+l876:
+	end method
+	method checkcamera
+	push sancamera
+	push "null"
+	cmpje
+	cmp0
+	je l880
+	ret
+l880:
+	push _rxmod
+	push _rymod
+	cthis _setscene
+	end method
+	method moveplans
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	popax
+	add rleft,$a
+	pop rleft
+	push $1
+	popax
+	add rright,$a
+	pop rright
+	push $2
+	popax
+	add rtop,$a
+	pop rtop
+	push $2
+	popax
+	add rbottom,$a
+	pop rbottom
+	push $1
+	popax
+	add rborx,$a
+	pop rborx
+	push $2
+	popax
+	add rbory,$a
+	pop rbory
+	push $1
+	popax
+	add icamx,$a
+	pop icamx
+	push $2
+	popax
+	add icamy,$a
+	pop icamy
+	push $1
+	push $2
+	call grbgrs,shift
+	end method
+	end class
+
+	module advmouse
+	method init
+	new anima,anmsc
+	end method
+	method load
+	localstring $1
+	pop $1
+	push $1
+	call anmsc,load
+	call anmsc,hide
+	end method
+	method set
+	localstring $1
+	pop $1
+	call anmsc,show
+	push $1
+	push 0
+	call anmsc,setframe
+	push "anmsc"
+	call mouse,setcursor
+	call anmsc,hide
+	end method
+	method setstd
+	push "std"
+	cthis set
+	end method
+	method setact
+	push "act"
+	cthis set
+	end method
+	method setbut
+	push "but"
+	cthis set
+	end method
+	method get
+	call anmsc,actionname
+	ret
+	end method
+	end module
+
+	class Common
+	parent classadv
+	parent GameController
+	method init
+	localstring $1
+	pop $1
+	push 0
+	pop igmstate
+	clparent classadv,init
+	push $1
+	clparent GameController,init
+	push $1
+	cthis path=
+	push "sounds/"
+	cthis setwavpath
+	call bsms,setstd
+	call clmusic,play
+	call clbuts,reset
+	end method
+	method napisshow
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	cthis show
+	push $1
+	push $2
+	cthis move
+	end method
+	method napispod
+	localstring $1
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],getcx
+	cthis getw
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	pop $b
+	popax
+	sub $a,$b
+	push $1
+	spushs
+	spop $a
+	call [$a],getey
+	push 5
+	pop $b
+	popax
+	add $a,$b
+	cthis napisshow
+	end method
+	method exit
+	call bsms,setstd
+	cthis game_exit
+	end method
+	method askrestart
+	call claskexit,askrestart
+	end method
+	method advclick
+	push igmdebug
+	cmp0
+	je l882
+	push igmstate
+	push 0
+	cmpje
+	cmp0
+	jne l885
+	push igmstate
+	push 5
+	cmpje
+	jmp l886
+l884:
+	push 0
+	jmp l886
+l885:
+	push 1
+l886:
+	jmp l887
+l882:
+	push 0
+	jmp l887
+l883:
+	push 1
+l887:
+	cmp0
+	je l888
+	push 1
+	cthis cactsndstop
+l888:
+	end method
+	method keyrestart
+	push igmdebug
+	cmp0
+	je l890
+	push "lctrl"
+	call keyboard,iskeydown
+	cmp0
+	je l890
+	push "r"
+	call keyboard,iskey
+	jmp l892
+l890:
+	push 0
+	jmp l892
+l891:
+	push 1
+l892:
+	cmp0
+	je l893
+	cthis getname
+	call gameapi,play
+l893:
+	end method
+	method keydown
+	push igmdebug
+	push 0
+	cmpje
+	cmp0
+	je l895
+	ret
+l895:
+	push "p"
+	call keyboard,iskey
+	cmp0
+	je l897
+	call clpause,pause
+	jmp l896
+l897:
+	push "escape"
+	call keyboard,iskey
+	cmp0
+	je l899
+	call claskexit,askexittomenu
+	jmp l898
+l899:
+l898:
+l896:
+	end method
+	method key_down
+	push igmdebug
+	cmp0
+	je l901
+	push "lctrl"
+	call keyboard,iskeydown
+	cmp0
+	je l901
+	push "r"
+	call keyboard,iskey
+	jmp l903
+l901:
+	push 0
+	jmp l903
+l902:
+	push 1
+l903:
+	cmp0
+	je l904
+	cthis crestart
+l904:
+	end method
+	end class
+
+	new classgamepause,clpause
+	new classgamemusic,clmusic
+	push "sounds/bgr/"
+	call clmusic,sndbgrpath
+	push "sounds/music/"
+	call clmusic,musicpath
+	push "sounds/music.db"
+	call clmusic,load
+	new snd,sndaskermovon
+	push "sounds/sfx/butmovon.wav"
+	call sndaskermovon,load
+	module clbuts
+	method init
+	end method
+	method load
+	new classbutton,buts
+	push "scripts/common/buttons.pyz"
+	push 4000
+	push "imglobcurs"
+	call buts,build
+	call engine,actclassname
+	push "butclick"
+	call buts,transclickfunc
+	call engine,actclassname
+	push "butmovon"
+	call buts,transmovonfunc
+	call engine,actclassname
+	push "butmovoff"
+	call buts,transmovofffunc
+	call buts,disableall
+	new db,dbb
+	push "scripts/common/buts.db"
+	call dbb,load
+	new snd,sndfxglobon
+	push "sounds/sfx/globbutmovon.wav"
+	call sndfxglobon,load
+	new def,bvisible
+	push 1
+	pop bvisible
+	end method
+	method reset
+	call buts,disableall
+	localdef $1
+	call gameapi,getgamename
+	pop $1
+	localint $2
+	push $1
+	call dbb,findbyrow
+	pop $2
+	push $2
+	push 0
+	cmpjae
+	cmp0
+	je l906
+	localint $3
+	push $2
+	call dbb,getcolsno
+	pop $3
+	localint $4
+	push 1
+	pop $4
+l907:
+	push $4
+	push $3
+	cmpjl
+	cmp0
+	je l908
+	jmp l910
+l909:
+	add $4,1
+	pop $4
+	jmp l907
+l910:
+	push $2
+	push $4
+	call dbb,get
+	call buts,enable
+	jmp l909
+l908:
+l906:
+	end method
+	method enable
+	localstring $1
+	pop $1
+	push $1
+	call buts,enable
+	end method
+	method butmovon
+	localstring $1
+	pop $1
+	call sndfxglobon,play
+	call mouse,isvisible
+	pop bvisible
+	call mouse,show
+	end method
+	method butmovoff
+	localstring $1
+	pop $1
+	push bvisible
+	neg
+	cmp0
+	je l912
+	call mouse,hide
+l912:
+	end method
+	method butclick
+	localstring $1
+	pop $1
+	push $1
+	push "pause"
+	cmpje
+	cmp0
+	je l914
+	call clpause,pause
+	jmp l913
+l914:
+	push $1
+	push "exit"
+	cmpje
+	cmp0
+	je l916
+	call claskexit,askexittomenu
+	jmp l915
+l916:
+	push $1
+	push "restart"
+	cmpje
+	cmp0
+	je l918
+	call claskexit,askrestart
+l918:
+l915:
+l913:
+	end method
+	end module
+
+	push 0
+	pop igmstate
+	push 0
+	push 0
+	push 1
+	push 1
+	pop igmbegin
+	pop igmdemo
+	pop igmeasy
+	pop igmdebug
+	call bsms,setstd
+	call clbuts,load
+	push "main"
+	call gameapi,play
+	game main
+	parent Common
+	method init
+	push "mainloader"
+	clparent Common,init
+	push "scripts/common/cursors.pyz"
+	call advmouse,load
+	push "sounds/sfx/globbutmovon.wav"
+	call sndaskermovon,load
+	push "Battle"
+	call gameapi,play
+	end method
+	end game
+
+	class StreetFighter
+	parent Common
+	method init
+	localdef $1
+	pop $1
+	push $1
+	clparent Common,init
+	end method
+	end class
+
+	method lbord
+	call imgbg,getpx
+	push 30
+	pop $b
+	popax
+	add $a,$b
+	end method
+	method rbord
+	call imgbg,getex
+	push 30
+	pop $b
+	popax
+	sub $a,$b
+	end method
+	method lscr
+	push 30
+	end method
+	method rscr
+	push iResX
+	push 30
+	pop $b
+	popax
+	sub $a,$b
+	end method
+	class Fighter
+	method init
+	localstring $1
+	localstring $2
+	localstring $3
+	localstring $4
+	localstring $5
+	pop $5
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	new string,ssecond
+	push $3
+	pop ssecond
+	new string,secan
+	push $4
+	pop secan
+	new int,bNop
+	push 1
+	pop bNop
+	new int,willnop
+	push 0
+	pop willnop
+	new int,bbij
+	push 0
+	pop bbij
+	new int,bauc
+	push 0
+	pop bauc
+	new string,sDir
+	push $2
+	pop sDir
+	new string,sfighter
+	push $1
+	pop sfighter
+	push $2
+	push "l"
+	cmpje
+	cmp0
+	je l920
+	new string,sku
+	push "up"
+	pop sku
+	new string,skd
+	push "down"
+	pop skd
+	new string,skl
+	push "left"
+	pop skl
+	new string,skr
+	push "right"
+	pop skr
+	new string,shk
+	push "["
+	pop shk
+	new string,shp
+	push "]"
+	pop shp
+	new string,slk
+	push ";"
+	pop slk
+	new string,slp
+	push "'"
+	pop slp
+	jmp l919
+l920:
+	new string,sku
+	push "w"
+	pop sku
+	new string,skd
+	push "s"
+	pop skd
+	new string,skl
+	push "a"
+	pop skl
+	new string,skr
+	push "d"
+	pop skr
+	new string,shk
+	push "q"
+	pop shk
+	new string,shp
+	push "e"
+	pop shp
+	new string,slk
+	push "z"
+	pop slk
+	new string,slp
+	push "c"
+	pop slp
+l919:
+	new string,sKey
+	new int,Dx
+	push 0
+	pop Dx
+	push "fstate"
+	push 1
+	cthis var2
+	new int,speed
+	push 20
+	pop speed
+	new db,dbcios
+	push sfighter
+	push $5
+	new anima,anfighter
+	call anfighter,Fighter0
+	push "sfmove"
+	push "Fighter1"
+	call anfighter,addmethod
+	new anima,ankopia
+	push "anfighter"
+	call ankopia,copy
+	call ankopia,hide
+	push "onfinish"
+	push "Fighter2"
+	call anfighter,addmethod
+	push "onendframe"
+	push "mendf"
+	call anfighter,addmethod
+	new gmobjvec,grkey
+	push A
+	push sku
+	push skd
+	push skl
+	push skr
+	push shk
+	push shp
+	push slk
+	push slp
+	call grkey,addlist
+	new gmobjvec,grk2
+	push A
+	push "u"
+	push "d"
+	push "l"
+	push "r"
+	push "hk"
+	push "hp"
+	push "lk"
+	push "lp"
+	call grk2,addlist
+	push "iskey"
+	push "Fighter3"
+	call grkey,addmethod
+	new string,sseq
+	push ""
+	pop sseq
+	new timer,timlap
+	push 10
+	call timlap,setcycle
+	push 1
+	call timlap,settick
+	push "onfinish"
+	push "Fighter4"
+	call timlap,addmethod
+	call timlap,play
+	end method
+	method Fighter0
+	localdef $1
+	localdef $2
+	pop $2
+	pop $1
+	push $2
+	push "null"
+	cmpje
+	cmp0
+	je l922
+	push "anpicaso"
+	cthis copy
+	push "picasso"
+	pop $2
+	jmp l921
+l922:
+	push "scripts/heroes/"
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	push ".pyz"
+	pop $b
+	popax
+	add $a,$b
+	cthis load
+l921:
+	push "scripts/heroes/"
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	push ".db"
+	pop $b
+	popax
+	add $a,$b
+	call dbcios,load
+	localint $3
+	push 0
+	pop $3
+l923:
+	push $3
+	call dbcios,getrowsno
+	cmpjl
+	cmp0
+	je l924
+	jmp l926
+l925:
+	add $3,1
+	pop $3
+	jmp l923
+l926:
+	push "var"
+	push $3
+	push 0
+	call dbcios,get
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $e
+	new int,[$e]
+	push $3
+	pop [$e]
+	jmp l925
+l924:
+	push 10
+	cthis setz
+	push 200
+	push 550
+	cthis setpos
+	push "stand"
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	cthis play
+	push $1
+	cthis addtogamevars
+	end method
+	method Fighter1
+	localint $1
+	localint $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	cthis move
+	push $1
+	push $2
+	call ankopia,move
+	end method
+	method Fighter2
+	push 1
+	pop bNop
+	push 0
+	pop bbij
+	push 0
+	pop bauc
+	cthis setdir
+	push fstate
+	cmp0
+	je l928
+	push fstate
+	push 2
+	cmpje
+	cmp0
+	je l930
+	push ssecond
+	spushs
+	spop $a
+	call [$a],fstate
+	push 2
+	cmpjl
+	jmp l932
+l930:
+	push 0
+	jmp l932
+l931:
+	push 1
+l932:
+	cmp0
+	je l933
+	push sfighter
+	call ccen,unmix
+	cthis setdir
+l933:
+	push "stand"
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	cthis play
+	push 1
+	pop fstate
+	jmp l927
+l928:
+	push "stand"
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push "d"
+	pop $b
+	popax
+	add $a,$b
+	cthis play
+l927:
+	end method
+	method Fighter3
+	localint $1
+	push 0
+	pop $1
+l934:
+	push $1
+	cthis size
+	cmpjl
+	cmp0
+	je l935
+	jmp l937
+l936:
+	add $1,1
+	pop $1
+	jmp l934
+l937:
+	push $1
+	cthis get
+	call keyboard,iskey
+	cmp0
+	je l939
+	push $1
+	call grk2,get
+	ret
+l939:
+	jmp l936
+l935:
+	push "null"
+	ret
+	end method
+	method Fighter4
+	push ""
+	pop sseq
+	cthis play
+	end method
+	method foundkey
+	push sseq
+	spushs
+	push "dhp"
+	cmpst
+	jne l941
+	spop $a
+	push bbij
+	neg
+	cmp0
+	je l943
+	push fstate
+	push 0
+	cmpje
+	cmp0
+	jne l944
+	push fstate
+	push 1
+	cmpje
+	jmp l945
+l943:
+	push 0
+	jmp l945
+l944:
+	push 1
+l945:
+	cmp0
+	je l946
+	push "p3"
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push "d"
+	pop $b
+	popax
+	add $a,$b
+	call anfighter,playif
+	cthis uderz
+	push 1
+	jmp l942
+l946:
+	push 0
+l942:
+	jmp l940
+l941:
+	push "dhk"
+	cmpst
+	jne l947
+	spop $a
+	push bbij
+	neg
+	cmp0
+	je l949
+	push fstate
+	push 0
+	cmpje
+	cmp0
+	jne l950
+	push fstate
+	push 1
+	cmpje
+	jmp l951
+l949:
+	push 0
+	jmp l951
+l950:
+	push 1
+l951:
+	cmp0
+	je l952
+	push "k3"
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push "d"
+	pop $b
+	popax
+	add $a,$b
+	call anfighter,playif
+	cthis uderz
+	push 1
+	jmp l948
+l952:
+	push 0
+l948:
+	jmp l940
+l947:
+	push "ldrhp"
+	cmpst
+	jne l953
+	spop $a
+	push bbij
+	neg
+	cmp0
+	je l955
+	push fstate
+	push 0
+	cmpje
+	cmp0
+	jne l956
+	push fstate
+	push 1
+	cmpje
+	jmp l957
+l955:
+	push 0
+	jmp l957
+l956:
+	push 1
+l957:
+	cmp0
+	je l958
+	push "byk"
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	call anfighter,playif
+	cthis uderz
+	push 1
+	jmp l954
+l958:
+	push 0
+l954:
+	jmp l940
+l953:
+	spop $a
+	push 0
+l940:
+	end method
+	method checkkeys
+	push bauc
+	cmp0
+	je l960
+	push ""
+	pop sseq
+	ret
+l960:
+	localdef $1
+	call grkey,iskey
+	pop $1
+	push $1
+	push "null"
+	cmpjne
+	cmp0
+	je l962
+	push $1
+	popax
+	add sseq,$a
+	pop sseq
+	call sseq,length
+	push 20
+	cmpja
+	cmp0
+	je l964
+	push ""
+	pop sseq
+l964:
+	cthis foundkey
+	neg
+	cmp0
+	je l966
+	push 0
+	call timlap,stop
+	call timlap,play
+	jmp l965
+l966:
+	push 1
+	call timlap,stop
+l965:
+l962:
+	end method
+	method getsec
+	push ssecond
+	end method
+	method dir
+	push sDir
+	end method
+	method dir=
+	localstring $1
+	pop $1
+	push $1
+	pop sDir
+	end method
+	method auc
+	push bauc
+	end method
+	method auc=
+	localint $1
+	pop $1
+	push $1
+	pop bauc
+	end method
+	method puts
+	localdef $1
+	localdef $2
+	pop $2
+	pop $1
+	push $1
+	call keyboard,keypressed
+	cmp0
+	je l968
+	push $2
+	popax
+	add sKey,$a
+	pop sKey
+l968:
+	end method
+	method setdir
+	cthis bleft
+	cmp0
+	je l970
+	push "r"
+	pop sDir
+	push ssecond
+	spushs
+	push "l"
+	spop $a
+	call [$a],dir=
+	jmp l969
+l970:
+	push "l"
+	pop sDir
+	push ssecond
+	spushs
+	push "r"
+	spop $a
+	call [$a],dir=
+l969:
+	end method
+	method mendf
+	push ""
+	pop sKey
+	cthis setdir
+	call keyboard,getkeystate
+	push sku
+	push "u"
+	cthis puts
+	push skd
+	push "d"
+	cthis puts
+	push skl
+	push "l"
+	cthis puts
+	push skr
+	push "r"
+	cthis puts
+	push shk
+	push "hk"
+	cthis puts
+	push shp
+	push "hp"
+	cthis puts
+	push slk
+	push "lk"
+	cthis puts
+	push slp
+	push "lp"
+	cthis puts
+	push bbij
+	cmp0
+	jne l973
+	push bauc
+	jmp l974
+l972:
+	push 0
+	jmp l974
+l973:
+	push 1
+l974:
+	cmp0
+	je l975
+	push "null"
+	jmp l971
+l975:
+	push sKey
+	spushs
+	push "u"
+	cmpst
+	jne l977
+	spop $a
+	push 0
+	cthis jump
+	jmp l976
+l977:
+	push "ul"
+	cmpst
+	jne l978
+	spop $a
+	push 2
+	popax
+	sub 0,$a
+	push speed
+	pop $b
+	popax
+	mul $a,$b
+	cthis jump
+	jmp l976
+l978:
+	push "ur"
+	cmpst
+	jne l979
+	spop $a
+	push 2
+	push speed
+	pop $b
+	popax
+	mul $a,$b
+	cthis jump
+	jmp l976
+l979:
+	push "r"
+	cmpst
+	jne l980
+	spop $a
+	push speed
+	cthis walk
+	jmp l976
+l980:
+	push "l"
+	cmpst
+	jne l981
+	spop $a
+	push speed
+	popax
+	sub 0,$a
+	cthis walk
+	jmp l976
+l981:
+	push "d"
+	cmpst
+	jne l982
+	spop $a
+	cthis schyl
+	jmp l976
+l982:
+	push "hp"
+	cmpst
+	je l984
+	push "dhp"
+	cmpst
+	je l984
+	jmp l983
+l984:
+	spop $a
+	cthis walhp
+	jmp l976
+l983:
+	push "lk"
+	cmpst
+	je l986
+	push "dlk"
+	cmpst
+	je l986
+	jmp l985
+l986:
+	spop $a
+	cthis wallk
+	jmp l976
+l985:
+	push "hk"
+	cmpst
+	je l988
+	push "dhk"
+	cmpst
+	je l988
+	jmp l987
+l988:
+	spop $a
+	cthis walhk
+	jmp l976
+l987:
+	push "lp"
+	cmpst
+	je l990
+	push "dlp"
+	cmpst
+	je l990
+	jmp l989
+l990:
+	spop $a
+	cthis wallp
+	jmp l976
+l989:
+	spop $a
+	push fstate
+	push 2
+	cmpjne
+	cmp0
+	je l992
+	push 0
+	pop Dx
+l992:
+	push fstate
+	push 0
+	cmpje
+	cmp0
+	je l994
+	push 0
+	cthis jump
+	jmp l993
+l994:
+	push "null"
+l993:
+l976:
+l971:
+	localstring $1
+	pop $1
+	push $1
+	push "null"
+	cmpjne
+	cmp0
+	je l996
+	push $1
+	cthis playif
+l996:
+	push willnop
+	cmp0
+	je l998
+	push 0
+	pop willnop
+	push 0
+	pop bNop
+l998:
+	cthis hmove
+	cthis framename
+	pop $1
+	push 0
+	push 3
+	call $1,getb
+	push "bum"
+	cmpje
+	cmp0
+	je l1000
+	push ssecond
+	spushs
+	spop $a
+	call [$a],auc
+	neg
+	jmp l1002
+l1000:
+	push 0
+	jmp l1002
+l1001:
+	push 1
+l1002:
+	cmp0
+	je l1003
+	cthis actionname
+	pop $1
+	localint $2
+	push "var"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	push "_"
+	pop $b
+	popax
+	add $a,$b
+	cthis framenr
+	pop $b
+	popax
+	add $a,$b
+	popax
+	mov $a,[$a]
+	psax
+	pop $2
+	push $2
+	push 0
+	cmpjl
+	cmp0
+	jne l1006
+	push $2
+	call dbcios,getrowsno
+	cmpje
+	jmp l1007
+l1005:
+	push 0
+	jmp l1007
+l1006:
+	push 1
+l1007:
+	cmp0
+	je l1008
+	push "no frame "
+	cthis actionname
+	pop $b
+	popax
+	add $a,$b
+	push "_"
+	pop $b
+	popax
+	add $a,$b
+	cthis framenr
+	pop $b
+	popax
+	add $a,$b
+	spushs
+	spop $h
+	call $h,print
+	ret
+l1008:
+	localint $3
+	push sDir
+	push "l"
+	cmpje
+	cmp0
+	je l1010
+	cthis getpx
+	push $2
+	push 2
+	call dbcios,get
+	pop $b
+	popax
+	add $a,$b
+	pop $3
+	jmp l1009
+l1010:
+	cthis getex
+	push $2
+	push 2
+	call dbcios,get
+	pop $b
+	popax
+	sub $a,$b
+	pop $3
+l1009:
+	localint $4
+	cthis getpy
+	push $2
+	push 3
+	call dbcios,get
+	pop $b
+	popax
+	add $a,$b
+	pop $4
+	localint $5
+	push $2
+	push 1
+	call dbcios,get
+	pop $5
+	push secan
+	spushs
+	push $3
+	push $4
+	push 1
+	push 1
+	spop $a
+	call [$a],isin
+	cmp0
+	jne l1013
+	push 0
+	push 1
+	call $1,gete
+	push "d"
+	cmpje
+	cmp0
+	je l1014
+	push sDir
+	push "l"
+	cmpje
+	cmp0
+	je l1016
+	push $3
+	push secan
+	spushs
+	spop $a
+	call [$a],getex
+	pop $b
+	popax
+	sub $a,$b
+	push 10
+	popax
+	sub 0,$a
+	cmpjl
+	jmp l1018
+l1016:
+	push 0
+	jmp l1018
+l1017:
+	push 1
+l1018:
+	cmp0
+	jne l1015
+	push sDir
+	push "r"
+	cmpje
+	cmp0
+	je l1019
+	push $3
+	push secan
+	spushs
+	spop $a
+	call [$a],getpx
+	pop $b
+	popax
+	sub $a,$b
+	push 10
+	cmpja
+	jmp l1021
+l1019:
+	push 0
+	jmp l1021
+l1020:
+	push 1
+l1021:
+	jmp l1022
+l1014:
+	push 0
+	jmp l1022
+l1015:
+	push 1
+l1022:
+	jmp l1023
+l1012:
+	push 0
+	jmp l1023
+l1013:
+	push 1
+l1023:
+	cmp0
+	je l1024
+	push ssecond
+	spushs
+	push 1
+	spop $a
+	call [$a],auc=
+	push secan
+	spushs
+	push 10
+	spop $a
+	call [$a],setz
+	push 11
+	cthis setz
+	push ssecond
+	spushs
+	spop $a
+	call [$a],dir
+	pop $1
+	push $1
+	popax
+	add $1,$a
+	pop $1
+	push secan
+	spushs
+	spop $a
+	call [$a],fstate
+	push 2
+	cmpje
+	cmp0
+	je l1026
+	push secan
+	spushs
+	push "aujmp"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	push secan
+	spushs
+	spop $a
+	call [$a],framenr
+	spop $a
+	call [$a],setframe
+	push secan
+	spushs
+	push sDir
+	push "l"
+	cmpje
+	cmp0
+	je l1028
+	push 2
+	popax
+	sub 0,$a
+	jmp l1027
+l1028:
+	push 2
+l1027:
+	spop $a
+	call [$a],setdx
+	jmp l1025
+l1026:
+	push $5
+	push 30
+	cmpjae
+	cmp0
+	je l1030
+	push secan
+	spushs
+	push "aujmp"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	spop $a
+	call [$a],play
+	push secan
+	spushs
+	push sDir
+	push "l"
+	cmpje
+	cmp0
+	je l1032
+	push 2
+	popax
+	sub 0,$a
+	jmp l1031
+l1032:
+	push 2
+l1031:
+	spop $a
+	call [$a],setdx
+	jmp l1029
+l1030:
+	push secan
+	spushs
+	push $5
+	push 20
+	cmpja
+	cmp0
+	je l1034
+	push "auc2"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+	jmp l1033
+l1034:
+	push "auc1"
+	push $1
+	pop $b
+	popax
+	add $a,$b
+l1033:
+	spop $a
+	call [$a],play
+	push secan
+	spushs
+	push sDir
+	push "l"
+	cmpje
+	cmp0
+	je l1036
+	push 1
+	popax
+	sub 0,$a
+	jmp l1035
+l1036:
+	push 1
+l1035:
+	spop $a
+	call [$a],setdx
+l1029:
+l1025:
+l1024:
+l1003:
+	end method
+	method dx=
+	localint $1
+	pop $1
+	push $1
+	pop Dx
+	end method
+	method setdx
+	localreal $1
+	pop $1
+	push speed
+	push $1
+	pop $b
+	popax
+	mul $a,$b
+	pop Dx
+	end method
+	method dx
+	push Dx
+	end method
+	method bleft
+	cthis getposx
+	push secan
+	spushs
+	spop $a
+	call [$a],getposx
+	cmpjl
+	end method
+	method walhp
+	push "p3"
+	push "p2"
+	push "p3"
+	push "p3"
+	cthis _wal
+	cmp0
+	je l1038
+	push "null"
+l1038:
+	end method
+	method wallp
+	push "p2"
+	push "p1"
+	push "p1"
+	push "p1"
+	cthis _wal
+	cmp0
+	je l1040
+	push "null"
+l1040:
+	end method
+	method walhk
+	push "k3"
+	push "k2"
+	push "k3"
+	push "k2"
+	cthis _wal
+	cmp0
+	je l1042
+	push "null"
+l1042:
+	end method
+	method wallk
+	push "k1"
+	push "k1"
+	push "k1"
+	push "k2"
+	cthis _wal
+	cmp0
+	je l1044
+	push "null"
+l1044:
+	end method
+	method _wal
+	localdef $1
+	localdef $2
+	localdef $3
+	localdef $4
+	pop $4
+	pop $3
+	pop $2
+	pop $1
+	push fstate
+	push 1
+	cmpje
+	cmp0
+	je l1046
+	cthis uderz
+	push $1
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	jmp l1045
+l1046:
+	push fstate
+	push 0
+	cmpje
+	cmp0
+	je l1048
+	cthis uderz
+	push $2
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push "d"
+	pop $b
+	popax
+	add $a,$b
+	jmp l1047
+l1048:
+	push fstate
+	push 2
+	cmpje
+	cmp0
+	je l1050
+	push 1
+	pop bbij
+	push Dx
+	push 0
+	cmpjne
+	cmp0
+	je l1052
+	push $3
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push "u"
+	pop $b
+	popax
+	add $a,$b
+	pop $3
+	jmp l1051
+l1052:
+	push $4
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push "u"
+	pop $b
+	popax
+	add $a,$b
+	pop $3
+l1051:
+	push $3
+	cthis framenr
+	cthis setframe
+	push $3
+	jmp l1049
+l1050:
+	push 1
+	ret
+l1049:
+l1047:
+l1045:
+	push 0
+	end method
+	method uderz
+	push 0
+	pop Dx
+	push 1
+	pop bbij
+	end method
+	method hmove
+	call ccen,set
+	localdef $1
+	cthis px
+	push Dx
+	pop $b
+	popax
+	add $a,$b
+	pop $1
+	localdef $2
+	cthis pex
+	push Dx
+	pop $b
+	popax
+	add $a,$b
+	pop $2
+	localdef $3
+	push ssecond
+	spushs
+	spop $a
+	call [$a],fstate
+	pop $3
+	localdef $4
+	push secan
+	spushs
+	spop $a
+	call [$a],actionname
+	pop $4
+	localdef $5
+	push ssecond
+	spushs
+	spop $a
+	call [$a],dx
+	pop $5
+	cthis bleft
+	cmp0
+	je l1054
+	push Dx
+	push 0
+	cmpjl
+	cmp0
+	je l1056
+	call ccen,f1x
+	push Dx
+	pop $b
+	popax
+	add $a,$b
+	cthis lscr
+	cmpjle
+	cmp0
+	je l1056
+	call ccen,f2ex
+	push Dx
+	pop $b
+	popax
+	sub $a,$b
+	cthis rscr
+	cmpjae
+	jmp l1058
+l1056:
+	push 0
+	jmp l1058
+l1057:
+	push 1
+l1058:
+	cmp0
+	je l1059
+	push 0
+	pop Dx
+	jmp l1055
+l1059:
+	push Dx
+	push 0
+	cmpja
+	cmp0
+	je l1061
+	push $2
+	call ccen,f2x
+	cmpjae
+	jmp l1063
+l1061:
+	push 0
+	jmp l1063
+l1062:
+	push 1
+l1063:
+	cmp0
+	je l1064
+	push fstate
+	push 1
+	cmpje
+	cmp0
+	je l1066
+	push $3
+	push 1
+	cmpjle
+	jmp l1068
+l1066:
+	push 0
+	jmp l1068
+l1067:
+	push 1
+l1068:
+	cmp0
+	je l1069
+	push 0
+	push 4
+	call $4,getb
+	push "stan"
+	cmpje
+	cmp0
+	je l1071
+	call ccen,f2ex
+	push Dx
+	pop $b
+	popax
+	add $a,$b
+	cthis rbord
+	cmpjl
+	jmp l1073
+l1071:
+	push 0
+	jmp l1073
+l1072:
+	push 1
+l1073:
+	cmp0
+	je l1074
+	push 2
+	push speed
+	pop $b
+	popax
+	mul $a,$b
+	push 3
+	pop $b
+	popax
+	div $a,$b
+	psax
+	pop Dx
+	push secan
+	spushs
+	push Dx
+	push 0
+	spop $a
+	call [$a],sfmove
+	jmp l1070
+l1074:
+	push 0
+	pop Dx
+l1070:
+	jmp l1065
+l1069:
+	push fstate
+	push 2
+	cmpje
+	cmp0
+	je l1076
+	push $3
+	push 2
+	cmpje
+	jmp l1078
+l1076:
+	push 0
+	jmp l1078
+l1077:
+	push 1
+l1078:
+	cmp0
+	je l1079
+	push $5
+	push 0
+	cmpjl
+	cmp0
+	je l1081
+	push 0
+	pop Dx
+	push ssecond
+	spushs
+	push 0
+	spop $a
+	call [$a],dx=
+l1081:
+l1079:
+l1065:
+l1064:
+l1055:
+	jmp l1053
+l1054:
+	push Dx
+	push 0
+	cmpja
+	cmp0
+	je l1083
+	call ccen,f1x
+	push Dx
+	pop $b
+	popax
+	sub $a,$b
+	cthis lscr
+	cmpjle
+	cmp0
+	je l1085
+	call ccen,f2ex
+	push Dx
+	pop $b
+	popax
+	add $a,$b
+	cthis rscr
+	cmpjae
+	jmp l1087
+l1085:
+	push 0
+	jmp l1087
+l1086:
+	push 1
+l1087:
+	jmp l1088
+l1083:
+	push 0
+	jmp l1088
+l1084:
+	push 1
+l1088:
+	cmp0
+	je l1089
+	push 0
+	pop Dx
+	jmp l1082
+l1089:
+	push Dx
+	push 0
+	cmpjl
+	cmp0
+	je l1091
+	push $1
+	call ccen,f1ex
+	cmpjle
+	jmp l1093
+l1091:
+	push 0
+	jmp l1093
+l1092:
+	push 1
+l1093:
+	cmp0
+	je l1094
+	push fstate
+	push 1
+	cmpje
+	cmp0
+	je l1096
+	push $3
+	push 1
+	cmpjle
+	jmp l1098
+l1096:
+	push 0
+	jmp l1098
+l1097:
+	push 1
+l1098:
+	cmp0
+	je l1099
+	push 0
+	push 4
+	call $4,getb
+	push "stan"
+	cmpje
+	cmp0
+	je l1101
+	call ccen,f1x
+	push Dx
+	pop $b
+	popax
+	add $a,$b
+	cthis lbord
+	cmpja
+	jmp l1103
+l1101:
+	push 0
+	jmp l1103
+l1102:
+	push 1
+l1103:
+	cmp0
+	je l1104
+	push 2
+	push speed
+	pop $b
+	popax
+	mul $a,$b
+	popax
+	sub 0,$a
+	push 3
+	pop $b
+	popax
+	div $a,$b
+	psax
+	pop Dx
+	push secan
+	spushs
+	push Dx
+	push 0
+	spop $a
+	call [$a],sfmove
+	jmp l1100
+l1104:
+	push 0
+	pop Dx
+l1100:
+	jmp l1095
+l1099:
+	push fstate
+	push 2
+	cmpje
+	cmp0
+	je l1106
+	push $3
+	push 2
+	cmpje
+	jmp l1108
+l1106:
+	push 0
+	jmp l1108
+l1107:
+	push 1
+l1108:
+	cmp0
+	je l1109
+	push $5
+	push 0
+	cmpja
+	cmp0
+	je l1111
+	push 0
+	pop Dx
+	push ssecond
+	spushs
+	push 0
+	spop $a
+	call [$a],dx=
+l1111:
+l1109:
+l1095:
+l1094:
+l1082:
+l1053:
+	push $1
+	cthis lbord
+	cmpjle
+	cmp0
+	jne l1114
+	push $2
+	cthis rbord
+	cmpjae
+	jmp l1115
+l1113:
+	push 0
+	jmp l1115
+l1114:
+	push 1
+l1115:
+	cmp0
+	je l1116
+	push 0
+	pop Dx
+l1116:
+	push Dx
+	cmp0
+	je l1118
+	push Dx
+	push 0
+	cthis sfmove
+l1118:
+	end method
+	method jump
+	localdef $1
+	pop $1
+	push fstate
+	push 1
+	cmpje
+	cmp0
+	je l1120
+	push $1
+	pop Dx
+	push $1
+	push 0
+	cmpja
+	cmp0
+	je l1121
+	push sDir
+	push "r"
+	cmpje
+	jmp l1123
+l1121:
+	push 0
+	jmp l1123
+l1122:
+	push 1
+l1123:
+	cmp0
+	jne l1125
+	push $1
+	push 0
+	cmpjl
+	cmp0
+	je l1126
+	push sDir
+	push "l"
+	cmpje
+	jmp l1128
+l1126:
+	push 0
+	jmp l1128
+l1127:
+	push 1
+l1128:
+	jmp l1129
+l1124:
+	push 0
+	jmp l1129
+l1125:
+	push 1
+l1129:
+	cmp0
+	je l1131
+	push "jumj"
+	jmp l1130
+l1131:
+	push "jump"
+l1130:
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push 2
+	pop fstate
+	cthis wnop
+	jmp l1119
+l1120:
+	push fstate
+	push 0
+	cmpje
+	cmp0
+	je l1133
+	push "go"
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push "d"
+	pop $b
+	popax
+	add $a,$b
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push $1
+	pop Dx
+	push 1
+	pop fstate
+	jmp l1132
+l1133:
+	push "null"
+l1132:
+l1119:
+	end method
+	method nop
+	push 0
+	pop bNop
+	end method
+	method wnop
+	push 1
+	pop willnop
+	end method
+	method walk
+	localdef $1
+	pop $1
+	push fstate
+	push 0
+	cmpje
+	cmp0
+	jne l1136
+	push fstate
+	push 1
+	cmpje
+	jmp l1137
+l1135:
+	push 0
+	jmp l1137
+l1136:
+	push 1
+l1137:
+	cmp0
+	je l1138
+	push "go"
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push 1
+	pop fstate
+	push $1
+	pop Dx
+	jmp l1134
+l1138:
+	push "null"
+l1134:
+	end method
+	method schyl
+	push fstate
+	push 1
+	cmpje
+	cmp0
+	je l1140
+	push "go"
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push "d"
+	pop $b
+	popax
+	add $a,$b
+	push 0
+	pop fstate
+	push 0
+	pop Dx
+	jmp l1139
+l1140:
+	push fstate
+	push 0
+	cmpje
+	cmp0
+	je l1142
+	push "stand"
+	push sDir
+	pop $b
+	popax
+	add $a,$b
+	push "d"
+	pop $b
+	popax
+	add $a,$b
+	jmp l1141
+l1142:
+	push "null"
+l1141:
+l1139:
+	end method
+	method playif
+	localdef $1
+	pop $1
+	push $1
+	cthis isplaying
+	neg
+	cmp0
+	je l1144
+	push $1
+	cthis play
+l1144:
+	end method
+	method herpos
+	localdef $1
+	localdef $2
+	pop $2
+	pop $1
+	push $1
+	push $2
+	call anfighter,setpos
+	push $1
+	push $2
+	call ankopia,setpos
+	end method
+	end class
+
+	class Central
+	method init
+	localstring $1
+	localstring $2
+	pop $2
+	pop $1
+	new string,spl1
+	push $1
+	pop spl1
+	new string,spl2
+	push $2
+	pop spl2
+	cthis set
+	end method
+	method getposx
+	push spl1
+	spushs
+	spop $a
+	call [$a],getposx
+	push spl2
+	spushs
+	spop $a
+	call [$a],getposx
+	pop $b
+	popax
+	add $a,$b
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	end method
+	method getposy
+	localdef $1
+	push spl1
+	spushs
+	spop $a
+	call [$a],getey
+	pop $1
+	localdef $2
+	push spl2
+	spushs
+	spop $a
+	call [$a],getey
+	pop $2
+	push $1
+	push $2
+	cmpja
+	cmp0
+	je l1146
+	push $1
+	jmp l1145
+l1146:
+	push $2
+l1145:
+	end method
+	method bleft
+	localstring $1
+	pop $1
+	push $1
+	push spl1
+	cmpje
+	end method
+	method set
+	push spl2
+	spushs
+	spop $a
+	call [$a],getposx
+	push spl1
+	spushs
+	spop $a
+	call [$a],getposx
+	cmpjl
+	cmp0
+	je l1148
+	push spl2
+	push spl1
+	pop spl2
+	pop spl1
+l1148:
+	end method
+	method f1x
+	push spl1
+	spushs
+	spop $a
+	call [$a],px
+	end method
+	method f1ex
+	push spl1
+	spushs
+	spop $a
+	call [$a],pex
+	end method
+	method f2x
+	push spl2
+	spushs
+	spop $a
+	call [$a],px
+	end method
+	method f2ex
+	push spl2
+	spushs
+	spop $a
+	call [$a],pex
+	end method
+	method move2
+	localdef $1
+	pop $1
+	push spl2
+	spushs
+	push $1
+	push 0
+	spop $a
+	call [$a],sfmove
+	end method
+	method move1
+	localdef $1
+	pop $1
+	push spl1
+	spushs
+	push $1
+	push 0
+	spop $a
+	call [$a],sfmove
+	end method
+	method getsec
+	localstring $1
+	pop $1
+	push $1
+	push spl1
+	cmpje
+	cmp0
+	je l1150
+	push spl2
+	jmp l1149
+l1150:
+	push spl1
+l1149:
+	end method
+	method sgn
+	localstring $1
+	pop $1
+	push $1
+	spushs
+	spop $a
+	call [$a],dir
+	push "l"
+	cmpje
+	cmp0
+	je l1152
+	push 1
+	popax
+	sub 0,$a
+	jmp l1151
+l1152:
+	push 1
+l1151:
+	end method
+	method unmix
+	localstring $1
+	pop $1
+	cthis set
+	localdef $2
+	cthis f1ex
+	cthis f2x
+	pop $b
+	popax
+	sub $a,$b
+	pop $2
+	push $2
+	push 0
+	cmpja
+	cmp0
+	je l1154
+	cthis f1x
+	push $2
+	pop $b
+	popax
+	sub $a,$b
+	cthis lbord
+	cmpjle
+	cmp0
+	je l1156
+	push $2
+	cthis move2
+	jmp l1155
+l1156:
+	cthis f2ex
+	push $2
+	pop $b
+	popax
+	add $a,$b
+	cthis rbord
+	cmpjae
+	cmp0
+	je l1158
+	push $2
+	popax
+	sub 0,$a
+	cthis move1
+	jmp l1157
+l1158:
+	push $1
+	cthis getsec
+	spushs
+	push $1
+	cthis sgn
+	push $2
+	pop $b
+	popax
+	mul $a,$b
+	push 0
+	spop $a
+	call [$a],sfmove
+l1157:
+l1155:
+	cthis set
+l1154:
+	end method
+	end class
+
+	game Battle
+	parent StreetFighter
+	method init
+	push "sftmp"
+	clparent StreetFighter,init
+	push 0
+	call keyboard,autorepeat
+	new img,imgbg
+	push "scripts/arena1/tmpbg.png"
+	call imgbg,load
+	new classadvcamera,camera
+	push "bgfight"
+	push 1
+	push 1
+	call camera,newbgr
+	push "bgfight"
+	push "anpicaso"
+	call camera,addtobgr
+	push "bgfight"
+	push "anpicaso2"
+	call camera,addtobgr
+	push "bgfight"
+	push "imgbg"
+	call camera,addtobgr
+	call imgbg,getw
+	call imgbg,geth
+	call camera,setborders
+	push "anpicaso"
+	push "r"
+	push "picasso2"
+	push "anpicaso2"
+	push "picasso"
+	new Fighter,picasso
+	push "anpicaso2"
+	push "l"
+	push "picasso"
+	push "anpicaso"
+	push "null"
+	new Fighter,picasso2
+	call imgbg,getw
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	push 100
+	pop $b
+	popax
+	sub $a,$b
+	push 600
+	call picasso,herpos
+	call imgbg,getw
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	push 100
+	pop $b
+	popax
+	add $a,$b
+	push 600
+	call picasso2,herpos
+	push "Width"
+	push "mpicaso"
+	call anpicaso,addmethod
+	push "px"
+	push "mpx"
+	call anpicaso,addmethod
+	push "pex"
+	push "mpex"
+	call anpicaso,addmethod
+	push "Width"
+	push "mpicaso"
+	call anpicaso2,addmethod
+	push "px"
+	push "mpx"
+	call anpicaso2,addmethod
+	push "pex"
+	push "mpex"
+	call anpicaso2,addmethod
+	push "anpicaso"
+	push "anpicaso2"
+	new Central,ccen
+	push "ccen"
+	call camera,setactor
+	call camera,start
+	call camera,setscene
+	end method
+	method exit
+	push 1
+	call keyboard,autorepeat
+	end method
+	method mpicaso
+	push 40
+	end method
+	method mpx
+	cthis getposx
+	cthis Width
+	pop $b
+	popax
+	sub $a,$b
+	end method
+	method mpex
+	cthis getposx
+	cthis Width
+	pop $b
+	popax
+	add $a,$b
+	end method
+	method keydown
+	call anpicaso,getz
+	call anpicaso2,getz
+	cmpjl
+	cmp0
+	je l1160
+	call picasso,checkkeys
+	call picasso2,checkkeys
+	jmp l1159
+l1160:
+	call picasso2,checkkeys
+	call picasso,checkkeys
+l1159:
+	push "escape"
+	call keyboard,iskey
+	cmp0
+	je l1162
+	call gameapi,exit
+l1162:
+	end method
+	end game
+

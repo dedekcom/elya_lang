@@ -1,0 +1,29 @@
+
+game Cs14Podstep : StdGame	{
+	init	{
+		StdGame::init("cs14podstep");
+		
+		.imgs = (A, "bkg.pyz", "kaphand.pyz 10", "oferma.pyzP 20", "kapral.pyz 20");
+		
+		.sounds = (A, ":kapral1", "Kiedy nasi zaatakuj± gród czo³owo my zakradniemy siê od ty³u",
+				func { ankaphand.play(0); .cbplay("kapral2"); },
+			":kapral2", "Przywi±¿emy Barana do wyci±gu i bêdziesz krêci³ korbk±",
+				func { ankaphand.play(1); .cbplay("kapral3"); },
+			":kapral3", "A¿ znajdê siê na terenie wroga; Wtedy uderzê w obroñców od ¶rodka i otworzê bramê naszym",
+				func { ccs.close( func {
+					.gotoadv("adwarownia", "gameadwarownia1");
+					} ); }
+			);
+		
+		.sfxs = (A, "bgrgawronN 30");
+		
+		ccs.enter( func {
+			ankapral.play(0);
+			.cbplay("kapral1");
+			} );
+	}
+	mouse_lclick	{
+		
+	}
+}
+

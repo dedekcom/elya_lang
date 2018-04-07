@@ -1,0 +1,214 @@
+
+class CalcFPS	{
+	init	{
+		new real rfps1;
+		new real rfps2;
+		new real rfps3;
+		new real rsec = 1000.0;
+		new real rstart = 1.0;
+		.cycle = ("tickfps", func {	<.getbuildername>.tick; .play;	});
+	}
+	stdset(int size, int posx, int posy)	{	.set(.stdfont(size), .white, posx, posy, 1000);	}
+	set(string sfont, int r, int g, int b, int posx, int posy, int z)	{
+		.newtext("txtfps", 0, sfont, r,g,b);
+		txtfps.setz(z);
+		.setpos(posx,posy);
+	}
+	setpos(int x, int y)	{ txtfps.setpos(x,y);	}
+	tick	{
+		real rstop = engine.getticks;
+		if( rstop>rstart )	{
+			rfps1 = rfps2;
+			rfps2 = rfps3;
+			rfps3 = rsec/(rstop-rstart);
+			//txtfps.txtset( rsec/(rstop-rstart) );
+			txtfps.txtset( "delay: "+(rstop-rstart)+ " fps: "+ (rfps1+rfps2+rfps3)/3);
+		} else txtfps.txtset( "inf" );
+		rstart = rstop;
+	}
+	play	{	tickfps.play;	}
+	stop	{	tickfps.stop(false);	}
+}
+
+class Film : gfxObject	{
+	init	{
+		new img imfilm;
+		gfxObject::init("imfilm");
+		
+		new string sfilmpath;
+		new db dbfilm;
+		new db dbfilm2;
+		
+		new int istartklatka;
+		new int iklatka;
+		new int iendklatka;
+		new string sprefilm;
+		new int ifilmcycle; 
+		new string smusic;
+		
+		new int igameloopdelay = 33;
+		
+		new gmobjvec grsfx;
+		new gmimgvec grbuf;
+		
+		.vars2(A, "bcenter", 0, "bborders", 0, "musicclass", null, "bbuffer", 0 );
+		
+		.cycle = ("timfilm", func {
+			.load;
+			if( iklatka<=iendklatka )	{
+				timfilm.play;
+			} else {
+				.retfps;
+				@s = .getbuildername;
+				if( <s>.hasaddedmet("onfinish") )	{
+					<s>.onfinish;
+				}
+			}
+			} );
+	}
+	bufferfilm	{
+		
+	}
+	retfps	{	engine.setloopdelay(igameloopdelay);	}
+	setcycle(int icycle)	{
+		timfilm.setcycle(icycle);
+		ifilmcycle=icycle;
+	}
+	load	{
+		@id = dbfilm.findbyrow(iklatka);
+		if( id>=0 )	{
+			for( int i=1; i<dbfilm.getcolsno(id); i++)	{
+				match( dbfilm.get(id,i) )	{
+					"fadeout:" => {
+						i++;
+						if( musicclass!=null )
+							<musicclass>.fadeout( dbfilm.get(id,i) );
+					}
+					? => <dbfilm.get(id,i)>.play;
+				}
+			}
+		}
+		@z = imfilm.getz;
+		@x = imfilm.getpx;
+		@y = imfilm.getpy;
+		if( bbuffer )	{
+			@s = grbuf.get(iklatka-istartklatka);
+			<s>.createfrombuffer;
+			imfilm.copy(s);
+			<s>.hide;
+			imfilm.show;
+			if( iklatka>istartklatka )	{
+				<grbuf.get(iklatka-istartklatka-1)>.free;
+			}
+		} else {
+			imfilm.load( sfilmpath + sprefilm +iklatka+".jpg" );
+			imfilm.show;
+		}
+		imfilm.setz(z);
+		if( bcenter )	imfilm.setpos( (igmappw-imfilm.getw)/2, (igmapph-imfilm.geth)/2 );
+		else imfilm.setpos(x,y);
+		iklatka++;
+	}
+	playfilm(string spath, string sdbfile)	{
+		if( .isplaying ) .free;
+		sfilmpath = spath;
+		
+		dbfilm.load( spath + sdbfile + ".db" );
+		
+		istartklatka = dbfilm.dbgetint("start:");
+		iklatka = istartklatka;
+		iendklatka = dbfilm.dbgetint("end:");
+		sprefilm = dbfilm.dbget("prefix:");
+		smusic = dbfilm.dbget("music:");
+		
+		bbuffer = dbfilm.dbgetint("buffer:");
+		if( bbuffer )	{
+			for( int i=istartklatka; i<=iendklatka; i++)	{
+				@s = "imbuf"+i;
+				new img <s>;
+				<s>.loadbuffer( sfilmpath + sprefilm +i+".jpg" );
+				grbuf.add(s);
+			}
+		}
+		
+		igameloopdelay = engine.getloopdelay;
+		int ifps = dbfilm.dbgetint("fps:");
+		if( ifps>0 )
+			engine.setfps(ifps);
+		
+		for( int i=0; i<dbfilm.getrowsno; i++)	{
+			@s = dbfilm.get(i,0);
+			if( StringChecker::isdigit(s) )	{
+				for( int j=1; j<dbfilm.getcolsno(i); j++)	{
+					@s2 = dbfilm.get(i,j);
+					match( s2 )	{
+						"fadeout:" => {
+							j++;
+						}
+						? => {
+							.sfx = (s2);
+							s2 = "fx" + s2.strgetto(" ");
+							dbfilm.set(i,j, s2 );
+							grsfx.add(s2);
+						}
+					}
+				}
+			}
+		}
+		
+		//.setcycle( dbfilm.dbgetint("cycle:") );
+		
+		.play;
+	}
+	play	{
+		iklatka = istartklatka;
+		.load;
+		if( bborders && !.hasvar("imramkaup"))	{
+			new img imramkaup;
+			new img imramkadown;
+			new img imramkaleft;
+			new img imramkaright;
+			int dh = 0.5 + (igmapph-imfilm.geth)->to_r/2.0;
+			if( dh > 0 )	{
+				imramkaup.create(igmappw, dh, .black, 255);
+				imramkaup.setz(-10);
+				
+				//imramkadown.create(igmappw, dh, .black, 255);
+				imramkadown.copy("imramkaup");
+				imramkadown.setpos(0, igmapph-dh);
+			}
+			int dw = 0.5 + (igmappw-imfilm.getw)->to_r/2.0;
+			if( dw > 0 )	{
+				imramkaleft.create(dw, igmapph, .black, 255);
+				imramkaleft.setz(-10);
+				
+				imramkaright.copy("imramkaleft");
+				imramkaright.setpos( igmappw-dw, 0 );
+			}
+		}
+		if( smusic!=null && musicclass!=null )	{
+			<musicclass>.playstr(smusic);
+		}
+		timfilm.play;
+	}
+	free	{
+		delete imfilm;
+		new img imfilm;
+		for( int i=0; i<grsfx.size; i++ )	{
+			delete <grsfx.get(i)>;
+		}
+		for( i=0; i<grbuf.size; i++)
+			delete <grbuf.get(i)>;
+		grbuf.free;
+		grsfx.free;
+		.retfps;
+	}
+	isplaying	{	timfilm.isplaying;	}
+	stop(bool b)	{
+		.retfps;
+		if( b )	{
+			iklatka=iendklatka;
+		}
+		timfilm.stop(b);
+	}
+}

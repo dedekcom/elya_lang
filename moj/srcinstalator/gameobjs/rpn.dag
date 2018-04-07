@@ -1,0 +1,153 @@
+
+class RPN {
+	init	{
+		new vector vout;
+		vout.type("string");
+		new vector vs;
+		vs.type("string");
+		new vector vr;
+		vr.type("real");
+		new int ierror = 0;
+		new vector vvar;
+		vvar.type("string");
+	}
+	int error	{	ierror;	}
+	perror	{
+		match(ierror)	{
+			0 => "OK";
+			1 => "missing )";
+			2 => "unknown operator";
+			3 => "missing )";
+			4 => "bad output";
+			5 => "division by 0";
+			? => "unknown";
+		}
+	}
+	start	{
+		vout.free;
+		vs.free;
+		vvar.free;
+		ierror = 0;
+	}
+	num(string s)	{	vout.add(s);	}
+	op(string s)	{
+		string s2;
+		match (s)	{
+			"(" => vs.add(s);
+			")" => {
+				while( vs.size>0 && vs.last!="(" )	{
+					vout.add( vs.pop );
+				}
+				if( vs.size ) _ = vs.pop;
+				else ierror = 1;		// missing (
+			}
+			"+","-" => {
+				while( vs.size>0 && vs.last!="(" )	{
+					vout.add(vs.pop);
+				}
+				vs.add(s);
+			}
+			"*","/","%" => {
+				while( vs.size>0 && (vs.last=="*" || vs.last=="/" || vs.last=="%") )	{
+					vout.add(vs.pop);
+				}
+				vs.add(s);
+			}
+			? => ierror = 2;		// unknown operator
+		}
+	}
+	var(string s)	{
+		vvar.add( vout.size-1 );
+		vvar.add( s );
+	}
+	int end	{
+		string s;
+		while(vs.size)	{
+			s = vs.pop;
+			if( s=="(" ) ierror=3;	// missing )
+			else vout.add( s );
+		}
+		vout.size;
+	}
+	get(int id)	{	vout.get(id);	}
+	getvar(int id)	{	vvar.get(id);	}
+	varsize	{	vvar.size;	}
+	size	{	vout.size;	}
+	copy(string srpn)		{
+		.start;
+		vout.veccopy(srpn);
+	}
+	copyvars(string srpn)	{
+		.copy(srpn);
+		for( int i=0; i< <srpn>.varsize; i+=2) {
+			vout.set( <srpn>.getvar(i), [<srpn>.getvar(i+1)] );
+		}
+	}
+	print	{	vout.print;	}
+	real _get	{
+		if( vs.size )	vs.pop->to_r;
+		else {
+			ierror=4;	// bad vout
+			0.0;
+		}
+	}
+	real count	{
+		vs.free;
+		real rout = 0;
+		while( vout.size && ierror==0 )	{
+			match(vout.first)	{
+				"+" => vs.add( ._get+._get );
+				"-" => vs.add( -._get+._get );
+				"*" => vs.add( ._get*._get );
+				"/" => {
+					rout = ._get;
+					if( rout==0 )	ierror=5;		// division by 0
+					else vs.add( ._get/rout );
+				}
+				"%" => {
+					rout = ._get->to_i;
+					if( rout==0 )	ierror=5;		// division by 0
+					else vs.add( ._get->to_i%rout->to_i );
+				}
+				? => vs.add(vout.first);
+			}
+			vout.removeat(0);
+		}
+		if( ierror==0 )	{
+			if( vs.size!=1 )	{
+				ierror=6;		// wrong rpn
+				-1;
+			} else vs.pop->to_r;
+		} else -1; 
+	}
+	real countok	{
+		//vr.free;
+		real rout;
+		while( vout.size )	{
+			match(vout.first)	{
+				"+" => vr.add( vr.pop + vr.pop );
+				"-" => vr.add( -vr.pop+vr.pop );
+				"*" => vr.add( vr.pop*vr.pop );
+				"/" => {
+					rout = vr.pop;
+					if( rout==0 )	{
+						ierror=5;		// division by 0
+						vr.free;
+						return -1;
+					} else vr.add( vr.pop/rout );
+				}
+				"%" => {
+					rout = vr.pop->to_i;
+					if( rout==0 )	{
+						ierror=5;		// division by 0
+						vr.free;
+						return -1;
+					} else vr.add( vr.pop->to_i%rout->to_i );
+				}
+				? => vr.add(vout.first);
+			}
+			vout.removeat(0);
+		}
+		vr.pop;
+	}
+}

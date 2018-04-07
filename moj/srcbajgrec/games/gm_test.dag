@@ -1,0 +1,9 @@
+
+new int iBajkaNr = 1;
+
+game GameTest	{
+	init	{
+		
+	}
+}
+

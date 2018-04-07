@@ -1,0 +1,179 @@
+
+//---------------- sygnaly --------------
+
+public std_anfadeout_finish	{
+	.unlink_internal_filter;
+	.hide;
+}
+
+//------------- funkcje ------------
+
+public string internal_filter	{
+	@s = "__ft" + this;
+	if( !.hasvar(s) ) {
+		new filter <s>;
+		<s>.buildfullname;
+	}
+	<s>.link(this);
+	<s>.getfullname;
+}
+
+public string internal_timer	{
+	@s = "__tim" + this;
+	if( !.hasvar(s) ) {
+		new timer <s>;
+		<s>.setcycle(1);
+		<s>.vars2(A, "sfunc", null, "sfilter", null, "rstep", 0.0, "ropacity", 0.0, "rstepzoom", 0.0, "rzoom", 0.0,
+			"rzoomsmall", 0.0, "rzoombig", 1.0);
+	}
+	s;
+}
+public unlink_internal_filter	{
+	@s = .internal_timer;
+	if( .hasvar(s) ) <s>.stop(false);
+	<.internal_filter>.unlink;
+}
+public anhideonsetframe	{
+	.var("bhideonsf");
+	if( !.hasvar("bopacityfr") )	{
+		.addmethod("onsetframe", "_stdanhide" );
+	}
+}
+
+public anopacityframe	{
+	.var("bopacityfr");
+	.addmethod("onsetframe", func {
+		@s = .framename;
+		if( s.getb(0,2)=="op" )	{
+			<.internal_filter>.setopacity( s.strsubb(2)->to_r/100.0 * 255 );
+		} else <.internal_filter>.setopacity(255);
+		if( .hasvar("bhideonsf") )
+			.hide;
+		} );
+}
+
+public anrandfrplay	{
+	.var("brandfrplay");
+}
+
+public ansetopacity(int iop)	{
+	<.internal_filter>.setopacity(iop);
+}
+public anzoomin(int ms, string sfun)	{
+	.ansetopacity(255);
+	.anzoomfadeinout(ms,1,0,sfun);
+}
+public anzoomout(int ms, string sfun)	{
+	.ansetopacity(255);
+	.anzoomfadeinout(ms,-1,0,sfun);
+}
+public anfadein(int ms, string sfun)	{
+	.anzoomfadeinout(ms,0,1,sfun);
+}
+public anzoomfadein(int ms, string sfun)	{
+	.anzoomfadeinout(ms,1,1,sfun);
+}
+public anzoomfadeout(int ms, string sfun)	{
+	.anzoomfadeinout(ms,-1,-1,sfun);
+}
+public anfadeout(int ms, string sfun)	{
+	.anzoomfadeinout(ms,0,-1,sfun);
+}
+public anzoomfadeinout(int ms, int zoomdir, int dir, string sfun)	{
+	._anzoomfadeinout(ms, zoomdir, dir, sfun, 0.0, 1.0 );
+}
+public _anzoomfadeinout(int ms, int zoomdir, int dir, string sfun, real rzoomsmall, real rzoombig)	{
+	if( dir>0 ) dir=1;
+	else if (dir<0) dir=-1;
+	
+	if(zoomdir>0 ) zoomdir=1;
+	else if(zoomdir<0) zoomdir=-1;
+	
+	.show;
+	@sf = .internal_filter;
+	@st = .internal_timer;
+	<sf>.link(this);
+	<st>.sfunc = (sfun);
+	
+	ms = ms / engine.getloopdelay;
+	if( ms<=0 )	{
+		if( dir>0 )	.ansetopacity(255);
+		else	.ansetopacity(0);
+		if( sfun!=null ) .<sfun>;
+		return;
+	}
+	
+	real step = 255.0/ms;
+	if( step<1.0 ) step = 1.0;
+	real stepzoom = (rzoombig - rzoomsmall)/ms;
+	//<st>.vars2(A, "sfilter", sf, "rstep", step * dir, "ropacity", 0.0, "rstepzoom", stepzoom*zoomdir, "rzoom", 0.0);
+	<st>.sfilter = (sf);
+	<st>.rstep = ( step * dir );
+	<st>.ropacity = ( 0.0 );
+	<st>.rstepzoom = ( stepzoom * zoomdir );
+	<st>.rzoom = ( 0.0 );
+	<st>.rzoomsmall = (rzoomsmall);
+	<st>.rzoombig = (rzoombig);
+	if( dir )	{
+		<sf>.setopacity( dir==1 ? 0 : 255 );
+		<st>.ropacity = ( <sf>.getopacity );
+	}
+	if( zoomdir )	{
+		<sf>.setzoom( zoomdir==1 ? rzoomsmall+stepzoom : rzoombig );
+		<st>.rzoom = ( <sf>.getzoomx );
+	}
+	<st>.addmethod("onfinish", func {
+		ropacity += rstep;
+		rzoom += rstepzoom;
+		if( (ropacity>=255.0 && rstep>0.0) || (rzoom>=rzoombig && rstepzoom>0.0) )	{
+			if( rstepzoom>0.0 ) {
+				<sfilter>.setzoom( rzoombig );
+			}
+			if( rstep>0.0 )	<sfilter>.setopacity(255);
+			if( sfunc!=null ) <.getbuildername>.<sfunc>;
+		} else if ( (ropacity<=0.0 && rstep<0.0) || (rstepzoom<0.0 && rzoom < rzoomsmall-rstepzoom) )	{
+			/*if( rstepzoom<0.0 ) <.getbuildername>.hide;
+			if( rstep<0.0 )	<sfilter>.setopacity(0);*/
+			if( (rstepzoom<0.0 && rzoomsmall==0.0) || (rstep<0.0 && ropacity<=0.0) )	{
+				<sfilter>.unlink;
+				<.getbuildername>.hide;
+			}	// gdy rzoomsmall != 0, zostaw widoczny
+			if( sfunc!=null ) <.getbuildername>.<sfunc>;
+		} else {
+			if( rstep !=0.0 )
+				<sfilter>.setopacity(ropacity);
+			if( rstepzoom!=0.0 )
+				<sfilter>.setzoom(rzoom);
+			.play;
+		}
+		} );
+	<st>.play;
+}
+
+public imgbuildfromlist	{
+	new vector __vtmp;
+	__vtmp.type("string");
+	__vtmp.vecloadargs;
+	.imgbuildfromvec("__vtmp");
+	delete __vtmp;
+}
+public imgbuildfromvec(string svec)	{
+	if( <svec>.empty ) return;
+	string s = <svec>.first;
+	int x = <s>.getpx;
+	int y = <s>.getpy;
+	int ex = <s>.getex;
+	int ey = <s>.getey;
+	for( int i=1; i < <svec>.size; i++ )	{
+		s = <svec>.get(i);
+		if( x > <s>.getpx ) x = <s>.getpx;
+		if( y > <s>.getpy ) y = <s>.getpy;
+		if( ex < <s>.getex ) ex = <s>.getex;
+		if( ey < <s>.getey ) ey = <s>.getey;
+	}
+	.create( ex-x, ey-y, .transparent );
+	.setpos(x, y);
+	for( i=0; i< <svec>.size; i++)	{
+		.blit(<svec>.get(i));
+	}
+}

@@ -1,0 +1,3 @@
+./kompiluj ./srcleaf1/leaf1.prj
+#cp ./srcleaf1/leaf1.odd /home/dedek/projekty/rysunki_gimp/leaf1/project/scripts/
+awk -f optimize.awk ./srcleaf1/leaf1.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/leaf1/project/scripts/leaf1.odd

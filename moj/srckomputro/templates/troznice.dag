@@ -1,0 +1,56 @@
+
+class TRoznice : GameController	{
+	tinit(string sndbase, string spath, string sfilebg, string sfbgr1, string sfiler)	{
+		GameController::init(sndbase);
+		.unlock;
+		.setgraphpath(spath);
+		.newanima("anbkg",sfilebg,0);
+		.newanima("anbg1", sfbgr1, 10);
+		.copyanima("anbg1", "anbg2");
+		new gmimgvec gr1;
+		"gr1" .* sfiler;
+		new gmimgvec gr2;
+		int id;
+		string s[2];
+		for( int i=0; i<gr1.size; i++)	{
+			id = 2->rand;
+			s0 = gr1.get(i);
+			<s0>.setframe(i, id);
+			s1 = "anel2_"+i;
+			.copyanima(s0, s1);
+			<s1>.setframe(i, (id+1)%2);
+			gr2.add(s1);
+		}
+		new gmimgvec gral;
+		_= "gral" .+ "gr1" .+ "gr2" .+ "anbg1" .+ "anbg2";
+		gral.move(-anbg1.getpx, -anbg1.getpy);
+		gral.move( (400-anbg1.getw)/2, 10 );
+		.with(A,"anbg2", "gr2", func { .move(400, 0); });
+		.with(A,"gr1", "gr2", func { .setz(20); } );
+	}
+	bool tremove(int id, int x, int y)	{
+		string s = "gr"+id;
+		if( <s>.isin(x,y,true,true) )	{
+			< <s>.getsfound()> {
+				.setframe( .actionnr(-1), (.framenr+1)%2);
+			};
+			int id2 = <s>.getfound;
+			<s>.removeat(id2);
+			<"gr" + ((id%2)+1)>.removeat(id2);
+			gr1.empty ? .tfinish : .tpoint;
+			true;
+		} else
+			false;
+	}
+	int remained	{	gr1.size;	}
+	mouselclick()	{
+		if( !.getlock )	{
+			|int x[2]| = mouse.getpos;
+			if( !.tremove(1,x0,x1) )	_ = .tremove(2,x0,x1);
+		}
+		GameController::mouse_lclick;
+	}
+	/***************************/
+	virtual tpoint		{}
+	virtual tfinish	{}
+}

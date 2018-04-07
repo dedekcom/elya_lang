@@ -1,0 +1,119 @@
+
+new int SuwakiRow = 9;
+game Suwaki : DziejeGame {
+	init	{
+		int irow = SuwakiRow;
+		DziejeGame::init("suwaki");
+		
+		.sounds = (A, "sndgo1", "Przesuwaj elementy tak aby u³o¿yæ obraz ", "mgo",
+			"sndgo2", "To zadanie dla najwytrwalszych graczy ", func { .cbplay("sndgo1"); },
+			"sndok", "Doskonale! ", "mend",
+			"sndok2", "To nieprawdopodobne! Rozwi±za³e¶ zadanie godne mistrza gier! ", "mend"
+			);
+		
+		.sfxs = (A, "nasadza 60");
+		.newimg("imgbkg", "bgsuwaki.png",0);
+		.img = ("tlo"+irow+".pyz 1");
+		.copyanima("antlo"+irow, "anmask");
+		anmask.setframe(1,0);
+		anmask.setz(20);
+		
+		new int Rows;
+		new int Cols;
+		match(SuwakiRow)	{
+			9 => { |Rows, Cols| = 3,3; }
+			12 => { |Rows, Cols| = 3,4; }
+			15 => { |Rows, Cols| = 3,5; }
+			24 => { |Rows, Cols| = 4,6; }
+			35 => { |Rows, Cols| = 5,7; }
+			40 => { |Rows, Cols| = 5,8; }
+			? => ;
+		}
+		
+		.newgrimg("grels", "p"+irow, 10);
+		
+		new vector vx1;
+		new vector vy1;
+		grels.each( func { (@id)
+			.var2("myid", id);
+			vx1.add( .getpx );
+			vy1.add( .getpy );
+			} );
+		vx1.add( <grels.last>.getex );
+		vy1.add( <grels.last>.getpy );
+		
+		new vector vsuw;
+		vsuw.vecnewint(grels.size);
+		vsuw.add(-1);
+		vsuw.hash;
+		.mrestore;
+		
+		.cbplay(SuwakiRow>20? "sndgo2": "sndgo1");
+	}
+	mend	{}
+	mgo	{	igmstate = 1;	}
+	int mget(int r, int c)	{
+		if( r>=0 && r<Rows && c>=0 && c<Cols ) vsuw.get(r*Cols + c);
+		else -2;
+	}
+	bool mcheck(string s, int id, int r, int c)	{
+		if( .mget(r,c)==-1 )	{
+			@id2 = r*Cols + c;
+			vsuw.swap(id, id2);
+			.mrestore;
+			.mcheckwin;
+			fxnasadza.play;
+			true;
+		} else false;
+	}
+	mcheckwin	{
+		bool b = true;
+		for( int i=0; i<grels.size; i++)	{
+			if( <grels.get(i)>.myid != i )
+				b = false;
+		}
+		if( b )	{
+			if( SuwakiRow>20 ) .cbplay("sndok2");
+			else .cbplay("sndok");
+			igmstate = 2;
+		}
+	}
+	mrestore	{
+		for( int i=0; i<Rows; i++)	{
+			for( int j=0; j<Cols; j++)	{
+				@id = i*Cols + j;
+				@id2 = vsuw.get(id);
+				if( id2>=0 )	{
+					@s = grels.get( id2 );
+					<s>.msetpos(id);
+				}
+			}
+		}
+	}
+	msetpos(int id)	{
+		.ansetbpos( vx1.get(id), vy1.get(id) );
+		.myid = (id);
+	}
+	mouse_lclick	{
+		if( igmstate==0)	.cactsndstop(true);
+		if( igmstate==1 )	{
+			if( grels.isin(mouse.getpos, 1,1) )	{
+				@s = grels.getsfound;
+				@id = <s>.myid;
+				@row = id/Cols;
+				@col = id%Cols;
+				if( .mcheck(s, id, row, col-1) ) {
+				} else if( .mcheck(s, id, row-1, col) ) {
+				} else if( .mcheck(s, id, row, col+1) ) {
+				} else if( .mcheck(s, id, row+1, col) ) {
+				}
+			}
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug ) grels.free;
+	}
+	exit_click	{	.askfor("SubMenu");	}
+}
+
+

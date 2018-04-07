@@ -1,0 +1,66 @@
+
+game mg46_koralowce : Banshee	{
+	init	{
+		Banshee::init("mg46_koralowce");
+		
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2", "kwadrat_4.pyzH 3", "bable2.pyz 4", "koralowiec.pyz 5","bable.pyz 6",
+			"popexit.pyz 45", "ramka.pyz 42");
+		 
+		.sfxs = (A,"bgrpodwodaN 30" ) ; 
+		.butpopexit;
+		.butpopexitisinramka;
+		ankoralowiec.play(0);
+		anbable.play(0);
+		anbable2.play(0);
+
+		.newsndfree("snd_intro2", "kinnat_c4d4_43a");
+		snd_intro2.addmethod("onfinish", "advsetstdstate");    	
+		 
+		if (!clsave.bis("takenan_ankwadrat_4") )
+		{
+			.setasitemtopck("ankwadrat_4");
+			ankwadrat_4.show();
+			ankwadrat_4.addmethod("isbutin", func { (@x, @y)
+				.isin(x,y,0,0) && !ankoralowiec.isin(x,y,1,1);
+			} ); 
+			
+		}  
+		
+		imgbkg {
+			.addmethod("isbutin", func { (@x, @y)
+					.isin(x,y,0,0);
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+				if (!clsave.bis("takenan_ankwadrat_4") )	
+					.cbplay("snd_intro2"); 	
+				} );
+			butgame.add(this); 
+		};
+	 
+		
+		.stdstart;
+	}
+	
+	ankwadrat_4_TAKE {
+		.stackitem_topck("kwadrat");
+		.set_mg_finished;   
+	}
+	ankwadrat_4_INPCK {
+		.additemtostack("kwadrat"); 
+		.timfinito;
+	}  
+	
+	 
+	mend	{
+		.stdexitdefadv("ad46_podwodna", "gamead46_podwodna0");
+	}
+	HINT_CLICK	{
+		if (!clsave.bis("taken_kwadrat_4"))
+			.showhint("ankwadrat_4"); 
+		else
+		.showhint("anpopexit");
+	}
+	 
+}
+

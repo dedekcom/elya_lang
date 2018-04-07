@@ -1,0 +1,264 @@
+
+
+game MenuImgStd : MermaidStd	{
+	init	{
+		MermaidStd::init("menu_wybor");
+		
+		.imgs = (A, "wyborbg.jpg", "butok.pyz 30", "butnext.pyz 30", "butprev.pyz 30", "cien.pyz 10");
+		
+		if( bHorizon )
+			.newanima("ancyfry", .getcommon2("cyfry.pyz"), 30);
+		else
+			.newanima("ancyfry", .getcommon2("cyfry_pion.pyz"), 30);
+		
+		.cbutexit;
+		.loadasker;
+		.cbutmusicif;
+		
+		new classfullsave csave("menuimgstd.db");
+		csave.saveonset=(true);
+		csave.stdload;
+		iImgId = csave.get(sgmproject);
+		if( iImgId<1 ) iImgId=1;
+		
+		if( igmandroid && bHorizon )	{
+			int dx = 17->igetsc;
+			int dy = 83->igetsc;
+			ancien.move(dx, dy);
+			anbutnext.move(dx, dy);
+			anbutprev.move(dx, dy);
+			anbutok.move(dx, dy);
+		}
+		
+		new gmimgvec grnr;
+		int ile = .mputnumber(null,iIleImgs);
+		
+		if( bHorizon )	{
+			int w = 1.1 * ancyfry.getw;
+			for( int i=0; i<ile; i++ )	{
+				@s = "anilepuz"+i;
+				.copyanima("ancyfry", s);
+				<s>.setpos( anbutok.getpx - w*(i+1), ancien.getey + 10->igetsc );
+				s = "annr"+i;
+				.copyanima("ancyfry", s);
+				<s>.setpos( anbutok.getpx - w*(i+ile+2), ancien.getey + 10->igetsc );
+				<s>.hide;
+				grnr.add(s);
+			}
+			_ = .mputnumber("anilepuz", iIleImgs);
+			ancyfry.setframe(1,0);
+			ancyfry.setpos( anbutok.getpx - w*(ile+1), ancien.getey + 10->igetsc );
+		} else {
+			int h = 1.1 * ancyfry.geth;
+			@x = anbutok.getpx;
+			@y = ancien.getpy;
+			for( int i=0; i<ile; i++ )	{
+				@s = "anilepuz"+i;
+				.copyanima("ancyfry", s);
+				<s>.setpos( x, y + h*(i+1) );
+				s = "annr"+i;
+				.copyanima("ancyfry", s);
+				<s>.setpos( x, y + h*(i+ile+2) );
+				<s>.hide;
+				grnr.add(s);
+			}
+			_ = .mputnumber("anilepuz", iIleImgs);
+			ancyfry.setframe(1,0);
+			ancyfry.setpos( x, y + h*(ile+1) );
+		}
+		
+		new img imgpic1;
+		new img imgpic2;
+		new string spic1 = "imgpic1";
+		new string spic2 = "imgpic2";
+		<spic1>.mload;
+		.mustawnr;
+		new int ispeed;
+		
+		if( bHorizon )	{
+			.cycle=("timrew", func {
+				<spic1>.move( 0, ispeed );
+				<spic2>.move( 0, ispeed );
+				@dy = <spic2>.getpy;
+				if( (ispeed<0 && dy<0 ) || (ispeed>0 && dy>0) )	{
+					<spic1>.hide;
+					<spic2>.mustaw;
+					@s = spic1;
+					spic1 = spic2;
+					spic2 = s;
+					.advsetstdstate;
+					ancien.show;
+					.mustawnr;
+				} else .play;
+			} );
+		} else {
+			.cycle=("timrew", func {
+				<spic1>.move( ispeed, 0 );
+				<spic2>.move( ispeed, 0 );
+				@dx = <spic2>.getpx - ancien.getpx;
+				if( (ispeed<0 && dx<0 ) || (ispeed>0 && dx>0) )	{
+					<spic1>.hide;
+					<spic2>.mustaw;
+					@s = spic1;
+					spic1 = spic2;
+					spic2 = s;
+					.advsetstdstate;
+					ancien.show;
+					.mustawnr;
+				} else .play;
+				} );
+		}
+		
+		anbutnext.Button_addstdstate;
+		anbutprev.Button_addstdstate;
+		
+		anbutok.Button_addstdstate;
+		
+		.stdenter;
+	}
+	butclick_anbutnext	{	<GAME>.mnext(1);	}
+	butclick_anbutprev	{	<GAME>.mnext(-1);	}
+	butclick_anbutok	{	.stdexit(sMenuButOk);	}
+	mustaw	{	.ansetcpos( ancien.getcx-1, ancien.getcy-1 );	}
+	mload	{
+		.load( "scripts/" + sgmpuzpref + "/" + sMenuImgPref + iImgId + ".jpg" );
+		if( rMenuZoom != 1.0 )
+			.anzoom( rMenuZoom );
+		.setz( 20 );
+		.anclipob("ancien");
+		.show;
+		.mustaw;
+	}
+	mnext(int id)	{
+		iImgId += id;
+		if( iImgId < 1 ) iImgId = iIleImgs;
+		else if ( iImgId > iIleImgs ) iImgId = 1;
+		csave.set(sgmproject, iImgId);
+		<spic2>.mload;
+		if( bHorizon )	{
+			ispeed = 0.4*<spic1>.geth;
+			int dy = 5;
+			if( id>0 ) {
+				ispeed = -ispeed;
+				<spic2>.move( 0, <spic1>.geth + dy );
+			} else {
+				<spic2>.move( 0, - <spic2>.geth - dy );
+			}
+		} else {
+			ispeed = 0.15*<spic1>.getw;
+			int dx = 5;
+			if( id>0 ) {
+				ispeed = -ispeed;
+				<spic2>.move( <spic1>.getw, 0 );
+			} else {
+				<spic2>.move( -<spic2>.getw, 0 );
+			}
+		}
+		sgmstate = "state_rewind";
+		//ancien.hide;
+		timrew.play;
+	}
+	int mputnumber(string spref, int number)	{
+		int id = 0;
+		while( number>0 )	{
+			if( spref!=null )	{
+				@s = spref + id;
+				<s>.setframe( 0, number%10 );
+				<s>.show;
+			}
+			number = number/10;
+			id++;
+		}
+		id;
+	}
+	mustawnr	{
+		grnr.hide;
+		_ = .mputnumber("annr", iImgId);
+	}
+	butclick_anbutexit	{
+		if( sMenuButExit=="OutroStd" )
+			.askfor(sMenuButExit);
+		else .stdexit(sMenuButExit);
+	}
+}
+
+game Intro {
+	init	{
+		gameapi.play(sIntroGame);
+	}
+}
+
+game IntroStd : MermaidStd	{
+	init	{
+		MermaidStd::init("intro");
+		.img = ("introbg.jpg");
+		.playmainmusic;
+		
+		if( sIntroStdGame==null )
+			sIntroStdGame = sMenuImgStd;
+		
+		new int iileppuz = 1;
+		if( .mispuz(iileppuz) )	{
+			new img imgzaslona;
+			imgzaslona.create( igmappw, igmapph, .black, 128 );
+			imgzaslona.hide;
+			
+			.newimg("imgtekst", .getcommon2("puzzlecollect.png"), 20);
+			imgtekst.hide;
+			imgtekst.setpos( (igmappw-imgtekst.getw)/2, 0 );
+			
+			new img imgpuzad;
+		}
+		
+		ccs.enter(func {
+			if( <GAME>.hasvar("imgtekst") )	{
+				.timplay("timend", 1500, func {
+					imgtekst.show;
+					imgzaslona.show;
+					if( .mispuz(iileppuz) )	{
+						.setdelay(2000);
+						.mloadpuz;
+						iileppuz++;
+						.play;
+						if( !imgtekst.isvisible )	{
+							imgtekst.show;
+							
+						}
+					} else
+						.mend;
+					} );
+			} else
+				.timplay("timend", 3000, "mend");
+			} );
+	}
+	mloadpuz	{
+		imgpuzad.load( .getpath(.mgetpuz(iileppuz)) );
+		imgpuzad.setpos( (igmappw-imgpuzad.getw)/2, imgtekst.getey );
+	}
+	mispuz(int id)	{
+		engine.fileexist(.getpath(.mgetpuz(id) ) );
+	}
+	mgetpuz(int id)	{
+		"p_puz"+id+".jpg";
+	}
+	mend	{
+		timend.stop(false);
+		.stdexit(sIntroStdGame);	
+	}
+	mouse_lclick	{	.mend;	}
+}
+
+game OutroStd : MermaidStd	{
+	init	{
+		MermaidStd::init("outro");
+		.img = ("bgoutro.jpg");
+		
+		ccs.enter(func {
+			.timplay("timend", 5000, "mend");
+			} );
+	}
+	mend	{
+		.stdexit("exit");
+	}
+	mouse_lclick	{	.mend;	}
+}

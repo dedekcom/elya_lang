@@ -1,0 +1,123 @@
+game gamebajka : classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		this.setgraphpath("scripts/bajka/");
+		this.cstdbkg();
+		int ile = this.loadanframes("annakladka", "nakladki.pyz", 0, 20);
+		this.newclbut("clb", "butons.pyz", 10, "imglobcurs");
+		clb.clickfunc("mbutclick");
+		clb.movonfunc("mbutmovon");
+		new string simg1;
+		new string simg2;
+		new int iwidok=1;
+		new int bjeszczeraz=true;
+		new int ileft = 157;
+		new int iup = 9;
+		new string sside;
+		new gmobjvec grimgs;
+		new int istep = 20;
+		new int imovy = -istep;
+		new int iilescen = 20;
+		this.cnewtimercyclefin("timrew", 1, 25, "mfintimrew");
+		timrew.addmethod("ontick", "mrewtick");
+		timrew.addmethod("onstart", "mrewstart");
+		int posy = ileft;
+		
+		simg1 = "img1";
+		this.newimg(simg1, "popiel"+iwidok+".png", 5);
+		grimgs.add( simg1 );
+		img1.setpos( ileft+500, iup );
+		img1.clip( ileft, iup, ileft+500, iup+500 );
+		simg2 = "img2";
+		new img img2;
+		img2.setz(5);
+		grimgs.add( simg2 );
+		img2.clip( ileft, iup, ileft+500, iup+500 );
+		img2.setpos( img1.getex(), img1.getpy() );
+		new snd sndpop;
+		sndpop.addmethod("onfinish", "mfinpop");
+		this.mloadsnd();
+		this.cloadwavs("dbwav", "wavs.db");
+		this.cbplay("sndnar");
+		this.newsndloop("sndrew", "sfx/przesun.wav");
+	}
+	mchecksnd( int id )	{
+		if (id==9)	{
+			sndwidz3.play();
+		} else if (id==16)	{
+			sndwidz4.play();
+		}
+	}
+	mfinpop()	{
+		if( iwidok<iilescen )	{
+			this.mchecksnd( iwidok );
+			this.mnext("next");
+		} else if ( bjeszczeraz==true )	{
+			bjeszczeraz = false;
+			this.cbplay("sndwidz2");
+		}
+	}
+	mloadsnd()	{	sndpop.load("sounds/polanie/bajka"+iwidok+".wav");	}
+	mrewstart()	{
+		igmstate=0;
+		sndrew.play();
+	}
+	mfinnar()	{	this.cbplay("sndwidz1");}
+	mfinwidz1()	{	timrew.play();}
+	mfinwidz2()	{	igmstate=1;	}
+	mfinwidz3()	{}
+	mfinwidz4()	{}
+	mrewtick()	{	grimgs.move( imovy, 0 );	}
+	mfintimrew()	{
+		this.mrewtick();
+		igmstate = 1;
+		this.cbplay("sndpop");
+		sndrew.stop(false);
+	}
+	msetscene(int id, int step)	{
+		imovy = step;
+		this.mplayscene(id);
+		timrew.play();
+	}
+	mnext(string s)	{
+		igmstate = 0;
+		sside = s;
+		if( s=="next" && iwidok<iilescen)	{
+			this.msetscene( 1, -istep );
+		} else if (s=="prev" && iwidok>1)	{
+			this.msetscene( -1, istep );
+		}
+	}
+	mplayscene(int id)	{
+		iwidok+=id;
+		<simg2>.load( this.getgraphpath() + "popiel"+iwidok+".png" );
+		<simg2>.clip( ileft, iup, ileft+500, iup+500 );
+		<simg2>.setz( 5 );
+		if( id<0 )	{
+			<simg2>.setpos( <simg1>.getpx() - <simg2>.getw(), iup );
+		} else if (id>0) {
+			<simg2>.setpos( <simg1>.getex(), iup );
+		}
+		this.mloadsnd();
+		string s = simg1;
+		simg1 = simg2;
+		simg2 = s;
+	}
+	mbutmovon(string s)	{	sndakskermovon.play();	}
+	mbutclick(string s)	{
+		if( igmstate != 1 )	{	return; 	}
+		if(s=="next")	{
+			this.mnext(s);
+		} else if (s=="prev")	{
+			this.mnext(s);
+		} else if (s=="play")	{
+			clpause.pause();
+		} 
+	}
+	mouselclick()	{
+		if( igmstate==1 && igmdebug==true)	{
+			this.cactsndstop(true);
+		}
+	}
+}
+

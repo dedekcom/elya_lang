@@ -1,0 +1,3 @@
+./kompiluj ./srchwars/hwars.prj
+#cp ./srchwars/hwars.odd /home/dedek/projekty/rysunki_gimp/hwars/project/scripts/
+awk -f optimize.awk ./srchwars/hwars.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/hwars/project/scripts/hwars.odd

@@ -1,0 +1,133 @@
+
+game mg47_oczy : Banshee	{
+	init	{
+		Banshee::init("mg47_oczy");
+		// .addtopck("swiecaca_galazka"); //testy
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2", "bkg_zapalony.pyzH 3", "oczy.pyzH 4", "oczy_obszar.pyzH 5", "rybki_anim.pyzH 6","buteleczka.pyzH 7",
+			"popexit.pyz 45", "ramka.pyz 42");
+		.butpopexit;
+		.butpopexitisinramka;
+		
+		.sfxs = (A,"bgrpodwodaN 40" , "ryby 30", "shine 20") ;  
+		 
+		if(!clsave.bis("e1_mg47_oczy_galazka_uzyta"))
+		{		
+			.timplay("tim1", 150,func{anoczy.play(0);});   
+			 
+			anoczy.anopacityframe; 
+			
+			.newsndfree("snd_dark", "kinnat_c4d4_48");
+			snd_dark.addmethod("onfinish", "advsetstdstate");  
+			 
+			
+		}
+		
+		if (!clsave.bis("taken_buteleczka") )
+		{
+			.setasitemtopck("anbuteleczka");
+			anbuteleczka.show();
+			if (!clsave.bis("e1_mg47_oczy_galazka_uzyta"))
+			{
+				anbuteleczka.butdisable;  
+				anbuteleczka.hide;
+			}
+			
+		} 
+		
+		 
+		
+		.newsndfree("snd_rybki", "kinnat_c4d4_48a");
+		snd_rybki.addmethod("onfinish", "advsetstdstate");   
+		
+		anrybki_anim.addmethod("onfinish", func {.hide; anpopup_bkg.hide;
+			anbkg_zapalony.show;  
+			anbuteleczka.butenable;
+			.cbplay("snd_rybki");
+			});
+		
+		if(!clsave.bis("e1_mg47_oczy_galazka_uzyta"))
+		{
+			 
+			anoczy_obszar{
+				.addmethod("isbutin", func { (int x, int y)
+    			   .isin(x,y,0,1) &&  !clsave.bis("e1_mg47_oczy_galazka_uzyta");
+    				} );  
+				.addmethod("butmoveon", func {
+					if( clsave.bis("e1_mg47_oczy_galazka_uzyta")) return;
+						advmouse.set("use");
+					 
+				} );
+				.addmethod("butmoveoff", func {
+						advmouse.setstd;
+				} ); 
+					
+				.addmethod("butclick", func {
+					if( !.advstdstate ) return;
+					if (!clsave.bis("e1_mg47_oczy_galazka_uzyta"))
+					{
+						.cbplay("snd_dark"); 
+					}
+					 
+				} ); 	
+				 
+				 
+				butgame.add(this);
+			};   	
+		}
+		else
+		{
+			anpopup_bkg.hide;
+			anbkg_zapalony.show;
+		}
+		
+		.stdstart;
+	}
+	
+	mend	{
+		.stdexitdefadv("ad47_szafa", "gamead47_szafa0");
+	}
+	
+	USE_swiecaca_galazka	{
+		.advsetstdstate();
+		if( anoczy_obszar.isin(mouse.getpos,0,0) && !clsave.bis("e1_mg47_oczy_galazka_uzyta") )	{
+			.removefrompck("swiecaca_galazka");
+			anrybki_anim.play(0); 
+			anrybki_anim.anfadein(500,null);
+			clsave.bset("e1_mg47_oczy_galazka_uzyta"); 
+			anoczy.stop(true);
+			anoczy.hide;
+			fxshine.play;
+			anbuteleczka.anfadein(100,null); 
+			advmouse.setstd;	
+		} else {
+			.item_gotopck;
+		}
+	} 
+
+	anbuteleczka_TAKE	{	
+		.set_mg_finished;
+		.popitem_gotocenter("buteleczka");	
+	}
+	
+	anbuteleczka_INPCK {
+		.addtopck("buteleczka");
+		.timfinito;
+    }  	
+	
+	HINT_CLICK	{
+		if (clsave.bis("ma_swiecaca_galazka"))
+		{
+			.showhint("anoczy_obszar"); 
+			.showhintitem("swiecaca_galazka");
+			 
+		} 
+		else if(clsave.bis("e1_mg47_oczy_galazka_uzyta"))
+		{
+			.showhint("anbuteleczka");
+		} 
+		else	
+			.showhint("anpopexit");
+	}
+	 
+}
+

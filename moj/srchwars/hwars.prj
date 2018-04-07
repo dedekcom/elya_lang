@@ -1,0 +1,62 @@
+path:
+	srchwars/
+
+src:
+	libs/project.dag
+	libs/system.dag
+	libs/collections.dag
+	libs/music.dag
+	libs/vars.dag
+	advlibs/advmouse.dag
+	libs/length.dag
+	libs/packs.dag
+	libs/containers.dag
+	libs/sounds.dag
+	libs/game.dag
+	libs/buttons.dag
+	libs/masks.dag
+	libs/basetypes.dag
+	libs/imgs.dag
+	libs/gametools.dag
+	libs/gamecontroller.dag
+	libs/adv.dag
+	libs/saves.dag
+	libs/script.dag
+	advlibs/camera.dag
+	gameobjs/animaloader.dag
+	gameobjs/painter.dag
+	gameobjs/asker.dag
+	gameobjs/placepointer.dag
+	gameobjs/counter.dag
+	gameobjs/gfxobjects.dag
+	gameobjs/fadeinout.dag
+	gameobjs/texttyper.dag
+	gameobjs/delaytaker.dag
+	gameobjs/imgmover.dag
+	gameobjs/rewinder.dag
+	gameobjs/buttons.dag
+	gameobjs/textbox.dag
+	gameobjs/lexer.dag
+	gameobjs/anfx.dag
+	gameobjs/lang.dag
+	gameobjs/pyzcounter.dag
+	gameobjs/animamover.dag
+	gameobjs/lives.dag
+	gameobjs/imganima.dag
+	gameobjs/guitools.dag
+	gameobjs/film.dag
+	gameobjs/mediaobjects.dag
+	gameobjs/gui.dag
+	advlibs/advdebugger.dag
+	templates/tpainter.dag
+	stdgame/std_game.dag
+	stdgame/main.dag
+	games/std_mermaidreef.dag
+	games/hwars_std.dag
+	games/hwars_edytor.dag
+	
+all:
+	dd1.dag
+
+out:
+	srchwars/hwars.odd

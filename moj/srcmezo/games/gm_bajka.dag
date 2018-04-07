@@ -1,0 +1,355 @@
+
+game Bajka : DziejeGame	{
+	init	{
+		DziejeGame::init("bajka");
+		
+		new int BajkaNr = 1;
+		new int BajkaPlansze = 42;
+		
+		new gmimgvec grb;
+		
+		new int tick;
+		new string sfigura;
+		new int inext2 = -1;
+		.cycle = ("timnext", func { .mnext2; } );
+		.sfxs = (A, "kijek 70", "narasta 80", "zamach 80", "cios2 80", "drzewobum 80");
+		new gmobjvec grtmp;
+		new snd sndbgr;
+		
+		new img imgend;
+		imgend.create(1024, 768, .black, 255);
+		.lang_db("dbend", "koniec");
+		.newtext("txtend", dbend.get(0,0), .stdfont(48), .white);
+		txtend.setpos( (iResX-txtend.getw)/2, (iResY-txtend.geth)/2 );
+		imgend.blit("txtend");
+		delete txtend;
+		imgend.setz(200);
+		imgend.hide;
+		
+		
+		.sounds = (A,
+			"snd1", "6000 lat temu w po³udniowej Mezopotamii ¿y³ Abraham z rodzin±; Byli oni koczownikami; Przemierzali pustyniê i ¿yli w namiotach które rozbijali w oazach oraz nad rzekami", "mnext",
+			"snd2", "Synowie Abrahama dawno za³o¿yli ju¿ w³asne rodziny a sêdziwy przywódca rodu zosta³ z ukochan± najm³odsz± córk± Ramid±", "mnext",
+			"snd3", "Bardzo pragn±³ jej szczê¶cia jednak Ramida marzy³a o zdobyciu wiedzy o gwiazdach i pi¶mie a tego biedny Abraham nie potrafi³ jej zapewniæ", "mnext",
+			"snd4", "Nastêpnego dnia karawana ruszy³a do miasta Nur", "mnext",
+			"snd5", "Abraham jak nikt inny zna³ pustyniê i jej tajemnice; Do miasta dotarli najkrótsz± drog±", func {
+				.cycle = ("tim4", func {
+					if( tick==220 )	{
+						.mnext;
+					} else {
+						<.mget(3)>.move(0,1);
+						if( tick%3==0 ) <.mget(2)>.move(0,1);
+						match(tick)	{
+							110, 165, 192, 205 => <.mget(1)>.ansetnextfr;
+							? => ;
+						}
+						<.mget(4)>.move(4,2);
+						<.mget(5)>.move(-4,2);
+						tick++;
+						.play;
+					}
+					// 220, 80, 5
+					} );
+				tick = 0;
+				tim4.play;
+				},
+			"snd6", "W Nur mieszka³ kupiec Bazyli z którym Abraham czêsto robi³ interesy", "mnext",
+			"snd7", "Tak¿e dzi¶ Bazyli mia³ interes do Abrahama; Zleci³ mu przewóz towarów do miasta Sars", "mnext",
+			"snd8", "Dok³adny spis towarów tradycyjnie umie¶ci³ w glinianych kulkach", null,
+			"snd9", "Po za³adowaniu towarów i napojeniu wielb³±dów karawana Abrahama ruszy³a w podró¿", "mnext",
+			"snd10", "Znanymi tylko sobie szlakami Abraham zmierza³ wprost do miasta", "mnext",
+			"snd11", "Nagle co¶ dziwnego przyku³o jego uwagê; Zatrzyma³ energicznie grupê rozkaza³ nigdzie siê nie ruszaæ i oznajmi³ ¿e musi i¶æ zbadaæ teren", "mnext",
+			"snd12", "Nie myli³ czujny zmys³ starego lisa w pobli¿u znajdowa³ siê obóz gro¼nych wojowników Asyryjczyków; Muszê szybko ostrzec ludzi pomy¶la³ Abraham", null,
+			"snd13", "Przez ca³± noc karawana maszerowa³a do Sarsu a¿ wreszcie nad ranem dotarli do bram miasta", "mnext",
+			"snd14", "Poczekaj tu na mnie Ramido pójdê prosiæ o audiencjê u g³ównego kap³ana Samona który rz±dzi tym miastem i opowiem mu co widzia³em wczoraj w nocy", "mnext",
+			"snd15", "Na wie¶æ o obozie z³owrogich Asyryjczyków niedaleko Sarsu z Abrahamem spotka³ siê kap³an Samon oraz przywódca stra¿y miasta Hektor", "mnext",
+			"snd16", "Samon by³ bardzo m±drym cz³owiekiem i docenia³ ogromn± wagê informacji jakich dostarczy³ mu stary koczownik; Je¶li to co mówisz starcze jest prawd± mój lud jest ci winien wielk± nagrodê; ¯±daj czego pragniesz; Powiedzia³", "mnext",
+			"snd17", "Jedyne o co ciê proszê panie to by¶ przyj±³ na nauki moj± córkê Ramidê gdy¿ tylko wy kap³ani macie dostêp do wiedzy; ¦mia³a jest twoja pro¶ba odrzek³ Samon; Wiesz przecie¿ ¿e kobietom nie przys³uguje przywilej nauczania ale s³owo siê rzek³o; Dla Ramidy zrobiê wyj±tek", "mnext",
+			"snd18", "Tymczasem Hektor zarz±dzi³ przygotowania do obrony; Kaza³ wykopaæ fosê ustawi³ stra¿e na murach i ¶ci±ga³ zapasy ¿ywno¶ci na wypadek d³ugotrwa³ego oblê¿enia", "mnext",
+			"snd19", "Noc± na szczycie ¶wi±tyni Samon opowiada³ Ramidzie; Ramido gwiazdy uk³adaj± siê na niebie w ¶cis³ym porz±dku; Niektóre stoj± w miejscu inne przemierzaj± niebosk³on a my umiemy wyliczyæ ich drogê", "mnext",
+			"snd20", "Czasami bogowie chc± nam co¶ przekazaæ i objawiaj± siê na niebie a potem znikaj±; Czasami powracaj± po wielu latach; Niektórzy ukazuj± siê nam tak rzadko ¿e wiemy o nich tylko dziêki temu ¿e pisali o nich dawni kap³ani", "mnext",
+			"snd21", "Tymczasem stra¿nicy rozstawieni na murach obserwowali teren; Nagle jeden z nich zobaczy³ znak alarmowy; P³on±cy stos oznacza³ ¿e zbli¿a siê nieprzyjaciel", "mnext",
+			"snd22", "Nastêpnego dnia pod mury Sarsu dotar³a armia budz±cego postrach w ca³ym kraju samego okrutnego Goliata", "mnext",
+			"snd23", "Otwieraæ bramy to mo¿e ujdziecie z ¿yciem ha ha ha; Jestem Goliat niezwyciê¿ony ¿adne miasto mi siê nie opar³o! Rykn±³", "mnext",
+			"snd24", "S³yszeli¶my o tobie i twoich wyczynach; Jeste¶my ubogimi lud¼mi nie masz u nas czego szukaæ; Odpu¶æ sobie", "mnext",
+			"snd25", "Chyba mnie nie zrozumia³e¶ stary durniu; Krzycza³ dalej Goliat; Ja zawsze dostajê to czego chcê; Otwieraj natychmiast bramê!", "mnext",
+			"snd26", "Ee szefie wygl±da na to ¿e nie we¼miemy ich z zaskoczenia s± ¶wietnie przygotowani do obrony", "mnext",
+			"snd27", "My¶lisz ¿e twoi nêdzni stra¿nicy powstrzymaj± moj± armiê Samonie? Chcesz unikn±æ rzezi to wystaw najlepszego ze swoich wojowników; Je¶li mnie pokona uratujesz miasto je¶li ja zwyciê¿ê wezmê was wszystkich w niewolê; Jak nie przyjmiesz pojedynku to spalê miasto i wytnê mieszkañców! Dajê wam jeden dzieñ do namys³u", "mnext",
+			"snd28", "W mie¶cie zapanowa³a trwoga; Nikt nie mia³ szans pokonaæ Goliata; Pozostawa³a tylko niewola lub obrona do samego koñca", "mnext",
+			"snd29", "Kiedy mê¿czy¼ni rozpaczliwie szukali rozwi±zania Abraham dostrzeg³ ¿e Ramida gdzie¶ siê wymknê³a", "mnext",
+			"snd30", "Ramida potajemnie wykrad³a siê pozaa mury i zaprzêg³a dwa konie do pracy; W oddali Asyryjczycy ucztowali w ¶wie¿o rozbitym obozie", null,
+			"snd31", "Rankiem nim armia podesz³a pod mury pu³apka by³a gotowa", "mnext",
+			"snd32", "Goliat wyst±pi³ przed bramê i zawo³a³; Czy który¶ z mieszkañców Sarsu stawi mi czo³a; Odpowiedzia³a mu g³ucha cisza; ¯aden z wojowników Hektora nie mia³ odwagi wyst±piæ przeciwko olbrzymowi", "mnext",
+			"snd33", "Nagle kto¶ wy³oni³ siê zza murów i cienki g³os zabrzmia³; Ja bêdê z tob± walczyæ; Ty? Ha ha ha; Miasto Sars wystawia swojego najstraszliwszego wojownika; Jeszcze nigdy nikt mnie tak nie rozbawil ha ha ha", "mnext2",
+			"snd35", "Tym kamyczkiem chcia³a¶ mnie pokonaæ? Zaraz pêknê ze ¶miechu", "mnext2",
+			"snd36", "Kto kamykiem wojuje od kamyka ginie he he he", "mnext",
+			"snd37", "Hyy hy hy", null,
+			"snd39", "Pojedynek skoñczony Goliacie; Biorê ciê w niewolê ¿eby¶ nigdy wiêcej nie napada³ na uczciwych ludzi; A twoje ³otrzyki niech zmykaj± st±d w mgnieniu oka albo skrócê ciê o ten zakuty ³eb", "mnext",
+			"snd40", "Hurra zwyciêstwo niech ¿yje Ramida; Cieszyli siê mieszkañcy Sarsu", "mnext",
+			"snd41", "Po chwili stra¿nicy aresztowali Goliata a jego byli ¿o³nierze czmychnêli jak najdalej od miasta; Jestem pe³en podziwu dla twojej córki Abrahamie; powiedzia³ Samon; Wszyscy zawdziêczamy jej wolno¶æ i ¿ycie", "mnext",
+			"snd42", "Ramida pokona³a najwiêkszego wojownika Mezopotamii nie si³± lecz sprytem; Samon pokocha³ j± jak córkê przekaza³ jej ca³± swoj± wiedzê i nim zmar³ uczyni³ królow± miasta; Pod rz±dami Ramidy kwit³y nauka kultura i handel", func {
+				ccs.close( func {
+					//gameapi.play("MainMenu");
+					imgend.show;
+					} );
+				}
+			);
+		
+		.mbaja(0);
+	}
+	mnext	{
+		ccs.close( func { .mbaja(1); } );
+	}
+	mnext2	{
+		inext2 = BajkaNr+1;
+		.mbaja(1);
+	}
+	mprev2	{
+		inext2 = BajkaNr-1;
+		mus.stop;
+		.mbaja(-1);
+	}
+	mbaja(int id)	{	<GAME> (id) { (int id)
+		if( ccs.isplaying ) return;
+		BajkaNr+=id;
+		if( BajkaNr<1 ) {
+			BajkaNr = 1;
+			inext2 = 1;
+		} else if ( BajkaNr>BajkaPlansze )	{
+			gameapi.play("MainMenu");
+			return;
+		}
+		imgend.hide;
+		sndbgr.stop(false);
+		igmstate = 0;
+		grb.deleteloaded;
+		grb.free;
+		"grb" .* ("b"+BajkaNr+".pyz");
+		match(BajkaNr)	{
+			1, 2 => grb.nplay(-1);
+			5 => {
+				<.mget(4)>.play(-1);
+				<.mget(5)>.play(-1);
+			}
+			8 => {
+				<.mget(1)>.move(148, 588);
+				<.mget(2)>.move(148, 588);
+				<.mget(3)>.move(148, 588);
+				<.mget(4)>.move(-800,0);
+				igmstate = 0;
+				.vardelif("tim8");
+				.cycle = ("tim8", func {
+					match( igmstate )	{
+						0 => {
+							if( <.mget(1)>.getposx==0 )	{
+								igmstate = 1;
+							} else {
+								<.mget(1)>.move(-2,-8);
+								<.mget(2)>.move(-2,-8);
+								<.mget(3)>.move(-2,-8);
+							}
+							.play;
+						}
+						1 => {
+							if( <.mget(4)>.getposx==0 )	{
+								igmstate = 2;
+							} else {
+								<.mget(4)>.move(8,0);
+							}
+							.play;
+						}
+						2 => {
+							<.mget(4)>.ansetnextfr;
+							<.mget(2)>.hide;
+							<.mget(3)>.hide;
+							igmstate = 3;
+							.play;
+						}
+						3 => {
+							if( <.mget(4)>.getposx==-800 )	{
+								.mnext;
+							} else {
+								<.mget(4)>.move(-8,0);
+								<.mget(1)>.move(2,8);
+								.play;
+							}
+						}
+						? => ;
+					}
+					} );
+				tick = 0;
+				tim8.play;
+			}
+			12 => {
+				igmstate = 0;
+				.vardelif("gr12");
+				new gmimgvec gr12;
+				gr12.addgr("grb");
+				sfigura = .mget(7);
+				gr12.move( 1024 - <.mget(0)>.getw, 0 );
+				gr12.remove(sfigura);
+				<.mget(3)>.play(-1);
+				<.mget(4)>.play(-1);
+				tick = 0;
+				.vardelif("tim12");
+				.cycle = ("tim12", func {
+					match(igmstate)	{
+						0 => {
+							if( tick==90 ) {
+								igmstate++;
+								tick=0;
+							} else
+								tick++;
+							.play;
+						}
+						1,3 => {
+							real ry = 70.0;
+							real ry2 = 370.0;
+							if( <sfigura>.getposy>=ry2 )	{
+								igmstate++;
+							} else {
+								<sfigura>.move(0, .between(2.0, (ry2-<sfigura>.getposy)/(ry2-ry)*20.0,20.0));
+							}
+							.play;
+						}
+						2,5 => {
+							real ry = 70.0;
+							real ry2 = 370.0;
+							if( <sfigura>.getposy<=ry )	{
+								igmstate++;
+							} else	<sfigura>.move(0, -.between(2.0, (<sfigura>.getposy->to_r-ry)/(ry2-ry)*20.0,20.0));
+							.play;
+						}
+						4 => {
+							@dx = 3;
+							if( <.mget(0)>.getposx + dx >= 0 )	{
+								fxkijek.objplayfin( func {
+									<.mget(6)>.anplayfin(-1, func {
+										fxnarasta.play;
+										igmstate = 5;
+										tim12.play;
+										} );
+									} );
+							} else {
+								gr12.move(dx,0);
+								.play;
+							}
+						}
+						6 => {
+							.mnext;
+						}
+						? => ;
+					}
+					} );
+				tim12.play;
+			}
+			30 => .mnexton(3);
+			34 => .mnexton2(2);
+			37 => .mnexton2(4);
+			38 => .mnexton(2);
+			? => grb.nplay(-1);
+		}
+		if( .hasvar("snd"+BajkaNr) )	{
+			if( inext2==BajkaNr ) .cbplay("snd"+BajkaNr);
+			else ccs.enter( func { .cbplay("snd"+ BajkaNr); } );
+		}
+		match( BajkaNr )	{
+			1, 2, 3 => .mplay("bgrogien", 90);
+			4 => .mplay("bgrkarawana", 50);
+			5 => .mplay("bgrwiatrL", 30);
+			6,14 => {
+				.mplay("bgrzamekL", 50);
+				mus.playstr("mezo3.ogg -v 40");
+			}
+			7 => {
+				.mplay("bgrzamekL", 50);
+				if( !mus.isplaying ) mus.playstr("mezo3.ogg -v 40");
+			}
+			8, 15, 16 => if( !mus.isplaying ) mus.playstr("mezo3.ogg -v 40");
+			9 => {
+				if( mus.isplaying ) mus.fadeout(1000);
+				.mplay("bgrkarawana", 50);
+			}
+			10, 11 => .mplay("bgrwiatrL", 10);
+			12 => .mplay("bgrpracaL", 30);
+			13, 18, 28, 29 => .mplay("bgrzamekL", 20);
+			17 => {
+				if( mus.isplaying ) mus.fadeout(1000);
+				.mplay("bgrzamekL", 30);
+			}
+			19, 20, 21, 30 => .mplay("bgrnoc2L", 100);
+			22 => mus.playstr("preh2.ogg -v 70");
+			23, 24, 32 => {
+				.mplay("bgrzbojeL", 20);
+				if( !mus.isplaying ) mus.playstr("preh2.ogg -v 70");
+			}
+			25, 26, 39 => {
+				.mplay("bgrzbojeL", 20);
+				if( mus.isplaying ) mus.fadeout(1000);
+			}
+			27 => .mplay("tlumL", 40);
+			31 => {
+				.mplay("bgrzbojeL", 5);
+				mus.playstr("preh2.ogg -v 70");
+			}
+			33, 37 => {
+				.mplay("wojeL", 20);
+				if( mus.isplaying ) mus.fadeout(1000);
+			}
+			34 => {
+				.mplay("wojeL", 5);
+				fxzamach.play;
+			}
+			35, 36 => .mplay("wojeL", 5);
+			38 => {
+				.mplay("wojeL", 20);
+				fxdrzewobum.play;
+			}
+			40 => .mplay("szturmL", 80);
+			41 => .mplay("szturmL", 50);
+			42 => mus.playstr("mezo3.ogg -v 40");
+			? => ;
+		}
+	}; }
+	mnexton(int id)	{
+		<.mget(id)>.addmethod("onfinish", "mnext" );
+		grb.nplay(-1);
+	}
+	mnexton2(int id)	{
+		<.mget(id)>.addmethod("onfinish", func { timnext.play; } );
+		grb.nplay(-1);
+	}
+	mstopall	{ <GAME> {
+		grb.stop(false);
+		timnext.stop(false);
+		if( .hasvar("tim8") ) tim8.stop(false);
+		if( .hasvar("tim12") ) tim12.stop(false);
+		.cactsndstop(false);
+	}; }
+	clbuts_next_butclick	{
+		if( ccs.isplaying ) return;
+		.mstopall;
+		.mnext2;
+	}
+	clbuts_prev_butclick	{
+		if( ccs.isplaying ) return;
+		.mstopall;
+		.mprev2;
+	}
+	mget(int id)	{	grb.get(id);	}
+	mouse_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	mplay(string sbgr, int vol)	{
+		int bloop = false;
+		if( sbgr.contains("L") )	{
+			sbgr.strremove("L");
+			bloop = true;
+		}
+		sndbgr.load(SFXPATH+sbgr+".wav");
+		sndbgr.setvol(vol);
+		if( bloop ) sndbgr.playloop;
+		else sndbgr.play;
+	}
+}
+

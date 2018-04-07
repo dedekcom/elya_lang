@@ -1,0 +1,138 @@
+
+game Cs16Eter : StdGame	{
+	init	{
+		StdGame::init("cs16eter");
+		
+		.imgs = (A, "bkg.pyz", "hegemon.pyz 10", "kapral.pyz 15", "eter.pyzH 20", "oferma.pyzH 25", "hodon.pyz 30",
+			"kamienie.pyz 40");
+		
+		// hegemon:  stand  talk   patrzy haha 
+		// kapral:   stand  talk   odwrot  on  czeka  teraz
+		// hodon: stand talk wait
+		// oferma: stand talk niuch
+		
+		ankapral.addmethod("onfinish", func {
+			match( .actionname )	{
+				"odwrot" => {
+					.cbplay("kapral1");
+					ankapral.play("on");
+				}
+				? => ;
+			}
+			} );
+		anoferma.addmethod("onfinish", func {
+			if( .actionname=="niuch" ) .hesay("hegemon4");
+			} );
+		
+		.sounds = (A, ":hegemon1", "Hodonie gdzie ¶rodek usypiaj±cy który obezw³adni naszych wrogów?", func {
+				.hestop;
+				ccs.playfin(func { aneter.show; }, func { .hosay("hodon1"); } );
+				},
+			":hodon1", "Mam go tutaj wodzu", func { .hostop; .hesay("hegemon2"); },
+			":hegemon2", "Zaraz sprawdzimy czy nie blefujesz; Kapralu! Pow±chajcie eliksir",
+				func { .hestop; ankapral.play("odwrot"); },
+			":kapral1", "Ekchem wodzu; Mam dzi¶ wyznaczone wa¿ne zadanie; Niech Oferma spróbuje",
+				func { ankapral.play("czeka"); .hesay("hegemon3"); },
+			":hegemon3", "Dobrze byle szybciej! Chcê zobaczyæ jak to dzia³a!",
+				func { .hestop; ccs.playfin( func { anoferma.play("stand"); },
+					func { .cbplay("kapral2"); ankapral.play("teraz"); } ); },
+			":kapral2", "Ofermo! Pow±chaj eliksir!" , func { ankapral.play("czeka"); .ofsay("oferma1"); },
+			":oferma1", "Dlaczego zawsze ja?", func { .ofstop; ankapral.play("teraz"); .cbplay("kapral3"); },
+			":kapral3", "Nie dyskutuj! W±chaj!", func { ankapral.play("czeka"); anoferma.play("niuch"); },
+			":hegemon4", "Zasn±³", func { .hestop; .kasay("kapral4"); mus.playstr("wstawka_zboje.ogg -v 50"); },
+			":kapral4", "Hurra! Eliksir dzia³a!", func { .kastop; .hesay("hegemon5"); },
+			":hegemon5", "Co z nim teraz zrobimy? Niech wstaje! Wszyscy s± potrzebni do walki",
+				func { .hestop; .kasay("kapral5"); },
+			":kapral5", "Chyba; Chyba za g³êboko ¶pi", func {
+				.kastop;
+				ccs.close(
+					func { gameapi.play("Cs17Ciagna"); }
+					);}
+			);
+
+		.sfxs = (A, "bgrout2N 80", "chrap1", "uderzwstol 80");
+		
+		ccs.enter( func {
+			.hesay("hegemon1");
+			} );
+	}
+	hesay(string s)	{	.cbplay(s);	anhegemon.play("talk");	}
+	hestop	{	anhegemon.play("stand"); }
+	hosay(string s)	{	.cbplay(s);	anhodon.play("talk");	}
+	hostop	{	anhodon.play("stand"); }
+	kasay(string s)	{	.cbplay(s);	ankapral.play("talk");	}
+	kastop	{	ankapral.play("stand"); }
+	ofsay(string s)	{	.cbplay(s);	anoferma.play("talk");	}
+	ofstop	{	anoferma.play("stand"); }
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+
+
+game Cs17Ciagna : StdGame	{
+	init	{
+		StdGame::init("cs17ciagna");
+		
+		//bkg.pyz plan1.pyz zboje.pyz hodon.pyz wieza.pyz hegemon.pyz oferma.pyz plan2.pyz plan3.py
+		
+		.imgs = (A, "bkg.pyz", "hodon.pyz 30", "wieza.pyzP 40", "hegemon.pyz 50", "oferma.pyz 60");
+		
+		.newgrimg("grp1", "plan1", 10);
+		.newgrimg("grliny", "liny", 17);
+		grliny.move(550,0);
+		.newgrimg("grz", "zboje", 20);
+		.newgrimg("grp2", "plan2", 70);
+		.newgrimg("grp3", "plan3", 80);
+		
+		new gmimgvec grels;
+		grels.addlist(A, "grz", "anhodon", "anwieza", "anhegemon", "anoferma", "grliny");
+		
+		new gmimgvec grall;
+		grall.addlist(A, "grels", "anbkg", "grp1", "grp2", "grp3");
+		
+		.sounds = (A, 
+			":kapral1", "¯wawiej! Nie oci±gaæ siê! Zaskoczenie w Mirmi³owie bêdzie totalne!", null,
+			":kapral2", "Posieczemy utopimy por±biemy udusimy! Hej hej ha!", func { .cbplay("kapral3"); },
+			":kapral3", "Podpalimy rozerwiemy powiesimy po³amiemy! Hej hej ha!", func {
+				ccs.close( func { 
+					gameapi.play("Cs18Waly");
+				} );
+				}
+			);
+		
+		grall.move( iResX - anbkg.getw, 0 );
+		grels.move( 270, 0 );
+		
+		.cycle = ("timcyk", func {
+			if( anbkg.getpx < 0 && grp1._getpx<0 && grp2._getpx<0 && grp3._getpx<0 ) {
+				anbkg.move( 1, 0 );
+				grp1.move( 2, 0 );
+				grp2.move( 3, 0 );
+				grp3.move( 4, 0 );
+				
+				.play;
+			} else {
+				if( igmstate!=1 )	{
+					.cbplay("kapral2");
+					igmstate=1;
+				}
+				grels.move( -2, 0 );
+				.play;
+			}
+			} );
+		
+		timcyk.play;
+		
+		.sfxs = (A, "bgrlas2N 80", "kolowrot2N 50");
+		
+		ccs.enter( func {
+			.cbplay("kapral1");
+			} );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+

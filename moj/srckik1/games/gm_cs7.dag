@@ -1,0 +1,98 @@
+
+game Cs7Finisz : StdGame	{
+	init	{
+		AdventureGame = false;
+		modadvglob.delheros;
+		clsave.free;
+		
+		StdGame::init("cs7finisz");
+		
+// 		napis_wiwat.pyz  mirmil.pyz  jaga.pyz    kowal.pyz   kajko.pyz  chlopiec.pyz  gosc2.pyz
+// 		gosc4.pyz        beczka.pyz  gosc3.pyz   kura.pyz    wit.pyz    piernik.pyz   gosc1.pyz
+// 		piesek.pyz       lami.pyz    kokosz.pyz  lubawa.pyz  baba.pyz   zlosnik.pyz   bkg.pyz
+		.imgs = (A, "bkg.pyz", "gosc1.pyzP 5", "gosc2.pyzP 6", "zlosnik.pyzP 7", "piernik.pyzP 8",
+			"chlopiec.pyzP 9", "baba.pyzP 10", "wit.pyzP 11", "kajko.pyz 12", "lubawa.pyzP 13",
+			"kura.pyzP 14", "kowal.pyzP 15", "kokosz.pyz 16", "gosc3.pyzP 17", "jaga.pyzP 18",
+			"lami.pyzP 19", "beczka.pyz 20", "mirmil.pyzP 21", "piesek.pyzP 22", "gosc4.pyzP 23",
+			"napis_wiwat.pyzH 25");
+		new gmimgvec grels;
+		grels.addlist(A, "angosc4", "anpiesek", "angosc3", "anlami", "ankowal", "anwit", "anbaba", "anchlopiec",
+			"anpiernik", "anzlosnik", "angosc2", "angosc1");
+		
+		.sounds = (A, ":mir1", "Najdro¿si! Chcia³em was wszystkich przeprosiæ; Zachowa³em siê jak ostatni tyran; Pragn±³em zbudowaæ budz±cy podziw zamek Mirmi³owo Wielkie a nie dostrzeg³em ¿e prawdziwa wielko¶æ drzemie w sercach was wszystkich; Mirmi³owo wielkie to wy; Nie dostrzeg³bym w porê b³êdów gdyby nie dzia³ania ukochanej ¿ony Lubawy",
+			func { .mirstand; .lubasay("luba1"); },
+		":luba1", "Och Mirmi³ku nie przesadzaj", func { .lubstand; .mirsay("mir2"); },
+		":mir2", "Czarownicy Jagi i jej mê¿a £amignata", func { .jagsay("jag1"); .mirstand; },
+		":jag1", "Zawsze do twych us³ug kasztelanie", func { .jagstand; .mirsay("mir3"); },
+		":mir3", "I w szczególno¶ci najlepszych najdzielniejszych i najsprytniejszych wojów w tej czê¶ci kraju; Kajka i Kokosza; Dlatego wznoszê za was toast i ustanawiam dzi¶ dzieñ ¶wi±teczny wolny od pracy!",
+			func { anmirmil.anplayfin("toast", func {
+				annapis_wiwat.show;
+				.cbplay("sndwszyscy");
+				grels.nplay(1);
+				anjaga.play("toast");
+				anlubawa.play("smile");
+				mus.playstr("zwyciestwo.ogg -v 50");
+				} ); },
+		"sndwszyscy", "Brawo Mirmi³! Wiwat Kajko i Kokosz! Niech ¿yj±!", func { .cbplay("sndnar1"); },
+		"sndnar1", "Toastom i okrzykom na cze¶æ Kajka i Kokosza nie by³o koñca; W Mirmi³owie ¶wiêtowano do samego rana",
+			func { ccs.close( func { gameapi.play("Cs7Hodon"); } ); }
+		);
+		
+		.sfxs = (A, "bgrtlum2N 20");
+		
+		ccs.enter( func { .mirsay("mir1"); } );
+	}
+	jagsay(string s)	{	anjaga.play("talk"); .cbplay(s);	}
+	jagstand	{	anjaga.play("stand");	}
+	mirsay(string s)	{	anmirmil.play("talk"); .cbplay(s);	}
+	mirstand	{	anmirmil.play("stand");	}
+	lubasay(string s)	{	anlubawa.play("talk"); .cbplay(s);	}
+	lubstand	{	anlubawa.play("stand");	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Cs7Hodon : StdGame	{
+	init	{
+		StdGame::init("cs7Hodon");
+		.path = ("cs7finisz");
+		.imgs = (A, "bg2.pyz", "c7hodon.pyz 10", "napis_koniec.pyzH "+ccs.getz);
+		.newgrimg("grkruki", "kruki", 15);
+		grkruki.nplay(-1);
+		
+		.sounds = (A, "sndnar1", "Nikt nawet nie zauwa¿y³ nieobecno¶ci g³ównego prowodyra ostatnich zaj¶æ; Wkrótce mieszkañcy Mirmi³owa mieli tego srogo po¿a³owaæ", func { anc7hodon.anplayfin("go", func {
+			if( .actionname=="go" ) {
+				.play("talk");
+				.cbplay("hodon1");
+			} else if (.actionname=="stand" )	{
+				timend.play;
+				annapis_koniec.show;
+				mus.playstr("zagrozenie2.ogg -v 50");
+			}
+			} ); },
+			":hodon1", "Nie doceni³em tej dwójki obdartych wojów i ich wspólników; Przeklêtej wied¼my Jagi i jej têpego osi³ka; Gdyby nie oni mia³bym ca³± okolicê w kieszeni; Ale ja jeszcze wrócê; Wszystko tutaj bêdzie moje", func {
+				anc7hodon.play("stand");
+			} );
+		.timer = ("timend", 4000, func {
+			ccs.close( func {
+				ccs.show;
+				timend2.play;
+				} );
+			} );
+		.timer = ("timend2", 5000, func {
+			if( igmkikpart==1 )	{
+				gameapi.play("MainMenu");
+			} else {
+				gameapi.play("Cs10Chapter2");
+			}
+			} );
+		
+		.sfxs = (A, "bgrgawronN 70");
+		
+		ccs.enter( func { .cbplay("sndnar1"); } );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

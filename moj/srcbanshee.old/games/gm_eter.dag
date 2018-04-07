@@ -1,0 +1,172 @@
+
+game Eter : StdGame	{
+	init	{
+		StdGame::init("eter");
+		
+		.imgsgr = (A, "bkg.pyz", "wioska.pyzG 10", "pirat.pyz 15", "kratka.pyz 15",
+			"beczka.pyz 20", "plusk.pyzH 25", "maskabeczka.pyz 30", "kokosz.pyz 30",
+			"eter.pyz 40", "kajko.pyz 50", "pocisk.pyzH 55", "wlot.pyzH",
+			"grels");
+		
+		.sfxs = (A, "bgrout2N 70", "bgrmorze3N 40", "ogien2N 20", "bgrimprezaN 10", "pedzel2", "bat");
+		
+		new int dxtimer = 10;
+		.cycle = ("timr", func {
+			grels.move(-dxtimer,0);
+			if( anbkg.getex < iResX ) {
+				grels.move( iResX-anbkg.getex, 0);
+				.mend;
+			} else {
+				.play;
+			}
+			});
+		
+		.cycle = ("timl", func {
+			grels.move(dxtimer,0);
+			if( anbkg.getpx > 0 ) {
+				grels.move( -anbkg.getpx, 0);
+				igmstate = 1;
+			} else {
+				.play;
+			}
+			});
+		
+		new vector vkoko;
+		new vector vkat; vkat.type("real");
+		new real xkoko = 323.0;
+		new real ykoko = 620.0;
+		real d[4];
+		for( int i=0; i< ankokosz.nofframes(0); i++)	{
+			ankokosz.setframe(0, i);
+			d0 = ankokosz.getex-1 - xkoko;
+			vkoko.add(.getkoy);
+			d1 = ykoko - vkoko.last;
+			vkat.add(d1/d0);
+		}
+		
+		new real pociskxstart = 12;
+		new real pociskystart = 12;
+		new real rpociskx;
+		new real rpocisky;
+		new real aziemi = 0.17;
+		new real rpower = 1.0;
+		new real rsin;
+		new real rcos;
+		
+		.cycle = ("timgo", func {
+			anpocisk.move( rpociskx, rpocisky );
+			rpocisky += aziemi;
+			if( anwlot.isin(anpocisk.getcx, anpocisk.getcy, 0,1) )	{
+				igmstate = 3;
+				fxpedzel2.play;
+				anplusk.play(0);
+				anpocisk.hide;
+			} else if( anpocisk.getpx > iResX || anpocisk.getpy > iResY )	{
+				.magain;
+			} else {
+				.play;
+			}
+			} );
+		anplusk.addmethod("onfinish", func { .cbplay("kajko4"); } );
+		
+		new img imgbg;
+		imgbg.create( 210, 16, .green, 255 );
+		@x = 20;
+		@y = 10;
+		imgbg.setpos( x, y );
+		imgbg.setz(100);
+		new img impower;
+		impower.create( 200, 10, .red, 255 );
+		impower.setpos( x + (imgbg.getw-impower.getw)/2, y + (imgbg.geth-impower.geth)/2 );
+		impower.setz(110);
+		new int idpower = 5;
+		new int ipower = 0;
+		.mreset;
+		.cycle = ("timpower", func {
+			.mpower(idpower);
+			if( ipower > impower.getw )
+				ipower = impower.getw;
+			.play;
+			} );
+		
+		ankajko.addmethod("onfinish", "mfire");
+		
+		new classplacepointer2 clp;
+		.sounds = (A, ":kajko1", "Popatrz dok³adnie; Piraci co chwilê nabieraj± piwo z beczki; Je¶li niepostrze¿enie wstrzykniemy do ¶rodka trutkê Hodona", func { .cbplay("kokosz1"); },
+			":kokosz1", "To sami siê unieszkodliwi±! Jeste¶ geniuszem Kajko!", func { .cbplay("kajko2"); },
+			":kajko2", "Nie chwal dnia przed zachodem s³oñca; ¯ebym móg³ precyzyjnie celowaæ wyrzutni± potrzebujê twojej pomocy; A dok³adniej twoich pleców", func { .cbplay("kokosz2"); },
+			":kokosz2", "Moich pleców? Co ty kombinujesz?", func { .cbplay("kajko3"); },
+			":kajko3", "Zobaczysz; Schyl siê tutaj", func { .cbplay("sndnar1"); clp.showob("anplusk", "rd"); },
+			"sndnar1", "Kajko i Kokosz bêd± strzelaæ kropelkami trutki do beczki",
+				func { .cbplay("sndnar2"); clp.showob("imgbg", "lu"); },
+			"sndnar2", "U¿yj myszy do ustawienia dzia³ka i kliknij ¿eby oddaæ strza³; Przytrzymaj klik aby ustawiæ si³ê wystrza³u; Do dzie³a!",
+				func { timl.play; clp.stoph; },
+			":kajko4", "Trafiony!", func { timr.play; }
+			);
+		
+		grels.move( iResX - anbkg.getex, 0 );
+		.cbplay("kajko1");
+	}
+	mreset	{	.mpower(-ipower + idpower);	}
+	mpower(int ip)	{
+		ipower += ip;
+		impower.clip(0,0, impower.getpx+ipower, iResY);
+	}
+	getkoy	{
+		|int x, int y| = classansearcher::_findnotr("ankokosz",ankokosz.getex-1, ankokosz.getpy, 0, 1);
+		y;
+	}
+	mouse_move	{
+		if( igmstate==1 )	{
+			real dx = mouse.getposx - ankokosz.getex;
+			if( dx>0 )	{
+				real dy = ykoko - mouse.getposy;
+				real rlen = dx.length(dx,dy);
+				rsin = dy/rlen;
+				rcos = dx/rlen;
+				if( dy <= 0 )	{
+					ankokosz.setframe(0,0);
+				} else {
+					ankokosz.setframe(0, vkat.vecclosest( dy/dx ) );
+				}
+			}
+		}
+	}
+	mouse_lclick	{
+		if( igmstate == 1 )	{
+			timpower.play;
+		}
+	}
+	mouse_lrel	{
+		if( igmstate == 1 )	{
+			timpower.stop(false);
+			igmstate = 2;
+			ankajko.play(0);
+		}
+	}
+	mfire	{
+		anpocisk.ansetbpos( ankokosz.getex-1, vkoko.get(ankokosz.framenr)-anpocisk.geth/2 );
+		anpocisk.show;
+		rpower = (2.0*ipower)/impower.getw->to_r;
+		rpociskx = rpower*pociskxstart*rcos;
+		rpocisky = -pociskystart*rsin*rpower;
+		timgo.play;
+		fxbat.play;
+	}
+	magain	{
+		.mreset;
+		igmstate = 1;
+	}
+	mouse_rclick	{
+		if( igmdebug ) {
+			//.cactsndstop(true);
+			.mend;
+		}
+	}
+	mend	{
+		ccs.close( func {
+			.gotoadv("adwioskaplac", "gameadwioskaplac2");
+		} );
+	}
+}
+

@@ -1,0 +1,2 @@
+./kompiluj ./srckrzyzacy/krzyzacy.prj
+cp ./srckrzyzacy/krzyzacy.odd /home/dedek/projekty/rysunki_gimp/krzyzacy/project/scripts/

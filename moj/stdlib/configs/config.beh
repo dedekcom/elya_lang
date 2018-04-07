@@ -1,0 +1,33 @@
+
+############### ustawienia systemowe #################
+
+sgmdeveloper:	Dagiel
+sgmproject:	Template
+lang:		eng
+
+# project
+igmdebug:	1
+igmpcdebug:	1	# true do testowania wersji touchpad na pc
+
+igmwinlocal:	0	# true zeby zbudowac katalogi do save i odczytywac z user/appdata
+igmmac:		0
+igmipad:	0
+igmiphone:	0
+
+# vars
+igmdemo:	0
+igmsoundson:	1
+
+sfxpath:		sounds/sfx/
+sndbgrpath:		sounds/sfx/
+musicpath:		sounds/music/
+
+# fonty
+sgmfontfile:		configs/fonts/normal.ttf
+sgmfontmono:		configs/fonts/mono.ttf
+sgmfontmonobold:	configs/fonts/monobold.ttf
+sgmfontbold:		configs/fonts/monobold.ttf
+sgmfontitalic:		configs/fonts/timesit.ttf
+
+#######################################################
+

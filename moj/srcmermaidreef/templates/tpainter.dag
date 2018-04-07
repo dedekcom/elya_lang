@@ -1,0 +1,140 @@
+/************ template game Painter **************/
+class TPainter {
+	init()	{}
+	tinit(string sndbase, string spath, string sfilebg, string sfilebrush, string sfile, string sfarby, @dir, string ssavefile)	{
+		if( sndbase!=null )
+			GameController::init(sndbase);
+		this.unlock();
+		if( spath!=null )
+			this.setgraphpath(spath);
+		
+		if( sfilebg!=null )
+			this.newanima("anbkg",sfilebg,0);
+			
+		new int paintmode = 0;
+		
+		this.newanima("anbrush1", sfilebrush, 3000);
+		this.copyanima("anbrush1","anbrush2");
+		anbrush2.setframe(0,1);
+		anbrush2.setz(anbrush1.getz-1);
+		anima_pack::resizemethods("anbrush1");		// galka
+		anima_pack::resizemethods("anbrush2");		// pedzel
+		int x, int y;
+		match( dir )	{
+			"ru" => { x = anbrush2.getex;
+				y = anbrush2.getpy; }
+			"rd" => { x = anbrush2.getex;
+				y = anbrush2.getey; }
+			"ld" => { x = anbrush2.getpx;
+				y = anbrush2.getey; }
+			? => { x = anbrush2.getpx;
+				y = anbrush2.getpy; }
+		}
+		anbrush1.saverelpos(x, y);	// lewy dolny rog - kursor myszy
+		anbrush2.saverelpos(x, y);	// lewy dolny rog - kursor myszy
+		mouse.hide();
+		
+		this.newanima("anfg", sfile, 100);
+		anfg.setframe("foreground",0);
+		
+		new gmimgvec grdraw;
+		_ = this.newanframesgr("anfg", "andraw", anfg.actionnr("draw"), "grdraw");
+		grdraw.setz(10);
+		
+		if( sfarby.contains(".pyz") )	{
+			new gmimgvec grpaleta;
+			"grpaleta" ..< sfarby;
+			grpaleta.setz(20);
+		} else if( sfarby != "grpaleta" ) {
+			<sfarby>.addtogamevars("grpaleta");
+		}
+		
+		new int _ibrx = anbrush2.getpx();
+		new int _ibry = anbrush2.getpy();
+		while( !anbrush2.isin(_ibrx, _ibry, false, true) )	{
+			_ibrx++;
+			if( _ibrx==anbrush2.getex() ) {
+				_ibrx = anbrush2.getpx();
+				_ibry++;
+			}
+		}
+		_ibrx-=anbrush2.getpx();
+		_ibry-=anbrush2.getpy();
+		TPainter::tp_mouse_move;		// ustawienie pedzla w pozycji myszy
+		
+		if( ssavefile!=null )	{
+			new string savefile = ssavefile;
+			new db dbkolory;
+// 			if( engine.fileexist(s) )	{
+			if( .saveexist(ssavefile) )	{
+				dbkolory.vecload(ssavefile);
+				grdraw.each( func { (@id)
+					.paint( dbkolory.get(id,0), dbkolory.get(id,1), dbkolory.get(id,2), 255, paintmode);
+					} );
+			} else {
+				grdraw.each( func { (@id)
+					.paint(.white,255,paintmode);
+					dbkolory.dbaddstringrow("255 255 255"," ");
+					} );
+				.tp_savekols;
+			}
+		}
+	}
+	game_exit()	{
+		mouse.show();
+		GameController::game_exit();
+	}
+	tp_exit	{
+		mouse.show;
+	}
+	tp_mouse_move()	{
+		anbrush1.mssetrelpos();
+		anbrush2.mssetrelpos();
+	}
+	tp_mouse_lclick()	{
+		if( !this.getlock() )	{
+			|int x, int y| = mouse.getpos();
+			if( grdraw.isin(x,y,true,true) )	{
+				<grdraw.getsfound()>.paint( anbrush2.getrgba(anbrush2.getpx()+_ibrx,anbrush2.getpy()+_ibry), paintmode );
+				.onpaint;
+			} else if ( grpaleta.isin(x,y,false,true) )	{
+				|@c[4]| = <grpaleta.getsfound()>.getrgba(x,y);
+				c3 = 255;
+				anbrush2.paint( c0, c1, c2, c3, paintmode );
+				.onsetbrush;
+			}
+		}
+	}
+	tp_savekols	{
+		if( !<GAME>.hasvar("dbkolory") ) return;
+		grdraw.each( func { (@id)
+			int c[4];
+			//|c0, c1| = .anfirstnontr;
+			int ex = .getex , int ey = .getey;
+			int x = .getpx, int y=.getpy;
+			while( x!=ex && y!=ey )	{
+				if( .isin(x,y,false,true) ) { c0=x; c1=y; x=ex; }
+				else x++;
+			}
+			|c0,c1,c2,_| = .getrgba(c0,c1);
+			dbkolory.set(id,0,c0);
+			dbkolory.set(id,1,c1);
+			dbkolory.set(id,2,c2);
+			} );
+		dbkolory.vecsave( savefile );
+	}
+	tp_default_erase	{	.tp_erase(.white,255);	}
+	tp_erase(int r, int g, int b, int a)	{
+		for( int i=0; i< grdraw.size; i++)	{
+			<grdraw.get(i)>.paint(r,g,b,a,paintmode);
+			dbkolory.set(i,0,255);
+			dbkolory.set(i,1,255);
+			dbkolory.set(i,2,255);
+		}
+		.tp_savekols;
+	}
+}
+
+class TPainterCon : TPainter, GameController	{
+	init	{}
+}

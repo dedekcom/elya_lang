@@ -1,0 +1,460 @@
+game Historia : Computro	{
+	init	{
+		Computro::init("historia");
+		
+		.img = ("bg.pyz");
+		
+		new @stdfont24 = .stdfont(24);
+		
+		/*new classsimplebutton cbok;
+		cbok.build("scripts/common/butok.pyz", "imglobcurs", 720,525, 100, 0);*/
+		new classplacepointer2 clp;
+		
+		new gmimgvec grep;
+		"grep" .* "story1.pyz";
+		grep.hide;
+		.mshow(0);
+		.sounds = (A,
+			"sndintro", "Komputery wykonuj± ogromne ilo¶ci obliczeñ w bardzo krótkim czasie; Kiedy¶ umiejêtno¶æ liczenia zarezerwowana by³a dla nielicznych ludzi",
+				func { .mplay(1,1); },
+			"snd1", "W dawnych czasach ludzie którzy potrafili liczyæ stanowili skarb dla wodzów i królów; Dziêki nim w³adca móg³ oszacowaæ swoje si³y i zapasy; Pierwsi matematycy zapisywali liczby zwyczajnymi kreskami na glinianych tabliczkach; Niestety liczby takie by³y trudne do odczytania; Spójrzmy jak du¿o czasu zajmuje policzenie wszystkich kresek ¿eby odczytaæ liczbê 13",
+				func { grep.hide; .mplay(2,2);	},
+			"snd2", "Z czasem pisarze zast±pili wiele kresek symbolami; Oto symbole wymy¶lone przez staro¿ytnych Egipcjan oznaczaj±ce liczby dziesi±tek setek i tysiêcy",
+				func { <GAME> {
+					igmstate = 1;
+					new gmimgvec greg;
+					.imgs = (A, "egipskieH.pyz", "cyfryeg.pyz");
+					grep.hide;
+					int x = 50;
+					new int ilasth = 0;
+					new int iposy = ancyfryeg.getey + 50;
+					x = .megipt(7, x);
+					x = .megipt(13, x);
+					x = .megipt(28, x);
+					x = .megipt(74, x);
+					x = .megipt(339, x);
+					x = .megipt(1003, x);
+					x = .megipt(3121, x);
+					x = .megipt(436, x);
+					x = .megipt(2008, x);
+					x = .megipt(25, x);
+					.cbplay("snd3");
+					.cshowbut("ok", "rd");
+				}; },
+			"snd3", "Aby przej¶æ dalej kliknij ten przycisk", func { clp.stoph; },
+			"snd4", "Wpisz jakie liczby zakodowano w systemie staroegipskim; Liczby zatwierdzaj klawiszem enter; Kiedy skoñczysz kliknij przycisk OK",
+				func { igmstate = 2; clp.stoph; tc1.enable; },
+			"snd5", "Liczby wpisane niepoprawnie; Próbuj dalej", func { igmstate=2; .menabl; },
+			"snd6", "¦wietnie", func { <GAME> {
+				igmstate=3;
+				.mshow(3);
+				grtc.deleteallgmobj;
+				delete grtc;
+				greg.deleteallgm;
+				greg.free;
+				delete anegipskie;
+				iposy = ancyfryeg.getey + 50;
+				delete ancyfryeg;
+				/*int x = 50;
+				x = .megipt(7, x);
+				x = .megipt(13, x);
+				x = .megipt(28, x);
+				x = .megipt(74, x);
+				x = .megipt(339, x);
+				x = .megipt(1003, x);
+				x = .megipt(3121, x);
+				x = .megipt(436, x);
+				x = .megipt(2008, x);
+				x = .megipt(25, x);*/
+				.cbplay("snd7");
+				}; },
+			"snd7", "Staro¿ytni Rzymianie zapisywali liczby za pomoc± siedmiu cyfr które znajdziemy dzi¶ w alfabecie; Choæ cyfry rzymskie wygl±daj± elegancko i u¿ywa siê ich  czêsto przy datach lub numerach rozdzia³ów ksi±¿ek zosta³y wyparte przez cyfry arabskie znacznie wygodniejsze przy obliczeniach",	func { <GAME> {
+				grep.deleteallgm;
+				grep.free;
+				"grep" .* "story2.pyz";
+				grep.hide;
+				.mshow(0);
+				greg.deleteallgm;
+				delete greg;
+				.cbplay("snd8");
+				}; },
+			"snd8", "Cyfry które nazywamy arabskimi w rzeczywisto¶ci wymy¶lili Hindusi; Arabowie poznali je i przekazali Europejczykom", func { .mplay(9,1); },
+			"snd9", "Liczby zapisane cyframi arabskim kodowane s± w systemie pozycyjnym; Oznacza to ¿e je¶li zmienimy kolejno¶æ cyfr otrzymamy inn± liczbê",
+				func { .mplay(10,2); },
+			"snd10", "W starszym systemie egipskim kolejno¶æ cyfr nie ma znaczenia; Liczy siê tylko ich sk³ad; Na ekranie widzimy liczbê 12 zakodowan± na 2 sposoby",
+				func { .mplay(11,3); },
+			"snd11", "Jednak najwiêkszym odkryciem Hindusów by³a liczba 0; Dla wcze¶niejszych matematyków ta liczba nie istnia³a; Nie potrafili wyobraziæ sobie ¿e mo¿na nadaæ symbol czemu¶ czego nie mo¿na policzyæ; Bez liczby 0 ludzie nie wymy¶liliby komputerów", func { <GAME> {
+				grep.deleteallgm;
+				grep.free;
+				"grep" .* "story3.pyz";
+				grep.hide;
+				.mshow(0);
+				.cbplay("snd12");
+				}; },
+			"snd12", "Obliczenia wykonywano na liczyd³ach i abakusach", func { .mplay(13,1); },
+			"snd13", "Dopiero upowszechnienie praktycznych cyfr arabskich i wymy¶lenie sposobów dodawania odejmowania mno¿enia i dzielenia bardzo u³atwi³o obliczenia",
+				func { .mplay(14,2); },
+			"snd14", "Im wiêcej ludzie potrafili obliczyæ tym wiêcej mogli poznawaæ i przewidywaæ; Szczególnie wa¿n± rolê pe³ni³y obliczenia w szyfrowaniu wiadomo¶ci; Aby z³amaæ szyfr nale¿a³o wykonaæ nieporównywalnie wiêcej obliczeñ zatem istnia³o ci±g³e zapotrzebowanie na rozwój technik i szybko¶ci liczenia",
+				func { .mplay(15,3); },
+			"snd15", "Matematycy zaczêli budowaæ pierwsze mechaniczne maszyny licz±ce; Jednak by³y one bardzo skomplikowane", func { <GAME> {
+				grep.deleteallgm;
+				grep.free;
+				.imgs = (A, "story4.pyz", "bramki.pyzH");
+				.cbplay("snd16");
+				}; },
+			"snd16", "Dzisiejsze komputery pracuj± w oparciu o prawa logiki matematycznej która wziê³a swoj± nazwê od angielskiego matematyka Georgesa Boolea",
+				func { <GAME> {
+					new gmimgvec grb;
+					new db dbp;
+					dbp.dbbuild(A,
+						1, 1, 0, 0,
+						0, 0,20,1,
+						1, 1, 0, 0,
+						0, 0, 0, 0,
+						0, 0, 0, 0,
+						0, 0, 0, 0,
+						0, 0, 0, 0,
+						1, 1, 0, 0,
+						0, 0,21,1,
+						1, 1, 0, 0,
+						0, 0, 0, 0,
+						0, 0, 0, 0,
+						0, 0, 0, 0,
+						0, 0, 0, 0,
+						1, 1, 0, 0,
+						0, 0,22,1,
+						1, 1, 0, 0,
+						0, 0, 0, 0,
+						0, 0, 0, 0,
+						0, 0, 0, 0,
+						0, 0, 0, 0,
+						1, 1,23,1,
+						4);
+					.mcode;
+					.timer = ("timtik", 500, func {
+						int cols = dbp.getcolsno(0);
+						int l, int i2, int i3, int i4;
+						int rows = dbp.getrowsno;
+						for( int i=0; i<rows; i++) {
+							match( dbp.get(i, 0) )	{
+								1, 101 => .mset(i, 0, 2->rand);
+								? => ;
+							}
+						}
+						for( int j=1; j<cols; j++)	{
+							for( int i=0; i< rows; i++) {
+								l = dbp.get(i, j);
+								i2 = dbp.get(i, j-1);
+								if( i>0 ) i3 = .mbol( dbp.get(i-1, j-1) );
+								if( i<rows-1) i4 = .mbol( dbp.get(i+1, j-1) );
+								match( l )	{
+									1, 2, 4, 101, 102, 104 => {
+										//if( l==4 || l==104 ) i2 = dbp.get(i-1, j-1);
+										match(i2)	{
+											1, 2, 4, 20, 21, 22, 23 => .mset(i, j, true);
+											101, 102, 104, 120, 121, 122, 123 => .mset(i, j, false);
+											? => {
+												match(l)	{
+													2, 102 => .mset( i, j, .mbol(dbp.get(i-1,j)) );
+													4, 104 => {
+														for( i2=i+1; dbp.get(i2,j)->to_i!=0; i2++ ) {}
+														.mset( i, j, .mbol(dbp.get(i2-1,j-1)) );
+													}
+													? => if( i>0 && dbp.get(i-1,j)->to_i > 0 ) .mset(i,j, .mbol(dbp.get(i-1,j)) );
+														else {
+															for( i2=i+1; dbp.get(i2,j)->to_i!=0; i2++ ) {}
+															.mset(i,j, .mbol(dbp.get(i2-1,j-1)) );
+														}
+												}
+											}
+										}
+									}
+									20, 120 => .mset(i, j, i3&&i4);
+									21, 121 => .mset(i, j, !i3 || !i4);
+									22, 122 => .mset(i, j, i3||i4);
+									23, 123 => .mset(i, j, !.mbol(i2));
+									? => ;
+								}
+							}
+						}
+						.play;
+						} );
+					timtik.play;
+					.cbplay("snd17");
+				}; },
+			"snd17", "Choæ nie sposób wyliczyæ wszystkich rzeczy które mo¿e robiæ komputer jego praca opiera siê na dzia³aniu milionów ma³ych elementów wykonuj±cych bardzo proste operacje; Tak jak te 4 bramki które wyliczaj± podstawowe funkcje logiczne", 	func { <GAME> {
+				timtik.stop(false);
+				grb.deleteallgm;
+				grb.free;
+				dbp.dbbuild(A,
+					1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					0,20,1, 1, 2, 0, 0, 1, 1, 1, 1, 1, 0, 0,
+					1, 0, 0, 0, 1, 0, 0,14, 0, 0, 0, 0,20, 1,
+					0, 0, 0, 0, 0,21, 1, 1, 2, 0, 0, 1, 0, 0,
+					1, 1,23, 1, 1, 0, 0, 0, 2, 0, 0, 4, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,14, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0, 0,20, 1, 1,23, 1,
+					1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+					0,21, 1, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0,
+					1, 0, 0,21,1,23, 1, 1, 4, 0, 0, 0, 0, 0,
+					0, 0, 1, 0, 0, 0, 0,12, 0, 0, 1, 1,23, 1,
+					1, 1, 4, 0, 0, 0, 0, 2, 0, 0, 4, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 14, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,20, 1, 1, 2, 0, 0,
+					1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0,
+					0,22,1, 2, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0,
+					1, 0, 0, 1, 1, 0, 0,14, 0, 0, 0, 0,21, 1,
+					0, 0, 0, 0, 0,21, 1, 1, 2, 0, 0, 1, 0, 0,
+					0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 4, 0, 0,
+					0, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4, 0, 0,
+					0, 0, 0, 0, 4, 0, 0, 0, 0,22, 1, 4, 0, 0,
+					1,23, 1, 1, 4, 0, 0, 1, 1, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0,
+					1, 1, 1, 1, 1, 1, 1, 4, 0, 0, 0, 0, 0, 0,
+					0, 0, 0,12, 0, 0,12, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 2, 0, 0, 1, 1,23, 1, 0, 0, 0, 0,
+					0, 0, 0, 1, 1, 0, 0, 0, 0, 0,22, 1, 1, 1,
+					0, 0, 0, 0, 0,21, 1, 1, 1, 1, 0, 0, 0, 0,
+					1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					14);
+				.mcode;
+				.cbplay("snd18");
+				.timer = ("tim2", 5000, func { <GAME> {
+					grb.deleteallgm;
+					delete grb;
+					delete timtik;
+					delete dbp;
+					delete anbramki;
+					delete anstory4;
+					"grep" .* "story5.pyz";
+					grep.hide;
+					.mshow(0);
+					//new TextDb tdz(stdfont, 12, "$path:"+.lang_path("zad"+izad2)+".db", 10,10,192, 20,335, 2,50, "left");
+					.cbplay("snd19");
+					}; } );
+				timtik.play;
+				}; },
+				"snd18", "Je¶li te proste elementy po³±czymy w wiêksze uk³ady bêd± wykonywa³y coraz bardziej z³o¿one operacje", func { tim2.play; },
+				"snd19", "Te z³o¿one operacje rozwija³ i bada³ angielski matematyk Alan Turing", func { .mplay(20,1); },
+				"snd20", "Wymy¶li³ on hipotetyczny komputer nazywany maszyn± Turinga który przyczyni³ siê do powstania algorytmów i jêzyków programowania", func {
+					<GAME > {
+					grep.deleteallgm; grep.free;
+					"grep" .* "story6.pyz";
+					grep.setz(5);
+					<grep.get(2)>.setz(4);
+					.img = ("obudowa6.pyz 3");
+					grep.hide;
+					.mplay(21,0);
+					new @stdfont14 = .stdfont(14);
+					}; },
+				"snd21", "Model dzisiejszego komputera pracuje w oparciu o tê sam± ideê; Sercem komputera jest procesor który wykonuje instrukcje",
+					func { .mplay(22,1); },
+				"snd22", "Instrukcje do wykonania czyta z pamiêci; Ta sama pamiêæ przechowuje równie¿ dane które nie s± rozkazami; Na przyk³ad obrazy do wy¶wietlenia na ekranie czy muzykê", func { .mplay(23,2); },
+				"snd23", "Wszystkie podzespo³y umocowane s± na p³ycie g³ównej która umo¿liwia komunikacjê miêdzy nimi", func { .mplay(24,3); },
+				"snd24", "I doprowadza zasilanie", func { .mplay(25,4);
+					<GAME> {
+						new TextDb tdin(stdfont14, 14, "$path:"+.lang_path("stdin")+".db", 128,0,0, 650,350, 5,50, "center");
+						tdin.stdshadow(1);
+					}; },
+				"snd25", "Specjalne kontrolery interpretuj± sygna³y urz±dzeñ wej¶ciowych takich jak klawiatura", func { .mplay(26,5); },
+				"snd26", "czy mysz; Stan tych urz±dzeñ jest widoczny dla procesora poprzez komórki pamiêci; W informatyce mówimy na klawiaturê Standardowe urz±dzenie wej¶ciowe w skrócie standardowe wej¶cie", func { .mplay(27,6);
+					<GAME> {
+						new TextDb tdout(stdfont14, 14, "$path:"+.lang_path("stdout")+".db", 128,0,0, 10,250, 5,50, "center");
+						tdout.stdshadow(1);
+					};},
+				"snd27", "Dane z pamiêci czyta tak¿e karta graficzna która zamienia je na sygna³y i wysy³a do monitora; Monitor jest Standardowym urz±dzeniem wyj¶ciowym w skrócie standardowym wyj¶ciem", func {
+						ccs.close( func {
+							ccs.show;
+							clsave.set("epizod", "Komputer");
+							.gotoadv("adxvsala","gameadxvsala0");
+						});
+					}
+			);
+		.cbplay("sndintro");
+		
+		/*grep.deleteallgm;
+		grep.free;
+		"grep" .* "story5.pyz";
+		.cbplay("snd19");*/
+	}
+	int mbol(int id)	{	id<100 ? 1 : 0;	}
+	mset(int i, int j, bool b)	{
+		int l = dbp.get(i, j);
+		if( l>100 && b ) l-=100;
+		else if (l<100 && !b) l+=100;
+		dbp.set(i, j, l);
+		string s = "anb"+i+"_"+j;
+		if( <s>.gettype=="img" )	{
+			<s>.create(<s>.getw, <s>.geth, .mcol(l), 255);
+		}
+	}
+	mcode	{
+		string s;
+		int icol = dbp.getcolsno(0), int j, int l, int i;
+		int w = 0.85*anbramki.getw;
+		int h = anbramki.geth/3;
+		int h2;
+		int x = iResX/2-100;
+		int y = 100;
+		for( j=0; j<icol; j++)	{
+			for( i=0; i<dbp.getrowsno; i++)	{
+				s = "anb"+i+"_"+j;
+				l = dbp.get(i, j);
+				match(l)	{
+					1, 101 => {
+						new img <s>;
+						<s>.create(w, 2, .mcol(l), 255);
+						<s>.setz( 40 );
+						<s>.setpos(x+w*j, y+h*i);
+						grb.add(s);
+					}
+					2, 4, 14, 12, 102, 104 => {
+						new img <s>;
+						if( l==14 || l==12 ) {
+							l-=10;
+							dbp.set(i, j, l);
+							h2 = 2*h;
+						} else h2 = h;
+						<s>.create(2, h2, .mcol(l), 255);
+						<s>.setz( 40 );
+						<s>.setpos(x+w*j, y+h*i);
+						if( l==4 || l==104 ) <s>.move(0, -h+2);
+						else if( h2>h ) <s>.move(0, -h);
+						grb.add(s);
+					}
+					20, 21, 22, 23 => {
+						.copyanima("anbramki", s);
+						<s>.setframe(l-20, 0);
+						<s>.show;
+						<s>.setz( 50 );
+						<s>.setpos(x+w*j, y+h*i);
+						grb.add(s);
+					}
+					? => ;
+				}
+			}
+		}
+	}
+	mcol(int id)	{
+		match( id )	{
+			101, 102, 104, 120, 121, 122, 123 => .blue;
+			? => .red;
+		}
+	}
+	int madd(int id, int x, int y)	{
+		if( id<=0 ) return 0;
+		@s = "aneg" + greg.size;
+		if( igmstate==3 )	{
+			match(id)	{
+				7 => "VII";
+				13 => "XIII";
+				28 => "XXVIII";
+				74 => "LXXIV";
+				339 => "CCCXXXIX";
+				1003 => "MIII";
+				3121 => "MMMCXXI";
+				436 => "CDXXXVI";
+				2008 => "MMVIII";
+				25 => "XXV";
+				? => "MM";
+			}
+			string s2 = _;
+			.newtext(s, s2, stdfont24, 0,0,128);
+		} else	{
+			.copyanima("anegipskie", s);
+			<s>.setframe(0, id-1);
+		}
+		<s>.show;
+		<s>.setpos(x, y);
+		greg.add(s);
+		if( <s>.geth > ilasth ) ilasth = <s>.geth;
+		<s>.getw + 2;
+	}
+	int megipt(string val, int x)	{
+		int y = iposy;
+		string s, int ile, int j;
+		if( igmstate==3 ) x+=.madd(val,x,y);
+		else {
+			for( int i=0; i<val.length; i++)	{
+				ile = val.getb(i, 1);
+				match( val.length-i )	{
+					0 => ;
+					1 => x+=.madd(val.getb(i,1), x, y);
+					2 => for( j=0; j<ile; j++) x+=.madd(10, x, y);
+					3 => for( j=0; j<ile; j++) x+=.madd(11, x, y);
+					4 => for( j=0; j<ile; j++) x+=.madd(12, x, y);
+					? => ;
+				}
+			}
+		}
+		s = "txeg"+greg.size;
+		greg.add(s);
+		.newtext(s, " = "+val, stdfont24, .black );
+		if( igmstate==3 ) <s>.setpos(x,y);
+		else <s>.setpos(x+5, y+10);
+		x += <s>.getw+50;
+		if( x>iResX-200 ) {
+			x = 50;
+			iposy += 50;
+		}
+		x;
+	}
+	mhide(int id)	{	<grep.get(id)>.hide;	}
+	mshow(int id)	{	<grep.get(id)>.show;	}
+	mplay(int id1, int id2)	{	.cbplay("snd"+id1); .mshow(id2);	}
+	int mtc(string sn, int x, int nr)	{
+		new ConTextTyper <sn>(stdfont24, 24, .grey(32), "0", 5);
+		x = .megipt(nr, x);
+		@s = greg.last;
+		<s>.txtset(" = ");
+		<sn>.setpos(<s>.getex, <s>.getpy );
+		grtc.add(sn);
+		x + 10;
+	}
+	cbok_CLICK	{
+		match( igmstate )	{
+			1 => <GAME> {
+				igmstate = 0;
+				.cbplay("snd4");
+				iposy += 15;
+				new gmimgvec grtc;
+				int x = .mtc("tc1", 20, 26);
+				x = .mtc("tc2", x, 319);
+				x = .mtc("tc3", x, 2215);
+				clp.show(tc2.getpx+50, tc2.getpy, "dd");
+				new int ienabl = 0;
+			};
+			2 => {
+				igmstate = 0;
+				grtc.eval("disable");
+				if( (tc1.get==26 && tc2.get==319 && tc3.get==2215) || igmdebug ) .cbplay("snd6");
+				else .cbplay("snd5");
+			}
+			? => ;
+		}
+	}
+	menabl	{	<grtc.get(ienabl)>.enable;	}
+	key_down	{
+		match( igmstate )	{
+			2 => if( keyboard.iskey("enter") )	{
+				grtc.eval("disable");
+				ienabl = (ienabl+1)%3;
+				.menabl;
+			}
+			? => ;
+		}
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+		|int x, int y| = mouse.getpos;
+		match( igmstate )	{
+			2 =>	if( grtc.isin(x,y,1,0) )	{
+					grtc.eval("disable");
+					ienabl = grtc.getfound;
+					.menabl;
+				}
+			? => ;
+		}
+	}
+}

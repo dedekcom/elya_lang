@@ -1,0 +1,170 @@
+
+game mg19_klodka :Banshee {
+	init{
+    Banshee::init("mg19_klodka");
+    .imgs = (A,"bkg.jpg 1", "popup_bkg.pyz 2","belka_l.pyz 3","belka_p.pyz 4", "ramka.pyz 5","palak.pyz 5","klodka.pyz 6",  "oczko.pyz 7", "keyhole.pyzH 8","klucz.pyzH 9", "popexit.pyz 32");
+   .sfxs =(A, "bgrlas2N 10", "bgrwiatrN 10", "przekrecaklucz", "opendoor 60", "szufladaklik" );
+   
+   .butpopexit;
+    // .addtopck("klucz_czaszka"); //do testow 
+   // clsave.bset("taken_klucz_czaszka") ;  //do testow 
+    anbelka_l.clip( anramka.getpx +30, anramka.getpy, anramka.getex-30, anramka.getey ); 
+    anbelka_p.clip( anramka.getpx +30, anramka.getpy, anramka.getex-30, anramka.getey ); 
+    anoczko.clip( anramka.getpx +30, anramka.getpy, anramka.getex-30, anramka.getey ); 
+   
+	imgbkg {
+  		.addmethod("isbutin", func { (@x, @y)
+  			!anpopup_bkg.isin(x,y,0,0);
+  			} );
+  		.addmethod("butclick", func {
+  			if( !.advstdstate ) return;
+  			 .mend;
+  			} );
+    		butgame.add(this);
+  	 }; 
+	 
+	if (!clsave.bis("e1_mg19_klodka_klucz_inserted"))
+	{
+		.newsndfree("snd_intro", "kinnat_c2d2_10c");
+		snd_intro.addmethod("onfinish", "advsetstdstate");     
+	} 
+      
+	if (!clsave.bis("e1_mg19_klodka_klucz_inserted"))
+	{
+     
+		ankeyhole{
+			.addmethod("isbutin", func { (int x, int y)
+				.advstdstate && .isin(x,y,0,0);
+			} ); 
+					
+			.addmethod("butmoveon", func {
+				if (!clsave.bis("e1_mg19_klodka_klucz_inserted"))
+					advmouse.set("use"); 
+			 } );
+			 
+			.addmethod("butmoveoff", func {
+				advmouse.setstd;
+			} );
+				
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+				if (!clsave.bis("e1_mg19_klodka_klucz_inserted"))  
+					.cbplay("snd_intro"); 
+			} );	
+			
+			butgame.add(this);
+       };
+     
+	}
+	else
+	{
+		anklucz.show();
+	}
+	
+	anpalak {
+		.addmethod("onfinish", func {
+			if (clsave.bis("e1_mg19_klodka_klucz_inserted")) 
+			{
+				.timplay("timklodkaout", 500, "klodka_out");   
+				clsave.bset("e1_ad003_drzwi_otwarte") ;
+			}
+		} );
+	};
+  
+	anklucz {
+		.addmethod("isbutin", func { (int x, int y)
+		  .advstdstate && .isin(x,y,0,0) && clsave.bis("e1_mg19_klodka_klucz_inserted") && ! clsave.bis("e1_mg19_klodka_otwarta");
+			} ); 
+		.Button_moveonms;
+		.Button_moveoffms;
+		.addmethod("butclick", func {
+			if(!.advstdstate || clsave.bis("e1_mg19_klodka_otwarta")) return;
+			anklucz.play("0");
+			anpalak.play("open"); 
+			fxprzekrecaklucz.play; 
+			clsave.bset("e1_mg19_klodka_otwarta");
+		} );
+		
+		butgame.add(this);
+	};
+	
+	anbelka_p{
+		.addmethod("isbutin", func { (int x, int y)
+			.advstdstate && .isin(x,y,0,0) && clsave.bis("e1_mg19_klodka_otwarta") && ! clsave.bis("e1_mg19_belka_zabrana");
+  		} ); 
+  		.Button_moveonms;
+  		.Button_moveoffms;
+		 
+		.addmethod("onfinish", func{ .timfinito;}); 
+  		.addmethod("butclick", func {
+			if(!.advstdstate || clsave.bis("e1_mg19_belka_zabrana")) return;
+			anbelka_p.play("open");
+			anbelka_l.play("open");
+			anoczko.play("open");
+			.set_mg_finished;
+			clsave.bset("e1_mg19_belka_zabrana");
+			fxopendoor.play; 
+			 
+        } );
+         
+  		butgame.add(this);
+  }; 
+  
+  
+	if (clsave.bis("e1_mg19_klodka_otwarta")) 
+	{
+		anklodka.hide();
+		anpalak.hide();
+		anklucz.hide();
+	}
+  
+	  .stdstart;
+  } // koniec init
+  
+	klodka_out{
+		anklucz.anfadeout(800,null);
+		anklodka.anfadeout(800,null);
+		anpalak.anfadeout(800,null);  
+	}
+  
+	USE_klucz_czaszka	{
+		.advsetstdstate();
+		if( ankeyhole.isin(mouse.getpos,0,0) )	{
+			.removefrompck("klucz_czaszka");
+			anklucz.anfadein(800,null);
+			butgame.removebut("ankeyhole");
+			clsave.bset("e1_mg19_klodka_klucz_inserted");
+			advmouse.setstd;
+			fxszufladaklik.play;
+		//  .set_mg_finished(); 
+		} else {
+			.advsetstdstate; 
+			.item_gotopck;
+		}
+	} 
+  
+  
+	mend{ 
+		.stdexitdefadv("ad19_szopa", "gamead19_szopa0");
+	}
+  
+	HINT_CLICK {
+    if (!clsave.bis("e1_mg19_klodka_klucz_inserted"))
+    {
+		if (clsave.bis("ma_klucz_czaszka"))
+		{
+			.showhintitem("klucz_czaszka"); 
+			.showhint("ankeyhole");
+		}
+		else
+			.showhint("anpopexit"); 
+    }
+    else if (!clsave.bis("e1_mg19_klodka_otwarta"))
+      .showhint("anklucz"); 
+    else if (!clsave.bis("e1_mg19_belka_zabrana"))
+      .showhint("anbelka_l");   
+    else
+    .showhint("anpopexit");   
+  }
+}
+ 

@@ -1,0 +1,153 @@
+class SimpleCounter	{
+	init(int ilength)	{
+		.var2("length", ilength );
+		new int iid = 0;
+	}
+	int next()	{	iid = (iid+1)%length;		iid;	}
+	set(int i)	{	iid=i;	}
+	reset()	{	iid=0;	}
+	get()	{	iid;	}
+}
+
+/******************************************/
+
+module clstrdigit	{
+	init()	{}
+	public string getdigit(int idigit, int ilepozycji)	{
+		string s = idigit;
+		while( s.length() < ilepozycji )	s = "0" + s;
+		return s;
+	}
+	public string gettime(int itime, string smod)	{
+		return this.getstime( this.geth(itime), this.getm(itime), this.gets(itime), 
+			smod.contains("h"), smod.contains("m"), smod.contains("s") );
+	}
+	public string getstime(int ih, int im, int is, bool bh, bool bm, bool bs)	{
+		string s = "";
+		if( bh ) s+= ih;
+		if( bm ) s+= (bh?":":"") + this.getdigit(im,2);
+		if( bs ) s+= ((bh||bm)?":":"") + this.getdigit(is,2);
+		return s;
+	}
+	public int geth(int itime)	{	return itime/3600;	}
+	public int getm(int itime)	{	return (itime/60)%60;	}
+	public int gets(int itime)	{	return itime%60;	}
+	public string getns(int itime, int n)	{	return this.getdigit( this.gets(itime),n );	}
+	public string getnm(int itime, int n)	{	return this.getdigit( this.getm(itime),n );	}
+	string getbinary(int ival)	{
+		string s = "";
+		while(ival>0)	{
+			s = "" + (ival%2) + s;
+			ival/=2;
+		}
+		return s;
+	}
+	string bintohex(string sval)	{
+		string s;
+		match(sval.length%4)	{
+			3=>"0"; 2=> "00"; 1=> "000";
+			? => "";
+		}
+		s = _;
+		sval = s + sval;
+		s = "";
+		for( int i=0; i<sval.length; i+=4)	{
+			match(sval.getb(i,4))	{
+				"0000" => "0";	"0001" => "1";	"0010" => "2";	"0011" => "3";
+				"0100" => "4";	"0101" => "5";	"0110" => "6";	"0111" => "7";
+				"1000" => "8";	"1001" => "9";	"1010" => "A";	"1011" => "B";
+				"1100" => "C";	"1101" => "D";	"1110" => "E";	"1111" => "F";
+				? => ;
+			}
+			s += _;
+		}
+		s;
+	}
+}
+
+public string getbinary			{	clstrdigit::getbinary(.get);		}
+public string getdigit(int ile)		{	clstrdigit::getdigit(.get,ile);		}
+public string getbindigit(int ile)	{	clstrdigit::getdigit( .getbinary,ile);	}
+
+class Text	{
+	init(string sfont, int ifontsize, int ifr, int ifg, int ifb, int x, int y, int z)	{
+		if( sfont==null )	sfont = sgmfontfile;
+		if( sfont.contains(".ttf") )	{
+			new font _fnt;
+			_fnt.load( sfont, ifontsize );
+			sfont = "_fnt";
+		}
+		new int iR = ifr;
+		new int iG = ifg;
+		new int iB = ifb;
+		new int iFontSize = ifontsize;
+		new text txt;
+		txt.setfont(sfont);
+		txt.setz(z);
+		txt.setpos(x,y);
+		txt.show;
+		
+		new text txtbg;
+		txtbg.hide();
+	}
+	public hide()	{	txt.hide;	}
+	public show()	{	txt.show;	}
+	public setpos(int x, int y)	{	txt.setpos(x,y);	}
+	public set(string s)	{
+		txt.set( s );
+		txt.createtxt( iR, iG, iB );
+	}
+	public string get()	{	return txt.get;	}
+	public setbg(int ir, int ig, int ib, int ia)	{
+		txtbg.setbkg(txt.getpx()-iFontSize/2, txt.getpy()-iFontSize/2,
+			txt.getw()+iFontSize, iFontSize*2, ir, ig, ib, ia );
+		txtbg.setborders(1,255,255,255,128);
+		txtbg.show();
+	}
+	operator=(string val)	{	this.set(val);	}
+}
+
+class Cypher : Text	{
+	init(string sfont, int ifontsize, int ifr, int ifg, int ifb, int x, int y, int z)	{
+		Text::init(sfont, ifontsize, ifr, ifg, ifb, x, y, z );
+		this.set(0);
+	}
+	add(int dt)	{	this.set( dt + this.get );	}
+	iget()		{	this.get->to_i;		}
+	operator+(int val)	{	this.add(val);	}
+	operator++()	{	this.add(1);	}
+	operator--()	{	this.add(-1);	}
+	operator-(int val)	{	this.add(-val);	}
+	operator=(int val)	{	this.set(val);	}
+	operator==(int val)	{	.get==val;	}
+	operator!=(int val)	{	.get!=val;	}
+	operator>(int val)	{	.get>val;	}
+	operator<(int val)	{	.get<val;	}
+}
+
+class SecCounter	{
+	init(string sdigits)	{
+		new string sdigit = sdigits;
+		new int itime;
+		this.reset();
+		this.cnewtimerfin("timcyk",1000,1, func { .update(1); .play; } );
+	}
+	public play()	{	timcyk.play();	}
+	public stop()	{	timcyk.stop(false);	}
+	public string sgettime()	{	return clstrdigit.gettime(itime, sdigit);	}
+	public int gettime()	{	return itime;	}
+	public reset()	{	this.update(-itime);	}
+	public update(int isec)	{	itime+=isec;	}
+}
+
+class TextTimeCounter : Text, SecCounter	{
+	init(string sfont, int ifontsize, int ifr, int ifg, int ifb, int x, int y, int z, string sdigits)	{
+		Text::init(sfont, ifontsize, ifr, ifg, ifb, x, y, z);
+		SecCounter::init(sdigits);
+		.reset;
+	}
+	public update(int isec)	{
+		SecCounter::update(isec);
+		this.set( this.sgettime() );
+	}
+}

@@ -1,0 +1,117 @@
+
+game Wieza : StdGame	{
+	init	{
+		StdGame::init("wieza");
+		
+		//bkg.pyz narzedzia.pyz curs.pyz wieza.pyz els.pyz
+		.imgs = (A, "bkg.pyz", "narzedzia.pyz 10", "wieza.pyz 5");
+		
+		.newgrimg("grcur", "curs", 20);
+		.newgrimg("grels", "els", 15);
+		.newgrimg("grmask", "maski", 0);
+		grmask.hide;
+		
+		new Button but1;
+		
+		grmask.eval( func {
+			.Button_isinvisalpha;
+			.Button_moveonms;
+			.Button_moveoffms;
+			but1.add(this);
+			} );
+		
+		new DelayMover cmov;
+		
+		.sounds = (A, ":kajko1", "Spójrz zbójcerze zostawili narzêdzia przy wie¿y oblê¿niczej", func { .cbplay("kokosz1"); },
+			":kokosz1", "To siê nam trafi³a okazja; Zniszczmy wie¿ê i czmyhajmy do grodu", func { .cbplay("kajko2"); },
+			":kajko2", "Nie; Zbuduj± now± i bêd± jej pilnowaæ; Mam lepszy pomys³; U¿yjmy te narzêdzia do wprowadzenia kilku poprawek do konstrukcji", func { cmov.unlock; igmstate = 1; },
+			":kajko_mlot", "Postuka³em m³otkiem ale nic to nie da³o", null,
+			":kajko_pila", "Pi³a tutaj nic nie zdzia³a", null,
+			":kajko_siekiera", "Nie mam pomys³u co móg³bym zrobiæ t± siekier±", null,
+			":kajko_wiadro", "Wiadro z oliw±; Tutaj siê nie przyda", null,
+			":kaj_1mask", "Wybi³em ko³ek; Ko³o wypadnie z osi" ,func { .cbplay("kokosz2"); },
+			":kokosz2", "Oby nie za prêdko", "mcheck",
+			":kaj_2mask", "Wybijam ko³ek", "mcheck",
+			":kaj_3mask", "Przeci±³em podporê; Mam nadziejê ¿e konstrukcja nie zawali siê zbyt wcze¶nie", "mcheck",
+			":kaj_4mask", "Przeci±³em sznurek miêdzy podporami; Bêd± lu¼ne", func { .cbplay("kokosz3"); },
+			":kokosz3", "Nie tnij za du¿o bo siê rozsypie nim dojad± pod wa³y", "mcheck",
+			":kaj_6mask", "Nadpi³owa³em ko³ek podtrzymuj±cy pomost; Lepiej na nim nie stawaæ hihi", "mcheck",
+			":kaj_7mask", "Nadpi³owa³em mostek; Lepiej dla zbójcerzy je¶li bêd± wchodziæ na niego pojedynczo", "mcheck",
+			":kaj_8mask", "Wybijê m³otem ten ko³ek", "mcheck",
+			":kaj_9mask", "Nadpi³owa³em podstawê wie¿y; Kiedy wszyscy na ni± wejd± powinna pêkn±æ", "mcheck",
+			":kaj_10mask", "Posmarowa³em oliw± koñcówkê pomostu", func { .cbplay("kokosz4"); },
+			":kokosz4", "Kto¶ zaliczy piêkne wej¶cie na scenê hi hi", "mcheck",
+			":kajko3", "Dobrze wystarczy tych poprawek bo siê wie¿a rozpadnie", func { .cbplay("kokosz5"); },
+			":kokosz5", "Wracajmy do domu ¿eby zd±¿yæ zje¶æ kolacjê", func { .cbplay("kajko4"); },
+			":kajko4", "Nasze przygody odbywaj± siê w rytm twoich kiszek; Móg³by¶ powstrzymaæ trochê apetyt?",
+				func { .cbplay("kokosz6"); },
+			":kokosz6", "A kto jutro bêdzie sta³ na wa³ach? Chcesz ¿ebym zas³ab³?", "mend"
+			);
+		
+		ccs.enter( func { .cbplay("kajko1"); } );
+	}
+	cmov_GET	{
+		if (igmstate!=1 ) return;
+		if( grcur.isin(mouse.getpos,1,1) )	{
+			@s = grcur.getsfound;
+			<s>.setz(200);
+			.mssetobj( s );
+		}
+	}
+	mend	{
+		ccs.close( func { .gotoadv("adwarownia", "gameadwarownia1"); } );
+	}
+	cmov_PUT	{
+		string s = .getfree;
+		<s>.setpos(0,0);
+		<s>.setz(20);
+		if( grmask.isin(mouse.getpos,0,1) )	{
+			string s2 = <grmask.getsfound>.actionname;
+			string s3 = <s>.actionname;
+			match( s2 )	{
+				"1mask" => .mput(grmask.getsfound, s2, s3, "mlot");
+				"2mask" =>  .mput(grmask.getsfound, s2, s3, "mlot");
+				"3mask" =>  .mput(grmask.getsfound, s2, s3, "siekiera");
+				"4mask" =>  .mput(grmask.getsfound, s2, s3, "siekiera");
+				"6mask" =>  .mput(grmask.getsfound, s2, s3, "pila");
+				"7mask" =>  .mput(grmask.getsfound, s2, s3, "pila");
+				"8mask" =>  .mput(grmask.getsfound, s2, s3, "mlot");
+				"9mask" =>  .mput(grmask.getsfound, s2, s3, "pila");
+				"10mask" =>  .mput(grmask.getsfound, s2, s3, "wiadro");
+				? => ;
+			}
+		}
+	}
+	mcheck	{
+		if( grmask.size )	{
+			igmstate = 1;
+		} else {
+			.cbplay("kajko3");
+		}
+	}
+	mput(string skto, string snaco, string sco, string smabyc)	{
+		if( sco == smabyc )	{
+			grmask.remove(skto);
+			<skto>.butmoveoff;
+			but1.removebut(skto);
+			<grels.getsac(snaco.strsubes("mask"))>.setframe(-1,1);
+			igmstate = 2;
+			.cbplay("kaj_"+snaco);
+		} else {
+			.mups(sco);
+		}
+	}
+	mups(string s)	{
+		.cbplay("kajko_"+s);
+	}
+	mouse_lclick	{
+		
+	}
+	mouse_rclick	{
+		if( igmdebug ) {
+			//.cactsndstop(true);
+			.mend;
+		}
+	}
+}
+

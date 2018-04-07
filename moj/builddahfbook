@@ -1,0 +1,3 @@
+./kompiluj ./srcdahfbook/dahfbook.prj
+#cp ./srcdahfbook/dahfbook.odd /home/dedek/projekty/rysunki_gimp/dahfbook/project/scripts/
+awk -f optimize.awk ./srcdahfbook/dahfbook.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/dahfbook/project/scripts/dahfbook.odd

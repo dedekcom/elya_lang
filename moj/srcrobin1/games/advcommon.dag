@@ -1,0 +1,52 @@
+class Common : classadv, GameController	{
+	init(string s)	{
+		igmstate = 0;
+		classadv::init;
+		GameController::init(s);
+		.path = (s);
+		.setwavpath("sounds/");
+		bsms.setstd;		// ustawia standardowo 
+		clmusic.play;
+		clbuts.reset;
+	}
+	cshowbut(@dir)	{	clp.show(cbok.getimgfunc("getcx"), cbok.getimgfunc("getcy"), dir); }
+	napisshow(int x, int y)	{
+		.show;
+		.move(x,y);
+	}
+	napispod(string s)	{	.napisshow(<s>.getcx-.getw/2, <s>.getey+5); }
+	crect	{	new Rect rec(600,196,403,497);	}
+	crect2	{	new Rect rec2(6,174,1012,530);	}
+	/***********************************************************/
+	exit	{
+		bsms.setstd;
+		.game_exit;
+	}
+	public askrestart	{	claskexit.askrestart;	}
+	/***********************************************************/
+	advclick()	{
+		if( igmdebug && (igmstate==0 || igmstate==5) )	{
+			this.cactsndstop(true);
+		}
+	}
+	public keyrestart	{
+		if( igmdebug && keyboard.iskeydown("lctrl") && keyboard.iskey("r") )
+			gameapi.play(this);
+	}
+	/***********************************************************/
+	keydown()	{
+		if( igmdebug==false )	{	return;	}
+		
+		if( keyboard.iskey("p") )	{
+			clpause.pause();
+		} else if( keyboard.iskey("escape") )	{
+			claskexit.askexittomenu();
+		} else {
+// 			clnextgm.checkkey();
+		}
+	}
+	/***********************************************************/
+	key_down	{
+		if( igmdebug && keyboard.iskeydown("lctrl") && keyboard.iskey("r") )	.crestart;
+	}
+}

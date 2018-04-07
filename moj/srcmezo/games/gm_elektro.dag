@@ -1,0 +1,317 @@
+// KomputroMode=3;
+game Elektro : Komputro {
+	init	{
+		Komputro::init("elektro");
+		.path = ("elektro");
+		.bkg = ("bkg.pyz");
+		new gmimgvec grand;		"grand" ..< "and.pyz";
+		new gmimgvec grands;		"grands" ..< "ands.pyz";
+		new gmimgvec gror;		"gror" ..< "or.pyz";
+		new gmimgvec grors;		"grors" ..< "ors.pyz";
+		new gmimgvec grlight;		"grlight" .* "swiatla.pyz";
+		new gmimgvec grgates;
+		grgates.addlist(A, "anands0_0", "anors0_0");
+		grands.setz(10);	grors.setz(10);
+		.imgs=(A, "bposH.pyz", "myszkaPL.pyz", "bg2H.pyz 200", "invertH.pyz 270");
+		.copyanima("anmyszka", "anokol");	anokol.hide; anokol.setframe("r",0);
+		.copyanima("anmyszka", "anokor");	anokor.hide; anokor.setframe("l",0);
+		answiatla0.addmethod("onfinish", func { .mupdate; timgo.play; } );
+		.loadguys;
+		.loadlekcja;
+		gror.setz(210);
+		grand.setz(210);
+		new TextDb tdand(null, 12, "and.db", .grey(20), 535,123, 5,250, "left");
+		new TextDb tdor(null, 12, "or.db", .grey(20), 535,305, 5,250, "left");
+		new @sFont = .stdfont(14);
+		.newdb("dbprad", "prad.db");
+		.newtext("txtplynie", dbprad.get(0,0), sFont, .red); txtplynie.anposz(160,260,260);
+		.newtext("txtnplynie", dbprad.get(1,0), sFont, .black);	txtnplynie.anposz(160,280,260);
+		.newtext("txtand", "bramka \"and\"", sFont, .black);	txtand.anposz(366,195,260);
+		.newtext("txtor", "bramka \"or\"", sFont, .black);	txtor.anposz(387,375,260);
+		.newtext("txtin0", "0", sFont, .black);
+		txtin0.anposz( anand1_0.getpx, anand1_0.getpy-20,260);
+		.newtext("txtin1", "0", sFont, .black);
+		txtin1.anposz( anand1_1.getpx, anand1_1.getpy-20,260);
+		.newtext("txtin2", "0", sFont, .black);
+		txtin2.anposz( anand1_2.getex-50, anand1_2.getpy-20,260);
+		.newtext("txton0", "0", sFont, .black);
+		txton0.anposz( anor1_0.getpx, anor1_0.getpy-20,260);
+		.newtext("txton1", "0", sFont, .black);
+		txton1.anposz( anor1_1.getpx, anor1_1.getpy-20,260);
+		.newtext("txton2", "0", sFont, .black);
+		txton2.anposz( anor1_2.getex-50, anor1_2.getpy-20,260);
+		.newtext("txtzad", "0", sFont, 20,20,250);
+		txtzad.anposz( 370, 576,260);	txtzad.hide;
+		new gmimgvec grtxt;
+		grtxt.addlist(A, "txtin0", "txtin1", "txtin2", "txton0", "txton1", "txton2", "txtor",
+			"txtplynie", "txtnplynie", "txtand");
+		grtxt.hide;
+		.newtext("txtodp", "0", sFont, .black);
+		txtodp.anposz( 700, 265, 260 );
+		txtodp.hide;
+		new classplacepointer2 clp;
+		new classsimplebutton cbok;
+		cbok.build("scripts/common/butok.pyz", "imglobcurs", 290, 525, 100, 0);
+		@sfungo = func { .profstop; igmstate=1; };
+		@sfungo2 = func { .jackstop; igmstate=1; };
+		.with(A, "grand", "gror", "grands", "grors", "grlight", "tdand", "tdor",
+			"hide");
+		.sounds = (A,
+			"sndintro", "W tej lekcji wykorzystasz praktycznie swoj± wiedzê o zdaniach z I oraz Lub; Przypomnijmy", func { anbg2.show; tdand.show; .cbplay("snd1t1"); clp.showpob("tdand","rr"); },
+			"snd1t1", "Na podstawie tych regu³ sprawdzamy czy zdanie z I jest prawdziwe czy fa³szywe",
+				func { clp.showob("anand0_0", "rd"); anand0_0.show; .cbplay("snd1t2"); },
+			"snd1t2", "Na takich samych zasadach dzia³a ta oto elektryczna puszka z trzema drutami",
+				func { clp.show(anand0_0.getpx, anand0_0.getcy,"rr"); .cbplay("snd1t3"); },
+			"snd1t3", "Przez te dwa druciki pr±d mo¿e wp³ywaæ do puszki; Nazywamy je wiêc wej¶ciami",
+				func { clp.show(anand0_0.getex, anand0_0.getcy, "lu"); .cbplay("snd1t4"); },
+			"snd1t4", "A têdy mo¿e wyp³ywaæ; jest to wyj¶cie puszki",
+				func { .cbplay("snd1t5"); clp.stoph; txtand.show; },
+			"snd1t5", "Nasz± puszkê nazywamy bramk± and; And po angielsku znaczy I",
+				func { .cbplay("snd1t6"); txtplynie.show; txtnplynie.show; },
+			"snd1t6", "P³yn±cy przez przewody pr±d oznaczmy jedynk± a jego brak zerem",
+				func { .cbplay("snd1t7"); txtin0.show; clp.showpob("txtin0","rr"); },
+			"snd1t7", "Przez pierwszy przewód wej¶ciowy nie p³ynie pr±d wiêc wpisujemy 0",
+				func { .cbplay("snd1t8"); txtin1.show; clp.showpob("txtin1","rr"); },
+			"snd1t8", "Przez drugi równie¿ nie p³ynie pr±d wiêc wpisujemy 0",
+				func { .cbplay("snd1t9"); clp.showpob("tdand","rd"); },
+			"snd1t9", "Odczytujemy z tabeli jaka jest warto¶æ na wyj¶ciu dla 0 i 0",
+				func { .cbplay("snd1t10"); clp.showpob("txtin2","ld"); txtin2.show; },
+			"snd1t10", "Wynikiem dzia³ania logicznego 0 i 0 jest równie¿ 0",
+				func { clp.showob("anand1_0","dd");
+					.cbplay("snd1t11"); txtin0.txtsetcol("1",.red); anand1_0.show; },
+			"snd1t11", "Teraz na wej¶ciu pierwszym pojawi³ siê pr±d",
+				func { clp.showpob("txtin2","ld"); .cbplay("snd1t12"); },
+			"snd1t12", "Jednak na wyj¶ciu nadal pr±d nie p³ynie gdy¿ 1 i 0 zgodnie z regu³ami dla bramki I daje 0",
+				func { clp.showob("anand1_1", "dd"); .cbplay("snd1t13");
+					txtin1.txtsetcol("1",.red); anand1_1.show; },
+			"snd1t13", "Dopiero kiedy na obu wej¶ciach pojawi siê pr±d",
+				func { txtin2.txtsetcol("1",.red); anand1_2.show;
+					clp.showpob("txtin2","ld"); .cbplay("snd1t14"); },
+			"snd1t14", "Bramka and poda pr±d na wyj¶cie",
+				func { .cbplay("snd1t15"); clp.showob("anor0_0","dd");
+					anor0_0.show; txton0.show; txton1.show;
+					txton2.show; txtor.show; tdor.show; },
+			"snd1t15", "Inaczej zachowuje siê bramka or",
+				func { .cbplay("snd1t16"); clp.showpob("tdor","rd"); },
+			"snd1t16", "Która realizuje funkcjê logiczn± lub",
+				func { .cbplay("snd1t17"); clp.showob("anor1_1","dd"); anor1_1.show;
+					txton1.txtsetcol("1",.red); },
+			"snd1t17", "Wystarczy ¿e na jednym z wej¶æ pojawi siê pr±d",
+				func { .cbplay("snd1t18"); clp.showpob("txton2","ld");
+					anor1_2.show; txton2.txtsetcol("1",.red); },
+			"snd1t18", "I zgodnie z regu³ami dla funkcji Lub na wyj¶ciu równie¿ przep³ywa pr±d",
+				func { .profstop; clp.stoph; .jacksay("snd1t19"); },
+			"snd1t19", "Chyba ju¿ wszystko rozumiem; jestem gotowy do zadania",
+				func { .jackstop; anbg2.hide; grand.hide; gror.hide; grtxt.hide;
+					.profsay("snd1t20");
+					tdand.move( 22-tdand.getpx, 350-tdand.getpy );
+					tdor.move( 22-tdor.getpx, 455-tdor.getpy );
+					anands0_0.show; anors0_0.show; },
+			"snd1t20", "Dobrze; zaczynamy", func { clp.showob("anands0_0", "ld"); .cbplay("snd2t1"); },
+			"snd2t1", "Tutaj znajduj± siê dwie bramki: and i or",
+				func { clp.showob("anbpos", "rr"); .cbplay("snd2t2"); },
+			"snd2t2", "Twoim zadaniem bêdzie wstawienie jednej z nich w to miejsce maszyny tak aby wykona³a moje polecenie",
+				func { clp.showob("anmyszka", "rd");  .cbplay("snd2t3"); .mshowzad; },
+			"snd2t3", "Zadanie 1; Zaprogramuj maszynê ¿eby sprawdza³a czy myszka ¶pi",
+				func { clp.show(730,270,"rd"); .cbplay("snd2bt3"); },
+			"snd2bt3", "Maszyna wypisze wynik w tym miejscu; Je¿eli na wyj¶ciu bramki pojawi siê pr±d to maszyna wypisze TAK je¿eli natomiast pr±du na wyj¶ciu nie bêdzie wypisze NIE",
+				func { clp.stoph; .cbplay("snd2t4"); },
+			"snd2t4", "Mysz ¶pi kiedy ma zamkniête oba oczka",
+				func { .cbplay("snd2t5"); clp.showob("answiatla0", "ll"); },
+			"snd2t5", "Kiedy prawe oko myszki bêdzie zamkniête ten czujnik w³±czy pr±d w czerwonym przewodzie",
+				func { .cbplay("snd2t6"); clp.showob("answiatla1", "rr"); },
+			"snd2t6", "Natomiast ten w³±czy pr±d w niebieskim przewodzie kiedy lewe oczko myszki bêdzie zamkniête",
+				func { .cbplay("snd2t7"); clp.show(cbok.getimgfunc("getcx"), cbok.getimgfunc("getcy"), "dd"); },
+			"snd2t7", "Tym przyciskiem w³±czysz maszynê", func { clp.stoph; .cbplay("snd2t8"); },
+			"snd2t8", "Do dzie³a!", "menable",
+			"snd3nog", "Nie wstawi³e¶ ¿adnej z bramek do maszyny",
+				func { .profstop; .jacksay("snd3oj"); clp.stoph; },
+			"snd3oj", "Za szybko w³±czy³em maszynê", sfungo2,
+			"snd6no", "Oj maszyna ¼le zaprogramowana; wystarczy ¿e jedno oko myszki zamkniête a wypisuje ¿e myszka ¶pi; Spróbuj ponownie; wy³±czam maszynê", "mreset",
+			"snd6ok", "Tak jest! Poprawnie u¿y³e¶ bramki and; zadanie zaliczone!", "mnextzad",
+			"snd7go", "Kolejne zadanie: zaprogramuj maszynê by sprawdza³a czy mysz ma przynajmniej jedno oko zamkniête", "menable",
+			"snd7ok", "Super! Jestem z ciebie dumny", "mnextzad",
+			"snd7no", "Niestety; Jedno oko jest zamkniête a maszyna wypisuje NIE; Próbuj dalej", "mreset",
+			"snd8go", "Teraz niech maszyna wypisze czy oba oczka myszy s± zamkniête", "menable",
+			"snd8no", "Co¶ nie tak; Spróbuj jeszcze raz", "mreset",
+			"snd8ok", "¦wietnie!", func { if( KomputroMode<=2 ) .cbplay("sndend"); else .mnextzad; },
+			"sndend", "Umiesz ju¿ wykorzystaæ bramki logiczne do budowy prostych maszyn; Przechodzimy do kolejnej lekcji.", "finito",
+			"snd9go", "Teraz rozbudujemy mo¿liwo¶ci naszej maszyny", func { <GAME> {
+				grgates.hide;
+				anbg2.show;
+				new TextDb tdnand(null, 12, "nand.db", .grey(20), 215,130, 5,250, "left");
+				new TextDb tdnor(null, 12, "nor.db", .grey(20), 215,275, 5,250, "left");
+				new TextDb tdnot(null, 12, "not.db", .grey(20), 465,190, 5,250, "left");
+				anbpos.setz(anbg2.getz+10);
+				anbpos.show;
+				
+				.newtext("txtinvert", dbprad.get(4,1), sFont, .red);
+				txtinvert.anposz( 460, 235,260);
+				txtinvert.hide;
+				new gfxSquare gsq( txtinvert.getpx-2,txtinvert.getpy-2, txtinvert.getw+4,txtinvert.geth+4);
+				gsq.set( 90,222,50, 255);
+				gsq.build;
+				gsq.setz(200);
+				gsq.border(1,1, .grey(192), 255);
+				gsq.border(1,1,.black,255);
+				gsq.shadow(1,1,128);
+				gsq.hide;
+				
+				.cbplay("snd4t1");
+				}; },
+			"snd4t1", "Bramki and i or nie s± jedynymi bramkami; Jak pamiêtasz zaprzeczenie zdania zmienia³o jego prawdziwo¶æ",
+				func { .cbplay("snd4t2"); aninvert.show; clp.showob("aninvert","uu"); },
+			"snd4t2", "Je¿eli dodamy do naszej bramki przy samym wyj¶ciu takie kó³eczko",
+				func { .cbplay("snd4t3"); clp.showpob("tdnot","rd"); },
+			"snd4t3", "To wynik bramki bêdzie odwrotny",  func { .cbplay("snd4t4"); clp.show(315,130,"rd"); },
+			"snd4t4", "A nasza bramka and bêdzie teraz bramk± nand co znaczy not and i bêdzie zwracaæ warto¶ci jak w tej tabelce",
+				func { clp.showpob("tdnor","rr"); .cbplay("snd4t5"); },
+			"snd4t5", "Równie¿ bramka or ma swoje przeciwieñstwo: bramkê nor",
+				func { clp.stoph; .profstop; .jacksay("snd4t6"); },
+			"snd4t6", "Widzê to proste: kiedy and zwraca 0 to nand zwraca 1; kiedy natomiast and zwraca 1 nand daje na wyj¶ciu 0",
+				func { .jackstop; .profsay("snd4t7"); },
+			"snd4t7", "W rzeczy samej; identycznie zachowuje siê bramka nor w stosunku do bramki or",
+				func { gsq.show; tdnand.hide; tdnor.hide; tdnot.hide; anbg2.hide;
+					txtinvert.show; .cbplay("snd4t8"); clp.showob("gsq","lu"); },
+			"snd4t8", "Kiedy bêdziesz chcia³ zamieniæ bramkê and na nand lub or na nor i spowrotem kliknij tutaj; Czytam kolejne zadanie",
+				func { grgates.show; clp.stoph; anbpos.hide; aninvert.hide; .cbplay("snd9b"); },
+			"snd9b", "Niech maszyna stwierdzi czy mysz jest obudzona", "menable",
+			"snd9no", "Tak zaprogramowana maszyna nie stwierdza czy mysz jest obudzona; Próbuj dalej", "mreset",
+			"snd9ok", "Doskonale! Maszyna wykrywa ¿e myszka jest obudzona", "mnextzad",
+			"snd10go", "Teraz zaprogramuj maszynê by odpowiedzia³a czy mysz ma otwarte oczy", "menable",
+			"snd10no", "Co¶ nie tak; Jeszcze raz", "mreset",
+			"snd10ok", "Wspaniale! Ostatnie zadanie", "mnextzad",
+			"snd11go", "Nie maszyna odpowie czy mysz ma conajmniej jedno oko otwarte", "menable",
+			"snd11no", "Co¶ ¼le dzia³a; Spróbuj ponownie", "mreset",
+			"snd11ok", "Brawo! Wykona³e¶ wszystkie zadania; Przed nami kolejna lekcja", "finito"
+		);
+		new @schosen = null;
+		new @Level = 6;		// odkad w db sie zaczyna odpowiedz do zadania
+		new @idlook = 0;
+		new @breverse = false;
+		.timer = ("timgo", 4000, func { .play; .mupdate; } );
+		new DelayMover cmov;
+		.profsay("sndintro");
+		//.profsay("snd1t19");
+	}
+	mshowzad	{
+		txtzad.txtset( dbprad.get(Level,3) );
+		txtzad.show;
+	}
+	mnextzad	{
+		Level++;
+		.mwylacz;
+		.mpos;
+		aninvert.hide;
+		schosen = null;
+		breverse=false;
+		.cbplay("snd"+Level+"go");
+		.mshowzad;
+	}
+	mreset	{	.mwylacz; .menable;	}
+	menable	{
+		.profstop;
+		igmstate=1;
+		cmov.unlock;
+	}
+	cmov_GET	{
+		if( grgates.isin( mouse.getpos, true, true ) )	{
+			string s = grgates.getsfound;
+			<s>.setz(900);
+			.mssetobj( s );
+			if( s==schosen)	{
+				aninvert.hide;
+				schosen = null;
+				breverse=false;
+			}
+		}
+	}
+	cmov_PUT	{
+		string s = cmov.getfree;
+		<s>.setz(10);
+		string s2;
+		if( cllen.ilen5(s,"anbpos")<40 )	{
+			.mpos;
+			s2 = grands.contains(s) ? "grands" : "grors";
+			<s2>.move( anbpos.getpx-<s>.getpx, anbpos.getpy-<s>.getpy);
+			schosen = s;
+		} else {
+			if( s == schosen)	{
+				.mpos;
+				grands.hide;
+				grors.hide;
+				grgates.show;
+				aninvert.hide;
+				breverse=false;
+			} else {
+				<s>.setpos(0,0);
+			}
+		}
+	}
+	mpos	{	grands.setpos(0,0);		grors.setpos(0,0);	}
+	mwylacz	{
+		answiatla0.anhide;
+		answiatla1.anhide;
+		txtodp.hide;
+		grands.hide;
+		grors.hide;
+		grgates.show;
+		idlook=0;
+		anokol.hide;
+		anokor.hide;
+		timgo.stop(false);
+	}
+	mwlacz	{
+		answiatla0.play(-1);
+		answiatla1.play(-1);
+	}
+	mgetid	{
+		match(idlook)	{
+			0 => { 0; 0; }
+			1 => { 1; 0; }
+			2 => { 0; 1; }
+			3 => { 1; 1; }
+			? => { 0->rand(2); 0->rand(2); }
+		}
+		idlook++;
+	}
+	mupdate	{
+		@s = dbprad.get(Level,2);
+		bool b=false, @s2;
+		if( idlook==4 )	{
+			if( s.getb(0,1)=="n" )	{	b=true;	s2 = s.strsubb(1);	}
+			if( b )	{
+				if( breverse && schosen==("an"+ s2 +"s0_0") )	.profsay("snd"+Level+"ok");
+				else	.profsay("snd"+Level+"no");
+			} else {
+				if( schosen==("an"+ s +"s0_0") )	.profsay("snd"+Level+"ok");
+				else	.profsay("snd"+Level+"no");
+			}
+		}
+		txtodp.show;
+		|bool br, bool bl| = .mgetid;
+		string sid = schosen.strsube(1);
+		if( br )	{ anokor.show; <sid+1>.show; } else { anokor.hide; <sid+1>.hide; }
+		if( bl )	{ anokol.show; <sid+2>.show; } else { anokol.hide; <sid+2>.hide; }
+		if( schosen=="anands0_0")		b = (br && bl);
+		else if (schosen=="anors0_0")		b = (br || bl);
+		if( breverse ) b=!b;
+		if( b ) {txtodp.txtsetcol( dbprad.get(Level,1), .red); <sid+3>.show; }
+		else	{ txtodp.txtsetcol( dbprad.get(Level,0), .blue); <sid+3>.hide; }
+	}
+	cbok_CLICK	{
+		if( igmstate!=1 || cmov.moving)	return;
+		if( schosen==null )	{ .profsay("snd3nog"); return; }
+		cmov.lock;
+		igmstate=0;
+		.mwlacz;
+	}
+	finito	{	gameapi.play("Bramki");	}
+	mouse_lclick	{
+		.cactsndstop(true);
+		if( igmstate==1 && schosen!=null && engine.varexist("gsq") && gsq.isin(mouse.getpos,1,1) ) {
+			( aninvert.isvisible ) ? aninvert.hide : aninvert.show;
+			breverse = aninvert.isvisible;
+		}
+	}
+}

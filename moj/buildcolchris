@@ -1,0 +1,3 @@
+./kompiluj ./srccolchris/colchris.prj
+#cp ./srccolchris/colchris.odd /home/dedek/projekty/rysunki_gimp/colchris/project/scripts/
+awk -f optimize.awk ./srccolchris/colchris.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/colchris/project/scripts/colchris.odd

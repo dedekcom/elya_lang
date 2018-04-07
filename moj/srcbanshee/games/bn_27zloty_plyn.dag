@@ -1,0 +1,80 @@
+
+game mg27zloty_plyn :Banshee {
+	init{
+    Banshee::init("mg27_zloty_plyn");
+   // .addtopck("chochla");
+    .imgs = (A,"bkg.jpg 1" , "popup_bkg.pyz 2", "nalewanie.pyz 3", "zloty_plynH.pyz 4","gold.pyz 4", "ramka.pyz 22","popexit.pyz 23");
+	
+	.sfxs = (A, "bgrwiatrN 30", "las_wodaN 20", "skrzypienie3N 20", "openhead",  "magic1 15" , "wlewa1");
+	 
+    .butpopexit;
+	  .butpopexitisinramka;
+    .setasitemtopck("anzloty_plyn"); 
+    .newsndfree("noitemsnd", "kinnat_c3d3_14");
+     noitemsnd.addmethod("onfinish", "advsetstdstate"); 
+    angold.setdrawmode(1);
+    angold.play(0);
+    annalewanie{
+        .addmethod("isbutin", func { (int x, int y)
+			    .isin(x,y,0,1)  ;
+				} ); 
+			.addmethod("butmoveon", func {
+		 	    if (!clsave.bis("e1_mg27_chochla_used"))
+					advmouse.set("use");
+			else
+				advmouse.setstd; 
+			 } );
+			.addmethod("butmoveoff", func {
+			   advmouse.setstd;
+			} );
+		.addmethod("butclick", func {
+			   if( !.advstdstate ) return; 
+				.cbplay("noitemsnd");
+			} );
+		.addmethod("onfinish", func {
+			   .popitem_gotocenterobj("zloty_plyn", "anzloty_plyn"); 
+			} );
+      butgame.add(this);
+    }; 
+  
+   
+  .stdstart;     
+  
+  }// koniec init 
+ 
+  USE_chochla{
+	   .advsetstdstate(); 
+     if(annalewanie.isin(mouse.getpos,0,0) )	{
+        advmouse.setstd;
+		butgame.removebut("annalewanie");
+		angold.anfadeout(300,func{angold.stop(true);});
+        .removefrompck("chochla");
+        .saveitemtopck("zloty_plyn"); 
+        annalewanie.play(0);
+        clsave.bset("e1_mg27_chochla_used");
+        .set_mg_finished();
+      } else  
+		.item_gotopck;
+  } 
+  
+  
+  anzloty_plyn_INPCK	{
+    .addtopck("zloty_plyn");
+    .timfinito;
+	}   
+  
+  mend	{
+    .stdexitdefadv("ad27_lazienka", "gamead27_lazienka0"); 
+  }
+   
+  
+  HINT_CLICK {
+     if( clsave.bis("ma_chochla") )	{
+			.showhint("annalewanie");
+			.showhintitem("chochla");
+       
+		} else  
+	.showhint("anpopexit");  
+  } 
+}
+ 

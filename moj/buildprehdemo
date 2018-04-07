@@ -1,0 +1,2 @@
+./kompiluj ./srcprehdemo/encyklo.prj
+awk -f optimize.awk ./srcprehdemo/encyklo.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/encyklo/prjdemo/scripts/encyklo.odd

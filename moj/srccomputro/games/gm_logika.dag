@@ -1,0 +1,60 @@
+game Logika : Computro {
+	init	{
+		Computro::init("logika");
+		.img = ("bg.pyz");
+		new int izadanie =1;
+		.sounds = (A,
+			"sndgo", "Klikaj na czarnych przewodach w taki sposób by przyjê³y poprawny kolor", func { .cbplay("snd1"); },
+			"snd1", "Po lewej stronie widzisz jaki kolor powstaje w wyniku mieszania w odpowiednich bramkach", "mstart"
+			);
+		new gmimgvec grels;
+		.mloadzad;
+		//.cbplay("sndgo");
+		ccs.enter( func { .cbplay("sndgo"); } );
+	}
+	mstart	{
+		igmstate = 1;
+	}
+	mloadzad	{
+		grels.deleteallgm;
+		grels.free;
+		"grels" ..< "zad"+izadanie+".pyz";
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+		if( igmstate != 1 ) return;
+		if( grels.isin(mouse.getpos, 1,1) && grels.getfound>0)	{
+			@s = grels.getsfound;
+			if( .miscol(s, "mblue") )	<s>.paint( .red, 255, 0 );
+			else <s>.paint( .mblue, 255, 0 );
+			for( int i=1; i<grels.size; i++)	{
+				s = grels.get(i);
+				if( !.miscol( s, .mgetcol( <s>.framename ) ) ) return;
+			}
+			if( izadanie<8 )	{
+				izadanie++;
+				.mloadzad;
+			} else {
+				igmstate = 15;
+				ccs.close( func { .gotoadv("adsala", "gameadsala0"); } );
+			}
+		}
+	}
+	mouse_move	{
+		if( grels.isin(mouse.getpos, 1,1) && grels.getfound>0 )	{
+			if( bsms.isstd ) bsms.setact;
+		} else if (bsms.isact ) bsms.setstd;
+	}
+	mgetcol(int id)	{	id ? "mblue" : "red";	}
+	mblue	{	return 69, 170, 255;	}
+	miscol(string s, string scol)	{
+		int r[3], int c[3];
+		//|r0,r1,r2| = <s>.getrgb( <s>.anfirstnontr );
+		|r0,r1,r2| = <s>.getrgb( classansearcher::firstnotrx1y(s) );
+		|c0,c1,c2| = .<scol>;
+		r0==c0 && r1==c1 && r2==c2;
+	}
+	mouse_rclick	{
+		if( igmdebug ) {	izadanie++; .mloadzad; }
+	}
+}

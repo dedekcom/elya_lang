@@ -1,0 +1,70 @@
+
+game Cs29Odlot : StdGame	{
+	init	{
+		StdGame::init("cs29odlot");
+		
+		mus.playstr("flety.ogg");
+		
+		.img = ("czapla.pyzP 12");
+		anczapla.addmethod("onendframe", func { .move(-8,0); });
+		
+		.newgrimg("grbg", "bkg", 0);
+		grbg.each(func { (@id) .setz(10*id); });
+		
+		.img = ("kk.pyz 25");
+		ankk.move(-ankk.getex,0);
+		ankk.addmethod("onendframe", func {
+			match(.actionnr(-1))	{
+				0 => {
+					if( .getpx<iResX+80 ) .move(15,0);
+					else {
+						.setframe(1,0);
+						.setpos(0,0);
+						.play(1);
+						.move(iResX-.getpx, 0);
+						.setz(15);
+					}
+				}
+				1 => {
+					.move(-6, 0);
+					if( .getex < -100 )	{
+						.setframe(2,0);
+						.setpos(0,0);
+						.play(2);
+						.move(-.getex,0);
+						.setz(5);
+					}
+				}
+				2 => { .move(3, 0); 
+					if( .getpx > iResX+30 && !antheend.isvisible )
+						antheend.show;
+					if( .getpx > iResX+400 )	{
+						.stop(false);
+						ccs.close( func {
+							ccs.show;
+							mus.fadeout(2000);
+							timend.play;
+							} );
+					}
+					}
+				? => ;
+			}
+			});
+		.img = ("theend.pyzH "+(ccs.getz+1));
+		
+		.sounds = (A, "sndnar1", "I tak Kajko i Kokosz wyruszyli uwolniæ kruka Gdasia z r±k czarnoksiê¿nika Hodona", null);
+		
+		ccs.enter( func {
+			.cbplay("sndnar1");
+			ankk.play(0);
+			} );
+		
+		.timer = ("timend", 2000, func { 
+			gameapi.play("Cs30Chapter3");
+			} );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+

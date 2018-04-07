@@ -1,0 +1,161 @@
+
+class BanGui	{
+	init	{}
+	initgui	{
+		@s = .getgraphpath;
+		.path = ("sys_gui");
+		
+		@iguiz = 1234;
+		.newanima("guinventory", "inventory.pyz", iguiz);
+		.newanima("guitems", "items.pyz", iguiz);
+		.newanima("guiszkielko", "szkielko.pyz", iguiz);
+		.newanima("guihint", "hint.pyz", iguiz);
+		.newanima("guimenu", "menu.pyz", iguiz);
+		
+		.setgraphpath(s);
+	}
+	item_rotocenter(string sitem)	{
+		<sitem> {
+			.setframe("rotostart", 0);
+			.disable;
+			
+			new filter ftroto;
+			ftroto.link(this);
+			@ilerot = 30.0;
+			.vars2(A, "ilerotos",ilerot, "idrotos", 0.0, "ikatos", (2.0*360.0)/ilerot,
+				"rzoom", 0.0, "rzoomstep", 0.0, "rmovx", 0.0, "rmovy", 0.0 );
+			
+			real r1 = .getw;
+			@x = .getpx;
+			@y = .getpy;
+			rmovx = (iResX/2-.getcx)->to_r/ilerotos;
+			rmovy = (iResY/2-.getcy)->to_r/ilerotos;
+			.setframe("rotocenter",0);
+			.setpos(x,y);
+			real r2 = .getw;
+			rzoom = r1/r2;
+			rzoomstep = (r2-r1)/r2;
+			idrotos = 0;
+			.item_setroto;
+			
+			.cycle = ("timrotocenter", func {
+				<sitem>.item_setroto;
+				if( <sitem>.idrotos==<sitem>.ilerotos )	{
+					@s = gameapi.getgamename;
+					@sbeh = "beh_"+<sitem>.getbutname+"_TAKEN1";
+					if( <s>.behexist( sbeh ) )	{
+						<gameapi.getgamename>.playbeh( sbeh );
+					} else {
+						
+					}
+				} else .play;
+				} );
+			timrotocenter.var2("sitem", this);
+			timrotocenter.play;
+		};
+	}
+	item_setroto	{
+		ftroto.rotatezoom( ikatos, rzoom + rzoomstep*idrotos/ilerotos );
+		real iop = 128;
+		ftroto.setopacity( iop + (255.0-iop) * idrotos/ilerotos );
+		.move(rmovx, rmovy);
+		idrotos++;
+	}
+}
+
+class classadvstdgame2 : classadvstdgame, BanGui	{
+	init	{
+		classadvstdgame::init;
+		.initadventure;
+		//new int _m_czytaj_tresc = 0;
+		.initgui;
+	}
+	int subloadadventure(string sdb, int irow, int icol, string sord)	{
+		@s[2];
+		match(sord)	{
+			"hoitem:" => {
+				this.analizebut(sord, sdb, irow, icol);
+			}
+			? => ;
+		}
+		icol;
+	}
+	int subanalizebut(string sdb, int irow, int icol)	{
+		icol;
+	}
+	/*mouse_MOVE	{
+		match(igmstate )	{
+			1 => {
+				if( _grels.isin(mouse.getpos,1,1) && _grels.getfound > 0 )	{
+					@s = <_grels.getsfound>.actionname;
+					if( !(s==_s_played && _sndsklad.isplaying) )	{
+						_s_played = s;
+						_sndsklad.load("sounds/jaga_" + s + ".wav");
+						_sndsklad.play;
+					}
+				}
+			}
+			2 => {
+				if ( _grelik.isin(mouse.getpos,1,0) )	{
+					@s = _grelik.getsfound;
+					if( s!=_selik) {
+						_ielik = _grelik.getfound;
+						._m_out_elik;
+						_selik = s;
+						<s>.createtxt(.red);
+					}
+				} else ._m_out_elik;
+			}
+			? => ;
+		}
+	}*/
+	/*mouse_LCLICK	{
+		match( igmstate )	{
+			1 => { if( .m_on_powrot )	.m_przepis_out; }
+			2 => {
+				if( .m_on_powrot )	{
+					.m_zaklecie_out;
+					if( _m_czytaj_tresc )	{
+						_m_czytaj_tresc = 0;
+						.playbeh("behpowrotczytlist");
+					}
+				} else if ( _ansayzak1.isin(mouse.getpos,1,1) )	{
+					_sndzak._msndplay("jaga_32");
+				} else if ( _selik!=null )	{
+					_sndzak._msndplay("jaga_" + (33+_ielik));
+				} else _sndzak.stop(false);
+			}
+			? => ;
+		}
+	}*/
+}
+
+game gameadvdef : classadvstdgame2	{
+	init	{
+		classadvstdgame2::init;
+		new int ifullscreen=0;
+	}
+	keyboard_KEYDOWN	{
+		if( keyboard.iskeydown("f") )	{
+			ifullscreen=!ifullscreen;
+			engine.setfullscreen(ifullscreen);
+		}
+	}
+}
+
+/*game gameaddomkk0 : classadvstdgame2	{
+	init	{
+		classadvstdgame2::init;
+	}
+	kajko_VISIT	{
+		ptkajko	{
+			int id = .getidanpath;
+			string sg = gameapi.getgamename;
+			if( id==11 && !<sg>.behplaying && !clsave.bis("e6_piesek_je"))	{
+				<sg>.playbeh("behpiesekszczeka");
+			}
+		};
+	}
+}*/
+
+

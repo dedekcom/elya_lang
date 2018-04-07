@@ -1,0 +1,6 @@
+flex ddaglex.l
+bison -y -d dpars4.y -v
+#bison -y -d ddagpars.y --verbose
+#bison -y -d ddagpars.y 
+i586-mingw32msvc-gcc y.tab.c -o ddcomp.exe
+

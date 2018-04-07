@@ -1,0 +1,10 @@
+
+game mg02SkrytkaL : Banshee	{
+	init	{
+		Banshee::init("mg02_skrytkal");
+		
+		//.imgs = (A, 
+	}
+}
+
+

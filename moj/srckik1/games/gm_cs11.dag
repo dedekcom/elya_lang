@@ -1,0 +1,75 @@
+
+game Cs11Kapral1 : StdGame	{
+	init	{
+		StdGame::init("cs11kapral1");
+		.path = ("cs11kapral");
+		
+		.imgs = (A, "bg1.pyz", "ziemia1.pyz 5", "woda1.pyzP 3", "kapral1.pyz 10");
+		
+		ankapral1.addmethod("onfinish", func {
+			if( .actionname=="go" )	{
+				ankapral1.play("talk");
+				.cbplay("kapral1");
+			}
+			} );
+		
+		.sounds = (A, "sndnar1", "Kiedy Kajko i Kokosz korzystali z hojno¶ci kaprala w karczmie kapral uda³ siê do Mirmi³owa",
+				func { ankapral1.play("go"); },
+			":kapral1", "Nie mogê uwierzyæ ¿e tak ³atwo mi posz³o z tymi dwoma baranami; Muszê teraz u¶piæ czujno¶æ Mirmi³a",
+				func { ankapral1.play("stand"); ccs.close( func { gameapi.play("Cs11Kapral2"); } ); }
+			);
+		
+		.sfxs = (A, "bgrout2N");
+		
+		ccs.enter( func { .cbplay("sndnar1"); } );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Cs11Kapral2 : StdGame	{
+	init	{
+		StdGame::init("cs11kapral2");
+		.path = ("cs11kapral");
+		
+		.imgs = (A, "bg2.pyz", "glejt2.pyz 5", "mirmil2.pyzP 20", "kapral2.pyz 30");
+		
+		.newfont("fkapral", sgmfontitalic, 34);
+		new db dbglejt;
+		dbglejt.load("lang/glejt.db");
+		new gmimgvec grtxt;
+		for( int i=0; i<dbglejt.getrowsno; i++)	{
+			@s = "txtg"+i;
+			.newtext(s, dbglejt.get(i,0), "fkapral", .black);
+			<s>.setz(10);
+			<s>.setpos( anglejt2.getcx - <s>.getw/2, anglejt2.getpy + 120 + 2*<s>.geth*i );
+			grtxt.add(s);
+		}
+		grtxt.add("anglejt2");
+		grtxt.move(100, 300);
+		.cycle = ("timcyk", func {
+			if( anglejt2.getposx>0 )	{
+				grtxt.move(-1,-3);
+				.play;
+			} else ankapral2.play(-1);
+			} );
+		
+		.sounds = (A, "sndnar1", "Jak powiedzia³ tak uczyni³; Mirmi³ rozpozna³ pismo Kokosza i zezwoli³ kapralowi przebywaæ w grodzie; Ufny w spryt Kajka i Kokosza wkrótce wróci³ do swych zajêæ i zostawi³ kaprala bez opieki kontrwywiadowczej",
+			func { ccs.close( func {
+				.gotoadv("adwieza", "gameadwieza1");
+				} ); }
+			);
+		
+		.sfxs = (A, "bgrout2N 70");
+		
+		ccs.enter( func {
+			timcyk.play;
+			.cbplay("sndnar1");
+			} );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+

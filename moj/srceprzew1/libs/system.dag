@@ -1,0 +1,30 @@
+
+// klasa do np. dynamicznego tworzenia obiektow z prefixem+id
+class classobjcounter	{
+	init()	{
+		new string _sprefix;
+		new int _iile=0;
+	}
+	set(string sprefix)	{
+		_sprefix = sprefix;
+		_iile = 0;
+	}
+	string get()	{
+		_iile++;
+		return _sprefix + (_iile-1);
+	}
+	int size()	{	return _iile;	}
+}
+
+class classvsigobj	{
+	init()	{
+		new bool bplaying=false;
+	}
+	virtual play()	{	bplaying=true;	}
+	virtual stop(bool bstop)	{ 
+		bplaying=false;
+		if( bstop==true )	{	this.onfinish();	}
+	}
+	virtual bool isplaying()	{	return bplaying;	}
+}
+

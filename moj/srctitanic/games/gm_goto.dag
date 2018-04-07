@@ -1,0 +1,281 @@
+
+game Goto : StdGame	{
+	init	{
+		StdGame::init("goto");
+		
+// 		kw.pyz  ups.pyz  bum1.pyz  miesza.pyz  bul.pyz  plum.pyz  bg2.pyz  dym.pyz  els.pyz  ogien.pyz  maska.pyz  bkg.pyz
+		.imgs = (A, "bkg.pyz", "bg2.pyz 1", "maska.pyz 100", "ogien.pyzP 10", "dym.pyzP 50", "plum.pyzH 20",
+			"bul.pyzP 10", "miesza.pyzH 30", "bum1.pyzH 60", "ups.pyzH 60", "kw.pyz 150", "ekw.pyzH 160",
+			"sagan.pyzH", "gotuj.pyz 160");
+		
+		new classplacepointer2 clp;
+		new Button but;
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		angotuj {
+			.setpos(iResX-.getw-20, 20);
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( igmstate == 1 && grels.size<grsklad.size )	{
+					igmstate = 5;
+					.cbplay("kajko_ups");
+				}
+				} );
+			but.add(this);
+		};
+		
+		.sounds = (A, "sndnar1", "Na pieñku le¿± sk³adniki; Klikaj±c na nich prawym przyciskiem myszy us³yszysz ich nazwy",
+				func { clp.show( anzak.getex-50, anzak.getpy+50, "ld" ); .cbplay("sndnar2"); },
+			"sndnar2", "Tutaj znajduje siê przepis na eliksir; Klikaj na nim ¿eby czytaæ recepturê",
+				func { clp.showob("ansagan", "rd"); .cbplay("sndnar3"); },
+			"sndnar3", "Potem przeno¶ w odpowiedniej kolejno¶ci sk³adniki do sagana",
+				func { clp.showob("angotuj", "ru"); .cbplay("sndnar4"); },
+			"sndnar4", "Aby rozpocz±æ gotowanie eliksiru od pocz±tku kliknij tutaj", func { clp.stoph; .cbplay("kajko1"); },
+			":kajko1", "Ten wierszyk kryje w sobie dok³adne wskazówki jak przygotowaæ eliksir; Przystêpujê do gotowania",
+				func { .cbplay("kokosz1"); },
+			":kokosz1", "W razie czego zaj±³em strategiczn± pozycjê za twoimi plecami; Nie musisz siê obawiaæ zemsty pelikana",
+				func { igmstate = 1; },
+			":kajko_ups", "Chyba siê pomyli³em; Muszê rozpocz±æ gotowanie od pocz±tku", func { .cbplay("kokosz_ups"); },
+			":kokosz_ups", "No to szybko wyci±gaj sk³adniki zanim siê rozgotuj±",
+				func { ccs.close( func { gameapi.play("Goto"); } ); },
+			":kajko2", "Zamieszaj okiem tego który siê puszy; Kto siê puszy? Kto ma oko? Zaraz; Wiem! Paw siê puszy; Chodzi o pawie pióro!",
+				func { anmiesza.anplayfin(0, "mcheck"); },
+			":kajko3", "Gotowe; Teraz wymawiam zaklêcie", func { .cbplay("kokosz2"); },
+			":kokosz2", "Rrrety Kajku¶ poczekaj biegnê zobaczyæ czy za chatk± Jagi nie czai siê pelikan",
+				func { .cbplay("kajko4"); },
+			":kajko4", "Zupo zupo udaj siê bo jak nie to ciê zjem!", func {
+				if( anekw0.actionname=="pioro" && anekw1.actionname=="jagody"
+				 && anekw2.actionname=="wlos" && anekw3.actionname=="paprot"
+				 && anekw4.actionname=="muchomor" && anekw5.actionname=="paw"
+				 && anekw6.actionname=="rybka")	{
+					fxwybuch1.play;
+					anbum1.anplayfin(0, func { ccs.close( func { .gotoadv("adjaga", "gameadjaga0"); } ); } );
+				 } else {
+					fxwybuch1.play;
+					anups.anplayfin(0, func { .cbplay("kajko_ups"); } );
+				 }
+				},
+			":kajko5", "Zamrucz po dwakroæ; Tak zwyczajnie zamruczeæ? No dobra; Mru; Mru", func { .cbplay("kokosz3"); },
+			":kokosz3", "Z takim mruczeniem myszy nie przestraszysz; Ja bym to zrobi³ tak", func { .cbplay("kajko6"); },
+			":kajko6", "Stój! Chcesz przedawkowaæ mruczenie? Napisane jest zamruczeæ po dwakroæ; Nie mniej i nie wiêcej",
+				func { .cbplay("kokosz4"); },
+			":kokosz4", "Dobrze ju¿ dobrze; Chcia³em tylko pomóc", func { igmstate=1; }
+			);
+			
+		
+		.newgrimg("grels", "els", 30);
+		new gmimgvec grsklad;
+		for( int i=0; i < grels.size; i++)	{
+			@s = "anekw" + i;
+			.copyanima("anekw", s);
+			@s2 = "ankw" + i;
+			.copyanima("ankw", s2);
+			<s2>.setpos(20+i*<s2>.getw, 20);
+			<s>.setpos(<s2>.getpx, <s2>.getpy);
+			grsklad.add(s);
+			
+			<grels.get(i)> {
+				.Button_isinalpha;
+				.Button_moveonms;
+				.Button_moveoffms;
+				but.add(this);
+			};
+		}
+		ankw.hide;
+		
+		.newanima("anzak", "$scripts/common/zaklecie.pyz", 100);
+		.schowajzak;
+		
+		anzak {
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( igmstate==1 )
+					.m_zaklecie_in;
+				} );
+			but.add(this);
+		};
+		
+		new string sskladnik;
+		.cycle = ("timfall", func {
+			if(<sskladnik>.getpy>390)	{
+				fxwpadldowody.play;
+				anplum.play(-1);
+				.mcheck;
+			} else {
+				<sskladnik>.move(0,20);
+				.play;
+			}
+			} );
+		
+		new snd sndhelper;
+		
+		.sfxs = (A, "ogienN", "wybuch1", "bulbulN 40", "wpadldowody 80", "getpuz 80", "putpuz 80");
+		
+		ccs.enter( func { .cbplay("sndnar1"); clp.showob(grels.first,"ld"); } );
+	}
+	mouse_rclick	{
+		if( igmstate==1 && grels.isin(mouse.getpos,1,1) )	{
+			@s = <grels.getsfound>.actionname;
+			if( s=="rybka" ) s="ryba";
+			sndhelper.load(.getsndpath+"jaga_"+s+".wav");
+			.crplay("sndhelper");
+		}
+	}
+	schowajzak	{
+		anzak.ansetbpos(-anzak.getw + 350, iResY - 200 );
+		anzak.show;
+	}
+	_msndplay(string s)	{
+		.load( "sounds/" + s + ".wav" );
+		.play;
+	}
+	m_new_powrot	{
+		.newanima("ansubadvpowrot", "$scripts/common/powrot.pyz", 2600);
+		ansubadvpowrot.move(90, 127);
+	}
+	m_del_powrot	{	delete ansubadvpowrot;	}
+	m_on_powrot	{	ansubadvpowrot.isin(mouse.getpos,1,1);	}
+	_m_out_elik	{
+		if( _selik!=null )	{
+			<_selik>.createtxt(.black);
+			_selik = null;
+		}
+	}
+	m_zaklecie_in	{ <gameapi.getgamename> {
+		anzak.hide;
+		.newanima("_anzaklecie", "$scripts/common/zaklecie.pyz", 2600);
+		.copyanima("_anzaklecie", "_ansayzak1");
+		_ansayzak1.setframe(1,0);
+		new snd _sndzak;
+		new db _dbelik;
+		_dbelik.load("lang/zaklecie.db");
+		new gmimgvec _grelik;
+		new gmimgvec _grelist;
+		new string _selik = null;
+		new int _ielik = 0;
+		@x = 343; @y = 177;
+		.newfont("_felik", sgmfontitalic, 14);
+		string s;
+		for( int i=0; i< _dbelik.getcolsno(0); i++)	{
+			s = "_txfel" + i;
+			.newtext(s, "", "_felik", .black);
+			<s>.txtset(_dbelik.get(0,i));
+			<s>.setpos(x,y);
+			<s>.setz(2600);
+			y+= <s>.geth + 4;
+			_grelist.add(s);
+		}
+		y+=25;
+		for( i=1; i<_dbelik.getrowsno; i++)	{
+			s = "_txfelik" + i;
+			.newtext(s, "", "_felik", .black);
+			<s>.txtset(_dbelik.get(i,0));
+			<s>.setpos(x,y);
+			<s>.setz(2600);
+			y+= <s>.geth + 4;
+			_grelik.add(s);
+		}
+		
+		.m_new_powrot;
+		igmstate = 2;
+	}; }
+	m_zaklecie_out	{ <gameapi.getgamename> {
+		anzak.show;
+		delete _ansayzak1;
+		delete _anzaklecie;
+		_sndzak.stop(false);
+		delete _sndzak;
+		delete _dbelik;
+		delete _selik;
+		delete _ielik;
+		
+		_grelist.deleteallgm;
+		_grelik.deleteallgm;
+		delete _grelik;
+		delete _grelist;
+		
+		delete _felik;
+		
+		.m_del_powrot;
+		igmstate = 0;
+	}; }
+	cmov_GET	{
+		if(igmstate==1)	{
+			if( grels.isin(mouse.getpos,1,1) )	{
+				@s = grels.getsfound;
+				.mssetobj(s);
+				<s>.setz(110);
+				fxgetpuz.play;
+			}
+		}
+	}
+	mcheck	{
+		igmstate = 1;
+		@s = grsklad.get( grsklad.size - grels.size - 1 );
+		<s>.setframe( <sskladnik>.actionname, 0 );
+		<s>.show;
+		<sskladnik>.hide;
+		if( grels.size == 0 )	{
+			igmstate = 4;
+			.cbplay("kajko3");
+		} else if (grels.size==4)	{
+			igmstate = 4;
+			.cbplay("kajko5");
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		if( ansagan.isin(mouse.getpos,0,1) )	{
+			<s>.ansetbpos( 885-<s>.getw/2, 255 -<s>.geth/2);
+			<s>.setz(anbul.getz);
+			igmstate = 3;
+			sskladnik = s;
+			grels.remove(s);
+			if( grels.size==1 && <s>.actionname=="paw" )	{
+				<s>.hide;
+				anmiesza.show;
+				.cbplay("kajko2");
+			} else {
+				timfall.play;
+			}
+		} else {
+			fxputpuz.play;
+			<s>.setz(30);
+			<s>.setpos(0,0);
+		}
+	}
+	mouse_move	{
+		if( igmstate==2 ) {
+			if ( _grelik.isin(mouse.getpos,1,0) )	{
+				@s = _grelik.getsfound;
+				if( s!=_selik) {
+					_ielik = _grelik.getfound;
+					._m_out_elik;
+					_selik = s;
+					<s>.createtxt(.red);
+				}
+			} else ._m_out_elik;
+		}
+	}
+	mouse_lclick	{
+		if( igmstate==0 ) .cactsndstop(true);
+		
+		|int x, int y| = mouse.getpos;
+		
+		if( igmstate==1)	{
+		} else if (igmstate==5)	{
+			igmstate = 0;
+		} else if( igmstate==2)  {
+			if( .m_on_powrot )	{
+				.m_zaklecie_out;
+				igmstate = 1;
+			} else if ( _ansayzak1.isin(x,y,1,1) )	{
+				_sndzak._msndplay("jaga_32");
+			} else if ( _selik!=null )	{
+				_sndzak._msndplay("jaga_" + (33+_ielik));
+			} else _sndzak.stop(false);
+		}
+	}
+}
+

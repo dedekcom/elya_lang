@@ -1,0 +1,128 @@
+// KomputroMode=3;
+game Bramki : Komputro {
+	init	{
+		Komputro::init("bramki");
+		.path = ("bramki");
+		.bkg = ("bkg.pyz");
+		.imgs = (A, "kolejne.pyzH", "zad.pyz 10");
+		.sfxs = (A, "error", "mikrofala", "skok2");
+		new @ilevel = 0;
+		.newimgarray("grtin", "text", "txti", 20);
+		.newimgarray("grtout", "text", "txto", 20);
+		new @sfont = .stdfont(14);
+		new @idy = 10;
+		new classplacepointer2 clp;
+		new classsimplebutton cbok;
+		cbok.build("scripts/common/butok.pyz", "imglobcurs", 380, 505, 100, 0);
+		grtin.each( func { (@id) .setfont( sfont ); } );
+		grtout.each( func { (@id) .setfont( sfont ); } );
+		.loadlekcja;
+		.newdbscript("dbzad", "zadania.db");
+		.buildlev;
+		new @inextpl=3;
+		
+		.sounds = (A,
+			"sndstart", "Na tej lekcji poæwiczymy zadania z bramkami",
+				func { .cbplay("sndgo1"); clp.show(184,274,"ll"); },
+			"sndgo1", "Po lewej widzisz tabelkê z poznanymi dot±d bramkami",
+				func { .cbplay("sndgo2"); clp.showob("anzad","rd"); },
+			"sndgo2", "Na ¶rodku natomiast bramkê ze zdefiniowanymi sygna³ami wej¶ciowymi",
+				func { .cbplay("sndgo3"); },
+			"sndgo3", "W miejscu znaków zapytania na czerwonym tle ustaw prawid³owy sygna³ wyj¶ciowy",
+				func { .cbplay("sndgo4"); .cshowbut("dd"); },
+			"sndgo4", "Kiedy oznaczysz warto¶ci wyj¶æ wci¶nij przycisk sprawd¼; Powodzenia!",
+				func { clp.stoph; igmstate=1; },
+			"sndok", "Dobrze", "next",
+			"sndhm", "Nie oznaczy³e¶ wszystkich wyj¶æ; widzê znaki zapytania ", "fungo",
+			"sndno", "Niestety widzê b³±d; Przypatrz siê uwa¿nie i popraw", "fungo",
+			"sndfin", "¦wietnie; wszystkie zadania zaliczone",
+				func { grtin.hide; grtout.hide; anzad.hide; .cbplay("sndd1"); },
+			"sndd1", "Jak widzisz bramki mo¿emy ³±czyæ w ró¿ne coraz bardziej skomplikowane uk³ady",
+				func { ankolejne.show; .cbplay("sndd2"); },
+			"sndd2", "And or i not to nie jedyne rodzaje bramek; istnieje 16 ró¿nych funkcji logicznych z dwoma wej¶ciami i wyj¶ciem", "nextplay",
+			"sndd3", "Obecnie w prawdziwych uk³adach elektronicznych korzysta siê z bardziej z³o¿onych elementów posiadaj±cych wiele wej¶æ i wyj¶æ; Ale czasem u¿ywamy na przyk³ad uk³adu 7408 zbudowanego z czterech bramek And", "nextplay",
+			"sndd4", "Jak w praktyce to wygl±da? Oto model uk³adu realizuj±cego funkcjê logiczn± nand",
+				"nextplay",
+			"sndd5", "Uk³ad taki zamkniêty jest w czarnej kostce", "nextplay",
+			"sndd6", "Któr± przylutowuje siê do plastikowej p³ytki", "nextplay",
+			"sndd7", "I ³±czy przewodami z innymi kostkami", "nextplay",
+			"sndd8", "Miliony elementów realizuj±cych proste funkcje logiczne buduj± p³yty g³ówne karty graficzne i procesory", func { .cbplay("sndd9"); },
+			"sndd9", "Kliknij aby przej¶æ do nastêpnej lekcji", func { igmstate=3; }
+		);
+		
+		.cbplay("sndstart");
+	}
+	nextplay	{	.cbplay("sndd"+inextpl);	ankolejne.ansetnextfr; inextpl++;	}
+	next		{
+		if( (KomputroMode==1 && ilevel==2) || (KomputroMode>1 && ilevel==3 ) )	{
+			.cbplay("sndfin");
+		} else {
+			ilevel++;
+			.buildlev;
+			igmstate=1;
+		}
+	}
+	fungo	{	igmstate=1;	}
+	buildlev	{
+		grtin.hide;
+		grtout.hide;
+		string s;
+		int il = ilevel*3;
+		for( int i=0; i<anzad.nofframes(il+1); i++)	{
+			anzad.setframe(il+1,i);
+			s = "txti"+i;
+			<s>.txtsetcol( dbzad.get(2*ilevel,i+1),.grey(40));
+			<s>.setbkg( anzad.getpx, anzad.getpy-idy, <s>.getw+5, <s>.geth+5, .grey(20),20);
+			<s>.show;
+		}
+		for( i=0; i<anzad.nofframes(il+2); i++)	{
+			anzad.setframe(il+2,i);
+			s = "txto"+i;
+			<s>.txtsetcol("?",.grey(240));
+			<s>.setbkg( anzad.getpx, anzad.getpy-idy, <s>.getw+5, <s>.geth+5, .red,192);
+			<s>.show;
+		}
+		anzad.setframe(il,0);
+	}
+	cbok_MOVEON	{
+		sndakskermovon.play;
+	}
+	cbok_CLICK	{
+		if( igmstate==1 )	{
+			igmstate=2;
+			int il = anzad.nofframes(3*ilevel+2);
+			bool b = true, bool bhm = false;
+			for( int i=0; i<il; i++)	{
+				if( <"txto"+i>.get != dbzad.get(2*ilevel+1,i+1 ) )	{
+					b = false;
+					if( <"txto"+i>.get=="?" ) bhm = true;
+				}
+			}
+			if( b ) 	{
+				.cbplay("sndok");
+				fxmikrofala.play;
+			} else {
+				.cbplay( (bhm ? "sndhm" : "sndno" ) );
+				fxerror.play;
+			}
+		}
+	}
+	mouse_lclick	{
+		.cactsndstop(true);
+		if( igmstate==3)	gameapi.play("Binary");
+		else if( igmstate==1 )	{
+			if ( grtout.isin(mouse.getpos, 1,1) ) {
+				string s0 = grtout.getsfound;
+				match(<s0>.get)	{
+					"?" => "0";
+					"0" => "1";
+					"1" => "?";
+					? => ;
+				}
+				<s0>.set;
+				<s0>.createtxt(.grey(240));
+				fxskok2.play;
+			}
+		}
+	}
+}

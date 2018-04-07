@@ -1,0 +1,85 @@
+game Naszyjnik : DziejeGame	{
+	init	{
+		DziejeGame::init("naszyjnik");
+		
+		.EgiptSave("naszyjnik");
+		
+		.gamebg;
+		
+		.sfxs = (A, "getpuz 40", "putpuz 40");
+		
+		.imgs = (A, "bkg.pyz", "start.pyz 5");
+		
+		new DelayMover cmov;
+		new gmimgvec grel1;
+		"grel1" ..< "el1.pyz";
+		grel1.hash;
+		grel1.msetz;
+		new gmimgvec grel2;
+		"grel2" ..< "el2.pyz";
+		grel2.hash;
+		grel2.msetz;
+		
+		new Rect rec1(129,360,350,290);
+		rec1.fitgrouprand("grel1");
+		new Rect rec2(iResX/2 + 5 ,360,350,290);
+		rec2.fitgrouprand("grel2");
+		new classplacepointer2 clp;
+		
+		.sounds = (A,
+			"snd1", "Zrobiê dla ksiê¿niczki naszyjnik" , func { .cbplay("snd2"); clp.showob(grel1.first,"ld"); },
+			"snd2", "Najpierw uformujê konstrukcjê ze z³ota", func { .cbplay("snd3"); clp.showob(grel2.first,"rd"); },
+			"snd3", "Potem wybiorê najpiêkniejsze szlachetne kamienie i powtykam je w p³ytki", func { clp.stoph; igmstate=1; cmov.unlock; },
+			"sndend", "Naszyjnik gotowy; Pora wychodziæ na bal", func { ccs.close( func { gameapi.play("Bal"); } ); }
+			);
+		ccs.enter( func { .cbplay("snd1"); } );
+	}
+	msetz	{	.each( func { (@id) .setz(10+id); } );	}
+	cmov_GET	{
+		|int x, int y| = mouse.getpos;
+		@s;
+		if( igmstate==1 )	{
+			if( grel1.isin(x,y,1,1) )	{
+				fxgetpuz.play;
+				s = grel1.getsfound;
+				<s>.setz(300);
+				.mssetobj(s);
+				grel1.remove(s);
+			}
+		} else if (igmstate==2)	{
+			if( grel2.isin(x,y,1,1) )	{
+				fxgetpuz.play;
+				s = grel2.getsfound;
+				<s>.setz(300);
+				.mssetobj(s);
+				grel2.remove(s);
+			}
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		string s2 = "grel" + igmstate;
+		fxputpuz.play;
+		if( <s>.aninlod(30) )	{
+			<s>.setpos(0,0);
+			<s>.setz(7);
+			if( <s2>.empty )	{
+				if( igmstate==1 ) igmstate=2;
+				else {
+					cmov.lock;
+					igmstate = 3;
+					.cbplay("sndend");
+				}
+			}
+		} else {
+			<s2>.add(s);
+			<s2>.msetz;
+		}
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}

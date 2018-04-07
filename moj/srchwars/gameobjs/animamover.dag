@@ -1,0 +1,128 @@
+/*************************************************************************/
+
+public setasanmover	{
+	new real _r_roadx;
+	new real _r_roady;
+	.addmethod("movereal", func { (real x, real y)
+		_r_roadx += x;
+		_r_roady += y;
+		.move( _r_roadx, _r_roady );
+		_r_roadx -= _r_roadx.to_i;
+		_r_roady -= _r_roady.to_i;
+		} );
+}
+
+class AnMover	{
+	init(string san, real x, real y)	{
+		new timer tmov;
+		tmov.settick(1);
+		tmov.setcycle(1);
+		//new real rdx = x;
+		//new real rdy = y;
+		.vars2(A, "rdx", x, "rdy", y);
+		new real rsx = 0;
+		new real rsy = 0;
+		new string sanima = san;
+		tmov.addmethod("onfinish", func {
+			.move;
+			.builder_func("_finish");
+			.play;
+			} );
+	}
+	move	{
+		rsx += rdx;
+		rsy +=rdy;
+		int x = rsx;
+		int y = rsy;
+		if( x || y ) {
+			<sanima>.move(x,y);
+			rsx-=x;
+			rsy-=y;
+		}
+	}
+	reset	{
+		rsx=0;
+		rsy=0;
+	}
+	play	{
+		.reset;
+		tmov.play;
+	}
+	stop	{	tmov.stop(false);	}
+	enableroll	{	.addmethod( this + "_finish", func { .roll(0,0); } );	}
+	roll(int dx, int dy)	{
+		if( rdx < 0 && <sanima>.getex < 0 ) <sanima>.ansetbpos( igmappw + dx, <sanima>.getpy );
+		else if ( rdx > 0 && <sanima>.getpx >= igmappw ) <sanima>.ansetbpos( dx - <sanima>.getw, <sanima>.getpy );
+		if( rdy < 0 && <sanima>.getey < 0 ) <sanima>.ansetbpos( <sanima>.getpx, igmapph + dy );
+		else if ( rdy > 0 && <sanima>.getpy >= igmapph ) <sanima>.ansetbpos( <sanima>.getpx, dy - <sanima>.geth );
+	}
+}
+
+public SetAnMover_tmov_onfinish	{	<.getbuildername>.sam_move; .play;	}
+class SetAnMover	{
+	init	{}
+	setas(string sanima, real x, real y)	{
+		<sanima>.addmethod("setanmover", "setanmover");
+		<sanima>.setanmover(x,y);
+		<sanima>.addmethod("sam_move", "sam_move");
+		<sanima>.addmethod("sam_copy", "sam_copy");
+		<sanima>.addmethod("sam_addtimer", func {
+			new timer tmov;
+			tmov.settick(1);
+			tmov.setcycle(1);
+			tmov.addmethod("onfinish", "SetAnMover_tmov_onfinish" );
+			} );
+		<sanima>.addmethod("sam_playtimer", func { tmov.play; }		);
+		<sanima>.addmethod("sam_stoptimer", func { tmov.stop(false); }	);
+	}
+	setanmover(real x, real y)	{
+		new real rdx = x;
+		new real rdy = y;
+		new real rsx = 0;
+		new real rsy = 0;
+		.vars2(A, "sam_speed", 1.0, "moved_x", 0, "moved_y", 0);
+	}
+	sam_move	{
+		rsx += (rdx*sam_speed);
+		rsy += (rdy*sam_speed);
+		moved_x = rsx;
+		moved_y = rsy;
+		if( moved_x || moved_y ) {
+			.move(moved_x,moved_y);
+			rsx-=moved_x;
+			rsy-=moved_y;
+			if( .hasvar("ansamcopy") )	{
+				ansamcopy.move(moved_x,moved_y);
+				if( rdx>0.0 )	{
+					if( ansamcopy.getpx > rollerx )	{
+						@dx = ansamcopy.getpx -.getw;
+						ansamcopy.move( dx, 0 );
+						.move( dx, 0 );
+					}
+				} else {
+					if( ansamcopy.getex < rollerex )	{
+						.move(.getw, 0);
+						ansamcopy.move(.getw, 0);
+					}
+				}
+			}
+		}
+	}
+	sam_copy	{
+		if( .gettype=="anima" )
+			.copyanima(this, "ansamcopy");
+		else	{
+			new img ansamcopy;
+			ansamcopy.copy(this);
+		}
+		ansamcopy.buildfullname;
+		.vars2(A, "rollerx", 0, "rollerex", igmappw, "get_sam_copy", ansamcopy.getfullname);
+		ansamcopy.show;
+		if( rdx>0.0 )	{
+			ansamcopy.ansetbpos( .getpx - .getw, .getpy );
+			//("act: "+.actionname + ","+ansamcopy.actionname + " z: "+.getz+","+ansamcopy.getz+" x: "+.getpx+","+ansamcopy.getpx)->print;
+		} else {
+			ansamcopy.ansetbpos( .getex, .getpy );
+		}
+	}
+}

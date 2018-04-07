@@ -1,0 +1,116 @@
+
+game mg22_klapa :Banshee {
+	init{
+    Banshee::init("mg22_klapa");
+    .imgs = (A,"bkg.jpg 1", "popup_bkg.pyz 2","klapa_open.pyzH 3","ramie.pyz 4","klodka.pyz 5","oczko.pyz 6","klucz.pyzH 7", "ramka.pyz 19","popexit.pyz 20" );
+    .sfxs =(A, "bgrszumN 30", "przekrecaklucz", "szufladaklik" );
+    .butpopexit;
+//      .addtopck("klucz_klodka"); //do testow  
+    imgbkg {
+		.addmethod("isbutin", func { (@x, @y)
+			!anpopup_bkg.isin(x,y,0,0);
+			} );
+		.addmethod("butclick", func {
+			if( !.advstdstate ) return;
+			 .mend;
+			} );
+  		butgame.add(this);
+  	};
+    
+   if (!clsave.bis("e1_mg22_klapa_klucz_inserted"))
+  {
+    { 
+      anklodka{
+        .addmethod("isbutin", func { (int x, int y)
+  			   .isin(x,y,0,0)  ;
+  				} ); 
+  			.addmethod("butmoveon", func {
+  		 	     if (!clsave.bis("e1_mg22_klapa_klucz_inserted"))
+                advmouse.set("use"); 
+  			 } );
+  			.addmethod("butmoveoff", func {
+  			   advmouse.setstd;
+  				 
+  			 } );
+         .addmethod("butclick", func {
+			       if(!.advstdstate ) return;
+             if (!clsave.bis("e1_mg22_klapa_klucz_inserted"))
+              .cbplay("snd_brak_klucza");
+         });
+          
+  			 
+  			butgame.add(this);
+       };
+    };
+   }
+   else
+   {
+      anklucz.show();
+  }    
+  anklucz {
+		.addmethod("isbutin", func { (int x, int y)
+		  .advstdstate && .isin(x,y,0,0) && clsave.bis("e1_mg22_klapa_klucz_inserted");
+			} ); 
+		.Button_moveonms;
+		.Button_moveoffms;
+		.addmethod("butclick", func {
+			if(!.advstdstate ) return;
+			anklucz.play("1");
+			fxprzekrecaklucz.play;
+			anramie.play("1");
+			clsave.bset("e1_mg22_klapa_otwarta");
+			butgame.removebut(this);
+			.set_mg_finished;
+			advmouse.setstd;
+			.timplay("time_start",600,func{anklapa_open.anfadein(1600,"timfinito");});
+		} );
+      
+		 
+		 butgame.add(this);
+	};
+     
+	if (!clsave.bis("e1_mg22_klapa_klucz_inserted")) {
+		.newsndfree("snd_brak_klucza", "kinnat_c3d3_5");
+		snd_brak_klucza.addmethod("onfinish", func {.advsetstdstate;});
+	}  
+ 
+	.stdstart; 
+     
+  }// koniec init 
+   
+   USE_klucz_klodka	{
+		.advsetstdstate();
+    if( anklodka.isin(mouse.getpos,0,0) )	{
+		.removefrompck("klucz_klodka");
+		anklucz.anfadein(800,null);
+		butgame.removebut("anklodka");
+		clsave.bset("e1_mg22_klapa_klucz_inserted");
+		fxszufladaklik.play; 
+		advmouse.setstd;
+   
+    } else {
+		  .advsetstdstate; 
+      .item_gotopck;
+		}
+	} 
+   
+    
+  mend	{
+    .stdexitdefadv("ad22_kuchnia", "gamead22_kuchnia0"); 
+  }
+   
+  
+  HINT_CLICK {
+     
+      if (clsave.bis("taken_klucz_klodka"))
+      {
+        if (!clsave.bis("e1_mg22_klapa_klucz_inserted"))
+			.showhintitem("klucz_klodka"); 
+        .showhint("anklodka");
+      }
+      else
+        .showhint("anpopexit"); 
+     
+  }
+}
+ 

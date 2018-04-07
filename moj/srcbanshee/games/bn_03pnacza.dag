@@ -1,0 +1,772 @@
+
+game mg03_pnacza :Banshee {
+	init{
+    Banshee::init("mg03_pnacza");
+    .imgs = (A, "bkg.jpg 0", "base.pyz 1",/*"rama_win.pyzH 2",*/ "cegla_1.pyzH 3","cegla_2.pyzH 3","cegla_3.pyzH 3","cegla_1_fall.pyzH 3","cegla_2_fall.pyzH 3","cegla_3_fall.pyzH 3", "diamond_1.pyzH 4", "diamond_2.pyzH 5", 
+              "diamond_3.pyzH 5","1.pyzH 6","2.pyzH 6","3.pyzH 6","4.pyzH 6","5.pyzH 6","6.pyzH 6","7.pyzH 6","8.pyzH 6","9.pyzH 6" , "rama.pyz 7", "cut_1.pyz 8", "cut_2.pyz 9","cut_3.pyz 10", "cut_4.pyz 11", "cut_5.pyz 12",  "cut_6.pyz 13", "frame.pyz 14", "popexit.pyz 15" );
+    .butpopexit; 
+     
+    
+    //  .addtopck("sekator"); 
+	
+	.askopis("mg03_pnacza"); 
+	anaskopis.ansetbpos( anpopexit.getcx + anaskopis.getw, anpopexit.getcy - anaskopis.geth/2);
+	anaskopis.hide;
+    .sfxs = (A, "bgrwiatrN 30", "bgrlas2N 20", "cegly 80", "sekator 90", "prund", "write1", "write2");
+    
+    .newsndfree("sndnidagetrid", "kinnat_c1d1_7");
+    .newsndfree("sndnidaloosenbrick", "kinnat_c1d1_9");
+    
+    imgbkg {
+  		.addmethod("isbutin", func { (@x, @y)
+  			!anbase.isin(x,y,0,0);
+  			} );
+  		.addmethod("butclick", func {
+  			if( !.advstdstate ) return;
+  			 .mend;
+  			} );
+    		butgame.add(this);
+  	 };      
+    
+    new bool computer_turn = true;     
+    new int shake1 = 0;
+    new int shake2 = 0;
+    new int shake3 = 0;  
+    
+	new Film filmb;
+	filmb.musicclass = ("mus");
+	filmb.load("scripts/cs03_pnacza/", "film");
+	filmb.setpos( anbase.getpx, anbase.getpy );  
+	filmb.showfirstframe;
+	filmb.setz(2);
+	//filmb.addmethod("onfinish", func {} );  
+    
+    for( int i=1; i<=6; i++)	{  
+       <"ancut_"+i> {
+        .Button_isin;
+        .addmethod("butmoveon", func {
+			advmouse.set("use");   
+          } );
+		.addmethod("butmoveoff", func {
+			 advmouse.setstd;
+		
+		} );
+			
+		.addmethod("butclick", func {
+				if( !.advstdstate || sgmstate=="getitem") return;
+				  if (.get_ancut() > -1)
+						.cbplay("sndnidagetrid");
+				} );		
+			 	
+			 	
+          butgame.add(this); 
+        };
+     }; 
+    // buttony 
+    
+     for( int i=1; i<=9; i++)	{ 
+      <"an"+i> {
+  			.Button_isin;
+      			.Button_moveonms;
+      			.Button_moveoffms;
+  					.addmethod("butclick", func {
+  					  if( !.advstdstate ) return;
+                fxwrite1.play;
+                if (.actionnr(-1)== 0){ 
+                  .play(1);
+                  .anfadein(500,func{ 
+						if (.check_won() == 0)
+						  {
+							if (!.table_full())
+							  .computer_move();
+							  
+							if (.check_won()> 0)
+							{
+								//someone win   
+								if (.check_won() == 1)  //player won
+								{
+									.player_won(); 
+								}
+								else //computer won
+								{
+									.start_game();
+								}
+							}
+							else{
+							  if (.table_full()){  //table full  - restart
+								   .start_game();
+							  }
+							}
+						  }
+						  else 
+						  { 
+							
+							//someone win   
+							if (.check_won() == 1)  //player won
+							{
+							   
+								.player_won();
+							  return;
+							}
+							else     //computer won
+							{
+								
+								.start_game();
+							  return;
+							}
+							
+							if (.table_full()){          //table full  - restart
+								
+								.start_game();
+							}
+							 
+						}
+				  
+				  
+				  
+				  });
+                   
+              }
+  					 } );
+             butgame.add(this);
+  				};
+      }
+    
+    
+		for( int i=1; i<=6; i++)	{ 	
+        <"ancut_"+i> {
+          .clip( anbase.getpx, anbase.getpy, anbase.getex, anbase.getey ); 
+			 };
+		}
+      
+      ancegla_1{
+          .Button_isin;
+    			.Button_moveonms;
+    			.Button_moveoffms; 
+				//.addmethod("onfinish", func {butgame.refresh; } );  
+				.addmethod("butclick", func {
+					if( !.advstdstate ) return;
+					fxcegly.play;
+					if (shake1 < 2)
+					{
+						shake1 = shake1 +1;
+						.play("shake");
+					}
+					else
+					{  
+						.play("push");
+						ancegla_1_fall.show();
+						ancegla_1_fall.play("fall");
+						andiamond_1.anfadein(300,null);  
+						clsave.bset("bn03pnacza_cegla_1_pushed"); 
+						advmouse.set("take");
+						butgame.removebut(this);
+						 
+					}
+				} );
+				//butgame.add(this);
+      }; 
+      ancegla_2{
+           .Button_isin;
+    			.Button_moveonms;
+    			.Button_moveoffms;
+				//.addmethod("onfinish", func {butgame.refresh; } );  
+				.addmethod("butclick", func {
+					if( !.advstdstate ) return;
+					fxcegly.play;
+					if (shake2 < 2)
+					{
+					  shake2 = shake2 +1;
+					  .play("shake");
+					}
+					else
+					{  
+						ancegla_2_fall.show();
+						ancegla_2_fall.play("fall");
+						.play("push");
+						andiamond_2.anfadein(300,null);  
+						clsave.bset("bn03pnacza_cegla_2_pushed");
+						butgame.removebut(this);
+						advmouse.set("take"); 
+						 
+					}
+				} );
+				//butgame.add(this);
+      }; 
+      ancegla_3{
+          .Button_isin;
+    			.Button_moveonms;
+    			.Button_moveoffms; 
+				//.addmethod("onfinish", func {butgame.refresh; } );  
+				.addmethod("butclick", func {
+					if( !.advstdstate ) return;
+					fxcegly.play;
+					if (shake3 < 2)
+					{
+					  shake3 = shake3 +1;
+					  .play("shake");
+					}
+					else
+					{  
+						.play("push");
+						ancegla_3_fall.show();
+						ancegla_3_fall.play("fall");
+						andiamond_3.anfadein(300,null);  
+						clsave.bset("bn03pnacza_cegla_3_pushed");
+						advmouse.set("take");
+						butgame.removebut(this);
+						 
+					}
+				 } );
+			//	butgame.add(this);
+      }; 
+  
+      .setasitemtopck("andiamond_1");
+      .setasitemtopck("andiamond_2");
+      .setasitemtopck("andiamond_3");
+     
+   
+    //flagi 
+    for( int i=1; i<=6; i++)
+    {
+       if (clsave.bis("e1_bn03pnacza_cuted_"+ i))
+       {
+         <"ancut_"+i>.hide();
+       }
+    } 
+    
+   
+    if (clsave.bis("bn03pnacza_player_won"))
+    {
+      anrama.hide();
+      /*anrama_win.show();
+      anrama_win.play("burned");*/
+      filmb.showlastframe;
+      
+      if (clsave.bis("bn03pnacza_cegla_1_pushed"))
+      {
+        ancegla_1.show();
+        ancegla_1.play("pushed");
+        if ( !clsave.bis("taken_krysztal_red_1"))
+        {
+          andiamond_1.show();
+        }
+      }
+      else
+      {
+         ancegla_1.show(); 
+         butgame.add("ancegla_1"); 
+      }
+      
+      if (clsave.bis("bn03pnacza_cegla_2_pushed"))
+      {
+        ancegla_2.show();  
+        ancegla_2.play("pushed");
+        if ( !clsave.bis("taken_krysztal_red_2"))
+        {
+          andiamond_2.show();
+        }
+      }  
+      else
+      {
+         ancegla_2.show();
+         butgame.add("ancegla_2");   
+      }
+      if (clsave.bis("bn03pnacza_cegla_3_pushed"))
+      {
+        ancegla_3.show();
+        ancegla_3.play("pushed");
+        if ( !clsave.bis("taken_krysztal_blue_1"))
+        {
+          andiamond_3.show();
+        }
+      }
+      else
+      {
+         ancegla_3.show();
+         butgame.add("ancegla_3");   
+      }
+    }
+    else
+    { 
+      if (.check_game_can_start())
+      {
+         .start_game();
+      }
+    }
+    
+    if (!clsave.bis("bn03pnacza_player_won")) 
+    { 
+      .newsndfree("snd_intro_tic_tac_toe", "kinnat_c1d1_10a");
+      snd_intro_tic_tac_toe.addmethod("onfinish", "advsetstdstate");     
+      clsave.bset(save_prefix+"intro_tic_tac_toe_spoken"); 
+      /*if (.check_game_can_start())
+       .cbplay("snd_intro_tic_tac_toe");  */
+    
+    }  
+    
+		ccs.enter( func {
+			.advsetstdstate;
+			if( !clsave.bisand2("e1_bn03pnacza_cuted_", 6) )
+				.cbplay("sndnidagetrid");
+			else if ( !clsave.bis("bn03pnacza_player_won") )
+				.cbplay("snd_intro_tic_tac_toe");
+			else if ( !clsave.bisand("bn03pnacza_cegla_",1,3,"_pushed") )
+				.cbplay("sndnidaloosenbrick");
+		} );
+	 } // koniec init
+   
+   mend	{ 
+    .stdexitdefadv("ad03_placglowny", "gamead03_placglowny0");
+	}
+   
+	check_game_can_start()
+	{
+		for( int i=1; i<=6; i++)
+		{
+			if (!clsave.bis("e1_bn03pnacza_cuted_"+ i))
+				return false;
+		}
+		return true;  
+	}
+   
+     start_game()
+     {
+		if( !guiskipmg.isvisible )	{
+			guihint.switchtoskip;
+			anaskopis.show;
+		}
+		
+        for( int i=1; i<=9; i++)
+        {   
+          <"an"+i>.show();
+          <"an"+i>.play("empty");
+          <"an"+i>.anfadein(400,null);
+        } 
+		
+        int count = 7;
+        if (computer_turn){ 
+          <"an"+(count->rand +1)>.play("x");  
+          computer_turn = false;
+        }
+        else
+        {
+          computer_turn =  true;
+        }
+        
+    } 
+    
+    act_anim(int id)
+    {
+        return <"an"+id>.actionnr(-1);
+    }
+     
+     check_won() {
+        if (.act_anim(1) == .act_anim(2) && .act_anim(2) == .act_anim(3) && .act_anim(1) > 0)
+      		return .act_anim(1);
+       	if (.act_anim(4) == .act_anim(5) && .act_anim(5) == .act_anim(6) && .act_anim(4) > 0)
+      		return .act_anim(4);
+      	if (.act_anim(7) == .act_anim(8) && .act_anim(8) == .act_anim(9) && .act_anim(7) > 0)
+      		return .act_anim(7);
+       	if (.act_anim(1) == .act_anim(4) && .act_anim(4) == .act_anim(7) && .act_anim(1) > 0)
+      		return .act_anim(1);
+        if (.act_anim(2) == .act_anim(5) && .act_anim(5) == .act_anim(8) && .act_anim(2) > 0)
+      		return .act_anim(2);
+        	if (.act_anim(3) == .act_anim(6) && .act_anim(6) == .act_anim(9) && .act_anim(3) > 0)
+      		return .act_anim(3);
+       	if (.act_anim(1) == .act_anim(5) && .act_anim(5) == .act_anim(9) && .act_anim(1) > 0)
+      		return .act_anim(1);
+      	if (.act_anim(3) == .act_anim(5) && .act_anim(5) == .act_anim(7) && .act_anim(3) > 0)
+      		return .act_anim(3);    
+        return 0;  
+     }
+     
+     computer_move(){
+         
+        //check horizontal
+          fxwrite2.play;
+        if (9->rand >4){
+            if (.act_anim(1) == 1 && .act_anim(2) == 0 && .act_anim(3) == 1)
+            {
+        		     <"an2">.play("x");
+
+                 return;
+            }
+            if (.act_anim(4) == 1 && .act_anim(5) == 0 && .act_anim(6) == 1)
+            {
+        		     <"an5">.play("x");
+                 return;
+            }
+            if (.act_anim(7) == 1 && .act_anim(8) == 0 && .act_anim(9) == 1)
+            {
+        		     <"an8">.play("x");
+                 return;
+            }
+          //check vertical
+            if (.act_anim(1) == 1 && .act_anim(4) == 0 && .act_anim(7) == 1)
+            {
+        		     <"an4">.play("x");
+                 return;
+            }
+            if (.act_anim(2) == 1 && .act_anim(5) == 0 && .act_anim(8) == 1)
+            {
+        		     <"an5">.play("x");
+                 return;
+            }
+            if (.act_anim(3) == 1 && .act_anim(6) == 0 && .act_anim(9) == 1)
+            {
+        		     <"an6">.play("x");
+                 return;
+            } 
+            
+             //check crosses
+            if (.act_anim(1) == 1 && .act_anim(5) == 0 && .act_anim(9) == 1)
+            {
+        		     <"an5">.play("x");
+                 return;
+            }
+            if (.act_anim(1) == 1 && .act_anim(5) == 1 && .act_anim(9) == 0)
+            {
+        		     <"an9">.play("x");
+                 return;
+            }
+            
+            if (.act_anim(1) == 0 && .act_anim(5) == 1 && .act_anim(9) == 1)
+            {
+        		     <"an1">.play("x");
+                 return;
+            }
+            
+            
+            if (.act_anim(3) == 1 && .act_anim(5) == 0 && .act_anim(7) == 1)
+            {
+        		     <"an5">.play("x");
+                 return;
+            }
+            
+            if (.act_anim(3) == 1 && .act_anim(5) == 1 && .act_anim(7) == 0)
+            {
+        		     <"an7">.play("x");
+                 return;
+            }
+            
+            if (.act_anim(3) == 0 && .act_anim(5) == 1 && .act_anim(7) == 1)
+            {
+        		     <"an3">.play("x");
+                 return;
+            }
+             //check horizontal again
+            
+          
+            if (.act_anim(1) == 1 && .act_anim(2) == 1 && .act_anim(3) == 0)
+            {
+        		     <"an3">.play("x");
+                 return;
+            }
+            if (.act_anim(1) == 0 && .act_anim(2) == 1 && .act_anim(3) == 1)
+            {
+        		     <"an1">.play("x");
+                 return;
+            }
+            
+            if (.act_anim(4) == 1 && .act_anim(5) == 1 && .act_anim(6) == 0)
+            {
+        		     <"an6">.play("x");
+                 return;
+            }
+            if (.act_anim(4) == 0 && .act_anim(5) == 1 && .act_anim(6) == 1)
+            {
+        		     <"an4">.play("x");
+                 return;
+            }
+            
+            if (.act_anim(7) == 1 && .act_anim(8) == 1 && .act_anim(9) == 0)
+            {
+        		     <"an9">.play("x");
+                 return;
+            }
+            if (.act_anim(7) == 0 && .act_anim(8) == 1 && .act_anim(9) == 1)
+            {
+        		     <"an7">.play("x");
+                 return;
+            }
+            
+             //check vertical again
+            
+          
+            if (.act_anim(1) == 1 && .act_anim(4) == 1 && .act_anim(7) == 0)
+            {
+        		     <"an7">.play("x");
+                 return;
+            }
+            if (.act_anim(1) == 0 && .act_anim(4) == 1 && .act_anim(7) == 1)
+            {
+        		     <"an1">.play("x");
+                 return;
+            }
+            
+            if (.act_anim(2) == 1 && .act_anim(5) == 1 && .act_anim(8) == 0)
+            {
+        		     <"an8">.play("x");
+                 return;
+            }
+            if (.act_anim(2) == 0 && .act_anim(5) == 1 && .act_anim(8) == 1)
+            {
+        		     <"an2">.play("x");
+                 return;
+            }
+            
+            if (.act_anim(3) == 1 && .act_anim(6) == 1 && .act_anim(9) == 0)
+            {
+        		     <"an9">.play("x");
+                 return;
+            }
+            if (.act_anim(3) == 0 && .act_anim(6) == 1 && .act_anim(9) == 1)
+            {
+        		     <"an3">.play("x");
+                 return;
+            }  
+            
+            for( int i=1; i<=9; i++){   
+              if ( <"an"+i>.actionnr(-1)== 0){
+                   <"an"+i>.play("x");
+                  return;
+              } 
+            } 
+          }
+          else 
+          {   
+            bool found = false;
+            while( !found)	{
+    				    int pos = 9->rand +1; 
+                if ( <"an"+pos>.actionnr(-1)== 0){
+                    <"an"+pos>.play("x");
+                    found =  true;
+                } 
+  					} 
+          }
+      }
+     
+      table_full(){
+        for( int i=1; i<=9; i++){   
+          if ( <"an"+i>.actionnr(-1)== 0){
+            return false;
+          } 
+        } 
+        return true;  
+      }
+      
+      player_won(){
+		.clear_table();
+		anrama.hide();
+		/*anrama_win.show(); 
+		anrama_win.play(0);*/
+		filmb.play;
+		.show_bricks(); 
+		clsave.bset("bn03pnacza_player_won");   
+		.cbplay("sndnidaloosenbrick");
+		guihint.switchtohint;
+		anaskopis.anfadeout(500,null);
+		  
+      }
+      
+      clear_table()
+      {
+        advmouse.setstd;
+        for( int i=1; i<=9; i++)
+        {   
+          <"an"+i>.hide(); 
+           butgame.removebut("an"+i);
+        }
+          
+      }
+      
+      show_bricks()
+      {
+        advmouse.setstd;
+        ancegla_1.show();   
+        ancegla_1.play("start");
+        ancegla_2.show();  
+        ancegla_2.play("start");
+        ancegla_3.show();   
+        ancegla_3.play("start");
+        butgame.add("ancegla_1");
+        butgame.add("ancegla_2");
+        butgame.add("ancegla_3"); 
+          
+      }
+      
+		andiamond_1_TAKE	{.item_takecenter("krysztal_red_1");.check_finished();}
+    	andiamond_1_INPCK{
+			.addtopck("krysztal_red_1");
+			.check_finished();
+			if (.is_mg_finished)
+				.timfinito;    
+             
+    	} 
+      
+      
+      //-------------------------------------------------------------
+     
+      andiamond_2_TAKE	{.item_takecenter("krysztal_red_2"); .check_finished();	}
+    	andiamond_2_INPCK	{
+    		.addtopck("krysztal_red_2");
+			.check_finished();
+			if (.is_mg_finished)
+				.timfinito;    
+    	} 
+      
+      //-------------------------------------------------------------
+     
+      andiamond_3_TAKE	{.item_takecenter("krysztal_blue_1");.check_finished();}
+    	andiamond_3_INPCK	{
+    		.addtopck("krysztal_blue_1");
+			.check_finished();
+			if (.is_mg_finished)
+				.timfinito;    
+    	} 
+      
+      
+      check_finished()
+      { 
+         if (clsave.bis("taken_krysztal_blue_1")  &&  clsave.bis("taken_krysztal_red_1") &&  clsave.bis("taken_krysztal_red_2"))
+            .set_mg_finished(); 
+      } 
+      
+      get_ancut()
+      {
+        for( int i=1; i<=6; i++)	{ 	
+          if (<"ancut_"+i>.isin(mouse.getpos,1,1)&& <"ancut_"+i>.isvisible )
+          {
+            return i;   
+          }
+        }
+        return -1; 
+      }
+      
+      USE_sekator	{
+        .advsetstdstate;   
+        if( anbase.isin(mouse.getpos,1,0) )	{
+			fxsekator.play;
+			int index = .get_ancut();
+			if (index >-1 || .checktouchpad)
+			{
+				 
+				if (.checktouchpad)
+				{
+					for( int i=1; i<=6; i++)
+				   {
+						<"ancut_"+i>.hide();
+						clsave.bset("e1_bn03pnacza_cuted_"+ i);	
+				   }
+				}
+				else
+				{
+					<"ancut_"+index>.hide();
+					clsave.bset("e1_bn03pnacza_cuted_"+ index);
+				
+				}
+				
+				
+				if (.check_game_can_start())
+				{
+					if (!.checktouchpad)
+					{
+						.copyanima("anitem_sekator","fake_anitem_sekator");
+						fake_anitem_sekator.play("cut");
+						fake_anitem_sekator.anfadeout(300,null);
+					}
+					.removefrompck("sekator"); 
+					.start_game(); 
+					.cbplay("snd_intro_tic_tac_toe"); 
+				}
+				else
+				{
+				   // tu ma zostac pod kursorem.
+				  //.item_gotopck;  
+				 anitem_sekator.play("cut");
+				 .advsetstate("getitem");
+				 guimov.setmoved("anitem_sekator"); 
+				  
+				}      
+			}
+			else
+			{ 
+				if (!.checktouchpad)
+				{	
+					anitem_sekator.play("cut");
+					.advsetstate("getitem");
+					guimov.setmoved("anitem_sekator"); 
+				}
+				else
+					.item_gotopck; 	
+			}
+        }
+        else
+        {
+			.item_gotopck; 
+        }    
+      } 
+      
+       
+		SKIP_CLICK	{
+			if( .advstdstate )	{
+				.player_won;
+			}
+		}
+      
+      
+      HINT_CLICK {
+       if (clsave.bis("ma_sekator"))
+        { 
+          for( int i=1; i<=6; i++)
+          {
+             if (!clsave.bis("e1_bn03pnacza_cuted_"+ i))
+             {
+                .showhint("ancut_"+i);
+                .showhintitem("sekator");
+                return;
+             }
+          } 
+           
+        } 
+        else if(clsave.bis("bn03pnacza_player_won")){
+            if (!clsave.bis("taken_krysztal_red_1"))
+            {
+              .showhint("andiamond_1");
+              return;
+            }
+            
+           if ( !clsave.bis("taken_krysztal_red_2"))
+            {
+              .showhint("andiamond_2");
+              return;
+            }
+            
+            if (!clsave.bis("taken_krysztal_blue_1"))
+            {
+              .showhint("andiamond_3");
+              return;
+            }
+            
+            else
+		.showhint("anpopexit"); 
+             
+        }
+        else if(.check_game_can_start && !clsave.bis("bn03pnacza_player_won"))
+        {
+           for( int i=1; i<=9; i++)
+            {   
+              if (<"an"+i>.actionnr(-1)== 0)
+              {
+                .showhint("an"+i);
+                return;
+              }
+            }   
+          
+        }
+        else
+          .showhint("anpopexit"); 
+    }           
+}
+ 

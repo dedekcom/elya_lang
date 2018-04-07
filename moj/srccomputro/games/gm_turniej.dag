@@ -1,0 +1,751 @@
+
+new db dbTurniej;
+new int TurniejLevel;
+game Turniej : Computro	{
+	init	{
+		Computro::init("turniej");
+		advmouse.setstd;
+		
+		TurniejLevel = 1 + clsave.get("TurniejLevel");
+		
+		.sounds = (A,
+			":ania1", "Co teraz? Te roboty nie przejawiaj± przyjacielskich zamiarów", func { .cbplay("fel1"); },
+			":fel1", "Wszêdzie walaj± siê jakie¶ czê¶ci; Zbudujemy nasze roboty; Pomo¿esz nam Zak?", func { .cbplay("zak1"); },
+			":zak1", "Jasne; Znam co nieco te podzespo³y; Najpierw poszukajmy bateriê", func { .cbplay("ania2"); },
+			":ania2", "Mam bateriê; Chyba wiem o co chodzi", func { .cbplay("ania3"); },
+			":ania3", "Ka¿dy element robota zabiera kawa³ek mocy baterii; Musimy z³o¿yæ robota który stanie do walki", func { .cbplay("zak2"); },
+			":zak2", "Czytajcie opisy urz±dzeñ i z³ó¿cie zwyciêskiego robota", "mstart",
+			":ania4", "Robot gotowy do pojedynku", null,
+			":ania8", "Robotowi brakuje mocy obliczeniowej", null,
+			":ania9", "Robot zu¿ywa za du¿o energii", null
+			);
+// 		bkg.pyz        robo.pyz     szeyes.pyz  szhead.pyz  szufw.pyz
+// robocorps.pyz  szarmor.pyz  szhand.pyz  szuf.pyz    szwheels.pyz
+		
+		.imgs = (A, "bkg.pyz", "robocorps.pyz 30", "ikoi.pyz 50", "ikoe.pyz 50");
+		anikoi.move(0,5);
+		anikoe.move(0,5);
+		new gmimgvec grszuf;
+		"grszuf" .* "szuf.pyz";
+		new gmimgvec grszufw;
+		"grszufw" .* "szufw.pyz";
+		grszufw.hide;
+		new gmimgvec grobo;
+		"grobo" ..< "robo.pyz";
+		grobo.setz(60);
+		grobo.hide;
+		new img anitem;
+		anitem.setz(100);
+		anitem.vars2(A, "szuflada", null, "sobject", null);
+		
+		new font fncyf;
+		fncyf.load("configs/fonts/ala.ttf", 14);
+		.newtext("txti", "", "fncyf", .micol);
+		.newtext("txte", "", "fncyf", .mecol);
+		txti.setpos( anikoi.getcx+5, anikoi.getcy - txti.geth/2);
+		txte.setpos( anikoe.getcx+5, anikoe.getcy - txte.geth/2);
+		
+		new int Energy;
+		new int Armor;
+		new int Speed;
+		new int Power;
+		new int Supply;
+		new int Inteligence;
+		new string stdfont12 = .stdfont(12);
+		new int istdfont = 12;
+		new string slasthelp = null;
+		
+		.newdb("dbwsp", "wspolczynniki.db");
+		.newdb("dblev", "levele.db");
+		.lang_db("dblevel", "level");
+		new db dbl;
+		dbl.dbcopy("dblevel");
+		dbl.dbremovecol(0);
+		
+		new ConImgMover cmov;
+		new GUI gui("butgame");
+		
+		anrobocorps.Button_isin;
+		anrobocorps.Button_moveoffms;
+		anrobocorps.addmethod("butmoveon", func { advmouse.setexit; });
+		butgame.add("anrobocorps");
+		anrobocorps.vars2(A, "shead", null, "sarmor",null, "shand", null, "seyes", null, "srhand", null, "swheels", null);
+		
+		new int ilevel = TurniejLevel;
+		.msetlevel;
+		
+		new string sactszuf = null;
+		grobo.eval( func {
+			.Button_isinalpha;
+			.Button_moveoffms;
+			.Button_moveonms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				
+				anitem.clone(this);
+				anitem.setz(100);
+				anitem.sobject = (sobject);
+				anitem.szuflada = (szuflada);
+				cmov.mssetobj("anitem");
+				
+				.hide;
+				if( sobject == "anszarmor3" )	{
+					.mgetrobo( anrobocorps.srhand );
+					anrobocorps.srhand=(null);
+				} else {
+					.mgetrobo( anrobocorps.<"s"+szuflada> );
+					anrobocorps.<"s" + szuflada + "=">(null);
+				}
+				} );
+			.addmethod("butlrel", "mcheckput");
+			.vars2(A, "sitem", null, "szuflada", null, "sobject", null);
+			if( .actionnr(-1)==1 ) .setz(20);
+			} );
+		butgame.addgroup("grobo");
+		grszuf.eval( func {
+			.setz(15);
+			<GAME> (this) { (string s)
+				s = <s>.actionname;
+				@sgr = "gr" + s;
+				new gmimgvec <sgr>;
+				sgr .* ("sz"+s+".pyz");
+				<sgr>.setz(20);
+				<sgr>.eval1( func { (@sszuf)
+					.Button_isin;
+					.addmethod("butmoveon", func {
+						if( igmstate!=1 ) return;
+						if( .framenr<2 ) advmouse.setbut;
+						.mprinthelp(sactszuf+"_"+.actionnr(-1));
+						} );
+					.addmethod("butmoveoff", func {
+						advmouse.setstd;
+						.mprinthelp("intro");
+						} );
+					.addmethod("butclick", func {
+						if( igmstate!=1 ) return;
+						if( .framenr==0 )	{
+							anitem.clone(this);
+							anitem.setz(100);
+							anitem.sobject = (this);
+							anitem.szuflada = (sactszuf);
+							cmov.mssetobj("anitem");
+							.setframe(-1,2);
+						}
+						} );
+					.addmethod("butlrel", "mcheckput");
+					@id = dbwsp.findbyrow(sszuf) + .actionnr(-1);
+					.vars2(A, "szuflada", sszuf, "energy", dbwsp.get(id, 2)->to_i, "inteligence", dbwsp.get(id, 3)->to_i,
+						"armor", dbwsp.get(id, 4)->to_i, "speed", dbwsp.get(id, 5)->to_i, "power", dbwsp.get(id, 6)->to_i );
+					}, s );
+				butgame.addgroup(sgr);
+				<sgr>.hide;
+			};
+			.Button_std;
+			.addmethod("butclick", func {
+				<GAME>.mwysun(.actionname);
+				} );
+			} );
+		@s[3];
+		for( int i=0; i<grobo.size; i++)	{
+			s0 = grobo.get(i);
+			s1 = <"gr"+<s0>.actionname>.get( <s0>.framenr );
+			<s0>.sobject = (s1);
+			<s0>.szuflada = (<s0>.actionname);
+			<s1>.var2("srobo", s0);
+		}
+		butgame.addgroup("grszuf");
+		
+		gui.newbutton("butgo", dblevel.get( dblevel.findbyrow("start"), 1 ), 110, 25);
+		butgo.setz(100);
+		butgo.setpos( iResX-butgo.getw-5, 4 );
+		
+		.mprinthelp("intro");
+		
+		ccs.enter( func {
+			if( !clsave.bis("pogadali_wstep_do_turnieju") )	{
+				clsave.bset("pogadali_wstep_do_turnieju");
+				.cbplay("ania1");
+			} else
+				.mstart;
+			} );
+		//.cbplay("ania1");
+	}
+	mstart	{	igmstate=1;	}
+	mcheckput	{
+		if( cmov.moving )	{
+			cmov.free;
+			anitem.hide;
+			butgame.sclicked = (null);
+			if( anrobocorps.isin(mouse.getpos, 1,0) )	{
+				@s = anitem.sobject;
+				@sszuf = anitem.szuflada;
+				if( s=="anszarmor3" )	{	// tarcza
+					anrobocorps.srhand=(s);
+				} else {
+					.mremrobo( anrobocorps.<"s"+sszuf> );
+					anrobocorps.<"s"+sszuf+"="> (s);
+				}
+				.maddrobo(s);
+			} else .mretitem(anitem.sobject);
+		}
+	}
+	micol		{	return 255,255,25;	}
+	mecol	{	return 25,255,25;		}
+	merrcol	{	return 255,25,25;		}
+	mupdate	{
+		txti.txtsetcol(Inteligence, ( Inteligence>=0 ? .micol : .merrcol ) );
+		txte.txtsetcol(Energy, ( Energy>=0 ? .mecol : .merrcol ) );
+	}
+	maddrobo(string s)	{
+		< <s>.srobo>.show;
+		.mupdateei(s, 1);
+	}
+	mgetrobo(string s)	{
+		if(s!=null) {
+			< <s>.srobo>.hide;
+			.mupdateei(s,-1);
+		}
+	}
+	mremrobo(string s)	{
+		.mgetrobo(s);
+		if( s!=null )	.mretitem(s);
+	}
+	mupdateei(string sitem, int mnoz)	{
+		if( sitem!=null )	{
+			Energy += mnoz * <sitem>.energy;
+			Inteligence += mnoz * <sitem>.inteligence;
+			Armor += mnoz * <sitem>.armor;
+			Speed += mnoz * <sitem>.speed;
+			Power += mnoz * <sitem>.power;
+			.mupdate;
+			.mcheckpower;
+		}
+	}
+	msetlevel	{
+		Energy = dblev.get(ilevel,0);
+		Supply = Energy;
+		Armor = 4;
+		Speed = 0;
+		Power = 1;
+		Inteligence = 0;
+		.mupdate;
+	}
+	mcheckpower	{
+		if( sactszuf!=null )	{
+			<"gr"+sactszuf>.eval( func {	if( .framenr<2 )	.msetpower; } );
+		}
+	}
+	msetpower	{	.setframe(-1, (Energy+energy<0 || Inteligence+inteligence<0) );	}
+	mretitem(string s)	{
+		//<s>.setframe(-1, 0);
+		<s>.msetpower;
+	}
+	mwysun(string s)	{
+		if( s==sactszuf )	return .mwsun;
+		.mwsun;
+		sactszuf = s;
+		<grszufw.getsac(s)>.show;
+		<"gr"+s>.show;
+		.mcheckpower;
+	}
+	mwsun	{
+		if( sactszuf!=null )	{
+			<"gr"+sactszuf>.hide;
+			<grszufw.getsac(sactszuf)>.hide;
+			sactszuf = null;
+		}
+	}
+	mprinthelp(string s)	{	<GAME> (s) { (@s)
+		if( slasthelp==s ) return;
+		slasthelp = s;
+		if( .hasvar("tdzad") )	.deletegmobj("tdzad");
+		new TextDb tdzad(stdfont12, 12, "$row:dbl,"+dblevel.findbyrow(s), .grey(32), 13,514, 2, 200, "left");
+	}; }
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+		if( igmstate!=1 ) return;
+		@s = butgame.sclicked;
+		if( s==null )	.mwsun;
+	}
+	/************************************/
+	mcopywsp	{
+		dbTurniej.free;
+		_ = dbTurniej.addrow;
+		dbTurniej.add(0,null);
+		@s;
+		for( int i=0; i<grobo.size; i++)	{
+			s = grobo.get(i);
+			if( <s>.isvisible )	{
+				dbTurniej.add(0, <s>.actionname);
+				dbTurniej.add(0, <s>.framenr);
+			}
+		}
+		dbTurniej.save("saves/dbTurniej"+PrzygodaNumer+".db");
+		//dbTurniej.dbaddrow(A, "wspolczynniki", "Energy", Energy, "Inteligence", Inteligence, "Armor", Armor, "Speed", Speed, "Power", Power);
+	}
+	butgo_lclick	{
+		butgo.unclick;
+		if( Inteligence<0 )	return .cbplay("ania8");
+		else if (Energy<0)	return .cbplay("ania9");
+		igmstate = 3;
+		claskexit.ask( "ania4", "sndakskermovon", "sndakskermovon", func {
+				<GAME>.mcopywsp;
+				gameapi.play("Turniejvs");
+			}, func {
+				igmstate=1;
+			} );
+	}
+}
+
+game Turniejvs : Computro	{
+	init	{
+		TurniejLevel = 1 + clsave.get("TurniejLevel");
+		dbTurniej.load("saves/dbTurniej"+PrzygodaNumer+".db");
+		
+		Computro::init("turniejvs");
+		.path = ("turniej");
+		advmouse.setstd;
+		.newdb("dbl", "vs.db");
+		.imgs=(A,"bgvs.pyz", "robocorps.pyzH", "robo.pyzH", "vsnr.pyz 5");
+		anvsnr.setframe(0, TurniejLevel-1);
+		new img imr1;
+		imr1.create(500, 600, .transparent );
+		imr1.setpos(iResX-imr1.getw, 0);
+		new img imr2;
+		imr2.create(500, 600, .transparent );
+		imr2.setpos(iResX-imr2.getw, 0);
+		.mkrob("imr1", "dbl", TurniejLevel);
+		new filter ftrob;
+		ftrob.link("imr1");
+		ftrob.reversexy(1,0);
+		imr1.setpos(0, imr1.getpy );
+		.mkrob("imr2", "dbTurniej", 0);
+		.timer = ("timfight", 4000, func {
+			ccs.close( func { gameapi.play("Arena"); } );
+			} );
+		timfight.play;
+	}
+	mkrob(string simg, string sdb, int row)	{
+		<simg>.blit("anrobocorps");
+		@s;
+		for( int i=1; i< <sdb>.getcolsno(row); i+=2)	{
+			anrobo.setframe( <sdb>.get(row, i), <sdb>.get(row,i+1) );
+			<simg>.blit("anrobo");
+		}
+	}
+	mouse_lclick	{
+		if( igmdebug )	timfight.stop(true);
+	}
+}
+
+game Arena : Computro	{
+	init	{
+		// tmp
+// 		dbTurniej.free;
+// 		dbTurniej.dbaddstringrow("null hand 2 armor 2", " ");
+		//
+		TurniejLevel = 1 + clsave.get("TurniejLevel");
+		dbTurniej.load("saves/dbTurniej"+PrzygodaNumer+".db");
+		
+		Computro::init("arena");
+		advmouse.setstd;
+		
+		.sounds = (A,
+			":ania5", "Ten robot by³ za silny na nas; Zbudujemy nowego", "mturniej",
+			":ania6", "Hurra! Zwyciêstwo", func {
+				TurniejLevel++;
+				clsave.set("TurniejLevel", TurniejLevel-1);
+				if(TurniejLevel<=5 ) .cbplay("ania7");
+				else 	.gotoadv("adparkiet", "gameadparkiet");
+				} ,
+			":ania7", "O nie; Jeszcze jeden robot", "mturniej"
+			);
+		
+		.imgs = (A, "bkg.pyz", "robo.pyzH 10", "bumH.pyz 50", "rozbity.pyzH 10");
+		new img imbg;
+		imbg.clone("anbkg");
+		delete anbkg;
+// 		imbg.imgborders(50, .black, 64);
+		
+		for( int i=0; i<10; i++)	.copyanima("anbum", "anbu"+i);
+		new classobjcounter clbu("anbu");
+		
+		new int W = 50;
+		new int H = 50;
+		new int Rows = 10;
+		new int Cols = 14;
+		new int X = 50;
+		new int Y = 50;
+		new int X1 = 50;
+		new int X2 = iResX - X1;
+		new int Y1 = 50;
+		new int Y2 = iResY - Y1;
+		new int odstep = 28;
+		
+		new classsndbank sndbum;
+		sndbum.load("sfx/bum", 1, 4, 0, 1);
+		.sfxs = (A, "fire1");
+		
+		.newdb("dbl", "$scripts/turniej/vs.db");
+		.newdb("dbwsp", "$scripts/turniej/wspolczynniki.db");
+		new gmimgvec rob1;
+		new gmimgvec rob2;
+		
+		new vector vrob;	vrob.type("string");
+		.mkrob("rob1", "dbTurniej", 0, "green", "rob2");
+		.mkrob("rob2", "dbl", TurniejLevel, "red", "rob1");
+		
+		rob2.mputrob(Rows/2, 0, 1);
+		rob1.mputrob(Rows/2, Cols-1,3);
+		
+		new GUI gui("butgame");
+		.lang_db("dbt","txt");
+		gui.newbutton("butreset", dbt.get( dbt.findbyrow("reset"), 1 ), 150, 25);
+		butreset.setz(100);
+		butreset.setpos( iResX-butreset.getw-5, 4 );
+		gui.newbutton("butnowy", dbt.get( dbt.findbyrow("nowy"), 1 ), 150, 25);
+		butnowy.setz(100);
+		butnowy.setpos( butreset.getpx-butnowy.getw-5, butreset.getpy );
+		
+		.cycle = ("timcyk", func {
+			rob1.mthinkrob;
+			rob2.mthinkrob;
+			if( rob1.attack && rob2.attack )	{
+				rob1.mattack;
+				rob2.mattack;
+				.modbij;
+			} else if (rob1.attack) {
+				rob1.mattack;
+				rob1.mbum(1);
+				rob2.mface;
+				.modbij;
+			} else if (rob2.attack) {
+				rob2.mattack;
+				rob2.mbum(1);
+				rob1.mface;
+				.modbij;
+			}
+			if( rob1.malive && rob2.malive )
+				.play;
+			else {
+				if( rob1.malive )	.cbplay("ania6");
+				else .cbplay("ania5");
+			}
+			});
+		ccs.enter( func { igmstate=1; .mgo; } );
+	}
+	butreset_lclick	{
+		if( !.cisplaying )
+			gameapi.play("Arena");
+	}
+	butnowy_lclick	{
+		if( !.cisplaying )
+			.mturniej;
+	}
+	mturniej	{	gameapi.play("Turniej");	}
+	mgo	{
+		timcyk.play;
+	}
+	modbij	{
+		if( rob1.malive )	{
+			rob1.mturn(-2);
+			rob1.movrob;
+		}
+		if( rob2.malive )	{
+			rob2.mturn(-2);
+			rob2.movrob;
+		}
+	}
+	mkrob(string sgr, string sdb, int row, string sfun, string senemy)	{
+		@s[4];
+		s0 = "im"+sgr;
+		new img <s0>;
+		<s0>.create(W, H, .<sfun>, 128);
+		vrob.free;
+		for( int i=1; i< <sdb>.getcolsno(row); i+=2)	vrob.add( <sdb>.get(row, i) +"_"+ <sdb>.get(row,i+1) );
+		<sgr>.vars2(A, "Energy", 0, "Inteligence", 0, "Armor", 4, "Speed", 0, "Power", 1, "charge", 0);
+		
+		s2 = sgr + "r";
+		new gmimgvec <s2>;
+		
+		for( i=0; i < anrobo.nofactions; i++)	{
+			s0 = anrobo.nameofaction(i);
+			if( s0=="corps" || vrob.contains(s0) )	{
+				if( s0=="corps" ) {
+					s1 = "an" + sgr + "corp";
+				} else {
+					s1 = "an" + sgr + <sgr>.size;
+					<sgr> (s0) { (string s0)
+						@id = dbwsp.findbyrow( s0.strgetto("_") ) + s0.strgetfrom("_");
+						Inteligence += dbwsp.get(id, 3);
+						Armor += dbwsp.get(id, 4);
+						Speed += dbwsp.get(id, 5);
+						Power += dbwsp.get(id, 6);
+					};
+				}
+				.copyanima("anrobo", s1);
+				<s1>.setframe(s0, 0);
+				<sgr>.add(s1);
+				s3 = s1 + "r";
+				.copyanima("anrozbity", s3);
+				<s3>.setframe(s0,0);
+				<s2>.add(s3);
+			}
+		}
+		<sgr>.show;
+		<sgr>.vars2(A, "Row", 0, "Col", 0, "Dir", 0, "idbrow", row, "sdbase", sdb, "enemy", senemy, "enemycorp", "an"+senemy+"corp",
+			"attack", 0, "licznik", 0);
+		<sgr> {
+			if( Speed<0 ) Speed=0;
+			if( Power<0 ) Power=0;
+			if( Armor<0 ) Armor=0;
+			.var2("Step", 3.0*Speed);
+			new img imred;
+			new img imgreen;
+			imred.create( 52, 7, .red, 240 );
+			imred.imgborders(1, .black, 255);
+			new real live = Armor;
+			imgreen.create(50, 5, .green, 240);
+			if( .mitem("hand") == 2 )	{
+				new img imgun;
+				imgun.create(2, 2, .grey(16), 255);
+				imgun.setz(40);
+				imgun.hide;
+				new int gundir;
+				.cycle = ("timgun", func {
+					match(gundir)	{
+						0 => imgun.move(0, -12);
+						1 => imgun.move(12, 0);
+						2 => imgun.move(0, 12);
+						3 => imgun.move(-12, 0);
+						? => ;
+					}
+					@x = imgun.getcx;
+					@y = imgun.getcy;
+					if(  !clsurf.inscreen(x, y, 0, 0) ) imgun.hide;
+					else {
+						@s = "an" + enemy + "corp";
+						if( 0->length(x-<s>.getcx, y-<s>.getcy) < odstep )	{
+							<enemy>.mbum(1);
+							imgun.hide;
+						} else .play;
+					}
+					} );
+			}
+		};
+	}
+	mputrob(int r, int c, int dir)	{
+		Row = r;
+		Col = c;
+		Dir = dir;
+		.setframe(-1,dir);
+		@x = X+c*H;
+		@y = Y+r*W;
+		.setpos(x, y);
+		<"im"+this>.setpos(x, y);
+		imred.setpos(x-1, y-imred.geth-1);
+		imgreen.setpos(x,imred.getpy+1);
+	}
+	mthinkrob	{
+		licznik++;
+		int intel = .mitem("eyes");
+		if( .checkwall(0, Step) )	{
+			match( intel )	{
+				0 => .mturn( 2->rand ? -1 : 1 );
+				1, 2, 3 => .checkwall(-1, Step) ? .mturn(1) : .mturn(-1);
+				? => {
+					.mbum(1);
+					.mturn(2);
+				}
+			}
+		} else if ( .mclose )	{
+			if( charge>3 && .menemypos==Dir )	{
+				charge = 0;
+				attack = 1;
+			} else {
+				match(intel)	{
+					2 => {
+						if( Power < <enemy>.Power && 3->rand )	{
+							.muciekaj;
+						} else if( 3->rand==0) .matakuj;
+						else .muciekaj;
+					}
+					3 => {
+						if( Power < <enemy>.Power && 2->rand )	{
+							.muciekaj;
+						} else if( 3->rand==0) .matakuj;
+						else .muciekaj;
+					}
+					? => 2->rand ? .muciekaj : .matakuj;
+				}
+			}
+		} else {
+			match(intel)	{
+				-1 => {
+					.movrob;
+				}
+				0 => .movrob;
+				1 => if( licznik>50 ) {
+					if( 5->rand==0 ) .mface;
+					else .mturn(4->rand);
+				} else .movrob;
+				2 => if( licznik>35)	{
+					if( 3->rand==0 && .hasvar("timgun") ) {
+						.mface;
+						.mfire;
+					} else if( !.oposite && 3->rand )	{
+						.mface;
+						.movrob;
+					} else .mturn(4->rand);
+				} else .movrob;
+				3 => if( licznik>25)	{
+					if( 2->rand==0 && .hasvar("timgun") ) {
+						.mface;
+						.mfire;
+					} else if( !.oposite && 2->rand )	{
+						.mface;
+						.movrob;
+					} else .mturn(4->rand);
+				} else .movrob;
+				? => ;
+			}
+		}
+	}
+	mfire	{
+		if( .hasvar("timgun") )	{
+			int x[2];
+			match(Dir)	{
+				0 => { x0 = .mgetex-5; x1 = .mgetpy+10; }
+				1 => { x0 = .mgetex-5; x1 = .mgetey-10; }
+				2 => { x0 = .mgetpx+5; x1 = .mgetey-10; }
+				3 => { x0 = .mgetpx+5; x1 = .mgetpy+10; }
+				? => ;
+			}
+			imgun.setpos( x0, x1);
+			imgun.show;
+			gundir = Dir;
+			fxfire1.play;
+			timgun.play;
+		}
+	}
+	matakuj	{
+		.mface;
+		charge=0;
+		attack=1;
+	}
+	muciekaj	{
+		.mface;
+		.mturn(-2);
+		.movrob;
+	}
+	mmove(int x, int y)	{
+		.move(x,y);
+		<"im"+this>.move(x,y);
+		imred.move(x,y);
+		imgreen.move(x,y);
+		.mupdatebum;
+	}
+	mupdatebum	{	imgreen.clip(imgreen.getpx, imgreen.getpy, imgreen.getpx+(50.0 * Armor)/live, imgreen.getey);	}
+	mattack	{
+		.mciach(Power);
+		attack = 0;
+	}
+	mbum(int ile)	{
+		Armor-=ile;
+		@s = clbu.get;
+		<s>.setpos( .mgetcx, .mgetcy );
+		<s>.play(0);
+		sndbum.bgplay;
+		.mupdatebum;
+		if( Armor<=0 )	{
+			if( rob1.Armor>0 && TurniejLevel>=5 ) return;	// nie psuj ostatniego
+			.hide;
+			s = this + "r";
+			<s>.move(.mgetcx-<s>.getw/2, .mgetcy-<s>.geth/2);
+			<s>.show;
+		}
+	}
+	mciach(int ile)	{	<enemy>.mbum(ile);	}
+	bool malive	{	Armor>0;	}
+	mclose	{	.modleg < 2*odstep;	}
+	modleg	{	0->length( .mgetcx-<enemy>.mgetcx, .mgetcy - <enemy>.mgetcy );	}
+	movrob	{
+		charge++;
+		match(Dir)	{
+			0 => .mmove(0, -Step);
+			1 => .mmove(Step, 0);
+			2 => .mmove(0, Step);
+			3 => .mmove(-Step, 0);
+			? => ;
+		}
+	}
+	mface	{	.mturn(.menemypos-Dir);	}
+	mturn(int kat)	{
+		charge = 0;
+		licznik=0;
+		Dir = .getkat(kat);
+		.setframe(-1,Dir);
+	}
+	mitem(string s)	{
+		@id = <sdbase>.dbfindinrow(idbrow, s);
+		id>=0 ? <sdbase>.get(idbrow, id+1) : -1;
+	}
+	int getkat(int kat)	{
+		int dir = Dir + kat;
+		if( dir<0 ) dir += 4;
+		else if (dir>3) dir%=4;
+		dir;
+	}
+	bool oposite	{	rob1.Dir == rob2.getkat(-2);	}
+	bool checknext(int kat, int ds, int x1, int x2, int y1, int y2)	{
+		.checkbum(.getkat(kat), ds, x1, x2, y1, y2);
+	}
+	bool checkwall(int kat, int ds)	{
+		.checkbum(.getkat(kat), ds, X1, X2, Y1, Y2);
+	}
+	bool checkrob(int kat, int ds)	{
+		.checkbum( .getkat(kat), ds, <enemy>.mgetpx, <enemy>.mgetex, <enemy>.mgetpy, <enemy>.mgetey );
+	}
+	mgetcx	{	<"an" + this + "corp">.getcx;	}
+	mgetpx	{	.mgetcx - odstep;	}
+	mgetex	{	.mgetcx + odstep;	}
+	mgetcy	{	<"an" + this + "corp">.getcy;	}
+	mgetpy	{	.mgetcy - odstep;	}
+	mgetey	{	.mgetcy + odstep;	}
+	bool checkbum(int dir, int ds, int x1, int x2, int y1, int y2)	{
+		match(dir)	{
+			0 => .mgetpy+ds < y1;
+			1 => .mgetex+ds > x2;
+			2 => .mgetey+ds > y2;
+			3 => .mgetpx+ds < x1;
+			? => ;
+		}
+	}
+	int menemypos	{
+		real dx = .mgetcx - <enemy>.mgetcx;
+		real dy = .mgetcy - <enemy>.mgetcy;
+		if( dy==0 )	{
+			dx > 0 ? 3 : 1;
+		} else {
+			real r = (dx/dy)->abs;
+			if( dx>0 )	{	// lewo
+				if( dy<0 )	{	// dol
+					r>1 ? 3 : 2;
+				} else {		// gora
+					r>1 ? 3 : 0;
+				}
+			} else {		// prawo
+				if( dy<0 )	{	// dol
+					r>1 ? 1 : 2;
+				} else {
+					r>1 ? 1 : 0;
+				}
+			}
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug )	{
+			rob2.mbum(20);
+		}
+	}
+}

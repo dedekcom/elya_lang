@@ -1,0 +1,156 @@
+
+new int iKoloMode = 2;
+new int iKoloImage = 1;
+
+game Kolololo : FarmStd, TPainter {
+	init	{
+		FarmStd::init("mg_kolo");
+		
+		.imgs = (A, "bkg.pyz", "chmury.pyzG 5", "bg2.pyz 10", "krowa.pyz 55", "indi.pyz 65", "wiaderko.pyzH 60", "ramki.pyzG 40");
+		
+		ankrowa.scmove(0,-30);
+		
+		.mkchmura(grchmury.get(3),-0.66667);
+		.mkchmura(grchmury.get(2),-1);
+		.mkchmura(grchmury.get(0),-0.25);
+		.mkchmura(grchmury.get(1),-0.33334);
+		
+		.cbutexit;
+		
+		if( iKoloMode == 1 )	{
+			.imgs = (A, "paleta.pyzG 70", "palnak.pyz 68");
+			for( int i=0; i<grpaleta.size; i++ )	{
+				@s = "anpalnak_"+i;
+				.copyanima("anpalnak", s);
+				@s2 = grpaleta.get(i);
+				<s>.ansetbpos( <s2>.getcx-<s>.getw/2+1, <s2>.getcy-<s>.geth/2+1 );
+			}
+			anpalnak.hide;
+			.tinit(null, null, null, "pedzel.pyz", "kolo"+iKoloImage+".pyz", "grpaleta", "ld", null);
+			paintmode = 2;
+			grdraw.eval( func { .paint(.white,255,0); } );
+		} else if( iKoloMode==2 )	{
+			new gmimgvec grpal;
+			.tinit(null, null, null, "pedzel.pyz", "kolo"+iKoloImage+".pyz", "grpal", "ld", null);
+			paintmode = 2;
+			new bool bKoloDone = false;
+			.cbuthelp;
+			new img imgpodpo;
+			grdraw.add("anfg");
+			grdraw.addgr("grramki");
+			imgpodpo.imgbuildfromvec("grdraw");
+			imgpodpo.setlodxy(0,0);
+			imgpodpo.setpos(igmoffsetx,0);
+			grdraw.remove("anfg");
+			grdraw.removegr("grramki");
+			imgpodpo.anzoom(0.25);
+			imgpodpo.setz( 150 );
+			imgpodpo.setpos( igmoffsetx+5, anbutexit.getey );
+			imgpodpo.Button_isin;
+			imgpodpo.addmethod("butmoveon", func { fxlasergunshot1.play; .anzoom(0.5); });
+			imgpodpo.addmethod("butmoveoff", func { fxwstawia2.play; .anzoom(0.25); } );
+			butgame.add("imgpodpo");
+			//imgpodpo.setpos( grdraw.getex - imgpodpo.getw/2 , grdraw._getpy - imgpodpo.geth/2 );
+			new vector vcol; vcol.type("string");
+			
+			grdraw.eval( func {
+				int r, int g, int b;
+				|int x, int y| = .anfirstnotrx1y;
+					//.anfindnotr(.getpx(), .getpy(), 1, 0);
+				//|int x, int y| = .anfindalfa(.getpx, .getpy+1, 1, 0, 255);
+				|r, g, b, _| = .getrgba( x, y );
+				.vars2(A, "myr", r, "myg", g, "myb", b, "myx", x, "myy", y);
+				string s = "" + r + "_"+ g+"_"+b;
+				if( !vcol.contains(s) )	{
+					vcol.add(s);
+					s = "anwiad" + vcol.size;
+					@s2 = s + "nak";
+					<GAME>.copyanima("anwiaderko", s2);
+					<s2>.show;
+					<GAME>.newanima(s,"wiaderko.pyz",anwiaderko.getz-1);
+					<s>.setframe(1,0);
+					
+					int y = 0;
+					int ilecol = 9;
+					if( vcol.size > ilecol )	{
+						y = <s>.geth/2;
+						int x = (-0.5-ilecol+vcol.size)*<s>.getw;
+						<s2>.setz( <s2>.getz + 1 );
+						<s>.setz( <s>.getz + 1 );
+					} else {
+						int x = (vcol.size-1)*<s>.getw;
+					}
+					<s>.move(x,y);
+					<s2>.move(x,y);
+					<s>.paint( r, g, b, 255, 0 );
+					<s>.vars2(A, "myr", r, "myg", g, "myb", b);
+					
+					grpal.add(s);
+				}
+				.paint(.white,255,2);
+				} );
+		}
+		
+		new img imhelp1;
+		new img imhelp2;
+		
+		.sfxs=(A,"pedzel", "pedzel2", "showhint1 40", "lasergunshot1 20", "wstawia2 80", "brawa1", "lira2", "bgrlas1N 30");
+		
+		ccs.enter( func {
+			.advsetstdstate;
+			.unlock;
+			} );
+	}
+	mhelp	{
+		if( .getlock ) return;
+		int c[5];
+		for( int i=0; i<grdraw.size; i++ )	{
+			@s = grdraw.get(i);
+			if( !<s>.isgoodcol )	{
+				for( int j=0; j<grpal.size; j++)	{
+					@s2 = grpal.get(j);
+					if( <s>.myr==<s2>.myr && <s>.myg==<s2>.myg && <s>.myb==<s2>.myb )	{
+						imhelp1.clone(s);
+						imhelp2.clone(s2);
+						imhelp1.paint(.black,255,0);
+						imhelp2.paint(.black,255,0);
+						imhelp1.blinknij;
+						imhelp2.blinknij;
+						fxshowhint1.play;
+						return;
+					}
+				}
+			}
+		}
+	}
+	blinknij	{
+		.anfadein(700, func {
+			.anfadeout(700, "hide");
+			} );
+	}
+	butclick_anbutexit	{	.stdexit("MenuKoloImg");	}
+	onpaint		{
+		fxpedzel.play;
+		if( iKoloMode==2 )	{
+			if( grdraw.ineach( func { (@id) .isgoodcol; } ) )	{
+				.lock;
+				bKoloDone = true;
+				fxbrawa1.play;
+				fxlira2.play;
+			}
+		}
+	}
+	isgoodcol	{
+		|int r, int g, int b, _ | = .getrgba( myx, myy );
+		myr==r && myg==g && myb == b;
+	}
+	onsetbrush	{	fxpedzel2.play;		}
+	mouse_lclick	{	.tp_mouse_lclick;	}
+	mouse_move	{	.tp_mouse_move;		}
+	game_exit	{	.tp_exit;		}
+	butclick_anbuthelp	{
+		if( !bKoloDone )
+			.mhelp;
+	}
+}
+

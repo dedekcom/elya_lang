@@ -1,0 +1,85 @@
+/************ template game Painter **************/
+class TPainter {
+	init()	{}
+	tinit(string sndbase, string spath, string sfilebg, string sfilebrush, string sfile, string sfarby, @dir)	{
+		if( sndbase!=null )
+			GameController::init(sndbase);
+		this.unlock();
+		this.setgraphpath(spath);
+		
+		if( sfilebg!=null )
+			this.newanima("anbkg",sfilebg,0);
+		this.newanima("anbrush1", sfilebrush, 3000);
+		this.copyanima("anbrush1","anbrush2");
+		anbrush2.setframe(0,1);
+		anbrush2.setz(anbrush1.getz-1);
+		anima_pack::resizemethods("anbrush1");		// galka
+		anima_pack::resizemethods("anbrush2");		// pedzel
+		int x, int y;
+		match( dir )	{
+			"ru" => { x = anbrush2.getex;
+				y = anbrush2.getpy; }
+			"rd" => { x = anbrush2.getex;
+				y = anbrush2.getey; }
+			"ld" => { x = anbrush2.getpx;
+				y = anbrush2.getey; }
+			? => { x = anbrush2.getpx;
+				y = anbrush2.getpy; }
+		}
+		anbrush1.saverelpos(x, y);	// lewy dolny rog - kursor myszy
+		anbrush2.saverelpos(x, y);	// lewy dolny rog - kursor myszy
+		mouse.hide();
+		
+		this.newanima("anfg", sfile, 100);
+		anfg.setframe("foreground",0);
+		
+		new gmimgvec grdraw;
+		_ = this.newanframesgr("anfg", "andraw", anfg.actionnr("draw"), "grdraw");
+		grdraw.setz(10);
+		
+		new gmimgvec grpaleta;
+		//_ = this.newanframesgr("anfg", "anpaleta", anfg.actionnr("paleta"), "grpaleta");
+		"grpaleta" ..< sfarby;
+		grpaleta.setz(20);
+		
+		new int _ibrx = anbrush2.getpx();
+		new int _ibry = anbrush2.getpy();
+		while( !anbrush2.isin(_ibrx, _ibry, false, true) )	{
+			_ibrx++;
+			if( _ibrx==anbrush2.getex() ) {
+				_ibrx = anbrush2.getpx();
+				_ibry++;
+			}
+		}
+		_ibrx-=anbrush2.getpx();
+		_ibry-=anbrush2.getpy();
+		TPainter::mouse_move;		// ustawienie pedzla w pozycji myszy
+	}
+	game_exit()	{
+		mouse.show();
+		GameController::game_exit();
+	}
+	mouse_move()	{
+		anbrush1.mssetrelpos();
+		anbrush2.mssetrelpos();
+	}
+	mouse_lclick()	{
+		if( !this.getlock() )	{
+			|int x, int y| = mouse.getpos();
+			if( grdraw.isin(x,y,true,true) )	{
+				<grdraw.getsfound()>.paint(
+					anbrush2.getrgba(anbrush2.getpx()+_ibrx,anbrush2.getpy()+_ibry), 0 );
+				.onpaint;
+			} else if ( grpaleta.isin(x,y,true,true) )	{
+				|@c[4]| = <grpaleta.getsfound()>.getrgba(x,y);
+				c3 = 255;
+				anbrush2.paint( c0, c1, c2, c3, 0 );
+				.onsetbrush;
+			}
+		}
+	}
+}
+
+class TPainterCon : TPainter, GameController	{
+	init	{}
+}

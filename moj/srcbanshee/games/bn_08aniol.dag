@@ -1,0 +1,123 @@
+
+
+game mg08_aniol :Banshee {
+	init{
+      
+	new int counter  = 0;
+    Banshee::init("mg08_aniol");
+  
+  mus.playstr("crying_loop.ogg -v 80 -pl");
+      
+    .imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2","ramka.pyz 3","klucz_kostka.pyzH 3","ring.pyzH 4", "popexit.pyz 21");
+      .butpopexit;
+    if (!clsave.bis("taken_klucz_kostka") )
+     {
+        .setasitemtopck("anklucz_kostka");
+        anklucz_kostka.show();
+     } 
+     
+     if (!clsave.bis("taken_ring") )
+     {
+        .gui_toloupe("anring");
+     
+        .setasitemtopck("anring");
+        anring{
+           .addmethod("isbutin", func { (int x, int y)
+    			  .advstdstate && .isin(x,y,0,0) && .loupe_visible;
+    				} );
+         
+         }; 
+		 .cycle = ("timszkielko", func {
+			counter-=1;	
+			 
+			if(counter<0)
+			{
+				counter = 300;
+				if (!.loupe_visible && !guiglass.isin(mouse.getpos,1,1))
+					guiglassglow.play(guiglass.actionnr(-1)+5); 
+				 
+			}
+			if(!!clsave.bis("taken_ring"))
+				timszkielko.play();
+	 
+		 
+		 } );    
+		timszkielko.play; 
+     } 
+
+
+		
+    imgbkg {
+		.addmethod("isbutin", func { (@x, @y)
+			!anpopup_bkg.isin(x,y,0,0);
+			} );
+		.addmethod("butclick", func {
+			if( !.advstdstate ) return;
+			 .mend;
+			} );
+  		butgame.add(this);
+  	}; 
+	 
+    .stdstart;  
+  } // koniec init
+  
+   anklucz_kostka_TAKE	{	
+    .popitem_gotocenter("klucz_kostka");	
+     if(clsave.bis("taken_ring"))
+      { 
+        .set_mg_finished;  
+      }
+    }
+   anklucz_kostka_INPCK {
+      .addtopck("klucz_kostka");
+     if(clsave.bis("taken_ring")) 
+     {
+      .set_mg_finished;   
+      .timfinito;
+     }      
+    
+    } 
+   
+   anring_TAKE	{	.gui_removefromloupe("anring"); anring.show; .popitem_gotocenter("ring");
+   if(clsave.bis("taken_klucz_kostka")) 
+     {
+      .set_mg_finished;  
+      
+     }   
+  }
+   anring_INPCK {
+     .addtopck("ring");
+     if(clsave.bis("taken_klucz_kostka")) 
+     {
+      .set_mg_finished;  
+      .timfinito; 
+     }      
+    } 
+   /* tmszkielko_fun{
+		if(!guiglassglow.isplaying(-1)+5)
+		{
+			guiglassglow.play(guiglass.actionnr(-1)+5);
+		}
+		//tmszkielko.play();
+	}*/
+  mend	{
+	mus.fadeout(1000);
+    .stdexitdefadv("ad08_latajacecospod", "gamead08_latajacecospod0");  
+	}
+  
+  HINT_CLICK {
+     if(!clsave.bis("taken_klucz_kostka")) 
+     {
+      .showhint("anklucz_kostka");
+      //.showhint2v("guiglass");   
+     }   
+     else if(!clsave.bis("taken_ring")) 
+     {
+       .showhint2v("anring");
+       .showhint2v("guiglass");  
+      }
+     else   
+      .showhint("anpopexit");  
+  } 
+}
+ 

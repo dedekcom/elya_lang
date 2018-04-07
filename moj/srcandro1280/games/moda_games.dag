@@ -1,0 +1,196 @@
+
+game MainMenuModa : MermaidStd	{
+	init	{
+		MermaidStd::init("menumoda");
+		gameapi.play("GameModa");
+	}
+}
+
+
+game GameModa : MermaidStd	{
+	init	{
+		MermaidStd::init("mg_moda");
+		
+		.imgs = (A, "bkg.jpg", "pola.pyzGH 100", "buts.pyzG 10", "postac.pyzG 5", "gumka.pyz 120", "butright.pyz 100", "butleft.pyz 100");
+		
+		.sfxs = (A, "lasergunshot1 50", "mikrofalaend 60", "pageflip1 70", "pedzel 70");
+		
+		new gmimgvec grels;
+		new anima anel;
+		new int iidel;
+		
+		anbutleft.Button_addstdstate;
+		anbutright.Button_addstdstate;
+		new img imgbgkol;
+		new int iIleBgKol = 0;
+		for( ; engine.fileexist(.getgraphpath + "imgsbg/bg"+(iIleBgKol+1)+".jpg"); iIleBgKol++ )	{}
+		if( iIleBgKol==0 )	{
+			anbutleft.hide;
+			anbutright.hide;
+			imgbgkol.create( igmappw - imgbkg.getw, igmapph, .white, 255 );
+			imgbgkol.setpos( imgbkg.getex, 0 );
+		}
+		
+		new vector vecz;	// z parametr dla czesci stroju
+		new db dbid;		// id - stroje odnoszace sie do tego samego imgs
+		new db dbreq;		// require - wymaga danego stroju wczesniej
+		match( sgmproject )	{
+			"Moda_NelaBal" => {
+				vecz.beginadd("begin", 11,10,6,8,9,1,2,5,4,3,7);
+				
+				dbid.dbbuild(A,
+					3,3,
+					4,3,
+					5,3,
+					2);
+				dbreq.dbbuild(A,
+					2,1,
+					3,1,
+					4,1,
+					5,1,
+					2);
+			}
+			"Moda_NelaPiknik" => {
+				vecz.beginadd("begin", 8,5,7,6,4,3,2,1);
+				dbid.dbbuild(A,
+					6,6,
+					7,6,
+					2);
+					// 1_naszyjnik, 2_pasek ,3_top_a ,4_spodnica ,5_skrzydla ,6_kapelusz_a ,7_kapelusz_b ,8_buty
+			}
+			//"Moda_NelaPlac"	=> ;
+			"Moda_NelaTurystka" => {
+				vecz.beginadd("begin", 1,2,3,5,4,6);
+				dbreq.dbbuild(A,
+					4,5,
+					2);
+			}
+			? => ;
+		}
+		
+		angumka.Button_isin;
+		butgame.add("angumka");
+		angumka.addmethod("butclick", func {
+			if( .advstdstate )	{
+				if( .framenr==0 )	{
+					.setframe(-1,1);
+					.skipmouselclick;
+					fxlasergunshot1.play;
+				}
+			}
+			} );
+		
+		grbuts.each( func { (int id)
+			id++;
+			@s = "imgs"+id;
+			<GAME>.varnew("img", s);
+			<s>.vars2(A, "myz", 10+id, "iidstroj",-1, "myid", id);
+			if( vecz.size )	{
+				<s>.myz = ( 10+vecz.find(id) );
+			}
+			<s>.Button_isinalpha;
+			<s>.hide;
+			<s>.addmethod("butclick", func {
+				if( .advstdstate && angumka.framenr==1 )	{
+					for( int i=1; i<=grbuts.size; i++ )	{
+						@s = "imgs"+i;
+						if( s != this )	{
+							int idreq = dbreq.findbyrow(<s>.myid);
+							if( idreq >= 0 && dbreq.get(idreq,1)->to_i == myid )	{
+								<s>.free;
+								<s>.hide;
+								<s>.iidstroj = (-1);
+							}
+						}
+					}
+					
+					.free;
+					.hide;
+					iidstroj = -1;
+					fxmikrofalaend.play;
+				}
+				} );
+			butgame.add(s);
+			
+			.Button_std;
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					.mloadel(.actionnr(-1)+1);
+					fxpageflip1.play;
+				}
+				} );
+			butgame.add(this);
+			} );
+		
+		grpola.eval( func {
+			.Button_isin;
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					@id = .actionnr(-1);
+					if( id < grels.size )	{
+						int idreq = dbreq.findbyrow(iidel);
+						if( idreq < 0 || <"imgs"+dbreq.get(idreq,1)>.iidstroj != -1 )	{
+							anel.load( .getgraphpath + "s"+iidel+".pyz" );
+							anel.setframe(id,0);
+							anel.hide;
+							int idel = dbid.findbyrow(iidel);
+							if( idel < 0 )
+								idel = iidel;
+							else idel = dbid.get(idel,1);
+							@s = "imgs" + idel;
+							<s>.imgclone("anel");
+							<s>.iidstroj = (id);
+							<s>.show;
+							<s>.setz(<s>.myz);
+							fxpedzel.play;
+						}
+					}
+				}
+				} );
+			butgame.add(this);
+			} );
+		
+		.cbutexit;
+		.loadasker;
+		//anbutexit.setpos( angumka.getex+3->igetsc1, anbutexit.getpy );
+		.mputbg(0);
+		
+		.stdenter;
+	}
+	mputbg(int id)	{
+		if( iIleBgKol > 0 )	{
+			idBgKol.inextrol(id, iIleBgKol);
+			imgbgkol.load( .getgraphpath + "imgsbg/bg"+idBgKol+".jpg" );
+			imgbgkol.setpos( imgbkg.getex, 0 );
+			@x = imgbgkol.getpx + imgbgkol.getw/3;
+			anbutleft.ansetbpos( x, imgbgkol.getey-anbutleft.geth );
+			anbutright.ansetbpos( x, imgbgkol.getpy );
+		}
+	}
+	butclick_anbutleft	{	.mputbg(-1);	}
+	butclick_anbutright	{	.mputbg(1);	}
+	butclick_anbutexit	{
+		.askfor("OutroStd");
+	}
+	mhidel	{
+		if( grels.size )	{
+			grels.deleteloaded;
+			grels.free;
+		}
+		grpola.hide;
+	}
+	mloadel(int idel)	{	<GAME> (idel) { (int idel)
+		iidel = idel;
+		.mhidel;
+		"grels" .* ("els"+idel+".pyz");
+		grels.setz( <grpola.first>.getz + 5 );
+		grpola.show;
+		.skipmouselclick;
+	}; }
+	mouse_lclick	{
+		if( .advstdstate )	{
+			.mhidel;
+			angumka.setframe(0,0);
+		}
+	}
+}

@@ -1,0 +1,384 @@
+
+game mg47_szafa : Banshee	{
+	 
+	init	{
+		new vector tab; 
+		if (clsave.bis("e1_mg47_szafa_kawalki_ulozone"))
+			tab.beginadd("begin",0,1,2,5,4,3); 
+		else
+			tab.beginadd("begin",1,0,2,5,4,3); 
+		 
+		Banshee::init("mg47_szafa");
+		 
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2", "ulozenie2v.pyzH 3",
+		"galka.pyz 4",
+		"brakujacy_kawalek.pyzH 5",
+		"galka_maska.pyz 6",
+		"slot_0.pyzH 6","slot_1.pyzH 7",
+		"slot_2.pyzH 8","slot_3.pyzH 9",
+		"slot_4.pyzH 10","slot_5.pyzH 11",
+		"rect_0.pyzH 7","rect_1.pyz 8",
+		"rect_2.pyz 9","rect_3.pyz 10",
+		"rect_4.pyz 11","rect_5.pyz 12",
+		"ulozone.pyzH 13","ulozone_blik.pyzH 14",
+		"wnetrze.pyzH 15",
+		"eliksir_zielono_czerwony.pyzH 16",
+		"door_open.pyzH 17",
+		 
+		"babel1.pyz 43","babel2.pyz 43","woda.pyz 44", 
+			 "ramka.pyz 45","popexit.pyz 46");
+			 
+		.sfxs = (A,"bgrpodwodaN 40" , "butclick2 80", "opendoor2 50", "magical", "hofound 40") ; 	 
+		.butpopexit;
+		.butpopexitisinramka;
+		anwoda.play(0);
+		anbabel1.play(0);
+		anbabel2.play(0);
+		 
+		
+		//    .addtopck("kwadrat_4"); //do testow 
+		
+		 	
+		.askopis("mg47"); 
+		anaskopis.hide;	
+		anaskopis.ansetbpos( anpopexit.getcx + anaskopis.getw, anpopexit.getcy - anaskopis.geth/2);	
+		.init_game();
+		
+		if (!clsave.bis("e1_mg47_szafa_kawalki_uzyte"))
+		{
+			anrect_1.hide();
+			anrect_2.hide();
+			anrect_3.hide();
+			anrect_4.hide();
+		}
+		
+		anbrakujacy_kawalek {
+			.addmethod("isbutin", func { (@x, @y)
+				  .isin(x,y,0,0);
+				} ); 
+			.addmethod("butmoveon", func {
+				 
+					advmouse.set("take");					
+			} );
+			.addmethod("butmoveoff", func {
+				 
+				  advmouse.setstd;
+				} ); 
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+				fxmagical.play;
+				butgame.removebut(this);	
+				.anfadeout(500,null);
+				anulozone.anfadein(500,func{anulozone_blik.play(0);});
+				clsave.bset("e1_mg47_szafa_klamka_odblokowana");
+				advmouse.setstd;
+			} );
+			butgame.add(this);
+		};
+
+		andoor_open.addmethod("onfinish",func{.anfadeout(300,func{fxhofound.play();});});
+		 
+		if (!clsave.bis("e1_mg47_szafa_drzwi_otwarte"))
+		{
+			angalka {
+				.addmethod("isbutin", func { (@x, @y)
+					  .isin(x,y,1,0);
+					} ); 
+				.addmethod("butmoveon", func {
+					if( !.advstdstate || !clsave.bis("e1_mg47_szafa_klamka_odblokowana") || clsave.bis("e1_mg47_szafa_drzwi_otwarte")) return;
+						advmouse.set("take");					
+				} );
+				.addmethod("butmoveoff", func {
+					 
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+					if( !.advstdstate || !clsave.bis("e1_mg47_szafa_kawalki_ulozone")) return;
+						butgame.removebut(this);
+						anwnetrze.show;
+						aneliksir_zielono_czerwony.show;	
+						aneliksir_zielono_czerwony.butenable;
+						fxopendoor2.play;
+						andoor_open.play(0);	
+						clsave.bset("e1_mg47_szafa_drzwi_otwarte");
+						.gui_removefromloupe("anulozenie2v");
+						anulozenie2v.hide;
+						advmouse.setstd;
+					} );
+				butgame.add(this);
+			}; 
+		};
+		
+		if (clsave.bis("e1_mg47_szafa_kawalki_ulozone") && !clsave.bis("e1_mg47_szafa_klamka_odblokowana"))
+		{
+			anbrakujacy_kawalek.play(0);
+			anbrakujacy_kawalek.butenable;
+		}
+		else
+		{
+			anbrakujacy_kawalek.butdisable;
+		}
+		if (clsave.bis("e1_mg47_szafa_klamka_odblokowana") && !clsave.bis("e1_mg47_szafa_drzwi_otwarte"))
+		{
+				anulozone.show;
+		
+		}
+		
+		if (!clsave.bis("taken_eliksir_zielono_czerwony") )
+		{
+			.setasitemtopck("aneliksir_zielono_czerwony");
+			if (clsave.bis("e1_mg47_szafa_drzwi_otwarte"))
+			{
+				aneliksir_zielono_czerwony.show;	
+			}
+			else
+				aneliksir_zielono_czerwony.butdisable;
+		}  
+		
+		
+		if (clsave.bis("e1_mg47_szafa_drzwi_otwarte"))
+		{
+			anwnetrze.show;
+		}
+		else
+		{
+			.gui_toloupe("anulozenie2v");
+		}
+		
+		if (clsave.bis("e1_mg47_szafa_kawalki_uzyte") && !clsave.bis("e1_mg47_szafa_kawalki_ulozone"))
+		{
+			guihint.switchtoskip;
+			anaskopis.show;	
+		}
+		
+		.stdstart;
+	}
+	
+	 
+	
+	aneliksir_zielono_czerwony_TAKE {
+		.set_mg_finished;
+		.popitem_gotocenter("eliksir_zielono_czerwony");	
+	}
+	 
+	aneliksir_zielono_czerwony_INPCK {
+      .addtopck("eliksir_zielono_czerwony");
+	  .timfinito; 	
+	}
+	mend	{
+		.stdexitdefadv("ad47_szafa", "gamead47_szafa0");
+	}
+	
+	init_game()
+	{
+		for( int i=0; i<6; i++)
+		{
+			 int id = tab.get(i);
+			.init_slot(i,id);
+			.init_rect(id, i); 
+		}
+	}
+	
+	init_slot(int index,int id){
+		<"anslot_"+index>(index, id)
+		{
+			(int index, int id) 
+			.vars2(A,"index", index, "id", id);
+		};
+	}
+	 
+	init_rect(int id, int index){
+     
+		<"anrect_"+id>(id, index)
+		{
+			(int id, int index ) 
+			.vars2(A,"id", id,"index", index); 
+			.ansetbpos(<"anslot_"+index>.getpx, <"anslot_"+index>.getpy);
+			.addmethod("isbutin", func { (@x, @y)
+				 .isin(x,y,0,1);
+			} ); 
+			.addmethod("butmoveon", func { 
+				if( clsave.bis("e1_mg47_szafa_kawalki_ulozone")) return;
+				if(!clsave.bis("e1_mg47_szafa_kawalki_uzyte"))
+					advmouse.set("use");
+				else
+				{
+					advmouse.set("take"); 
+				}
+			} );
+			.addmethod("butmoveoff", func {
+				 
+					advmouse.setstd;
+			} );
+			.addmethod("butclick", func {
+				if( !.advstdstate || !clsave.bis("e1_mg47_szafa_kawalki_uzyte") || clsave.bis("e1_mg47_szafa_kawalki_ulozone")) return;
+				 
+				if (.can_move_left(.index))
+				{
+					.move_left(.index, .id);
+				}
+				else if (.can_move_right(.index))
+				{ 
+					.move_right(.index, .id);
+				}
+				else if (.can_move_up(.index))
+				{ 
+					.move_up(.index, .id);
+				}
+				else if (.can_move_down(.index))
+				{ 
+					.move_down(.index, .id);
+				}
+  			} ); 	
+			butgame.add(this);
+		};
+	} 
+	
+	can_move_left(int index)
+	{
+		if (index != 0 && index != 2 && index != 4)
+		{
+			int left_slot_id = index - 1;
+			if (<"anslot_"+left_slot_id>.id == 0)
+				return true;
+		}
+		
+		return false;
+	}
+	
+	can_move_right(int index)
+	{
+		if (index != 1 && index != 3 && index != 5)
+		{
+			int right_slot_id = index + 1;
+			if (<"anslot_"+right_slot_id>.id == 0)
+				return true;
+		}
+		
+		return false;
+	}
+	
+	can_move_up(int index)
+	{
+		if (index != 0 && index != 1)
+		{
+			int top_slot_id = index - 2;
+			if (<"anslot_"+top_slot_id>.id == 0)
+				return true;
+		}
+		
+		return false;
+	}
+	
+	can_move_down(int index)
+	{
+		if (index != 4 && index != 5)
+		{
+			int down_slot_id = index + 2;
+			if (<"anslot_"+down_slot_id>.id == 0)
+				return true;
+		}
+		
+		return false;
+	}
+	
+	move_left(int index, int id){
+		 
+		.move_rect(index,id, -1);  
+	}
+ 
+	move_right(int index, int id){
+		.move_rect(index,id, 1); 
+	}
+	
+	move_up(int index, int id){
+		.move_rect(index,id, -2);  
+	}
+	
+	move_down(int index, int id){
+		.move_rect(index,id, 2);  
+	}
+	
+	move_rect(int index,int id, int dir)
+	{
+		int dest_slot_index = index + dir; 
+		<"anrect_"+id>.ansetbpos(<"anslot_"+dest_slot_index>.getpx, <"anslot_"+dest_slot_index>.getpy);
+		<"anslot_"+dest_slot_index>.id = (id);
+		<"anrect_"+id>.index = (dest_slot_index);
+		<"anslot_"+index>.id = (0);
+		<"anslot_"+dest_slot_index>.id = (id);
+		fxbutclick2.play;
+		if (.check_won)
+		{
+			clsave.bset("e1_mg47_szafa_kawalki_ulozone");	
+			advmouse.setstd;
+			anbrakujacy_kawalek.play(0);
+			anbrakujacy_kawalek.anfadein(500,func{anbrakujacy_kawalek.butenable;});
+			fxmagical.play; 
+		}
+	}
+	
+	check_won()
+	{
+		for( int i=1; i<6; i++)
+		{
+			if (<"anrect_"+i>.id != <"anrect_"+i>.index)
+				return false;
+		}
+		
+		return true;
+	
+	}
+	
+	USE_kwadrat_4 {
+        .advsetstdstate;
+		clsave.bset("e1_mg47_szafa_kawalki_uzyte");
+		anrect_1.show;
+		anrect_2.show;
+		anrect_3.show;
+		anrect_4.show; 
+		.removefrompck("kwadrat_4");
+		guihint.switchtoskip;
+		anaskopis.show;	
+		advmouse.setstd;
+		fxbutclick2.play();
+	} 
+	
+	SKIP_CLICK	{
+		if( .advstdstate )	{
+			clsave.bset("e1_mg47_szafa_kawalki_ulozone");	
+			
+			for( int i=0; i<6; i++)
+			{
+				<"anrect_"+i>.ansetbpos(<"anslot_"+i>.getpx, <"anslot_"+i>.getpy);
+			}
+			 
+			
+			advmouse.setstd;
+			anbrakujacy_kawalek.play(0);
+			anbrakujacy_kawalek.anfadein(500,func{anbrakujacy_kawalek.butenable;});
+			guihint.switchtohint;
+		}
+	} 
+
+	HINT_CLICK	{
+		if (clsave.bis("ma_kwadrat_4"))
+        { 
+           .showhint("anulozone");
+           .showhintitem("kwadrat_4");
+        }
+		else if (clsave.bis("e1_mg47_szafa_kawalki_ulozone") && !clsave.bis("e1_mg47_szafa_klamka_odblokowana"))
+        { 
+			.showhint("anbrakujacy_kawalek");
+        }
+		else if (clsave.bis("e1_mg47_szafa_klamka_odblokowana") && !clsave.bis("e1_mg47_szafa_drzwi_otwarte"))
+				.showhint("angalka");
+				
+		else if (clsave.bis("e1_mg47_szafa_drzwi_otwarte") && !clsave.bis("taken_eliksir_zielono_czerwony"))
+				.showhint("aneliksir_zielono_czerwony");
+		else	
+			.showhint("anpopexit");
+	}
+	 
+}
+

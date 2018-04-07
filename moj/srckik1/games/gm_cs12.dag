@@ -1,0 +1,119 @@
+
+game Cs12Wieza : StdGame	{
+	init	{
+		StdGame::init("cs12wieza");
+		
+		.imgs = (A, "bkg.pyz", "wieza.pyz 20", "narzedzia.pyz 30", "maska.pyz 100", "kajko.pyz 10", "kokosz.pyz 10");
+		
+		.timer = ("timgo", 1000, func { 
+			ankajko.anplayfin(0, func {
+				ccs.close( func { gameapi.play("Wieza"); } );
+				} );
+			} );
+		
+		.sfxs = (A, "bgrgawronN 30");
+		
+		ccs.enter( func {
+			ankokosz.play(0);
+			timgo.play;
+			} );
+	}
+	mouse_lclick	{
+		
+	}
+}
+
+game Cs13Most : StdGame	{
+	init	{
+		StdGame::init("cs13most");
+		
+		//bg1.pyz grod.pyz wit.pyz drzwi.pyz woda.pyz most.pyz ground.pyz maska.pyz
+		.newgrimg("grbg", "bg1", 0);
+		.newgrimg("grgrod", "grod", 10);
+		.imgs = (A, "wit.pyz 5", "drzwi.pyz 15", "woda.pyzP 20", "most.pyz 30", "ground.pyz 40", "maska.pyz 50");
+		
+		.newanima("kokosz", "$scripts/heroes/kokosz.pyz", 45);
+		.newanima("kajko", "$scripts/heroes/kajko.pyz", 45);
+		
+		.sounds = (A, ":kokosz1", "Na Tryg³awa i Swaroga! Brama zamkniêta! Jak mogli¶my zapomnieæ; Niech to Swaro¿yc zasiarczy!",
+			func { .kostop; .kasay("kajko1"); },
+			":kajko1", "Nie przeklinaj! Zaraz co¶ wymy¶limy", func { .kastop; .kosay("kokosz2"); },
+			":kokosz2", "Ciekawe co? Nie mamy ju¿ liny i mojej chochli; Bêdziemy tu tkwiæ do rana a¿ przyjd± Zbójcerze? Co za os³y zosta³y w Mirmi³owie; Nie wystawili nawet stra¿y! Kto ich upilnuje bez nas?", func { .kostop; .kasay("kajko2"); },
+			":kajko2", "Jak nocujemy w grodzie to te¿ nie wystawiamy stra¿y", func { .kos("kokosz3"); },
+			":kokosz3", "To co innego", func { anwit.play("enter"); .kas("kajko3"); },
+			":kajko3", "Cii co¶ widzê; Zaraz czy to nie Wit? Wit! To ty?", func { .kastop; .mwit("wit1"); },
+			":wit1", "Z serca Wita opad³ zmrok na Kajka i Kokosza widok", func { .witstop; .kosay("kokosz4"); },
+			":kokosz4", "Czeka³e¶ na nas? Co siê sta³o?", func { .kostop; .mwit("wit2"); },
+			":wit2", "Gdy Mirmi³a woje spoczêli w gospodzie Kapral dziwne rzeczy powyprawia³ w grodzie",
+				func { .witstop; .kosay("kokosz5"); },
+			":kokosz5", "Biada nam! Wpu¶cili¶my tego wê¿a do grodu! Tryg³aw jeden mo¿e wiedzieæ jakich szkód nam narobi³",
+				func { .kas("kajko5"); },
+			":kajko5", "Nie czas na biadolenie; Wit otwórz nam bramê i zostañ na warcie; My siê rozejrzymy w grodzie",
+				func { .kastop; anwit.play("close"); }
+			);
+			
+		
+		anwit.addmethod("onfinish", func {
+			if( .actionname=="close" ) {
+				fxotwieradrzwi1.play;
+				anmost.anplayfin(0, func {
+					fxotwierabrame.play;
+					andrzwi.anplayfin( 0, func {
+						ccs.close( func {
+							.gotoadv("adgrod", "gameadgrod1");
+							} );
+						} );
+					} );
+			}
+			} );
+		
+		new int kokoh = kokosz.geth;
+		new int kakoh = kajko.geth;
+		new int iVy = -15;
+		
+		kokosz.addmethod("onendframe", func {
+			match( .actionname )	{
+				"gouu" => {
+					if( .getposy < iResY+kokoh/4 )	{
+						kokosz.play("standuu");
+						kajko.play("standuu");
+						timgo1.play;
+					} else {
+						.move(0, iVy);
+					}
+				}
+				? => ;
+			}
+			} );
+		kajko.addmethod("onendframe", func {
+			match( .actionname )	{
+				"gouu" => {
+					.move(0, iVy);
+				}
+				? => ;
+			}
+			} );
+		kokosz.addmethod("onfinish", func { .play(-1); });
+		kajko.addmethod("onfinish", func { .play(-1); });
+		
+		kokosz.setpos(iResX/2+kokosz.getw/2, iResY+kokoh);
+		kajko.setpos(iResX/2-kajko.getw/2, iResY+kokoh);
+		kajko.play("gouu");
+		kokosz.play("gouu");
+		
+		.sfxs = (A, "bgrzabyN 20", "sowa1N 20", "otwieradrzwi1", "otwierabrame");
+		
+		.timer = ("timgo1", 2000, func { .kosay("kokosz1"); } );
+	}
+	mwit(string s)	{ .cbplay(s); anwit.play("talk"); }
+	witstop		{ anwit.play("stand"); }
+	kos(string s)	{ .kastop; .kosay(s); }
+	kas(string s)	{ .kostop; .kasay(s); }
+	kosay(string s)	{ .cbplay(s); kokosz.play("talkuu");	}
+	kasay(string s)	{ .cbplay(s); kajko.play("talkuu"); }
+	kostop	{ kokosz.play("standuu");	}
+	kastop	{ kajko.play("standuu");	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

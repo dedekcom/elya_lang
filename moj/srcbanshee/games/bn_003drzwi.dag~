@@ -1,0 +1,282 @@
+
+game mg003_drzwi : Banshee	{
+	init	{
+		Banshee::init("mg003_drzwi");
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2","keyhole.pyz 3", "klamka_mask.pyzH 4", "klamka.pyz 5","herb.pyzH 6", "popup_ramka.pyz 7", "popexit.pyz 8", "popup2_bkg.pyzH 9", "popup2_herb.pyzH 10", "popup2_symbol_2v.pyzH 13", "popup2_symbol_2v_anim.pyzH 14", "popup2_ramka.pyzH 15", "popup2_popexit.pyzH 16");  
+  	.butpopexit;
+		.stdstart;
+    .sfxs =(A, "skrzypienie_podlogiN 15", "wiatr_w_jaskiniN 50", "lockdoor1", "opendoor 60", "przekrecaklucz", "hint2 60");
+    anpopup2_symbol_2v.anhideonsetframe;
+    anpopup2_symbol_2v_anim.setdrawmode(1); 
+   
+    .newsndfree("anpopup2_symbol_2vsnd", "kinnat_c0d65g");
+    anpopup2_symbol_2vsnd.addmethod("onfinish", "advsetstdstate"); 
+    
+    .newsndfree("anpopup2_symbol_shown", "kinnat_c0d65j");
+    anpopup2_symbol_shown.addmethod("onfinish", "advsetstdstate"); 
+   
+   imgbkg {
+  		.addmethod("isbutin", func { (@x, @y)
+  			!anpopup_bkg.isin(x,y,0,0);
+  			} );
+  		.addmethod("butclick", func {
+  			if( !.advstdstate ) return;
+  			 .mend;
+  			} );
+    		butgame.add(this);
+  	 };
+   
+    new bool popup2_open;
+   /*if (!clsave.bis("e1_mg003_drzwi_herb_added"))
+    { 
+       .addtopck("herb"); //do testow 
+        clsave.bset("e1_mg003_drzwi_herb_added");
+        .addtopck("klucz_biblioteka"); //do testow 
+    }  */ 
+    
+    anpopup2_bkg{
+      .addmethod("isbutin", func { (@x, @y)
+				.isin(x,y,1,1) && popup2_open ;
+				} );
+      .addmethod("butmoveon", func {
+				if( !.advstdstate) return;
+				  if (!clsave.bis("e1_mg003_drzwi_herb_inserted"))
+            advmouse.set("use");   
+        } );
+			.addmethod("butmoveoff", func {
+				if( !.advstdstate ) return;
+				  advmouse.setstd;
+				} );    
+       
+      
+      butgame.add(this);
+    };
+     
+    anpopexit.addmethod("butmoveon", func {
+		 	 if(popup2_open) return;
+				advmouse.setbut;
+				.setframe(-1,1);
+				} );
+    anpopup2_popexit {
+			.Button_isinalpha;
+			.addmethod("butmoveon", func {
+		 	 if( !popup2_open) return;
+				advmouse.setbut;
+				.setframe(-1,1);
+				} );
+			.addmethod("butmoveoff", func {
+				 if(!popup2_open) return;
+				advmouse.setstd;
+				.setframe(-1,0);
+				} );
+			.addmethod("butclick", func {
+			 	if(!popup2_open) return;
+			   .close_popup2(null);
+				} );
+			butgame.add(this);
+		}; 
+    
+    anpopup2_symbol_2v{
+      .addmethod("isbutin", func { (int x, int y)
+			  .advstdstate && .isin(x,y,0,0) && clsave.bis("e1_mg003_drzwi_herb_inserted") && popup2_open;
+				} );
+			.addmethod("butmoveon", func {
+		 	 if(!popup2_open) return;
+			    if ( .loupe_visible && !clsave.bis("taken_klucz_biblioteka"))
+            .cbplay("anpopup2_symbol_2vsnd");   
+				} );
+			butgame.add(this);  
+    };
+    
+    if (!clsave.bis("e1_mg003_drzwi_klucz_inserted"))
+    { 
+      ankeyhole{
+        .addmethod("isbutin", func { (int x, int y)
+  			  .advstdstate && .isin(x,y,0,0)  ;
+  				} ); 
+  			.addmethod("butmoveon", func {
+  		 	     if (!clsave.bis("e1_mg003_drzwi_klucz_inserted"))
+                advmouse.set("use"); 
+  			 } );
+  			.addmethod("butmoveoff", func {
+  			   advmouse.setstd;
+  				 
+  			 } );
+  			 
+  			butgame.add(this);
+       };
+    };
+    
+    anherb {
+			.addmethod("isbutin", func { (int x, int y)
+			  .advstdstate && .isin(x,y,0,0)  ;
+				} ); 
+			.addmethod("butmoveon", func {
+		 	    advmouse.set("loupe"); 
+			 } );
+			.addmethod("butmoveoff", func {
+			   advmouse.setstd;
+				 
+			 } );
+			.addmethod("butclick", func {
+				if( !.advstdstate || popup2_open || clsave.bis("e1_ad003_drzwi_otwarte")) return;
+			  .open_popup2(); 
+				} );
+			 
+			butgame.add(this);
+		};
+    
+    
+     anklamka_mask {
+			.addmethod("isbutin", func { (int x, int y)
+			  .advstdstate && .isin(x,y,0,0);
+				} ); 
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( !.advstdstate || popup2_open) return;
+			  anklamka.play("push"); 
+			  fxopendoor.play;
+        } );
+         
+			 
+			 butgame.add(this);
+		};
+    
+    anklamka {
+      .addmethod("onfinish", func {
+			   if (clsave.bis("e1_mg003_drzwi_herb_inserted") && clsave.bis("e1_mg003_drzwi_klucz_inserted")) 
+         {
+            .set_mg_finished; 
+            clsave.bset("e1_ad003_drzwi_otwarte") ;
+            .mend;   
+         }
+         
+				} );
+    };
+   
+    if (clsave.bis("e1_mg003_drzwi_herb_inserted"))
+      anherb.show(); 
+    
+    if (clsave.bis("e1_mg003_drzwi_klucz_inserted")) 
+      ankeyhole.setframe(1,1);
+       
+      
+  } //koniec init
+  
+  open_popup2()
+  {
+    popup2_open =  true;
+    anpopup2_bkg.anfadein(300,null);  
+    anpopup2_ramka.anfadein(300,null);  
+    anpopup2_popexit.anfadein(300,null);  
+    if (clsave.bis("e1_mg003_drzwi_herb_inserted")) 
+      anpopup2_herb.anfadein(300,null);  
+      
+    if (clsave.bis("e1_mg003_drzwi_herb_inserted")) 
+     .gui_toloupe("anpopup2_symbol_2v");
+  }
+  
+  close_popup2()
+  {
+    anpopup2_bkg.anfadeout(300,null); 
+    anpopup2_ramka.anfadeout(300,null);
+    anpopup2_popexit.anfadeout(300,null);
+    .gui_removefromloupe("anpopup2_symbol_2v");
+    if (clsave.bis("e1_mg003_drzwi_herb_inserted")) 
+      anpopup2_herb.anfadeout(300,null);
+     popup2_open =  false; 
+    .advsetstdstate; 
+  }
+  
+  USE_herb	{
+		.advsetstdstate();
+     
+    if(popup2_open && anpopup2_bkg.isin(mouse.getpos,0,0) )	{
+      .removefrompck("herb");
+      anpopup2_herb.anfadein(800,null);
+      anherb.show();
+      anpopup2_symbol_2v_anim.anfadein(800,"efekt_fadout");  
+      .gui_toloupe("anpopup2_symbol_2v");
+      clsave.bset("e1_mg003_drzwi_herb_inserted");  
+      fxlockdoor1.play;
+      fxhint2.play;
+      advmouse.setstd;
+    } 
+    else if (anherb.isin(mouse.getpos,0,0))
+    {
+      popup2_open =  true;
+      anpopup2_bkg.show;  
+      anpopup2_ramka.show;  
+      anpopup2_popexit.anfadein(300,null);  
+      .removefrompck("herb");
+      anpopup2_herb.anfadein(800,null);
+      anherb.show();
+      anpopup2_symbol_2v_anim.anfadein(800,"efekt_fadout");  
+      .gui_toloupe("anpopup2_symbol_2v");
+      fxlockdoor1.play;
+      fxhint2.play;
+      clsave.bset("e1_mg003_drzwi_herb_inserted"); 
+       
+    }
+    else {
+		  .advsetstdstate; 
+      .item_gotopck;
+		}
+	}
+   
+  
+  USE_klucz_biblioteka	{
+		.advsetstdstate();
+    if(!popup2_open && ankeyhole.isin(mouse.getpos,0,0) )	{
+      .removefrompck("klucz_biblioteka");
+      ankeyhole.anfadein(800,null);
+      ankeyhole.play("open");
+      fxprzekrecaklucz.play;
+      butgame.removebut("ankeyhole");
+      advmouse.setstd;
+      clsave.bset("e1_mg003_drzwi_klucz_inserted");  
+    } else {
+		  .advsetstdstate; 
+      .item_gotopck;
+		}
+	} 
+  
+  efekt_fadout()
+  {
+    anpopup2_symbol_2v_anim.anfadeout(800,func{.cbplay("anpopup2_symbol_shown");});    
+  }  
+  
+  mend	{
+    .stdexitdefadv("ad003_ksrod", "gamead003_ksrod0");
+	} 
+  HINT_CLICK {
+    if (!clsave.bis("e1_mg003_drzwi_herb_inserted") && clsave.bis("taken_herb")) 
+    {  
+      if (popup2_open)
+      {
+        .showhintitem("herb");
+        .showhint("anpopup2_herb");
+      }
+      else
+        .showhint("anherb");
+      
+    }  
+    else if (!popup2_open && !clsave.bis("e1_mg003_drzwi_klucz_inserted") && clsave.bis("taken_klucz_biblioteka"))
+    {
+      .showhintitem("klucz_biblioteka"); 
+      .showhint("ankeyhole");
+    }
+    else if (!popup2_open && clsave.bis("e1_mg003_drzwi_klucz_inserted") && clsave.bis("e1_mg003_drzwi_herb_inserted"))
+    {
+       .showhint("anklamka_mask");
+    }
+    else
+    { 
+        if(popup2_open)
+          .showhint("anpopup2_popexit");  
+        else
+          .showhint("anpopexit");
+      }
+  }       
+}

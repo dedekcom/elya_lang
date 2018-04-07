@@ -1,0 +1,39 @@
+
+game mg12_winogrona :Banshee {
+	init{
+    Banshee::init("mg12_winogrona");
+    .imgs = (A,"bkg.jpg 1",  "ramka.pyz 6","popexit.pyz 7", "winogrona.pyz 8");
+    .butpopexit;
+    .setasitemtopck("anwinogrona");      
+    .stdstart; 
+    
+    .sfxs =(A, "bgrwiatrN 30"); 
+      
+  }// koniec init 
+  
+  anwinogrona_TAKE {
+    if( !.isvisible_itempopup("winogrona") ) {
+         
+        .show_itempopup("winogrona", "anwinogrona");
+          
+    } else {
+        .hide_itempopup("winogrona");  
+        .item_takecenter("winogrona");
+    }
+   
+  }
+  anwinogrona_INPCK {
+    .set_mg_finished; 
+    .timfinito; 
+  }  
+  
+  mend	{
+    .stdexitdefadv("ad12_latajacecosna", "gamead12_latajacecosna0"); 
+  }
+  
+  HINT_CLICK {
+    .showhint("anpopexit");   
+  }
+ 
+}
+ 

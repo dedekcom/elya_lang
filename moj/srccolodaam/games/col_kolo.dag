@@ -1,0 +1,282 @@
+
+
+game Kolo : MermaidStd {
+	init	{
+		if( igmandroid )
+			MermaidStd::init("koloandro");
+		else
+			MermaidStd::init("kolo");
+		
+		.imgsgr = (A, "bkg.jpg", "light.pyz 15", "ramka.pyzG 10", "brush.pyzG 15", "paint.pyzH 50",
+			"specbrush.pyz 20", "czysc.pyz 20", "save.pyz 20", "eraser.pyz 20", "dec.pyz 20", "inc.pyz 20", "size.pyz 15",
+			"napisy.pyzG 30", "imgpos.pyzH",
+			"grall");
+		
+		
+		if( !igmandroid )	{
+			int dy = 16->igetsc;
+			grall.move( 0, -dy );
+			dy /= 2;
+			if( dy > 0 )	{
+				new img imgbkg2;
+				imgbkg2.create( imgbkg.getw, dy, .transparent );
+				imgbkg2.setpos( imgbkg.getpx, imgbkg.getey-dy );
+				imgbkg2.blit("imgbkg");
+				imgbkg2.setpos( imgbkg.getpx, imgbkg.getey );
+				new img imgbkg3;
+				imgbkg3.copy("imgbkg2");
+				imgbkg3.setpos( imgbkg.getpx, imgbkg2.getey );
+			}
+		}
+		
+		.cbutexit;
+		if( !.gmbutleft )
+			anbutexit.ansetbpos( aneraser.getpx, igmoffsety );
+		.loadasker;
+		
+		.sfxs = (A, "lira2", "pedzel", "pedzel2");
+		
+		new gmimgvec grf;
+		"grf" ..< "farby.pyz";
+		if( !igmandroid )	{
+			grf.move( 0, -16->igetsc );
+		}
+		
+		anczysc.hide;
+		ansave.hide;
+		<grnapisy.getsac("clear")>.hide;
+		<grnapisy.getsac("save")>.hide;
+		
+		new int xbrush;
+		new int ybrush;
+		new img imbrush;
+		new img imbrush2;
+		new bool bcandraw = true;
+		new int ibrushsize = 50;
+		.newtext("txtsize", "", .stdfont(24->igetsc), .white);
+		txtsize.setz( 25 );
+		new string slastcol = null;
+		
+		grf.eval( func {
+			.setz(20);
+			.Button_stdms;
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					bcandraw = false;
+					.msetfarba(this);
+					fxpedzel.play;
+				}
+				} );
+			butgame.add(this);
+			} );
+		<grf.last>.paint(.white,255,0);
+		
+		grbrush.eval( func {
+			.Button_stdms;
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					bcandraw = false;
+					.msetbrush(this);
+					fxpedzel2.play;
+				}
+				} );
+			butgame.add(this);
+			} );
+		
+		aninc.Button_stdms;
+		aninc.addmethod("butclick", func {
+			if( .advstdstate )	{
+				bcandraw = false;
+				.mbrushsize(10);
+				sndfxmoveon2.play;
+			}
+			} );
+		butgame.add("aninc");
+		andec.Button_stdms;
+		andec.addmethod("butclick", func {
+			if( .advstdstate )	{
+				bcandraw = false;
+				.mbrushsize(-10);
+				sndfxmoveon2.play;
+			}
+			} );
+		butgame.add("andec");
+		
+		aneraser.Button_stdms;
+		aneraser.addmethod("butclick", "mnewbrushclick" );
+		butgame.add("aneraser");
+		
+		anspecbrush.Button_stdms;
+		anspecbrush.addmethod("butclick", "mnewbrushclick" );
+		butgame.add("anspecbrush");
+		
+		.newimg("ancol1", "$scripts/"+sgmkolopref+"/imgsbw/colbw_" + iKoloId + ".jpg", 7);
+		ancol1.move(animgpos.getpx,animgpos.getpy);
+		.newimg("ancol2", "$scripts/"+sgmkolopref+"/imgscol/colcol_" + iKoloId + ".jpg", 7);
+		ancol2.move(animgpos.getpx,animgpos.getpy);
+		ancol2.hide;
+		
+		new img implotno;
+		if( igmenablesave && engine.fileexist(.mgetfile) )	{
+			implotno.create( ancol1.getw, ancol1.geth, .transparent );
+			implotno.loadnoscale( .mgetfile );
+		} else {
+			implotno.create( ancol1.getw, ancol1.geth, .transparent );
+		}
+		implotno.setpos( ancol1.getpx, ancol1.getpy );
+		implotno.setz( 8 );
+		
+		new bool bclicked = false;
+		.cycle = ("timpaint", func {
+			if( .advstdstate &&  bclicked ) {
+				real x = imbrush.getpx;
+				real y = imbrush.getpy;
+				real len = x.length( x-xbrush, y-ybrush );
+				int ile = len / (imbrush.getw/2);
+				if( ile < 1 ) ile=1;
+				real rx = xbrush;
+				real ry = ybrush;
+				real dx = (x-rx)/ile;
+				real dy = (y-ry)/ile;
+				for( int i=1; i<=ile; i++ )	{
+					if( i==ile )	{
+						xbrush = x;
+						ybrush = y;
+					} else {
+						rx += dx;
+						ry += dy;
+						xbrush = rx;
+						ybrush = ry;
+					}
+					imbrush.setpos( xbrush, ybrush );
+					if( anspecbrush.framenr )
+						implotno.paintfromsrc("ancol2", "imbrush");
+					else if( aneraser.framenr )
+						implotno.erase("imbrush");
+					else implotno.paintfromgrey("ancol1", "imbrush");
+				}
+			}
+			.play;
+			} );
+		
+		
+		.msetbrush( grbrush.first );
+		.msetfarba( grf.first );
+		timpaint.play;
+		
+		.checkbrushpos;
+		
+		ccs.hideloading;
+		.stdenter;
+	}
+	mgetfile	{
+		.getsavepath + "kolo"+iKoloId+".k16";
+	}
+	msavefile	{
+		if( igmenablesave )	{
+			int x = implotno.getpx;
+			int y = implotno.getpy;
+			implotno.setpos(igmoffsetx,igmoffsety);
+			implotno.save( .mgetfile );
+			implotno.setpos(x,y);
+		}
+	}
+	mnewbrushclick	{
+		if( .advstdstate )	{
+			bcandraw = false;
+			if( this=="aneraser" ) {
+				anspecbrush.setframe(-1,0);
+				sndfxmoveon2.play;
+			} else {
+				aneraser.setframe(-1,0);
+				fxlira2.play;
+			}
+			if( .framenr )	{
+				.setframe(-1,0);
+				//.mupdatecol;
+				.mretcol;
+			} else {
+				.setframe(-1, 1 );
+				.mresetcol;
+			}
+		}
+	}
+	mbrushsize(int id)	{
+		ibrushsize = .between(10, ibrushsize+id, 100);
+		imbrush2.imgclone("anpaint");
+		imbrush2.anzoom( 0.01 * ibrushsize );
+		imbrush.imgclone("imbrush2");
+		imbrush2.hide;
+		imbrush.show;
+		txtsize.txtset( "" + ibrushsize + "%" );
+		txtsize.imgputoncenter( "ansize" );
+		.mupdatecol;
+		.setbrushpos;
+	}
+	mouse_lclick	{
+		if( .advstdstate )	{
+			if( bcandraw )	{
+				bclicked = true;
+				.setbrushpos;
+				xbrush = imbrush.getpx;
+				ybrush = imbrush.getpy;
+			} else {
+				bcandraw = true;
+			}
+		}
+	}
+	mouse_lrel	{
+		bclicked = false;
+		.checkbrushpos;
+	}
+	msetfarba(string s)	{
+		aneraser.setframe(0,0);
+		anspecbrush.setframe(0,0);
+		anlight.setframe( <s>.actionnr(-1), 0 );
+		anlight.ancenterimg( s );
+		anlight.show;
+		slastcol = s;
+		.mupdatecol;
+	}
+	mretcol	{	.msetfarba(slastcol);	}
+	mupdatecol	{
+		if( aneraser.framenr || anspecbrush.framenr )
+			.mresetcol;
+		else if( slastcol!=null )
+			imbrush.paint( <slastcol>.getrgb( <slastcol>.getcx, <slastcol>.getcy ), 255, 0 );
+	}
+	mresetcol	{
+		anlight.hide;
+		imbrush.paint( .black, 255, 0 );
+	}
+	mouse_move	{
+		.setbrushpos;
+	}
+	setbrushpos	{
+		if( .checktouchpad )
+			imbrush.setpos(mouse.getpx-imbrush.getw/2, mouse.getpy-imbrush.geth/2);
+		else
+			imbrush.setpos(mouse.getpx-imbrush.getw, mouse.getpy-imbrush.geth);
+	}
+	msetbrush(string s)	{
+		grbrush.setframe(-1,0);
+		<s>.setframe(-1,1);
+		anpaint.setframe( 0, <s>.actionnr(-1) );
+		.mbrushsize(0);
+	}
+	checkbrushpos	{
+		if( igmandroid )	{
+			imbrush.scpos(1140, 520);
+			imbrush.move( -imbrush.getw/2, -imbrush.geth/2 );
+		} else if( .checktouchpad )	{
+			imbrush.scpos(970, 650);
+			imbrush.move( -imbrush.getw/2, -imbrush.geth/2 );
+		}
+	}
+	butclick_anbutexit	{
+		bcandraw = false;
+		.msavefile;
+		.askfor("MenuImg");
+	}
+}
+

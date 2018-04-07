@@ -1,0 +1,302 @@
+game gameroznice : classadvpiast {
+	init()	{
+		classadvpiast::init();
+		this.setgraphpath( "scripts/part1/roznice/");
+		this.csetbkg("bkgroznice.png");
+		this.newanima("anwoznica","woznica.pyz", 20);
+		this.newanima("anroznice","roznice.pyz", 10);
+		this.newanima("ankufer","kurerek.pyz",30);
+		ankufer.hide();
+		ankufer.move(0,2);
+		new int ileroznic = this.newanframes("anroznice","anr",0);
+		anroznice.hide();
+		igmstate = 0;
+		anwoznica.setdelay(1);
+		this.csplaywithfin("anwoznica", "nadchodzi", "woznicafin");
+
+		this.cloadcursor("kursormlot.png");
+		
+		this.newsnds("sndpias", 2, "part1piast", 2, 8);
+		this.newsnds("sndmar", 1, "part1maras", 1, 7);
+		this.newsnd("sndbum", "sfx/napraw.wav");
+	}
+	mwoznicatalk(string ssnd, string sfuncfin)	{
+		anwoznica.play("gada");
+		this.cbplaywithfin(ssnd, sfuncfin);
+	}
+	mpiasttalk(string ssnd, string sfuncfin)	{
+		anwoznica.stop(false);
+		this.cbplaywithfin(ssnd, sfuncfin);
+	}
+	mwoznadchodzi()	{
+		if(igmstate==0)	{
+			anwoznica.setdelay(2);
+			this.mwoznicatalk("sndmar1","mfinmar1");
+		} else if (igmstate==2)	{
+			anwoznica.setdelay(2);
+			this.mwoznicatalk("sndmar4","mfinmar4");
+		}
+	}
+	mfinmar4()	{	this.mpiasttalk("sndpias5","mfinp5");	}
+	mfinp5()	{	this.mwoznicatalk("sndmar5","mfinmar5");	}
+	mfinmar5()	{	this.mpiasttalk("sndpias6","mfinp6");	}
+	mfinp6()	{	this.mwoznicatalk("sndmar6","mfinmar6");	}
+	mfinmar6()	{	this.mpiasttalk("sndpias7","mfinp7");	}
+	mfinp7()	{	this.mwoznicatalk("sndmar7","mfinmar7");	}
+	mfinmar7()	{	
+		this.mpiasttalk("sndpias8","mfinp8");	
+		ankufer.play(0);
+	}
+	mfinp8()	{
+		gameapi.play("gamepodworko2");
+	}
+	mfinmar1()	{	this.mpiasttalk("sndpias2","mfinp2");	}
+	mfinp2()	{	this.mwoznicatalk("sndmar2","mfinmar2");	}
+	mfinmar2()	{
+		anwoznica.setdelay(1);
+		anwoznica.play("odchodzi");
+	}
+	mwozgada()	{
+		this.play(-1);
+	}
+	mwozodchodzi()	{
+		if(igmstate==0)	{
+			anwoznica.hide();
+			this.cbplaywithfin("sndpias3", "mfinp3");
+		}
+	}
+	mfinp3()	{
+		sndmar3.play();
+		igmstate=1;
+	}
+	woznicafin()	{
+		this.<"mwoz" + this.actionname()>();
+	}
+	usunroznice()	{
+		sndbum.play();
+		ileroznic--;
+		if (ileroznic<=0)	{
+			igmstate = 2;
+			anwoznica.play("nadchodzi");
+			sndpias4.play();
+		}
+	}
+	mouselclick()	{
+		if(igmdebug==true)	{
+			this.cactsndstop(true);
+		}
+		if(igmstate==1)	{
+			string s = engine.getimg(mouse.getpx(),mouse.getpy()+10,1,1,10,10);
+			if(s!=null)	{
+				<s>.hide();
+				this.usunroznice();
+			}
+		}
+	}
+}
+
+class classpart1 : classadvpiast {
+	init()	{
+		classadvpiast::init();
+		
+		this.newsnd("sfxstep", "sfx/step.wav");
+	}
+	loadpiast()	{
+		this.cloadpiast();
+		this.cputgr2("anpiast", 270, 240);
+	}
+	loadwoz()	{
+		this.newsndloop("sndgalop","sfx/tentent.wav");
+		this.newsnd("sndparsk","sfx/konparsk.wav");
+		this.setgraphpath( "scripts/part1/podworze/");
+		this.newanima("anwoz","woz.pyz", 30);
+		this.copyanima("anwoz","anwoznica");
+		this.copyanima("anwoz","ankon");
+		
+		new gmobjvec grwoz;
+		grwoz.add("anwoz");
+		grwoz.add("anwoznica");
+		grwoz.add("ankon");
+		grwoz.setdelay(2);
+		
+		ankon.setframe("kongo",0);
+		anwoz.setframe("woz",0);
+		anwoznica.setframe("woznica",0);
+		this.looponfinish("ankon");
+		ankon.addmethod("onendframe", "konframe");
+		this.looponfinish("anwoz");	
+		
+		this.cputgr("anwoz");
+		this.cputgr("anwoznica");
+		this.cputgr("ankon");
+	}
+	loadbkg()	{
+		this.setgraphpath( "scripts/part1/podworze/");
+		this.csetbkg("part1bkg.png");	
+		this.cloadbgelem("elpodworko.pyz");
+	}
+	loadpathf()	{
+		this.setgraphpath("scripts/part1/podworze/");
+		this.cloadpathf("part1mask.png");	
+	}
+}
+
+game gamepodworko1 : classpart1 {
+	init()	{
+		classpart1::init();
+		this.loadbkg();
+		this.loadpiast();
+		anpiast.play("standdd");
+		
+		this.loadwoz();
+		this.cnewtimerfin("timfin", 2500, 1, "fintimfin");
+		
+		this.newsnd("sndpiast1", "part1piast1.wav");
+		this.cnewsndfin("sndnar2", "part1nar2.wav", "finsndnar2");
+		this.cnewsndfin("sndnar3", "part1nar3.wav", "gamestart");
+		this.cplayintro("part1nar1.wav");
+		this.cplayonfin("sndintro", "sndnar2");
+		
+		claskexit.askplayeasy();
+	}
+	finsndnar2()	{
+		this.cbplay("sndnar3");
+		sndgalop.play();
+		sndparsk.play();
+		sndgalop.setvol(50);
+		sndparsk.setvol(50);
+	}
+	gamestart()	{
+		sndgalop.setvol(100);
+		sndparsk.setvol(100);
+		sndparsk.stop(false);
+		this.cplaywithfin("sndparsk", "startwozy");
+		igmstate = 1;
+	}
+	startwozy()	{
+		sndpiast1.play();
+		grwoz.nplay(-1);
+	}
+	konframe()	{	
+		if(this.getpx() > 240)	{
+			grwoz.move(-8,0);	
+		} else {
+			sndgalop.stop(false);
+			grwoz.stop(0);
+			this.setframe("konstand",0);
+			anpiast.setframe("standrr",0);
+			timfin.play();
+		}
+	}
+	fintimfin()	{
+		gameapi.play("gameroznice");
+	}
+	mouselclick()	{
+		if(igmdebug==true)	{
+			this.cactsndstop(true);
+		}
+	}
+}
+
+game gamepodworko2 : classpart1 {
+	init()	{
+		classpart1::init();
+		this.loadbkg();
+		this.loadpiast();
+		anpiast.setframe("standuu", 0);
+		this.loadwoz();
+		grwoz.move(-540, 0);
+		ankon.setframe("konstand",0);
+		
+		this.loadpathf();
+		
+		this.cnewsndfinbplay("sndmar1", "part1maras8.wav", "mfintimgo");
+		
+		this.newclmaskfunc("clm", "maska.pyz", "imglobcurs", "mclickmask");
+		clm.disable("las");
+		new string sandom = clm.getimg("dom");
+		
+		new classfadeinout clfio;
+		
+	}
+	mclickmask(string smask)	{
+		if(smask=="dom")	{
+			if(igmstate==1)	{
+				this.cwalkto( "ptpiast", sandom, 0, 0 );
+			}
+		} else {
+			engine.print("mask click error: " + smask);
+		}
+	}
+	konframe()	{
+		if( anwoz.getex() < 0)	{
+			grwoz.stop(false);
+			igmstate = 1;
+			clfio.sndvolume(2, -2, "sndgalop", "mfingalop");
+		} else {
+			grwoz.move(-8, 0);
+		}
+	}
+	mfingalop()	{	sndgalop.stop(false);	}
+	mfinptpiast()	{
+		ptpiast.stand();
+	}
+	mptreach(string smask)	{
+		ptpiast.stand();
+		gameapi.play("gamerzepicha1");
+	}
+	mfintimgo()	{
+		ankon.setframe("kongo",0);
+		grwoz.nplay(-1);
+		this.sndplayloop("sndgalop");
+		sndparsk.play();
+	}
+	mouselclick()	{
+		this.advclick();
+	}
+}
+
+game gamepodworko3 : classpart1	{
+	init()	{
+		classpart1::init();
+		this.loadbkg();
+		this.loadpiast();
+		anpiast.setframe("standdd", 0);
+		anpiast.move(-20, -40);
+		anpiast.anloopfin();
+		this.loadpathf();
+		this.newclmaskfunc("clm", "maska.pyz", "imglobcurs", "mclickmask");
+		clm.disable("dom");
+		new string sanlas = clm.getimg("las");
+		ptpiast.goto( anpiast.getpx(), anpiast.getey()+40);
+		this.cnewsndfin("sndintro", "part1piast27.wav", "mstartgame");
+	}
+	mstartgame()	{
+		igmstate = 1;
+		ptpiast.stand();
+	}
+	mfinptpiast()	{
+		if( igmstate==0)	{
+			this.cbplay("sndintro");
+			ptpiast.ansay();
+		} else {
+			ptpiast.stand();
+		}
+	}
+	mptreach(string smask)	{
+		ptpiast.stand();
+		gameapi.play("gamepart1las1");
+	}
+	mclickmask(string smask)	{
+		if(smask=="las")	{
+			if(igmstate==1)	{
+				this.cwalkto( "ptpiast", sanlas, 0, 0 );
+			}
+		} else {
+			engine.print("mask click error: " + smask);
+		}
+	}
+	mouselclick()	{
+		this.advclick();
+	}
+}

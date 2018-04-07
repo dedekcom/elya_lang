@@ -1,0 +1,208 @@
+class TextTyper : classlocker, gfxObject {
+	init(string sfont, int isize, int ir, int ig, int ib, string schars, int ilimit)	{
+		classlocker::init();
+		sfont = .checkfont(sfont, isize);
+		new int iR = ir;
+		new int iG = ig;
+		new int iB = ib;
+		new int iFontSize = isize;
+		new string sChars = schars;
+		new int iLimit = ilimit;		// 0 - unlimited
+		
+		new text txt1;
+		txt1.setfont(sfont);
+		txt1.set("");
+		new text txt2;
+		txt2.setfont(sfont);
+		txt2.set("_");
+		txt2.createtxt(iR,iG,iB);
+		txt2.hide();
+		
+		new string _sob=null;
+		new string _sfun=null;
+		
+		this.cnewtimerfin("timcyk",300,1,"fintimcyk");
+		
+		gfxObject::init("txt1");
+	}
+	public isin(int x, int y, bool bv, bool ba)	{	txt1.isin(x,y,bv,ba);	}
+	getcol	{	return iR,iG,iB;	}
+	fintimcyk()	{
+		if( this.getlock() )	return;
+		this.updatecyk();
+		this.play();
+	}
+	updatecyk()	{
+		if( txt2.isvisible() )	{
+			txt2.hide();
+		} else {
+			txt2.setpos( txt1.getex(), txt1.getpy() );
+			txt2.show();
+		}
+	}
+	public enable()	{
+		this.unlock();
+		this.updatecyk();
+		timcyk.play();
+	}
+	public disable()	{
+		txt2.hide();
+		timcyk.stop(false);
+		this.lock();
+	}
+	public onenter(string sob, string sfun)	{	_sob=sob;	_sfun=sfun;	}
+	public setpos(int x, int y)	{	txt1.setpos(x,y);	}
+	public setz(int z)	{	txt1.setz(z);txt2.setz(z);	}
+	public get()	{
+		string s = txt1.get();
+		( s.length()>0 ) ? s : "";
+	}
+	getpx	{	txt1.getpx;	}
+	getpy	{	txt1.getpy;	}
+	public length	{	txt1.get->length;	}
+	public set(string s)	{	txt1.set(s);	}
+	public txtset(string s)	{	txt1.txtsetcol(s,.getcol);	}
+	public limit=(int il)	{	iLimit=il;	}
+	public onkeydown()	{
+		if( this.getlock() )	return;
+		.<this+"_ontype">;
+		if( keyboard.iskeydown("enter") )	{
+			this.disable();
+			this.callfun(_sob,_sfun);
+			return;
+		}
+		string s;
+		if( sChars.contains("t") && keyboard.iskey("tab") )	s = " ";
+		else s = keyboard.getkey();
+		string s2 = txt1.get();
+		if( ( (keyboard.isalpha && sChars.contains("a") ) || ( keyboard.isdigit && sChars.contains("0") )
+			|| sChars.contains(s) ) && (iLimit<=0 || iLimit>s2.length)  )	{
+			txt1.set( s2+s );
+			txt1.createtxt(iR,iG,iB);
+			this.updatecyk();
+		} else if (keyboard.iskey("backspace") && s2.length()>0)	{
+			txt1.set( s2.strsube(1) );
+			txt1.createtxt(iR,iG,iB);
+			this.updatecyk();
+		}
+	}
+}
+
+class ConTextTyper : TextTyper, ObjController	{
+	init()	{
+		TextTyper::init();
+		ObjController::init();
+	}
+}
+
+class TextBoxTyper : LObjController	{
+	init(string sfont, int ish, int isw, int ir, int ig, int ib, string schars, int x, int y, int w, int h, int dy)	{
+		LObjController::init;
+		new @Font = .checkfont(sfont, ish);
+		.vars(A,"Cols", "Rows");
+		Cols = w/isw;
+		Rows = h/(ish+dy);
+		new @Row = 0;
+		new @X = x;
+		new @Y = y;
+		new @W = w;
+		new @H = h;
+		new @Size = ish;
+		new @Dy = dy;
+		new @Z = 0;
+		string s;
+		new gmimgvec grtt;
+		new gmimgvec gren;
+		for( int i=0; i<Rows; i++)	{
+			s = "tt"+i;
+			new TextTyper <s>(Font,ish,ir,ig,ib,schars,Cols);
+			<s>.setpos( x, y+i*(ish+dy) );
+			grtt.add(s);
+		}
+	}
+	size	{	grtt.size;	}
+	setz(int z)	{	Z = z; grtt.setz(z);	gren.setz(z); }
+	getz	{	Z;	}
+	show	{	grtt.show;	}
+	hide		{	grtt.hide;		}
+	enumerate(int dx)	{
+		string s[2];
+		for( int i=0; i<grtt.size; i++)	{
+			s0 = "txte"+i;
+			new text <s0>;
+			gren.add(s0);
+			<s0>.setz(Z);
+			<s0>.setfont(Font);
+			<s0>.txtsetcol(""+(i+1)+".", tt0.getcol);
+			<s0>.setpos(X-<s0>.getw-dx,Y+i*(Size+Dy));
+		}
+	}
+	cut(int id)	{	Rows=id;	}
+	enable	{	.unlock;	.activateact;	}
+	disable	{	.lock; grtt.eval("disable");	}
+	actual	{	"tt"+Row;	}
+	activate(int id)	{
+		.unlock;
+		if( id>=0 && id<Rows )	{
+			.deactivate;
+			Row = id;
+			<"tt"+ Row>.enable;
+		}
+	}
+	activateact	{	.activate(Row);	}
+	deactivate	{	<"tt"+Row>.disable;	}
+	onkeydown	{
+		if(.getlock)	return;
+		.<this+"_boxontype">;
+		if( keyboard.iskeydown("enter") )		{
+			@s = .getid(Rows-1);
+			s.clear;
+			if( s.length==0 )	{
+				for( @i=Rows-1; i>Row+1; i--)	.setid( .getid(i-1), i);
+				.setid("", Row+1);
+			}
+			.activate(Row+1);
+		} else if (keyboard.iskey("up") && Row>0) .activate(Row-1);
+		else if (keyboard.iskey("down") && Row<Rows-1) .activate(Row+1);
+		else if (keyboard.iskey("backspace") && <.actual>.length==0 ) {
+			for( @i=Row; i<Rows-1; i++)	.setid( .getid(i+1), i);
+			.setid("",Rows-1);
+			.activate(Row-1);
+		} else grtt.eval("onkeydown");
+	}
+	onmouselclick	{
+		if(.getlock)	return;
+		|int x, int y| = mouse.getpos;
+		
+		if( clsurf.isin2(x,y,X,Y,W,H) )	{
+			.deactivate;
+			.activate( ((y-Y)*Rows)/H );
+		} else {
+			.<this+"_OUTSIDE">;
+		}
+	}
+	string getid(int id)	{	<"tt"+id>.get;	}
+	string get	{	.getfrom(0);	}
+	string getfrom(int id)	{
+		string s = "";
+		for( int i=id; i<grtt.size; i++) s += <"tt"+i>.get;
+		s;
+	}
+	int nonempty(int id)	{
+		string s;
+		for( ; id<grtt.size; id++)	{
+			s = <"tt"+id>.get;
+			s.clear;
+			if( s.length > 0 ) return id;
+		}
+		-1;
+	}
+	clear	{	grtt.txtreset;	}
+	setid(string s, int id)	{	if( grtt.size>=id )	<"tt"+id>.txtset(s);	}
+	settext(int ile)	{
+		while(ile>0)	{
+			ile--;
+			.setid(_,ile);
+		}
+	}
+}

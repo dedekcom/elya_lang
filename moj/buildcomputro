@@ -1,0 +1,3 @@
+./kompiluj ./srccomputro/computro.prj
+#cp ./srccomputro/computro.odd /home/dedek/projekty/rysunki_gimp/computro/project/scripts/
+awk -f optimize.awk ./srccomputro/computro.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/computro/project/scripts/computro.odd

@@ -1,0 +1,132 @@
+/***************************************************************************/
+
+class classfadeinout		{
+	init()	{
+		new timer timf;
+		new string _sob;
+		new int _istep;
+		new int _ival;
+		new int _ib1;
+		new int _ib2;
+		new string _sfun;
+		new string _sfunfin;
+		new string _sobfin;
+		timf.addmethod("onfinish", "_ctimffin");
+	}
+	/***************\/\/\/\/\/ wewnetrzne \/\/\/\/\/\/************************************/
+	_cfinito(int v)	{
+		<_sob>.<_sfun>( v );
+		if( _sfunfin!=null)	{
+			if( _sobfin==null )
+				this.<_sfunfin>();
+			else <_sobfin>.<_sfunfin>;
+		}
+	}
+	_ctimffin()	{
+		_ival+=_istep;
+		if( _ival >= _ib2 )	{
+			this._cfinito( _ib2 );
+		} else if( _ival<=_ib1 )	{
+			this._cfinito( _ib1 );
+		} else {
+			<_sob>.<_sfun>( _ival );
+			this.play();
+		}
+	}
+	_play( int icycle, int istep, string sob, string sfun, int ib1, int ib2, string sob2, string sfun2 )	{
+		_sobfin = sob2;
+		_sfunfin = sfun2;
+		_ib1 = ib1;
+		_ib2 = ib2;
+		int i = istep.abs();
+		if( icycle <= 0 || i==ib1 || i>ib2 )	return;
+		_sfun = sfun;
+		timf.setcycle( icycle );
+		_sob = sob;
+		if( istep>0 )	_ival = _ib1;
+		else if( istep<0 )	_ival=_ib2;
+		else return;
+		<sob>.<sfun>( _ival );
+		_istep = istep;
+		timf.play();
+	}
+	/******************* /\/\/\/\/\/\/\ wewnetrzne /\/\/\/\ ****************************/
+	imgtransparency(int icycle, int istep, string simg, string sfun)	{
+		this._play( icycle, istep, simg, "transparency", 0, 255, null, sfun );
+	}
+	setopacity(int icycle, int istep, string simg, string sfun)	{
+		this._play( icycle, istep, simg, "setopacity", 0, 255, null, sfun );
+	}
+	sndvolume(int icycle, int istep, string ssnd, string sfun)	{
+		this._play( icycle, istep, ssnd, "setvol", 0, 100, null, sfun );
+	}
+	/***************************************************/
+	isplaying	{	timf.isplaying;	}
+}
+
+class CutScene : gfxObject	{
+	init(int x1, int y1, int x2, int y2)	{
+		new int X1;	new int Y1;
+		new int X2;	new int Y2;
+		new img _gsq;
+		.build(x1, y1, x2, y2);
+		gfxObject::init("_gsq");
+		new string _sfunc1;
+		new string _sob1;
+		new string _sfunc2;
+		new string _sob2;
+		new int _idelay = 10;
+		new classfadeinout _clfio;
+	}
+	build(int x1, int y1, int x2, int y2)	{
+		|X1, Y1, X2, Y2| = x1, y1, x2, y2;
+		_gsq.create(X2-X1,Y2-Y1,.black,255);
+		_gsq.setpos(X1,Y1);
+		_gsq.hide;
+		_gsq.transparency(0);
+	}
+	delay(int n)	{	_idelay=n;	}
+	transparency(int n)	{	_gsq.transparency(n);	}
+	playfin(string sfunc1, string sfunc2)	{	.playobfin(null,sfunc1, null, sfunc2);	}
+	playobfin(string sob1, string sfunc1, string sob2, string sfunc2)	{
+		_sob1 = (sob1==null) ? gameapi.getgamename : sob1;
+		_sfunc1 = sfunc1;
+		_sob2 = (sob2==null) ? gameapi.getgamename : sob2;
+		_sfunc2 = sfunc2;
+		_gsq.show;
+		_gsq.transparency(0);
+		_clfio._play( 1, _idelay, this, "transparency", 0, 255, this, func {
+			.callfun(_sob1, _sfunc1);
+			_gsq.show;
+			_clfio._play( 1, -_idelay, this, "transparency", 0, 255, this, "_callfun2" );
+			} );
+	}
+	close(string sfunc1)	{	.obclose(gameapi.getgamename, sfunc1);	}
+	obclose(string sob, string sfunc1)	{
+		_sob1 = sob;
+		_sfunc1 = sfunc1;
+		_gsq.transparency(0);
+		_gsq.show;
+		_clfio._play( 1, _idelay, this, "transparency", 0, 255, this, func {
+			_gsq.hide;
+			.callfun(_sob1, _sfunc1);
+			} );
+	}
+	enter(string sfunc2)	{	.obenter(gameapi.getgamename, sfunc2);	}
+	obenter(string sob, string sfunc2)	{
+		_sob2 = sob;
+		_sfunc2 = sfunc2;
+		_gsq.transparency(255);
+		_gsq.show;
+		_clfio._play( 1, -_idelay, this, "transparency", 0, 255, this, "_callfun2" );
+	}
+	_callfun2	{
+		_gsq.hide;
+		.callfun(_sob2, _sfunc2);
+	}
+	isplaying	{	_clfio.isplaying;	}
+	show	{
+		_gsq.transparency(255);
+		_gsq.show;
+	}
+}

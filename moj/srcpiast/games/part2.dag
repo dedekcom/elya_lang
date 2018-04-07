@@ -1,0 +1,359 @@
+
+game gamepart2miasto : classadvpiast {
+	init()	{
+		classadvpiast::init();
+		this.cloadpiast();
+		this.cloadterrain("scripts/part2/miasto/", "bkg.png", "elems.pyz");
+		
+		this.cloadpathf("maska.png");
+		
+		this.newstdanima("anstraznik", "straznik.pyz", 20);
+		
+		anpiast.addmethod("onendframe", "mpiastendframe");
+		this.looponfinish("anpiast");
+		
+		this.cnewsndsfin("sndp", 1, "mspiast", 1, 10, "mfinp" );
+		this.cnewsndsfin("sndryc", 2, "msryc", 2, 7, "mfinryc" );
+		
+		new classmask clm;
+		clm.addmask("anstraznik", "straznik", "imglobcurs", false);
+		clm.addfunctolast("mclickmask", null, null, null);
+		int iileelems = anbg0.nofactions();
+		new string sstud = this.cgetanbyaction( "anbg", iileelems, "studnia");
+		clm.addmask(sstud, "studnia", "imglobcurs", false);
+		clm.addfunctolast("mclickmask", null, null, null);
+		
+		new int idy = 600 - imgbkg.geth();
+		this.cputgr2("anpiast", 280, 560);
+		
+		new gmobjvec grall;
+		grall.add("anstraznik");
+		grall.add("imgbkg");
+		grall.add("ptpiast");
+		grall.addgroup("anbg", iileelems );
+		grall.move( 0, idy );
+		grall.add("anpiast");
+		
+		anpiast.mpiastendframe();	
+		ptpiast.gotorel( 100, -50 );
+		
+		this.cnewtimerfin("timkoment", 45000, 1, "mfintimcom");
+		new classquest clq;
+	}
+	/****************************************************************/
+	mfinp1()	{ igmstate = 1; ptpiast.anstand(); }
+	mfinp2()	{this.mstrazsay("sndryc2","ru");}
+	mfinp3()	{this.mstrazsay("sndryc3","ru");}
+	mfinp4()	{this.mstrazsay("sndryc4","ru");}
+	mfinp5()	{this.mstrazsay("sndryc5","ru");}
+	mfinp6()	{this.mstrazsay("sndryc6","ru");}
+	mfinp7()	{this.mstrazsay("sndryc7","ru");}
+	mfinp8()	{ igmstate = 1; ptpiast.anstand();}
+	mfinp9()	{ igmstate=1;ptpiast.anstand();}
+	mfinp10()	{	gameapi.play("gamepart2labirynt"); }
+	mfinryc2()	{ this.mpiastsay2("sndp3","ru");}
+	mfinryc3()	{this.mpiastsay2("sndp4","ru");}
+	mfinryc4()	{this.mpiastsay2("sndp5","ru");}
+	mfinryc5()	{this.mpiastsay2("sndp6","dd");}
+	mfinryc6()	{this.mpiastsay2("sndp7","ru");	clq.done("miastopogadal");	timkoment.play();}
+	mfinryc7()	{igmstate=1; this.mstrazhear();}
+	/****************************************************************/
+	mstrazniksay()	{	anstraznik.play( "gada" );	}
+	mstrazhear()	{ anstraznik.play("stoiPL");	}
+	mpiastsay2(string ssnd, string sside)	{
+		this.cherosay("anpiast", 5, ssnd, sside, "mstrazhear", true);
+	}
+	mstrazsay(string ssnd, string sside)	{
+		this.cherosay("anpiast", 5, ssnd, sside, "mstrazniksay", false);
+	}
+	mpiastsay(string ssnd)	{
+		this.cherosay("anpiast", 5, ssnd, ptpiast.getdir(), null, true);
+	}
+	mfintimcom()	{
+		if( igmstate==1&& this.cisplaying()==false)	{
+			this.mpiastsay("sndp9");
+		} else {
+			this.play();
+		}
+	}
+	mpiastendframe()	{
+		this.setz( this.getey()-idy );
+		this.cmovybkg( this.getcy(), 380, 430, 8, "grall" );
+	}
+	mstartgame()	{
+		this.mpiastsay("sndp1");
+	}
+	mfinptpiast()	{
+		ptpiast.stand();
+		if(igmstate==0)	{
+			this.mstartgame();
+		}
+	}
+	mptreach(string smask)	{
+		ptpiast.stand();
+		if(smask=="studnia")	{
+			this.mpiastsay("sndp10");
+		} else if (smask=="straznik")	{
+			if( clq.isdone("miastopogadal")==false )	{
+				this.mpiastsay2("sndp2","ru");
+			} else {
+				this.mpiastsay2("sndp7","ru");
+			}
+		}
+	}
+	mclickmask(string smask)	{
+		if(smask=="straznik")	{
+			if(igmstate==1)	{
+				this.cwalkto2( "ptpiast", "anstraznik", "straznik", 0, 80 );
+			}
+		} else if(smask=="studnia")	{	
+			if(igmstate==1)	{
+				if( clq.isdone("miastopogadal")==false )	{
+					this.mpiastsay("sndp8");
+				} else {
+					igmstate = 3;
+					this.cwalkto2( "ptpiast", sstud, "studnia", 50, 40 );
+				}
+			}
+		}else{
+			engine.print("mask click error: " + smask);
+		}
+	}
+	mouselclick()	{
+		this.advclick();
+	}
+}
+
+/****************************************************************************/
+game gamepart2labirynt : classadvpiast {
+	init()	{
+		classadvpiast::init();
+		this.setgraphpath("scripts/part2/labirynt/");
+		this.cstdbkg();
+		this.newimg("imgmask", "maska.png", 0);
+		imgmask.hide();
+		this.newanima("anstart", "maski.pyz", 10);
+		anstart.hide();
+		this.copyanimaact("anstart", "anend", "end");
+		
+		this.newanima("anpiast", "piast.pyz", 20);
+		this.looponfinish("anpiast");
+		anpiast.setpos( anstart.getpx()-10, anstart.getpy()-20 );
+		anpiast.setdelay(3);
+		anpiast.play("standu");
+		anpiast.addmethod("onendframe", "mpiastframe");
+		clanpack.resizemethods("anpiast");
+		
+		this.cplayintrofun("labpiast1.wav", "msndstartfin");
+		this.cnewsndfin("sndfin", "labpiast6.wav", "msndfinfin");
+		new classsndbank cscom;
+		cscom.load("labpiast", 2, 5, 0, 0);
+		this.cnewtimerfin("timkoment", 20000, 1, "mfintimcom");
+		timkoment.play();
+	}
+	mfintimcom()	{
+		this.crplay("cscom");
+		this.play();
+	}
+	msndfinfin()	{
+		gameapi.play("gamepart2zamek");
+	}
+	msndstartfin()	{
+		igmstate=1;
+	}
+	int mozna(int x, int y)	{
+		return imgmask.isin(x,y,false,true);
+	}
+	mvpiast(int dx, int dy, string sside)	{
+		if( this.mozna(anpiast.getcx()+dx, anpiast.getcy()+dy) == true )	{
+			anpiast.move(dx,dy);
+			anpiast.rplay("go"+sside);
+		} else {
+			anpiast.rplay("stand"+sside);
+		}
+	}
+	mpiastframe()	{
+		if(igmstate!=1)	{	return;	}
+		string s = this.actionname();
+		if( keyboard.iskeydown("up")==true )	{
+			this.mvpiast( 0, -9, "u");
+		} else	if( keyboard.iskeydown("down")==true )	{
+			this.mvpiast( 0, 9, "d");
+		} else	if( keyboard.iskeydown("right")==true )	{
+			this.mvpiast(9, 0, "r");
+		} else	if( keyboard.iskeydown("left")==true )	{
+			this.mvpiast(-9, 0, "l");
+		} else {
+			this.rplay("stand"+s.gete(0,1));
+		}
+		if( anend.isin( this.getcx(), this.getcy(), false, false)==true )	{
+			this.rplay("stand"+s.gete(0,1));
+			igmstate=2;
+			this.cbplay("sndfin");
+		}
+	}
+}
+
+
+/****************************************************************************/
+
+game gamepart2zamek : classadvpiast {
+	init()	{
+		classadvpiast::init();
+		this.cloadpiast();
+		this.cloadterrain("scripts/part2/zamek/", "bkg.png", "elems.pyz");
+		
+		this.cloadpathf("maska.png");
+		
+		anpiast.addmethod("onendframe", "mpiastendframe");
+		this.looponfinish("anpiast");
+		
+		this.newstdanima("andruid", "druid.pyz", 0);
+		this.cputgr("andruid");
+		this.newstdanima("anprince", "prince.pyz", 0);
+		this.cputgr("anprince");
+		new classmask clm;
+		clm.addmask("anprince", "ksiaze", "imglobcurs", false);
+		clm.addfunctolast("mclickmask", null, null, null);
+		clm.addmask("andruid", "druid", "imglobcurs", false);
+		clm.addfunctolast("mclickmask", null, null, null);
+		new int iileelems = anbg0.nofactions();
+		for(int i=1; i<=4; i++)	{
+			this.mbuildmask( "sryc"+i, "ryc"+i, "ryc"+i);
+		}
+		this.mbuildmask( "sbaby", "baby", "baby");
+		this.mbuildmask( "smnich", "mnichPL", "mnich");
+		
+		this.cnewsndsfin("sndp", 2, "zampiast", 2, 9, "mfinp" );
+		this.cnewsndsfin("sndpaf", 1, "zampaf", 1, 8, "mfinpaf" );
+		this.newsnds("sndryc", 1, "zamryc", 1, 4 );
+		this.newsnd("sndbaby", "zambaby.wav");
+		this.newsnd("sndmnich", "zammn1.wav");
+		this.cnewsndsfin("sndx", 1, "zamx", 1, 3, "mfinx" );
+		
+		this.cputgr2("anpiast", 630, 470);
+		anpiast.play("standdd");
+		ptpiast.ansay();
+		
+//		this.cnewtimerfin("timkoment", 30000, 1, "mfintimcom");
+		new classquest clq;
+		this.cplayintrofun("zampiast1.wav", "mstartgame");
+	}
+	/****************************************************************/
+	mfinx1()	{	this.mnorma();	}
+	mfinx2()	{	this.mherosay("sndx3", "mxhear", ptpiast.getdir() );	}
+	mfinx3()	{	this.mnorma();	clq.done("bxzezwolil");	}
+	mfinp2()	{	this.mdruidtopiast2("sndpaf1");	}
+	mfinp3()	{	this.mdruidtopiast2("sndpaf3");	}
+	mfinp4()	{	this.mdruidtopiast2("sndpaf4");	}
+	mfinp5()	{	this.mdruidtopiast2("sndpaf5");	}
+	mfinp6()	{	this.mdruidtopiast2("sndpaf6");	}
+	mfinp7()	{	this.mxtopiast("sndx2","ll");	}
+	mfinp8()	{	this.mdruidtopiast2("sndpaf8");	}
+	mfinp9()	{	this.mdruidtopiast2("sndpaf2");	}
+	mfinpaf1()	{	this.mpiasttodruid2("sndp9");	}
+	mfinpaf2()	{	this.mpiasttodruid2("sndp3");	}
+	mfinpaf3()	{	this.mpiasttodruid2("sndp4");	}
+	mfinpaf4()	{	this.mpiasttodruid2("sndp5");	}
+	mfinpaf5()	{	this.mpiasttodruid2("sndp6");	}
+	mfinpaf6()	{	this.mdruidtopiast2("sndpaf7");	clq.done("bdruidgadal"); }
+	mfinpaf7()	{	this.mnorma();	this.mdruidhear();	}
+	mfinpaf8()	{	this.mfinitogame();	}
+	mnorma()	{	igmstate=1;	ptpiast.anstand();	}
+	mfinitogame()	{	
+		clsav.qsave("lot1restart",false);
+		gameapi.play("gamelot1");
+	}
+	/****************************************************************/
+	mdruidsay()	{	andruid.play( "gada" );	}
+	mdruidhear()	{	andruid.play("siedziL");	}
+	mxsay()	{	anprince.play( "odwraca" );	}
+	mxhear()	{	anprince.play("gadaPL");	}
+	mpiastsay(string ssnd, string sfun, string sside)	{
+		this.cherosay("anpiast", 5, ssnd, sside, sfun, true);
+	}
+	mpiasttodruid2(string ssnd)	{	this.mpiasttodruid(ssnd, ptpiast.getdir());	}
+	mpiasttodruid(string ssnd, string sside)	{
+		this.mpiastsay(ssnd, "mdruidhear", sside);
+	}
+	mpiasttox(string ssnd, string sside)	{
+		this.mpiastsay(ssnd, "mxhear", sside);
+	}
+	mherosay(string ssnd, string sfun, string sside)	{
+		this.cherosay("anpiast", 5, ssnd, sside, sfun, false);
+	}
+	mdruidtopiast(string ssnd, string sside)	{
+		this.mherosay(ssnd, "mdruidsay", sside );
+	}
+	mdruidtopiast2(string ssnd)	{	this.mdruidtopiast(ssnd, ptpiast.getdir());	}
+	mxtopiast(string ssnd, string sside)	{
+		this.mherosay(ssnd, "mxsay", sside );
+	}
+
+	mpiastendframe()	{
+		this.setz( this.getey() );
+	}
+	mstartgame()	{
+		igmstate=1;
+		ptpiast.anstand();
+	}
+	mfinptpiast()	{
+		ptpiast.stand();
+	}
+	mptreach(string smask)	{
+		ptpiast.stand();
+		if(smask=="druid")	{
+			if( clq.isdone("bdruidgadal")==false )	{
+				this.mpiasttodruid("sndp2", "ru");
+			} else {
+				if ( clq.isdone("bxzezwolil")==false )	{
+					this.mdruidtopiast("sndpaf7", "ru");
+				} else {
+					this.mpiasttodruid("sndp8", "ru");
+				}
+			}
+		} else if (smask=="ksiaze")	{
+			if ( clq.isdone("bdruidgadal")==false )	{
+				this.mherosay("sndx1", "mxhear", ptpiast.getdir() );
+			} else {
+				this.mpiasttox("sndp7", "ll");
+			}
+		} else if (smask=="mnich")	{
+			this.crbgplay("sndmnich");
+		} else if (smask=="ryc1")	{
+			this.crbgplay("sndryc1");
+		} else if (smask=="ryc2")	{
+			this.crbgplay("sndryc2");
+		} else if (smask=="ryc3")	{
+			this.crbgplay("sndryc3");
+		} else if (smask=="ryc4")	{
+			this.crbgplay("sndryc4");
+		} else if (smask=="baby")	{
+			this.crbgplay("sndbaby");
+		}
+	}
+	mclickmask(string smask)	{
+		if(igmstate==1)	{
+			if(smask=="druid")	{
+				this.cwalkto2( "ptpiast", "andruid", "druid", -40, 60 );
+			} else if (smask=="ksiaze")	{
+				this.cwalkto2( "ptpiast", "anprince", "ksiaze", 40, 50 );
+			} else if (smask=="mnich")	{
+				this.cwalkto2( "ptpiast", smnich, "mnich", 0, 0 );
+			} else if (smask=="ryc1")	{
+				this.cwalkto2( "ptpiast", sryc1, "ryc1", 0, 0 );
+			} else if (smask=="ryc2")	{
+				this.cwalkto2( "ptpiast", sryc2, "ryc2", 0, 0 );
+			} else if (smask=="ryc3")	{
+				this.cwalkto2( "ptpiast", sryc3, "ryc3", 0, 0 );
+			} else if (smask=="ryc4")	{
+				this.cwalkto2( "ptpiast", sryc4, "ryc4", -20, 80 );
+			} else if (smask=="baby")	{
+				this.cwalkto2( "ptpiast", sbaby, "baby", -20, 80 );
+			}
+		}
+	}
+	mouselclick()	{
+		this.advclick();
+	}
+}

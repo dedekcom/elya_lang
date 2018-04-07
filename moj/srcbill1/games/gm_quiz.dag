@@ -1,0 +1,254 @@
+
+new string QuizMode = "l";		// latwy, trudny
+
+game Quiz : DziejeGame	{
+	init	{
+		DziejeGame::init("quiz");
+		
+		.sfxs = (A, "nasadza 80");
+		
+		.sounds = (A,
+			"sndl1", "wskaz babiloñskiego ³ucznika", "mgo",
+			"sndl2", "wskaz babilonskiego piechura z wlócznia", "mgo",
+			"sndl3", "wskaz wojownikow z bliskiego wschodu", "mgo",
+			"sndl4", "wskaz tarcze uzywana w starozytnej mezopotami", "mgo",
+			"sndl5", "wskaz najstarszy model bliskowschodniego rydwanu", "mgo",
+			"sndl6", "wskaz asyryjski rydwan", "mgo",
+			"sndl7", "wskaz sumeryjski rydwan", "mgo",
+			"sndl8", "wsakz helm uzywany przez armie na bliskim wschodzie", "mgo",
+			"sndl9", "jak wygladalo miasto na bliskim wschodzie?", "mgo",
+			"sndl10", "jak wygladaly sumeryjskie domy budowane z glinianych cegiel?", "mgo",
+			"sndl11", "na jakie zwierzeta polowali asyryjscy krolowie?", "mgo",
+			"sndl12", "wskaz muzykow z babilonu", "mgo",
+			"sndl13", "ktora korone krol zakladal w czasie wojny", "mgo",
+			"sndl14", "wskaz asyryjska ksiezniczke", "mgo",
+			"sndl15", "jakich przyrzadow do pisania uzywali pisarze w mezopotamii", "mgo",
+			"sndl16", "jak wygladaly bramy sumeryjskich miast", "mgo",
+			"sndl17", "ktory z krolow wladal sarozytna mezopotamia?", "mgo",
+			"sndl18", "wskaz tron wladcy znad eufratu", "mgo",
+			"sndl19", "pokaz palme daktylowa", "mgo",
+			"sndl20", "ktore owoce to daktyle?", "mgo",
+			"sndl21", "wkaz kolczan na straly przywiazywany do assyryjskiego rydwanu", "mgo",
+			"sndl22", "ktory instrument posiada pudlo rezonansowe?", "mgo",
+			"sndl23", "ktore zwierze pracowalo w kupieckich karawanach na bliskim wschodzie", "mgo",
+			"sndl24", "ktory dom do dzis budowany jest w delcie eufratu?", "mgo",
+			"sndl25", "wkaz glowice kolumny z palacu nad rzeka tygrys", "mgo",
+			"sndl26", "wskaz rekonstrukcje wiezy babel z miasta babilon", "mgo",
+			"sndl27", "wskaz zikkurat z miasta ur", "mgo",
+			"sndl28", "wkaz tekst napisany pismem klinowym", "mgo",
+			"sndl29", "ktory obrazek przedstawia soche z siewnikiem?", "mgo",
+			"sndl30", "ktorym przyrzadem wykonano pieczec widoczna na gorze ekranu?", "mgo",
+			
+			"sndt1", "na ktorej mapie zaznaczono bialym kolorem starozytna mezopotamie?", "mgo",
+			"sndt2", "na ktorej mapie zaznaczono miasto babilon?", "mgo",
+			"sndt3", "wkaz jarzmo zakladane na czola wolow", "mgo",
+			"sndt4", "wskaz plan starozytnego miasta khorsabad", "mgo",
+			"sndt5", "wskaz zikkurat z miasta khorsabad", "mgo",
+			"sndt6", "wskaz lire", "mgo",
+			"sndt7", "wskaz lire", "mgo",
+			"sndt8", "wskaz krolewska lire odnaleziona w grobowcu w miescie ur", "mgo",
+			"sndt9", "na ktorym obrazku zaznaczono sale tronowa krola?", "mgo",
+			"sndt10", "ktory obrazek oznacza slowo ryba?", "mgo",
+			"sndt11", "wskaz monete szekel", "mgo",
+			
+			"sndgo", "Witaj w te¶cie wiedzy o Staro¿ytnej Mezopotamii; Kliknij na mnie je¶li chcesz ¿ebym powtórzy³ pytanie; Uwa¿aj mo¿e siê zdarzyæ ¿e w pytaniu jest wiêcej ni¿ jedna poprawna odpowied¼; Zaczynamy", func { igmstate=0; .mfight; },
+			"sndno", "Niee", null,
+			"sndyes", "Tak ", null,
+			"sndend", "Twój wynik", null
+		);
+		.imgs = (A, "bkg.pyz", "kolo.pyz 5", "lapki.pyz 5", "$lang/logo.pyz 5", "prof.pyz 10");
+		
+		new int iwynik;
+		new Button buts;
+		anprof.Button_isinalpha;
+		anprof.Button_moveonms;
+		anprof.Button_moveoffms;
+		anprof.addmethod("butclick", func {
+			if( igmstate==1 )	{
+				.mpytaj;
+			}
+			} );
+		buts.add("anprof");
+		
+		new gmimgvec grok;
+		"grok" .* "okeje.pyz";
+		grok.setz(50);
+		grok.hide;
+		
+		new int ifontpoint = 32;
+		new string sfont = .stdfont( ifontpoint );
+		.newtext("txtpyt", "", sfont, 255,253,178);
+		.newtext("txtok", "", sfont, 255,253,178);
+		.newtext("txtbad", "", sfont, 255,253,178);
+		
+		new gmimgvec grels;
+		new vector vtmp;
+		new int ilepyt;
+		new int idpyt = -1;
+		new string sbgimg = null;
+		new int badodp = 0;
+		new int okodp = 0;
+		match( QuizMode )	{
+			"l" => {	vtmp.vecnewint(30);	ilepyt = 30;	}
+			"t" => {	vtmp.vecnewint(11);	ilepyt = 11;	}
+			? => ;
+		}
+		vtmp.hash;
+		for( int i=0; i<ilepyt; i++)	{
+			grels.add( QuizMode + (vtmp.get(i)+1) );
+		}
+		new gmimgvec grsq;
+		"grsq" .* "kwadraty.pyz";
+		grsq.hide;
+		grsq.eval( func {
+			.Button_isinvis;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate==1 )	{
+					if( .isvisible )	{
+						<grok.get(.actionnr(-1))>.hide;
+						.hide;
+						fxnasadza.play;
+					} else {
+						<grok.get(.actionnr(-1))>.show;
+						.show;
+						fxnasadza.play;
+					}
+				}
+				} );
+			buts.add(this);
+			} );
+		new gmimgvec grodp;
+		
+		buts.load("grprzyc", "przyciski.pyz", func { (@id)
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( igmstate==1 )	{
+					bool odp = true;
+					for( int i=0; i<3; i++)	{
+						@s = <grodp.get(i)>.framename;
+						@s2 = grsq.get(i);
+						if( (<s2>.isvisible && s.contains("ok")) || (!<s2>.isvisible && !s.contains("ok")) )	{
+							//<grok.get(i)>.show;
+						} else {
+							odp = false;
+						}
+					}
+					igmstate = 0;
+					if( odp )	{
+						okodp++;
+						anprof.play("yes");
+						.cbplay("sndyes");
+					} else {
+						badodp++;
+						anprof.play("no");
+						.cbplay("sndno");
+					}
+				}
+				} );
+			} );
+		
+		buts.unlock;
+		
+		.timer = ("timwait", 1000, "mfight");
+		anprof.addmethod("onfinish", func { if(.actionname=="yes" || .actionname=="no") timwait.play; } );
+		
+		.mprof("sndgo");
+		igmstate = 5;
+	}
+	mlevelsav	{
+		match(QuizMode)	{
+			"l" => "archeo";
+			"s" => "szkielety";
+			"t" => "konstruktor";
+			? => ;
+		}
+	}
+	msave(string s)	{
+		csav.bset("enable_"+s);
+		csav.stdsave;
+	}
+	mgetpyt	{	grels.get(idpyt); }
+	mpytaj	{
+		.mprof( "snd" + .mgetpyt );
+	}
+	mprof(string s)	{
+		anprof.play("talk");
+		igmstate = 0;
+		.cbplay(s);
+	}
+	mendpro	{	anprof.play("stand"); }
+	mgo	{
+		igmstate = 1;
+		.mendpro;
+	}
+	mprepare	{	<GAME> {
+		idpyt++;
+		grok.hide;
+		grodp.deleteallgm;
+		grodp.free;
+		if( sbgimg!=null )	{
+			delete <sbgimg>;
+			sbgimg = null;
+		}
+		"grodp" ..< (.mgetpyt+".pyz");
+		if( grodp.size > 3 )	{
+			sbgimg = grodp.first;
+			grodp.removefirst;
+		}
+		grodp.hash;
+		grsq.hide;
+		@x = <grsq.first>.getpx;
+		for( int i=0; i<3; i++)	{
+			@s = grodp.get(i);
+			@s2 = grsq.get(i);
+			<s>.setpos( <s2>.getpx - x, 0 );
+		}
+		txtpyt.txtset( "" + (idpyt+1) + "/" + grels.size );
+		txtpyt.setpos( 91-(txtpyt.getw/2), 751-txtpyt.geth );
+		.msetpoint;
+	}; }
+	msetpoint	{
+		txtok.txtset( okodp );
+		txtok.setpos( 256-(txtok.getw/2), 751-txtok.geth);
+		txtbad.txtset( badodp );
+		txtbad.setpos( 406-(txtbad.getw/2), 751-txtbad.geth);
+	}
+	mfight	{
+		if( idpyt>=grels.size-1 )	{
+			igmstate = 2;
+			.msetpoint;
+			<GAME> {
+				grok.hide;
+				grodp.hide;
+				grsq.hide;
+				if( sbgimg!=null )	{
+					<sbgimg>.hide;
+				}
+			
+				iwynik = (okodp.to_r/ilepyt.to_r)*100.0;
+				.newtext("txtend", ""+iwynik+"%", .stdbold(64), 245,245,151);
+				new img imgb;
+				imgb.create( txtend.getw + 20, txtend.geth+20, 248,108,0, 255 );
+				imgb.setz(500);
+				imgb.ancenterscreen;
+				imgb.move( 0, -150 );
+				imgb.imgborders(2, 0,32,224, 255);
+				txtend.setz(510);
+				txtend.setpos( (iResX-txtend.getw)/2, (iResY-txtend.geth)/2 - 150 );
+				
+				.cbplay("sndend");
+			};
+		} else {
+			.mprepare;
+			.mpytaj;
+		}
+	}
+	mouse_lclick	{
+		if( igmstate==5 ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

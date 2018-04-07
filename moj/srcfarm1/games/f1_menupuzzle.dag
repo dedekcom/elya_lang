@@ -1,0 +1,337 @@
+
+new int iMenuPuzid = 1;
+new string sMenuMode = null;
+
+new int iPuzRow;
+new int iPuzCol;
+new string sPuzzle;
+new bool bPlayMusic = true;
+new int igmogg = true;
+
+class FarmStdPuzMenu : FarmStd	{
+	init(string s)	{
+		FarmStd::init(s);
+		
+		if( igmandroid )	{
+			.path = ("andro/menu_puzcut");
+			.img = ("bgmenupuz.jpg");
+			.path = ("andro/"+s);
+		} else {
+			.path = ("menu_puzcut");
+			.imgs = (A, "bg1.pyz", "chmury.pyzG 1", "bg2.pyz 2");
+			.mkchmura(grchmury.get(0),0.6667);
+			.mkchmura(grchmury.get(1),0.5);
+			.path = (s);
+		}
+	}
+}
+
+game MenuPuzzle : FarmStdPuzMenu	{
+	init	{
+		FarmStdPuzMenu::init("menu_puzimg");
+		
+		if( engine.fileexist( .getgraphpath + "puz.db") )	{
+			.newdb("dbpuz", "puz.db");
+			new int ilepuzid = dbpuz.getrowsno;
+		} else {
+			.newdb("dbilepuz", "ilepuz.db");
+			new int iilepuzzli = dbilepuz.get(0,0);
+			new int ilepuzid = iilepuzzli/2;
+		}
+		
+		.imgs = (A, "butprev.pyz 20", "butnext.pyz 20");
+		anbutprev.scmove(35,-40);
+		anbutnext.scmove(35,-40);
+		
+		//if( igmmac || igmandroid )
+		.cbutexit;
+		
+		anbutprev	{
+			.Button_std;
+			.addmethod("butclick", func {
+				if( .advstdstate ) {
+					sndfxbutclick1.play;
+					iMenuPuzid = (iMenuPuzid%ilepuzid)+1;
+					<GAME>.mrestart;
+				}
+				} );
+			butgame.add(this);
+			
+		};
+		anbutnext	{
+			.Button_std;
+			.addmethod("butclick", func {
+				if( .advstdstate ) {
+					sndfxbutclick1.play;
+					iMenuPuzid = iMenuPuzid - 1;
+					if( iMenuPuzid < 1 ) iMenuPuzid=ilepuzid;
+					<GAME>.mrestart;
+				}
+				} );
+			butgame.add(this);
+			
+		};
+		
+		if( igmiphone )	{
+			@x = igmappw/2 - (anbutprev.getpx + (anbutnext.getex - anbutprev.getpx)/2);
+			anbutprev.move( x, 0 );
+			anbutnext.move( x, 0 );
+		}
+		
+		.cbutmusic;
+		/*if( igmreklamy && .hasvar("anbutexit") )	{
+			anbutmusic.ansetbpos( anbutexit.getpx, anbutexit.getey+5 );
+		}*/
+		
+		.mstart;
+		
+		new img imovon;
+		imovon.create( anmenu1.getw, anmenu1.geth, 255,192,192, 64 );
+		imovon.hide;
+		
+		butgame.onmousemove;
+		
+		if( bPlayMusic )	{
+			.play_music;
+		}
+		.stdenter;
+	}
+	play_music	{
+		/*if( igmogg )
+			music.playstr("puzzle.ogg -v 50 -l");*/
+	}
+	stop_music	{
+		//music.fadeout(1000);
+	}
+	mrestart	{
+		//gameapi.play("MenuPuzzle");
+		.mdel;
+		.mstart;
+	}
+	mdel	{
+		for( int i=1; i<=4; i++)	{
+			@s = "anmenu"+i;
+			
+			<"ft"+s>.unlink;
+			delete <"ft"+s>;
+			butgame.removebut(s);
+			delete <s>;
+			delete <"im"+s>;
+		}
+	}
+	mstart	{
+		if( <GAME>.hasvar("dbpuz") )	{
+			@id = iMenuPuzid-1;
+			.mload( dbpuz.get(id, 0), dbpuz.get(id, 1), dbpuz.get(id, 2), dbpuz.get(id, 3) );
+		} else {
+			
+			/*4 3 2 1
+			6 5 4 3
+			8 7 6 5
+			2 1 8 7*/
+			if( iilepuzzli<=4 )	{
+				anbutnext.hide;
+				anbutprev.hide;
+				for( int i=1; i<=iilepuzzli; i++)
+					.mloadb(i, "puz"+i);
+			} else {
+				@i3 = iMenuPuzid*2;
+				@i4 = i3-1;
+				@i2 = i3+1;
+				@i1 = i3+2;
+				if( i2>(ilepuzid*2) )	{
+					i2 = 1;
+					i1 = 2;
+				}
+				.mload( "puz"+i1, "puz"+i2, "puz"+i3, "puz"+i4 );
+			}
+		}
+	}
+	mload(string s1, string s2, string s3, string s4)	{
+		if( .cwideversion )	{
+			.mloadb(1, s1); .mloadb(2, s2);
+			.mloadb(3, s3); .mloadb(4, s4);
+		} else {
+			.mloadb(1, s1); .mloadb(2, s2);
+			.mloadb(3, s3); .mloadb(4, s4);
+		}
+	}
+	mloadb(int id, string s)	{
+		@san = "anmenu" + id;
+		//.newanima(san, "m_"+s+".pyz", 10);
+		new img <san>;
+		if( igmandroid )
+			<san>.load( "scripts/andro/mg_puzzle/imgs/p_" + s + ".jpg" );
+		else
+			<san>.load( "scripts/mg_puzzle/imgs/p_" + s + ".jpg" );
+		<san>.setz(10);
+		@sft = "ft" + san;
+		new filter <sft>;
+		<sft>.link(san);
+		<sft>.setsmooth(1);
+		<sft>.setpivottype(1);
+		
+		if( igmiphone )	{
+			<sft>.setzoom(0.5);
+		} else {
+			<sft>.setzoom(0.4);
+		}
+		
+		@simg = "im" + san;
+		new img <simg>;
+		<simg>.create( <san>.getw, <san>.geth, .black, 128 );
+		@ds = 3;
+		<simg>.setz( <san>.getz - 1 );
+		
+		if( .cwideversion )	{
+			real r1 = 1.2;
+			real r2 = 1.2;
+			int ipx1 = 373;
+			int ipy1 = 110;
+			ipx1 = rgmscalex * ipx1;
+			ipy1 = rgmscaley * ipy1;
+			int ipx2 = ipx1 + r1*<san>.getw;
+			int ipy2 = ipy1 + r2*<san>.geth;
+			match( id )	{
+				1 => { <san>.setpos( ipx1, ipy1 );
+					<simg>.setpos( ipx1+ds, ipy1+ds );
+				}
+				2 => {
+					<san>.setpos( ipx2, ipy1 );
+					<simg>.setpos( ipx2+ds, ipy1+ds );
+				}
+				3 => {
+					<san>.setpos( ipx1, ipy2 );
+					<simg>.setpos( ipx1+ds, ipy2+ds );
+				}
+				4 => {
+					<san>.setpos( ipx2, ipy2 );
+					<simg>.setpos( ipx2+ds, ipy2+ds );
+				}
+				? => ;
+			}
+		} else if ( igmiphone )	{
+			int ipx1 = (igmappw/2-<san>.getw)/2;
+			int ipy1 = 140;
+			int ipx2 = (3*igmappw/2-<san>.getw)/2;
+			int ipy2 = ipy1 + 1.3*<san>.geth;
+			match( id )	{
+				1 => {
+					<san>.setpos( ipx1, ipy1 );
+					<simg>.setpos( ipx1+ds, ipy1+ds );
+				}
+				3 => {
+					<san>.setpos( ipx2, ipy1 );
+					<simg>.setpos( ipx2+ds, ipy1+ds );
+				}
+				2 => {
+					<san>.setpos( ipx1, ipy2 );
+					<simg>.setpos( ipx1+ds, ipy2+ds );
+				}
+				4 => {
+					<san>.setpos( ipx2, ipy2 );
+					<simg>.setpos( ipx2+ds, ipy2+ds );
+				}
+				? => ;
+			}
+		} else {
+			int ipx1 = (igmappw/2-<san>.getw)/2;
+			int ipy1 = 140;
+			int ipx2 = (3*igmappw/2-<san>.getw)/2;
+			int ipy2 = ipy1 + 1.3*<san>.geth;
+			match( id )	{
+				1 => {
+					<san>.setpos( ipx1, ipy1 );
+					<simg>.setpos( ipx1+ds, ipy1+ds );
+				}
+				3 => {
+					<san>.setpos( ipx2, ipy1 );
+					<simg>.setpos( ipx2+ds, ipy1+ds );
+				}
+				2 => {
+					<san>.setpos( ipx1, ipy2 );
+					<simg>.setpos( ipx1+ds, ipy2+ds );
+				}
+				4 => {
+					<san>.setpos( ipx2, ipy2 );
+					<simg>.setpos( ipx2+ds, ipy2+ds );
+				}
+				? => ;
+			}
+		}
+		
+		<san> (s) { (string s)
+			.var2("smenu", s);
+			.Button_isin;
+			.addmethod( "butmoveon", func {
+				if( .advstdstate ) {
+					sndfxmoveon2.playif;
+					advmouse.setact;
+					imovon.setpos( .getpx, .getpy );
+					imovon.setz( .getz+1 );
+					imovon.show;
+				}
+				} );
+			.addmethod( "butmoveoff", func {
+				if( .advstdstate ) {
+					advmouse.setstd;
+					imovon.hide;
+				}
+				} );
+			.addmethod("butclick", func {
+				if( .advstdstate ) {
+					sndfxbutclick1.play;
+					sPuzzle = smenu;
+					music.fadeout(1000);
+					//ccs.close( func { gameapi.play("WyborPuz"); } );
+					.stdexit("WyborPuz");
+				}
+				} );
+			butgame.add(this);
+		};
+	}
+	butclick_anbutexit	{
+		if( .advstdstate ) {
+			//.askfor("exit");
+			.stdexit("MainMenu");
+		}
+	}
+	mouse_lclick	{
+	}
+}
+
+game WyborPuz : FarmStdPuzMenu	{
+	init	{
+		FarmStdPuzMenu::init("menu_puzcut");
+		
+		new Buttons cbut("buts.pyz");
+		
+		.cbutexit;
+		.stdenter;
+	}
+	cbut_lclick	{
+		if( .advstdstate ) {
+			sndfxbutclick1.play;
+			match (sobject) 	{
+				"music" => ;
+				"12" => { iPuzRow = 3; iPuzCol = 4; .mplay;  }
+				"20" => { iPuzRow = 4; iPuzCol = 5; .mplay; }
+				"30" => { iPuzRow = 5; iPuzCol = 6; .mplay; }
+				"48" => { iPuzRow = 6; iPuzCol = 8; .mplay; }
+				? => ;
+			}
+		}
+	}
+	cbut_moveon	{
+		sndfxmoveon2.play;
+	}
+	mplay	{
+		.stdexit("PuzzleB");
+	}
+	butclick_anbutexit	{
+		sMenuMode=null;
+		//gameapi.play("MenuPuzzle");
+		.stdexit("MenuPuzzle");
+	}
+}
+

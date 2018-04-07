@@ -1,0 +1,406 @@
+
+new int iBajRewSpeed = 4->igetsc1;
+new int iBajkaRecord = .readcfg("bajka_record:",0);
+
+game IntroBaj3Swinki : MermaidStd	{
+	init	{
+		MermaidStd::init("menu");
+		
+		.imgsgr = (A, "bgmenu.jpg", "tytul.pyzH 10",
+			"grels");
+		
+		.playmainmusic;
+		
+		.cycle = ("timbok", func {
+			grels.move(-iBajRewSpeed, 0 );
+			if( imgbgmenu.getex < igmappw )	{
+				grels.move( igmappw-imgbgmenu.getex, 0 );
+				<GAME>.mstart;
+			} else .play;
+			} );
+		
+		new bool bcanwatch = false;
+		new bool bwaitclick = false;
+		.snd = ("sndtyt", "tytul", "mgo");
+		
+		ccs.enter( func { .advsetstdstate; timbok.play; } );
+		//gameapi.play("Bajka3Swinki");
+	}
+	mouse_lclick	{
+		if( .advstdstate )	{
+			if( bwaitclick )	{
+				bwaitclick = false;
+				.mtytul;
+			} else
+				.mgo;
+		}
+	}
+	mstart	{
+		int dx;
+		if( imgbgmenu.getex < igmappw ) dx = imgbgmenu.getex-igmappw;
+		else dx = igmappw - imgbgmenu.getex;
+		grels.move( dx, 0 );
+		timbok.stop(false);
+		if( iBajkaRecord )	{
+			bwaitclick = true;
+		} else .mtytul;
+	}
+	mtytul	{
+		.cbplay("sndtyt");
+		antytul.anzoomin(300, func { bcanwatch=true; });
+	}
+	mgo	{
+		if( iBajkaRecord )	{
+			if( !bwaitclick )
+				.stdexit("Bajka3Swinki");
+		} else
+			.stdexit("MenuBaj3Swinki");
+	}
+}
+
+game MenuBaj3Swinki : MermaidStd	{
+	init	{
+		MermaidStd::init("menu");
+		
+		.imgsgr = (A, "bgmenu.jpg", "tytul.pyz 10",
+			"grels");
+			
+		.cbutexit;
+		.cbutmusic;
+		.loadasker;
+		
+		antytul.Button_addstdalpha;
+		antytul.addmethod("isbutin", func { (@x, @y)
+			!anbutexit.isin(x,y,0,0) && !anbutexit.isin(x,y,0,0);
+			} );
+		
+		grels.move( igmappw - imgbgmenu.getex, 0 );
+		
+		.stdenter;
+	}
+	mgo	{	.stdexit("Bajka3Swinki");	}
+	butclick_antytul	{
+		.mgo;
+	}
+	butclick_anbutexit	{
+		.askfor("OutroBaj3Swinki");
+	}
+}
+
+game OutroBaj3Swinki : MermaidStd	{
+	init	{
+		MermaidStd::init("outro");
+		.img = ("bgoutro.jpg");
+		ccs.enter(func {
+			.timplay("timend", 5000, "mend");
+			} );
+		.stdenter;
+	}
+	mend	{	.stdexit("exit");	}
+	mouse_lclick	{	.mend;	}
+}
+
+game Bajka3Swinki : MermaidStd	{
+	init	{
+		MermaidStd::init("bajka");
+		
+		ccs.benableloading=(false);
+		
+		.imgs = (A, "butnext.pyz 110", "butprev.pyz 110", "butplay.pyz 110", "butpuzle.pyz 110",
+			"$"+.getgamepath+"outro/bgoutro.jpgH 20" );
+		.with(A, "anbutnext", "anbutplay", "anbutprev", "anbutpuzle", "mrownaj");
+		anbutnext.Button_addstdalpha;
+		anbutprev.Button_addstdalpha;
+		anbutpuzle.Button_addstdalpha;
+		anbutplay.Button_isinalpha;
+		butgame.add("anbutplay");
+		new gmobjvec grpause;
+		anbutplay.addmethod("butclick", func {
+			if( .advstdstate )	{
+				if( .framenr==0 )	{
+					.setframe(-1,1);
+					grpause.free;
+					if( .cisplaying )	{
+						grpause.add(.cgetactsnd);
+					}
+					grpause.add("timbok");
+					grpause.pause;
+				} else {
+					.setframe(-1,0);
+					grpause.resume;
+					grpause.free;
+				}
+			}
+			});
+		
+		.cbutexit;
+		.cbutmusic;
+		.loadasker;
+		
+		new img imgbaj;
+		new int idbaj;
+		new img imgbaj2;
+		imgbaj2.hide;
+		
+		new gmobjvec grels;
+		new int iidel = 0;
+		new db dbels;
+		new int idrow;
+		
+		new gmimgvec grimg;
+		new int ibajspeed;
+		grimg.add("imgbaj");
+		.cycle = ("timbok", func {
+			grimg.move(ibajspeed, 0 );
+			if( (ibajspeed<0 && imgbaj.getex < igmappw) || (ibajspeed>0 && imgbaj.getpx > 0) )	{
+				int dx;
+				if( ibajspeed<0 )	{
+					if( imgbaj.getex < igmappw ) dx = imgbaj.getex-igmappw;
+					else dx = igmappw - imgbaj.getex;
+				} else {
+					if( imgbaj.getpx > 0 ) dx = -imgbaj.getpx;
+				}
+				grimg.move( dx, 0 );
+				.mfinpage;
+			} else .play;
+			} );
+		.cycle = ("timnextpage", "mnextpage");
+		
+		int ibaj = 1;
+		if( clsave.has("bajka_idbajka") )
+			ibaj = clsave.get("bajka_idbajka");
+		.msetpage(ibaj);
+		//.stdenter;
+		.mhidebuts;
+		ccs.enter( func {
+			.advsetstdstate;
+			.mnextrow;
+			} );
+	}
+	mhidebuts	{
+		if( iBajkaRecord )	{
+			anbutnext.hide;
+			anbutplay.hide;
+			anbutprev.hide;
+			anbutpuzle.hide;
+			anbutexit.hide;
+			anbutmuz.hide;
+		}
+	}
+	mrownaj	{	.move(0, igmapph-.getey);	}
+	butclick_anbutexit	{
+		ccs.buildblack;
+		.stdexit("MenuBaj3Swinki");
+	}
+	butclick_anbutnext	{	.mnextpage;	}
+	butclick_anbutprev	{	.mprevpage;	}
+	butclick_anbutpuzle	{	.mpuzle;	}
+	mclear	{
+		.creset;
+		for( int i=0; i<grels.size; i++ )	{
+			@s = grels.get(i);
+			<s>.stop(false);
+			delete <s>;
+		}
+		grels.free;
+		for( i=0; i<grimg.size; i++ )	{
+			s = grimg.get(i);
+			if( s!="imgbaj" )	{
+				delete <s>;
+			}
+		}
+		grimg.free;
+		grimg.add("imgbaj");
+	}
+	mgetsnd(string sfile)	{
+		string ssnd = "snd" + sfile + iidel;
+		iidel++;
+		if( .issfx(sfile) )	{
+			.newsfx(ssnd,sfile);
+		} else .newsnd(ssnd, sfile);
+		grels.add(ssnd);
+		ssnd;
+	}
+	miscol(int idcol)	{	dbels.getcolsno(idrow) > idcol;	}
+	mcol(int idcol)		{	dbels.get(idrow,idcol);	}
+	mfinpage	{
+		if( !timbok.isplaying && idrow>=dbels.getrowsno )	{
+			if( idbaj >= iIleImgs )	{
+				.mtheend;
+			} else
+				timnextpage.play;
+		}
+	}
+	mnextrow	{ <GAME> {
+		idrow++;
+		if( idrow >= dbels.getrowsno )	{
+			.mfinpage;
+		} else {
+			@s = dbels.get(idrow,0);
+			if( s=="move:" )	{
+				ibajspeed = .mcol(1)->to_i->igetsc1;
+				if( ibajspeed>0 )	{
+					grimg.move( igmappw - imgbaj.getex, 0 );
+				}
+				timbok.play;
+				.mnextrow;
+			} else if( s=="bkg:" )	{
+				.mloadbaj;
+				.mnextrow;
+			} else if( s=="bg:" )	{
+				.mloadbaj2;
+				.mnextrow;
+			} else if( s=="show:" )	{
+				ccs.buildfromscreen;
+				.mloadbaj2;
+				.mshowpage("state_showpage");
+			} else if( s=="hide:" )	{
+				ccs.buildfromscreen;
+				imgbaj2.hide;
+				.mshowpage("state_hidepage");
+			} else if( s=="left:" )	{
+				grimg.move( -imgbaj.getpx, 0 );
+				.mnextrow;
+			} else if( s=="right:" )	{
+				grimg.move( igmappw-imgbaj.getex, 0 );
+				.mnextrow;
+			} else if( s=="fxbg:" )	{
+				s = .mgetsnd(dbels.get(idrow,1));
+				if( .miscol(2) )
+					<s>.setvol( .mcol(2) );
+				<s>.play;
+				.mnextrow;
+			} else {
+				s = .mgetsnd(s);
+				if( .miscol(1) )
+					<s>.setvol( .mcol(1) );
+				<s>.addmethod("onfinish", func { .creset; .mnextrow; } );
+				.cbplay(s);
+			}
+		}
+	}; }
+	mtheend	{
+		.advsetstate("state_showtheend");
+		ccs.buildfromscreen;
+		imgbgoutro.show;
+		ccs.enter( func {
+			.advsetstdstate;
+			} );
+	}
+	mloadbaj2	{
+		imgbaj2.load( .mgetpath + dbels.get(idrow,1) + ".jpg" );
+		imgbaj2.show;
+		imgbaj2.setz( imgbaj.getz + 1 );
+	}
+	mloadbaj	{
+		imgbaj.load( .mgetpath + dbels.get(idrow,1) + ".jpg" );
+		imgbaj.show;
+		imgbaj.setz( 10 );
+	}
+	mnextpage	{	.msetnextpage(1);	}
+	mprevpage	{	.msetnextpage(-1);	}
+	msetnextpage(int id)	{
+		if( grpause.size )	{
+			grpause.resume;
+			grpause.free;
+			anbutplay.setframe(-1,0);
+		}
+		ccs.buildfromscreen;
+		ccs.show;
+		.msetpage(idbaj+id);
+		if( .advstdstate )
+			.mshowpage("state_changepage");
+	}
+	mshowpage(string sstate)	{
+		.advsetstate(sstate);
+		ccs.enter( func {
+			.advsetstdstate;
+			.mnextrow;
+			} );
+	}
+	msetpage(int id)	{
+		if( id > iIleImgs ) {
+			idbaj = iIleImgs+1;
+			.mtheend;
+		} else {
+			imgbgoutro.hide;
+			idbaj = id<1? 1 : id;
+			if( idbaj==1 )	{
+				anbutprev.hide;
+			} else anbutprev.show;
+			if( idbaj==iIleImgs ) anbutnext.hide;
+			else anbutnext.show;
+			.mloadnewpage;
+		}
+	}
+	mgetpath	{	.getgamepath + "/imgs/";	}
+	mloadnewpage	{ <GAME> {
+		.mhidebuts;
+		.mclear;
+		timbok.stop(false);
+		dbels.loadbeh( .getlangpath("str"+idbaj+".beh") ); 
+		if( dbels.get(0,0) == "bkg:" )	{
+			idrow = 0;
+			.mloadbaj;
+			dbels.removerow(0);
+		} else {
+			imgbaj.load( .mgetpath + "str"+idbaj+".jpg" );
+			imgbaj.setz( 10 );
+		}
+		idrow = -1;
+		imgbaj2.hide;
+		match( dbels.get(idrow+1,0) )	{
+			"right:" => grimg.move( igmappw-imgbaj.getex, 0 );
+			"bg:" => {
+				idrow++;
+				.mloadbaj2;
+				idrow--;
+			}
+			? => ;
+		}
+		//.mnextrow;
+	}; }
+	mpuzle	{
+		clsave.set("bajka_idbajka", idbaj);
+		//sMenuPuzzleExit = "MenuBaj3Swinki";
+		sMenuPuzzleExit = "Bajka3Swinki";
+		iPuzzleType = 1;
+		//sPuzzleExit = "MenuBaj3Swinki";
+		sPuzzleExit = "Bajka3Swinki";
+		
+		.newanima("anmat", "$" + .getgamepath + "/mg_puzzle/matryca_3_4.pyz",0);
+		anmat.hide;
+		int x = anmat.getpx;
+		int y = anmat.getpy;
+		anmat.setframe( 0, anmat.nofframes(0)-1 );
+		imgPuzel.create( anmat.getex - x, anmat.getey - y, .transparent );
+		imgPuzel.setpos(x,y);
+		if( imgbgoutro.isvisible )
+			imgPuzel.blit("imgbgoutro");
+		else if( imgbaj2.isvisible )
+			imgPuzel.blit("imgbaj2");
+		else
+			imgPuzel.blit("imgbaj");
+		imgPuzel.hide;
+		
+		ccs.buildblack;
+		.stdexit("MenuTrybPuzzle");
+	}
+	key_down	{
+		if( igmdebug && keyboard.iskey("space") )	{
+			.mpuzle;
+		}
+	}
+	/*mouse_lclick	{
+		if( .advstdstate )	{
+			.cactsndstop(true);
+			.creset;
+		}
+	}*/
+	mouse_rclick	{
+		if( igmdebug )	{
+			//.mnextpage;
+			.cactsndstop(true);
+		}
+	}
+}

@@ -1,0 +1,33 @@
+/* classadv : klasa do przygodowek	*/
+
+class classadv : classgame {
+	init()	{
+		classgame::init();
+	}
+	/**************************************************************************/
+	newclpathf(string spt, string san, string sfile, int x, int y, real rstep, int ityp)	{
+		new classpathf <spt>;
+		<spt>.build(san, this.getgraphpath() + sfile, x, y, rstep, ityp);
+	}
+	newclpathfcopy(string spt, string san, string sptf, real rstep)	{
+		new classpathf <spt>;
+		<spt>.buildfrom( san, sptf, rstep );
+	}
+	newpathf(string spathf, string sfile, int x, int y)	{
+		new path <spathf>;
+		<spathf>.build( this.getgraphpath() +sfile, x, y, 2.0, 1 );
+	}
+	/**************************************************************************/
+	newclbut(string sbut, string sfile, int z, string smouse)	{
+		new classbutton <sbut>;
+		<sbut>.build( this.getgraphpath() + sfile, z, smouse );
+	}
+	newclmask(string sm, string sfile, string smouse)	{
+		new classmask <sm>;
+		<sm>.buildmask( this.getgraphpath() + sfile, smouse );
+	}
+	newclmaskfunc(string sm, string sfile, string smouse, string sfunc)	{
+		new classmask <sm>;
+		<sm>.buildmaskfunc( this.getgraphpath() + sfile, smouse, sfunc );
+	}
+}

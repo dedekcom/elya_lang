@@ -1,0 +1,97 @@
+
+new db dbconf;
+dbconf.loadscript("configs/config.beh");
+
+engine.setdebugstate( dbconf.dbgetint("enginedebug:") );
+
+new int igmdebug = dbconf.dbgetint("igmdebug:");
+new int igmpcdebug = dbconf.dbgetint("igmpcdebug:");
+new int igmexportan = dbconf.dbgetint("igmexportan:");
+new int igmimportan = dbconf.dbgetint("igmimportan:");
+ 
+new int igmdelay = engine.getloopdelay;
+new int demo =  dbconf.dbget("igmdemo:");
+/**************************************************************/
+new int igmwinlocal = dbconf.dbgetint("igmwinlocal:");		// special folder windows
+new int igmmac = dbconf.dbgetint("igmmac:");
+new int igmipad = dbconf.dbgetint("igmipad:");
+new int igmiphone = dbconf.dbgetint("igmiphone:");
+new int igmandroid = dbconf.dbgetint("igmandroid:");
+
+new string sgmdeveloper = dbconf.dbget("sgmdeveloper:");
+new string sgmproject = dbconf.dbget("sgmproject:");
+
+
+new string save_dir = "saves";
+if (demo)
+	save_dir = "saves_survey";	
+ 
+if( igmdebug && (igmipad||igmmac||igmiphone||igmandroid) )	{
+	engine.addmethod("getsavepath", func { "saves/"; } );
+}
+
+public bool checktouchpad	{
+	(igmipad || igmiphone || igmandroid) /*&& igmpcdebug==0*/;
+}
+
+if(.checktouchpad &&  igmpcdebug ) {
+	mouse.showsys;
+}
+//---------------------- ekran ------------------------------
+
+|new int igmappw, new int igmapph| = engine.getappsize;	// rozmiar
+|new int igmoffsetx, new int igmoffsety| = engine.getscreenoffset;	// przesuniecie na wezszych od apki monitorach
+//|new int iResX, new int iResY| = engine.getscreensize;	// rozmiar gry po przeskalowaniu
+|new int iResX, new int iResY| = engine.getscreenres;	// rozmiar gry po przeskalowaniu
+|new real rgmscalex, new real rgmscaley| = engine.getscreenscale;
+|new int iDesktopX, new int iDesktopY| = engine.getdesktopres;
+
+public bool canchangetowindow	{	iDesktopX >= iResX && iDesktopY >= iResY;}
+
+// ("appw/h: "+igmappw+","+igmapph+" offset: "+igmoffsetx+","+igmoffsety+" resx/y: "+iResX+","+iResY)->print;
+
+public def getappcenter	{
+	return igmappw/2, igmapph/2;
+}
+public int edgeex	{	iResX+igmoffsetx;	}
+public int edgeey	{	iResY+igmoffsety;	}
+//------------------ sciezki --------------------
+
+public string getwinpath(string spath)	{
+	//("searching: " + spath)->print;
+	string s = engine.getspecialpath("appdata");
+	if( s!=null )	{
+		s + "/" + sgmdeveloper + "/" + sgmproject + "/" + spath;
+	} else spath;
+}
+
+public getsavepath	{
+	if( igmipad || igmmac )	{
+		engine.getsavepath;
+	} else {
+		(igmwinlocal ?  .getwinpath(save_dir+"/") :  save_dir+"/");	
+	}
+}
+
+public buildsavedir	{
+	 
+	
+	if( igmwinlocal && !igmipad && !igmmac )	{
+		string s = engine.getspecialpath("appdata");
+		if( s!=null )	{
+			s += "/" + sgmdeveloper;
+			int odp = engine.mkdir(s);
+			odp = 0;
+			if( odp==0 || odp==1 )	{
+				s +=  "/" + sgmproject;
+				odp = engine.mkdir(s);
+				odp = 0;
+				if( odp==0 || odp==1 )	{
+					s+= "/"+ save_dir;
+					_ = engine.mkdir(s);
+				}
+			}
+		}
+	}
+}
+.buildsavedir;

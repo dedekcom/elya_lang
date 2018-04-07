@@ -1,0 +1,163 @@
+
+new int EpokiLevel = 3;
+
+game Epoki : DziejeGame	{
+	init	{
+		DziejeGame::init("epoki");
+		
+		.gamebg;
+		
+		.sfxs = (A, "getpuz 40", "putpuz 40");
+		
+		//.imgs = (A, "bkg.pyz");
+		.img = ("$scripts/menus/belka"+sSubMenu+".pyz");
+		
+		new gmimgvec grpod;
+		"grpod" .* (""+EpokiLevel+"podklad.pyz");
+		string s;
+		new gmimgvec grels;
+		new string sgrfound;
+		new int ileznalezc = 0;
+		for( int i=0; i<grpod.size; i++)	{
+			s = "grel"+i;
+			new gmimgvec <s>;
+			grels.add(s);
+			s ..< ("" + EpokiLevel + <grpod.get(i)>.actionname + ".pyz");
+			<s>.setz(10);
+			<s>.eval( func {
+				if( .actionnr(-1)==1 ) {
+					.hide;
+					.setz(20);
+					ileznalezc++;
+				} else if ( .actionnr(-1)==2 )	{
+					.setz(15);
+				}
+				} );
+		}
+		new int inextsnd = 0;
+		new DelayMover cmov;
+		
+		/*new Rect rec1(129,360,350,290);
+		rec1.fitgrouprand("grel1");
+		new Rect rec2(iResX/2 + 5 ,360,350,290);
+		rec2.fitgrouprand("grel2");*/
+		new classplacepointer2 clp;
+		
+		.newtext("txtpt", 3, .stdfont(50), .grey(248));
+		txtpt.setpos( 50, iResY - txtpt.geth - 5 );
+		
+		.sounds = (A,
+			"snd1_1", "Przed tob± trzech wojowników" , "mnext",
+			"snd1_egipt", "Egipski", "mnext",
+			"snd1_mezo", "Asyryjski", "mnext",
+			"snd1_preh", "Prehistoryczny", "mnext",
+			"snd1_2", "Dopasuj ich bronie i zbroje; Uwa¿aj", func { .cbplay("snd1_3"); clp.show(txtpt.getpx+5,txtpt.getpy, "dd"); },
+			"snd1_3", "Mo¿esz pomyliæ siê tylko 3 razy", "mstart",
+			"sndgood", "Dobrze", "mretstate",
+			"sndnon", "Nie", "mretstate",
+			"sndbadend", "Niestety to by³ ostatni b³±d; Spróbuj zagraæ ponownie", null,
+			"snd1_end", "¦wietnie wszyscy wojownicy gotowi do boju", func { EpokiLevel=2; gameapi.play("Epoki"); },
+			
+			"snd2_1", "Teraz przyporz±dkuj mieszkañców do ich miast", "mnext",
+			"snd2_egipt", "Egipt", "mnext",
+			"snd2_mezo", "Mezopotamia", "mnext",
+			"snd2_preh", "Prehistoryczna osada", "mnext",
+			"snd2_sred", "¦redniowieczny zamek", "mnext",
+			"snd2_2", "Do dzie³a", "mstart",
+			"snd2_end", "Doskonale! Nauczy³e¶ siê bardzo du¿o o dawnych cywilizacjach", null,
+			
+			"snd3_1", "Na obrazkach widzisz 3 piêkne ksiê¿niczki", "mnext",
+			"snd3_egipt", "egipsk±", "mnext",
+			"snd3_preh", "prehistoryczn±", "mnext",
+			"snd3_mezo", "mezopotamsk±", "mnext",
+			"snd3_2", "Dopasuj ich ozdoby; Uwa¿aj", func { .cbplay("snd1_3"); clp.show(txtpt.getpx+5,txtpt.getpy, "dd"); },
+			"snd3_end", "Wspaniale; Wszystkie ksiê¿niczki wygl±daj± cudownie w swoich oryginalnych ozdobach", null
+			);
+		.cbplay("snd" + EpokiLevel + "_1");
+	}
+	mretstate	{	igmstate=1;	}
+	mstart	{
+		cmov.unlock;
+		igmstate = 1;
+		clp.stoph;
+	}
+	mnext	{
+		if( inextsnd == grpod.size )	{
+			.cbplay("snd"+EpokiLevel+"_2");
+			clp.stoph;
+		} else {
+			.cbplay("snd"+EpokiLevel+"_"+<grpod.get(inextsnd)>.actionname);
+			clp.showob(grpod.get(inextsnd),"rd");
+			inextsnd++;
+		}
+	}
+	cmov_GET	{
+		|int x, int y| = mouse.getpos;
+		@s;
+		if( igmstate==1 || igmstate==3 )	{
+			if( grels.isin(x,y,1,1) )	{
+				fxgetpuz.play;
+				sgrfound = grels.getsfound;
+				s = <sgrfound>.getsfound;
+				if( <s>.actionnr(-1)==2 )	{
+					<s>.setz(300);
+					.mssetobj(s);
+					<sgrfound>.remove(s);
+				}
+			}
+		}
+	}
+	cmov_PUT	{
+		|int x, int y| = mouse.getpos;
+		@s = .getfree;
+		fxputpuz.play;
+		if( grpod.isin(x,y,1,1) )	{
+			if( s.contains( <grpod.getsfound>.actionname ) )	{
+				<s>.setframe(1, <s>.framenr);
+				<s>.setz(20);
+				<s>.setpos(0,0);
+				ileznalezc--;
+				if( ileznalezc==0 )	{
+					igmstate = 2;
+					.cbplay("snd"+EpokiLevel+"_end");
+				} else {
+					igmstate = 3;
+					.cbplay("sndgood");
+				}
+			} else {
+				int ile = txtpt.get;
+				ile--;
+				if( ile<0 )	{
+					igmstate = 2;
+					.cbplay("sndbadend");
+				} else {
+					txtpt.txtset(ile);
+					igmstate = 3;
+					.cbplay("sndnon");
+				}
+				<s>.mret;
+			}
+		} else {
+			<s>.mret;
+		}
+	}
+	mret	{
+		<sgrfound>.add(this);
+		.setz(15);
+		.setpos(0,0);
+	}
+	mouse_lclick	{
+		if(igmstate!=2 && igmstate!=3)
+			.cactsndstop(true);
+	}
+	mouse_rclick	{
+		
+	}
+	mouse_move	{
+		if( grpod.isin(mouse.getpos,1,1) )	{
+			if (dzmouse.isstd)
+				dzmouse.setact;
+		} else if (dzmouse.isact)	dzmouse.setstd;
+	}
+}
+

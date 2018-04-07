@@ -1,0 +1,64 @@
+class BestRecords : LObjController	{
+	init()	{
+		LObjController::init;
+	}
+	getpos()	{	irekpos;	}
+	size()	{	dbrek.getrowsno;	}
+	save(string sfile)	{	dbrek.save( sfile );	}
+	print(string sfile, int itime, int irows, int ifontsize )	{
+		new db dbrek;
+		dbrek.load( sfile );
+		
+		new int irekpos = dbrek.dbinsertless( itime );
+		dbrek.getcolsno(irekpos)>1 ? dbrek.set(irekpos,1,cltc.sgettime) : dbrek.add(irekpos,cltc.sgettime);
+		dbrek.dbcuttosize(irows);
+		
+		new font fnt1;
+		fnt1.load( sgmfontfile, ifontsize );
+		
+		int h = 1.5*ifontsize;
+		string s;
+		new text imgtxt;
+		imgtxt.setz(500);
+		imgtxt.setbkg( 200,100, 350, (irows+2)*h, 128,128,192,192 );
+		imgtxt.setborders(2,10,10,10,128);
+		imgtxt.show;
+		for( int i=0; i<irows; i++)	{
+			s = "txtt"+i;
+			new text <s>;
+			<s>.setfont("fnt1");
+			<s>.set( i<dbrek.getrowsno() ? dbrek.get(i,1) : "99:59:59" );
+			<s>.setz(600);
+			<s>.setpos( 210, 120+(i*h) );
+			if( i==irekpos )	{
+				<s>.createtxt( 255,80,80 );
+				new TextTyper cltxt1("fnt1", ifontsize, 255,80,80, "a0 ", 10);
+				cltxt1.setpos( 310, 120+i*h );
+				cltxt1.setz(600);
+				cltxt1.onenter(null,"writtenauthor");
+			} else {
+				<s>.createtxt( 220,220,220 );
+				s = "txtt2"+i;
+				new text <s>;
+				<s>.setfont("fnt1");
+				<s>.set( i<dbrek.getrowsno() ? dbrek.get(i,2) : "----------" );
+				<s>.createtxt( 220,220,220 );
+				<s>.setpos( 310, 120+i*h );
+				<s>.setz(600);
+			}
+		}
+	}
+	/******************************************/
+	unlock()	{
+		classlocker::unlock;
+		if( .hasvar("cltxt1") ) cltxt1.enable;
+	}
+	lock()	{
+		classlocker::lock;
+		if( .hasvar("cltxt1") ) cltxt1.disable;
+	}
+	onkeydown()	{
+		if( .getlock )	return;
+		cltxt1.onkeydown();
+	}
+}

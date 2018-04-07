@@ -1,0 +1,3 @@
+./kompiluj ./srchomaker/homaker.prj
+#cp ./srchomaker/homaker.odd /home/dedek/projekty/rysunki_gimp/homaker/project/scripts/
+awk -f optimize.awk ./srchomaker/homaker.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/homaker/project/scripts/homaker.odd

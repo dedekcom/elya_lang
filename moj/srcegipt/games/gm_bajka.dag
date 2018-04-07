@@ -1,0 +1,61 @@
+
+new int BajkaNr = 1;
+game Bajka : DziejeGame	{
+	init	{
+		DziejeGame::init("bajka");
+		.gamebg;
+		new string spath;
+		new string sgame;
+		new gmimgvec grb;
+		"grb" .* ("baj"+BajkaNr+".pyz");
+		grb.evalclip;
+		grb.nplay(-1);
+		.sounds = (A,
+			"snd1", "I tak Cheti jako zarz±dca pilnowa³ interesów prowincji i uczy³ Bariego pisania i czytania; Prowincja bogaci³a siê a namiestnik by³ coraz bardziej zadowolony z Chetiego", func { .mbaja(2); },
+			"snd2", "Pewnego dnia przyprowadzi³ Chetiego do portu i powiedzia³", func { .cbplay("nam1"); },
+			":nam1", "S³uchaj Cheti nie wyrabiamy siê ze zleceniami; Wykuwamy sporo bloków kamiennych ale nasze barki s± za ma³e; Móg³by¶ pokierowaæ lud¼mi i zbudowaæ now± pojemn± barkê?", func { .cbplay("cheti1"); },
+			":cheti1", "Z przyjemno¶ci±; Je¶li mo¿na chcia³bym te¿ przewie¼æ ni± ³adunek do stolicy", func { .cbplay("nam2"); },
+			":nam2", "Wola³bym mieæ ciebie tu na miejscu ale zgadzam siê; Bêdê mia³ pewno¶æ ¿e uczciwie sprzedasz towar", func { .mgame("Lodka"); },
+			"snd3", "Robotnicy za³adowali kamienie na barkê; Cheti z Barim i kilkoma marynarzami weszli na pok³ad i ruszyli w rejs do stolicy; Namiestnik d³ugo macha³ im na po¿egnanie z pomostu", func { .mgame("Cs2"); },
+			"snd4", "Wie¶ci o dokonaniach Chetiego szybko roznios³y siê po mie¶cie; Córka ksiêcia ksiê¿niczka Cynthia postanowi³a urz±dziæ bal na cze¶æ tajemniczego budowniczego; Goniec dostarczy³ Chetiemu zaproszenie na bal", func { .mgame("Naszyjnik"); }
+			);
+		ccs.enter( func { .cbplay("snd"+ BajkaNr); } );
+	}
+	mbaja(int id)	{	BajkaNr=id;	.mgame("Bajka");	}
+	mgame(string sg)	{	.mendgame(null,sg);	}
+	mendgame(string spt, string sg)	{
+		spath = spt;
+		sgame = sg;
+		ccs.close( func {
+			if( spath==null ) gameapi.play(sgame);
+			else .gotoadv(spath, sgame);
+			} );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Bal : DziejeGame	{
+	init	{
+		DziejeGame::init("bal");
+		.gamebg;
+		.imgs = (A, "bkg.pyz", "naszyjnik.pyzH 700", "ship.pyzP 5", "cheti.pyz");
+		ancheti.anputgr;
+		anship.advclip;
+		ancheti.move(5,5);
+		new gmimgvec grmask;
+		"grmask" .* "maski.pyz";
+		grmask.anputgr;
+		ancheti.addmethod("onendframe", func { if( .framename=="zawies" ) annaszyjnik.show; } );
+		.sounds = (A, 
+			"snd1", "Ksiê¿niczka Cynthia by³a bardzo ciekawa kim jest tajemniczy utalentowany in¿ynier z dalekiej prowincji; Wszyscy ju¿ s³yszeli o Chetim który potrafi czytaæ pisaæ liczyæ budowaæ okrêty i ¶wi±tynie", func { .cbplay("snd2"); ancheti.play("uklon"); },
+			"snd2", "Cheti okaza³ siê te¿ w najwy¿szym stopniu d¿entelmenem pe³nym og³ady i dobrego wychowania", func { .cbplay("snd3"); ancheti.play("daje"); },
+			"snd3", "Kiedy da³ Cynthii w³asnorêcznie wykonany naszyjnik ksiê¿niczka w jednej chwili zakocha³a siê w nim; Poprosi³a o chwilê czasu i postanowi³a specjalnie wystroiæ siê dla tak wspania³ego go¶cia", func { ccs.close( func { gameapi.play("Ubior"); } ); }
+			);
+		ccs.enter( func { .cbplay("snd1"); } );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

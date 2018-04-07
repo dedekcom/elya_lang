@@ -1,0 +1,823 @@
+
+game MainMenu : StdGame	{
+	init	{
+		AdventureMode = 0;
+		
+		StdGame::init("menu");
+		
+		.sfxs = (A, "click 80");
+		
+		clsmen.saveonset = (true);
+		if( clsmen.has("currentprofile") )	{
+			iProfilId = clsmen.get("currentprofile");
+			Trudnosc = clsmen.get("difficulty_"+iProfilId);
+		} else {
+			iProfilId = 0;
+			Trudnosc = 1;
+			clsmen.set("currentprofile",iProfilId);
+			.setstdprofile;
+		}
+		
+		if( igmipad )	{
+			.imgs = (A, "bg.jpg", "panelpod.pyzG 9", "menunakipad.pyz 15", "stdbutsipad.pyzG 10",
+				"$scripts/introg2/fala.pyzP 5", "$scripts/introg2/dym.pyzG 6");
+			anmenunakipad.addtogamevars("anmenunak");
+			grstdbutsipad.addtogamevars("grstdbuts");
+			/*.imgs = (A, "bg.jpg", "panelpod.pyzG 9", "menunak.pyz 15", "stdbuts.pyzG 10",
+				"$scripts/introg2/fala.pyzP 5", "$scripts/introg2/dym.pyzG 6");
+			<grstdbuts.getsac("_quit")>.hide;*/
+		} else {
+			.imgs = (A, "bg.jpg", "panelpod.pyzG 9", "menunak.pyz 15", "stdbuts.pyzG 10",
+				"$scripts/introg2/fala.pyzP 5", "$scripts/introg2/dym.pyzG 6");
+		}
+		
+		.lang_db("dbtxt", "teksty_");
+		
+		grdym.nplay(-1);
+		.imgsgr = (A, "savebut.pyzH 50", "okienko.pyzH 20", "ok.pyzH 35", "exit.pyzGH 40",
+			"credits.pyzH 25",
+			"extras.pyzH 25", "explansze.pyzGH 25", "exmin.pyzGH 30",  "exsnd.pyzGH 30", "exlearn.pyzGH 30",
+			"options.pyzH 25", "optplansze.pyzGH 25", "optsound.pyzGH 25", "opsuwmuz.pyzH 30", "opsuwfx.pyzH 30",
+			"optmode.pyzHG 30", "optmodes.pyzH 25",
+			"optfullscreen.pyzH 30", "optfson.pyzH 25",
+			/*"profiles.pyzH 25", "prlist.pyzGH 25", "prnapisy.pyzH 25",*/
+			"prwindow.pyzH 20", "profiles.pyzH 25", "prwnd.pyzH 25", "prdel.pyzHG 30",
+			"welcome.pyz 15",
+			"grmen"
+			);
+		
+		if( dbconf.dbget("logo_ng:")->to_i )
+			.img = ("logong.pyz 10");
+		
+		grmen.remove("anwelcome");
+		new string sactmenu = null;
+		//init(string sfont, int isize, string sdbfile, int r, int g, int b, 
+			//int x, int y, int dy, int z, string sdir)	{
+		new int icredx1 = anokienko.getpx+70;
+		new int icredy1 = ancredits.getey+10;
+		new int icredy2 = anokienko.getey-20;
+		
+		@isize = 16;
+		.newfont("fntcred_italic", "configs/fonts/FreeSerifItalic.ttf", isize);
+		.newfont("fntcred_bold_italic", "configs/fonts/FreeSerifBoldItalic.ttf", isize);
+		new TextDb tdcred("fntcred_italic$fntcred_bold_italic", isize, "$lang:credits_", .grey(20),
+			icredx1, icredy1, 5,25, "left");
+		tdcred.clip( 0, icredy1, iResX, icredy2 );
+		tdcred.hide;
+		.cycle = ("timcred", func {
+			tdcred.move(0, -1);
+			if( tdcred.getey < icredy1 - 50 )	.mcredgo;
+			.play;
+			} );
+		
+		anextras.butmen;
+		new int idextras = 1;
+		new int idexsnd = 0;
+		grexsnd.eval( func {
+			@s = .actionname;
+			if( s.contains("play") )	{
+				.Button_stdms;
+				.addmethod("butclick", func {
+					if( sgmstate!="submenu" ) return;
+					idexsnd = .actionname->gete(0,1);
+					.putexsnd;
+					} );
+				but1.add(this);
+			}
+			} );
+		grexplansze.eval( func {
+			.Button_stdms;
+			.addmethod("butclick", func {
+				if( sgmstate!="submenu" ) return;
+				idextras = .actionnr(-1);
+				<GAME>.putextras;
+				} );
+			but1.add(this);
+			} );
+		grexmin.eval( func {
+			.Button_stdms;
+			.addmethod("butclick", func {
+				if( sgmstate!="submenu" ) return;
+				AdventureMode = 0;
+				match(.actionname)	{
+					"1_memo" => "Memo"; 
+					"2_pietnacha" => "Drzwikotlownia";
+					"3_lustro" => "Krysztaly";
+					"4_sejf" => "Roznice";
+					"5_panel" => "Puzzle";
+					"6_box" => "BoxB";
+					? => ;
+				}
+				.mprzejdz;
+				} );
+			but1.add(this);
+			} );
+		grexlearn.eval( func {
+			.Button_stdms;
+			.addmethod("butclick", func {
+				if( sgmstate!="submenu" ) return;
+				AdventureMode = 0;
+				match(.actionname)	{
+					"budowa" => "InfoTrapR"; 
+					"przekroj" => "InfoTrapL";
+					"lost" => "InfoKasyL";
+					? => ;
+				}
+				.mprzejdz;
+				} );
+			but1.add(this);
+			} );
+		
+		ancredits.butmen;
+		
+		/*grprlist.eval( func {
+			.addmethod("isbutin", func { (@x, @y)
+				anprofiles.isvisible && .isin(x,y,0,0);
+				} );
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				<grprlist.get(iProfilId-1)>.hide;
+				iProfilId = .actionnr(-1) + 1;
+				clsmen.set("currentprofile",iProfilId);
+				.show;
+				} );
+			but1.add(this);
+			} );*/
+		//anprofiles.butmen;
+		anprofiles.move(0,-25);
+		new int iileprofili = 5;
+		new int itmprofil = iProfilId;
+		new gmimgvec grprof;
+		// okno, hak, ramka, ok, rename, delete
+		.newfont("fntprit", sgmfontitalic, 14);
+		
+		.newtext( "txtenter", dbtxt.dbget("entername"), "fntprit", .menucol );
+		txtenter.hide;
+		txtenter.setz(35);
+		.newtext( "txtexists", dbtxt.dbget("exists"), "fntprit", .menucol );
+		txtexists.hide;
+		txtexists.setz(35);
+		
+		.newfont("fntprnom", sgmfontfile, 20);
+		
+		.newtext( "txtwelcome", "", "fntprnom", .menucol );
+		txtwelcome.setz(18);
+		.mwelcome;
+		
+		new ConTextTyper ttp("fntprnom", 20, .menucol, "at0 ", 15);
+		ttp.Sdir = ("center");
+		ttp.onenter(GAME, "mendtype" );
+		ttp.disable;
+		ttp.setz(35);
+		ttp.hide;
+		new string stypemode;
+		
+		for( int i=1; i<=iileprofili; i++)	{
+			@sgr = "grt"+i;
+			new gmimgvec <sgr>;
+			
+			@s = .mwnd(i);
+			.copyanima("anprwnd", s);
+			
+			@s2 = s + "txt1";
+			.newtext( s2, dbtxt.dbget("newprofile"), "fntprit", .menucol );
+			<s2>.setz( <s>.getz + 1 );
+			@s3 = s + "txt2";
+			.newtext( s3, "", "fntprnom", .black );
+			<s3>.setz( <s>.getz + 1 );
+			if( .hasprofile(i) )	{
+				<s3>.txtset( clsmen.get("profilename_"+i) );
+			}
+			<s2>.hide; <s3>.hide;
+			<s2>.mcenterpos(s);
+			<s3>.mcenterpos(s);
+			<sgr>.add(s2); <sgr>.add(s3);
+			
+			<s> (i) { (int id)
+				.Button_stdms;
+				.addmethod("butclick", func {
+					if( sgmstate!="submenu" ) return;
+					itmprofil=myid;
+					.msetactprofile;
+					@s = .mwnd(myid);
+					if( !.hasprofile(myid) )	{
+						<s+"txt1">.hide;
+						txtenter.mcenterpos(s);
+						txtenter.show;
+						
+						stypemode = "newprofile";
+						.mstarttype;
+					} else {
+						//ttp.updatetxt("profilename_"+myid);
+					}
+					} );
+				but1.add(this);
+				.addmethod("mshowtxt", func {
+					if( .hasprofile(myid) ) {
+						<this+"txt2">.show;
+						<this+"txt1">.hide;
+					} else {
+						<this+"txt2">.hide;
+						<this+"txt1">.show;
+					}
+					} );
+				.buildprofile(id);
+			};
+			
+			/*s = .mwnd(i)+"hak";
+			.copyanima("anprwnd", s);
+			<s>.setframe("hak", 0);
+			<s>.buildprofile(i);
+			<s>.hide;
+			
+			s = .mwnd(i)+"ramka";
+			.copyanima("anprwnd", s);
+			<s>.setframe("ramka", 0);
+			<s>.buildprofile(i);
+			<s>.hide;*/
+			
+			s = .mwnd(i)+"ok";
+			.copyanima("anprwnd", s);
+			<s>.setframe("ok", 0);
+			<s>.buildprofile(i);
+			<s> {
+				.Button_stdms;
+				.addmethod("butclick", func {
+					if( sgmstate!="submenu" || .framenr==0 ) return;
+					iProfilId = itmprofil;
+					clsmen.set("currentprofile", itmprofil);
+					Trudnosc = clsmen.get("difficulty_"+iProfilId);
+					.setgamevolume;
+					.wczytajglosnosc;
+					sgmstate="game";
+					<GAME>.hideactmen;
+					.mwelcome;
+					.mcheckplay;
+					} );
+				but1.add(this);
+			};
+			
+			s = .mwnd(i)+"rename";
+			.copyanima("anprwnd", s);
+			<s>.setframe("rename", 0);
+			<s>.buildprofile(i);
+			<s> {
+				.Button_stdms;
+				.addmethod("butclick", func {
+					if( sgmstate!="submenu" || .framenr==0 ) return;
+					ttp.txtset( clsmen.get("profilename_"+itmprofil)  );
+					.mcheckname;
+					<.mactwnd+"txt2">.hide;
+					
+					stypemode="renameprofile";
+					.mstarttype;
+					} );
+				but1.add(this);
+			};
+			
+			s = .mwnd(i)+"delete";
+			.copyanima("anprwnd", s);
+			<s>.setframe("delete", 0);
+			<s>.buildprofile(i);
+			<s> {
+				.Button_stdms;
+				.addmethod("butclick", func {
+					if( sgmstate!="submenu" || .framenr==0 ) return;
+					sgmstate = "delprofil";
+					grprdel.show;
+					} );
+				but1.add(this);
+			};
+			
+			<grprdel.get(1)> {
+				.Button_stdms;
+				.addmethod("butclick", func {
+					if( sgmstate!="delprofil") return;
+					clsmen.remove("profilename_"+itmprofil);
+					clsmen.remove("difficulty_"+itmprofil);
+					clsmen.remove("sfx_volume"+itmprofil);
+					clsmen.remove("music_volume"+itmprofil);
+					clsmen.set("profil_"+itmprofil+"_started",0);
+					itmprofil = .mfirstprofile;
+					<GAME>.putprofiles;
+					} );
+				but1.add(this);
+			};
+			<grprdel.get(2)> {
+				.Button_stdms;
+				.addmethod("butclick", func {
+					if( sgmstate!="delprofil") return;
+					<GAME>.putprofiles;
+					} );
+				but1.add(this);
+			};
+			
+			s = .mwnd(i)+"ok2";
+			.copyanima("anprwnd", s);
+			<s>.setframe("ok2",0);
+			<s>.buildprofile(i);
+			<s>.msetok2;
+			<s> {
+				.Button_stdms;
+				.addmethod("butclick", func {
+					if( sgmstate=="typeprofile" && .framenr==1 ) {
+						<GAME>.mendtype;
+					} else if (sgmstate=="profileexist")	{
+						sgmstate="submenu";
+						.putprofiles;
+					}
+					} );
+				but1.add(this);
+			};
+			
+			s = .mwnd(i)+"cancel";
+			.copyanima("anprwnd", s);
+			<s>.setframe("cancel", 0);
+			<s>.buildprofile(i);
+			<s> {
+				.Button_stdms;
+				.addmethod("butclick", func {
+					if( sgmstate=="typeprofile" ) {
+						if( !.hasprofile(myid) )	{
+							//itmprofil=.mfirstprofile;
+							itmprofil=0;
+						}
+						<GAME>.putprofiles;
+					} else if (sgmstate=="profileexist")	{
+						sgmstate="submenu";
+						.putprofiles;
+					}
+					} );
+				but1.add(this);
+			};
+			
+			<sgr>.move( -40, (i-1)*(2.3*<s>.geth) );
+		}
+		
+		anoptions.butmen;
+		new int idoptplansze = 0;
+		groptplansze.eval( func {
+			.Button_stdms;
+			.addmethod("butclick", func {
+				idoptplansze = .actionnr(-1);
+				<GAME>.putoptions;
+				} );
+			but1.add(this);
+			} );
+		groptmode.eval( func {
+			.addmethod("isbutin", func { (@x, @y)
+				anoptions.isvisible && idoptplansze==0 && .isin(x,y,0,0);
+				} );
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				<groptmode.get(Trudnosc)>.hide;
+				Trudnosc = .actionnr(-1);
+				clsmen.set("difficulty_"+iProfilId,Trudnosc);
+				.show;
+				} );
+			but1.add(this);
+			} );
+		anopsuwmuz.createsuwak(2);
+		anopsuwfx.createsuwak(3);
+		anoptfson {
+			.addmethod("isbutin", func { (@x, @y)
+				anoptions.isvisible && idoptplansze==2 && .isin(x,y,0,0);
+				} );
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				bFullScreen = !bFullScreen;
+				if( bFullScreen ) .show;
+				else .hide;
+				engine.setfullscreen(bFullScreen);
+				clsmen.set("fullscreen", bFullScreen);
+				} );
+			but1.add(this);
+		};
+		
+		ccs.enter( func {
+			mus.playstr("wizards.ogg -l -v 60");
+			sgmstate = "game";
+			} );
+		
+		<grexit.get(1)> {
+			.Button_stdms;
+			.addmethod("butclick", func {
+				sgmstate = "exit";
+				.mprzejdz("exit");
+				} );
+			but1.add(this);
+		};
+		<grexit.get(2)> {
+			.Button_stdms;
+			.addmethod("butclick", func {
+				sgmstate = "game";
+				grexit.hide;
+				but1.onmousemove;
+				} );
+			but1.add(this);
+		};
+		
+		new int isubstate = 10;
+		
+		//engine.printtypes;
+		
+		grstdbuts.eval( func {
+			.Button_isin;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( sgmstate!="game" ) return;
+				match( .actionname )	{
+					"_profiles" => {<GAME>.putprofiles; }
+					"_quit" => {
+						grexit.show;
+						sgmstate="askexit";
+					}
+					"_extras" => { 
+						<GAME>.putextras; 
+						}
+					"_options" => { <GAME>.putoptions; }
+					"_play" => {
+						AdventureMode = 1;
+						.mprzejdz("IntroG1");
+					}
+					"_continue" => {
+						if( .framenr==1 )	{
+							if( iProfilId==0 )	{
+								<GAME>.putprofiles;
+							} else {
+								AdventureMode = 1;
+								clsmen.set("profil_"+iProfilId+"_started",1);
+								.mprzejdz("IntroG1");
+							}
+						} else {
+							AdventureMode = 2;
+							.loadsaver;
+							clsave.stdload;
+							if( clsave.bis("currentgame") )
+								.mprzejdz( clsave.get("currentgame") );
+							else 
+								.mprzejdz( "IntroG1" );
+						}
+					}
+					"_credits" => { <GAME>.putcredits; }
+					? => ;
+				}
+				} );
+			but1.add(this);
+			} );
+		
+		anok {
+			.Button_stdms;
+			.addmethod("butclick", func {
+				if( sgmstate!="submenu" ) return;
+				<GAME>.hideactmen;
+				but1.onmousemove;
+				sgmstate="game";
+				//<GAME>.<this + "_exit">;
+				} );
+			but1.add(this);
+		};
+		
+		.mcheckplay;
+	}
+	wczytajglosnosc	{
+		@vol = .loadsndvolume;
+		anopsuwfx.suwakpos(vol.to_r/100.0);
+		engine.setsndvol(vol);
+		vol = .loadmusicvolume;
+		anopsuwmuz.suwakpos(vol.to_r/100.0);
+		gameapi.setmusicvol(vol);
+	}
+	setstdprofile	{
+		clsmen.set("difficulty_"+iProfilId,1);
+		clsmen.set("music_volume"+iProfilId, .stdmusicvol);
+		clsmen.set("sfx_volume"+iProfilId, .stdsndvol);
+	}
+	mcheckplay	{
+		@s = grstdbuts.getsac("_continue");
+		if( iProfilId==0 || !clsmen.is("profil_"+iProfilId+"_started",1) )
+			<s>.setframe(-1,1);
+		else <s>.setframe(-1,0);
+	}
+	mwelcome	{
+		if( iProfilId>0 )	{
+			txtwelcome.txtset( dbtxt.dbget("welcome") + " " + clsmen.get("profilename_"+iProfilId) );
+			txtwelcome.show;
+			anwelcome.show;
+		} else {
+			//txtwelcome.txtset( dbtxt.dbget("welcome") );
+			txtwelcome.hide;
+			anwelcome.hide;
+		}
+		txtwelcome.mcenterpos("anwelcome");
+	}
+	mfirstprofile	{
+		for( int i=1; i<=iileprofili; i++ )	{
+			if( .hasprofile(i) )
+				return i;
+		}
+		0;
+	}
+	mendtype	{
+		keyboard.hide;
+	
+		txtenter.hide;
+		@s = .mactwnd;
+		@stp = ttp.get;
+		stp.clear;
+		ttp.txtset("");
+		ttp.disable;
+		bool b = 1;
+		if( stp.length )	{
+			for( int i=1; i<=iileprofili; i++ )	{
+				if( i!=itmprofil )	{
+					if( stp == clsmen.get("profilename_"+i) )	{
+						txtexists.mcenterpos(s);
+						txtexists.show;
+						b=0;
+					}
+				}
+			}
+			if( b )	{
+				clsmen.set("profilename_"+itmprofil, stp);
+				@s2 = s+"txt2";
+				<s2>.txtset(stp);
+				<s2>.mcenterpos(s);
+				<s2>.show;
+			} else if( !.hasprofile(itmprofil) )	{
+				//itmprofil=.mfirstprofile;
+				itmprofil=0;
+			}
+		} else {
+			<s+"txt1">.show;
+		}
+		ttp.hide;
+		
+		if( b ) {
+			sgmstate="submenu";
+			if( stypemode=="newprofile" )	{
+				iProfilId = itmprofil;
+				.setstdprofile;
+				.setgamevolume;
+				.wczytajglosnosc;
+			}
+			.putprofiles;
+		} else {
+			sgmstate="profileexist";
+		}
+		
+	}
+	mstarttype	{
+		@s = .mactwnd;
+		
+		<s+"ok">.hide;
+		<s+"rename">.hide;
+		<s+"delete">.hide;
+		<s+"ok2">.show;
+		<s+"cancel">.show;
+		txtexists.hide;
+		
+		//ttp.setpos( <s>.getpx + 100, <s>.getcy - ttp.geth/2 );
+		ttp.mcenterpos(s);
+		ttp.show;
+		ttp.enable;
+		sgmstate = "typeprofile";
+		but1.onmousemove;
+		
+		keyboard.show;
+	}
+	ttp_ontype	{	txtenter.hide;	}
+	ttp_ontyped	{	.mcheckname;	}
+	mcheckname	{
+		@s = ttp.get;
+		s.clear;
+		<.mactwnd+"ok2">.setframe(-1, (s.length>0 ? 1 : 0) );
+	}
+	mcenterpos(string sbg)	{
+		.setpos( <sbg>.getcx - .getw/2, <sbg>.getcy - .geth/2 );
+	}
+	menucol	{	.grey(32);	}
+	mwnd(int id)	{ "anpr_"+id; }
+	mactwnd	{	.mwnd(itmprofil);	}
+	buildprofile(int id)	{
+		<"grt"+id>.add(this);
+		.vars2(A, "myid", id);
+		grprof.add(this);
+	}
+	hasprofile(int id)	{	clsmen.has("profilename_"+id); }
+	putextras	{
+		sgmstate="submenu";
+		if( sactmenu=="anextras" )	{
+			grmen.hide;
+		} else {
+			.hideactmen;
+			mus.fadeout(500);
+		}
+		sactmenu = "anextras";
+		anokienko.show;
+		anextras.show;
+		anok.show;
+		grexplansze.eval( func {
+			if( .actionnr(-1)==idextras )
+				.setframe(-1,1);
+			else .setframe(-1,0); 
+			.show;
+			} );
+		if( idextras==0 )	{
+			grexsnd.show;
+			idexsnd = 0;
+			.putexsnd;
+		} else if (idextras==1 )	{
+			grexmin.show;
+		} else if (idextras==2 )	{
+			grexlearn.show;
+		}
+	}
+	putexsnd	{
+		for( int i=1; i<=3; i++ )	{
+			if( i==idexsnd )	{
+				@id1 = <grexsnd.getsac("wiol"+i)>.framenr;
+				if( id1==1 )	{
+					idexsnd=0;
+					mus.fadeout(500);
+					.putexsnd;
+					return;
+				} else {
+					<grexsnd.getsac("wiol"+i)>.setframe(-1,1);
+					<grexsnd.getsac("play"+i)>.setframe(-1,1);
+					match(idexsnd)	{
+						1 => "mystery_war.ogg";
+						2 => "waltzing_ghosts.ogg";
+						3 => "wizards.ogg";
+						? => ;
+					}
+					mus.playstr;
+				}
+			} else {
+				<grexsnd.getsac("wiol"+i)>.setframe(-1,0);
+				<grexsnd.getsac("play"+i)>.setframe(-1,0);
+			}
+		}
+	}
+	createsuwak(int idpos)	{
+		@s = groptsound.get(idpos);
+		@dx = 50;
+		@x = <s>.getpx + dx;
+		@ex = <s>.getex - dx;
+		.vars2(A, "ypos", <s>.getcy, "xpos", x, "expos", ex);
+		.Button_stdms;
+		.addmethod("butmoving", func {
+			@x = mouse.getpx;
+			if( x <= xpos )	.ansetcpos(xpos, ypos);
+			else if (x>=expos) .ansetcpos( expos, ypos);
+			else .ansetcpos( x, ypos );
+			real r[2];
+			r0 = expos - .getcx;
+			r1 = expos - xpos;
+			int vol = (1.0-(r0/r1))*100.0;
+			if( this->gete(0,2)=="fx" )	{
+				engine.setsndvol(vol);
+				clsmen.set("sfx_volume"+iProfilId, vol);
+			} else {
+				gameapi.setmusicvol(vol);
+				clsmen.set("music_volume"+iProfilId, vol);
+			}
+			} );
+		if( this->gete(0,2)=="fx" )	{
+			.suwakpos(.loadsndvolume->to_r/100.0);
+		} else {
+			.suwakpos(.loadmusicvolume->to_r/100.0);
+		}
+		but1.add(this);
+	}
+	suwakpos(real r)	{	.ansetcpos(xpos + r*(expos-xpos), ypos);	}
+	putoptions	{
+		sgmstate="submenu";
+		// "optsound.pyzGH 25", "opsuwmuz.pyzH 30", "opsuwfx.pyzH 30",
+		.hideactmen;
+		sactmenu = "anoptions";
+		anokienko.show;
+		anoptions.show;
+		anok.show;
+		groptplansze.show;
+		if( igmipad )	{
+			<groptplansze.get(2)>.hide;	// schowaj fullscreen
+		}
+		groptplansze.eval( func {
+			if( .actionnr(-1)==idoptplansze )
+				.setframe(-1,1);
+			else .setframe(-1,0); 
+			} );
+		if( idoptplansze==0 )	{
+			<groptmode.get(Trudnosc)>.show;
+			anoptmodes.show;
+		} else if (idoptplansze==1 )	{
+			//"optsound.pyzGH 25", "opsuwmuz.pyzH 30", "opsuwfx.pyzH 30",
+			groptsound.show;
+			anopsuwmuz.show;
+			anopsuwfx.show;
+		} else if (idoptplansze==2)	{
+			if( igmipad )	{
+				anoptfullscreen.hide;
+				anoptfson.hide;
+			} else {
+				anoptfullscreen.show;
+				if( bFullScreen ) anoptfson.show;
+			}
+		}
+	}
+	putprofiles	{
+		sgmstate="submenu";
+		.hideactmen;
+		sactmenu = "anprofiles";
+		ttp.txtset("");
+		ttp.disable;
+		ttp.hide;
+		txtenter.hide;
+		/*anokienko.show;
+		anprnapisy.show;
+		anprofiles.show;
+		<grprlist.get(iProfilId-1)>.show;*/
+		anprofiles.show;
+		anprwindow.show;
+		.msetactprofile;
+	}
+	misactprofil	{	.hasprofile(itmprofil);	}
+	msetok2	{
+		if( .hasprofile(myid) ) .setframe("ok2",1);
+		else .setframe("ok2",0);
+	}
+	msetactprofile	{
+		grprof.eval( func {
+			.show;
+			if( itmprofil==myid )	{
+				match(.actionname)	{
+					"okno" => { .mshowtxt; .setframe(-1,1); }
+					"rename", "ok", "delete" => if( .hasprofile(myid) ) .setframe(-1,1);
+					"ok2", "cancel" => .hide;
+					? => ;
+				}
+			} else {
+				match(.actionname)	{
+					"okno" => { .mshowtxt; .setframe(-1,0); }
+					//"hak" => .hide;
+					"rename", "ok", "delete" => .setframe(-1,0);
+					"ok2" => { .hide; .msetok2; }
+					"cancel" => .hide;
+					? => ;
+				}
+			}
+		} );
+	}
+	anprofiles_exit	{
+		grprof.hide;
+		for( int i=1; i<=iileprofili; i++)	{
+			<"grt"+i>.hide;
+		}
+		txtexists.hide;
+	}
+	mcredgo	{	tdcred.setpos( icredx1, icredy2 ); tdcred.show;	}
+	putcredits	{
+		sgmstate="submenu";
+		.hideactmen;
+		sactmenu = "ancredits";
+		anokienko.show;
+		ancredits.show;
+		anok.show;
+		.mcredgo;
+		timcred.play;
+	}
+	ancredits_exit	{
+		timcred.stop(false);
+		tdcred.hide;
+	}
+	butmen	{
+		return;
+		.Button_stdms;
+		.addmethod("butclick", func {
+			if( sgmstate!="submenu" ) return;
+			<GAME>.hideactmen;
+			but1.onmousemove;
+			sgmstate="game";
+			<GAME>.<this + "_exit">;
+			} );
+		but1.add(this);
+	}
+	
+	anextras_exit	{	mus.playstr("wizards.ogg -l -v 60"); }
+	hideactmen	{
+		if( sactmenu!=null )	{
+			.<sactmenu + "_exit">;
+			sactmenu=null;
+		}
+		grmen.hide;
+	}
+	but1_lclick	{
+		if( sobject!=null ) fxclick.play;
+	}
+}
+

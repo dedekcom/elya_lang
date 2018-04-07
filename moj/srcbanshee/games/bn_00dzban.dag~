@@ -1,0 +1,366 @@
+
+game mg00Dzban : Banshee	{
+	init	{
+		Banshee::init("mg00_dzban");
+		
+		.imgsgr = (A, "bgdzban.jpg" , "bgpop.pyz 1", "ramka.pyz 2", "popexit.pyz 100",
+			"elsc.pyzG 30", "maski.pyzH 40",
+			"korek.pyz 5", "dzbanspod.pyz 7", "ksiezyc.pyzH 10", "dzban.pyz 15", "zlozone.pyzH 12", "animopen.pyzH 14",
+			"blink.pyzH 35", "dymek.pyzH 50", "podpo.pyzH",
+			"popnak.pyz 60",
+			"grall"
+			);
+		
+		if( !clsave.bis("guimapa_taken") )	{
+			.img = ("mapa.pyz 50");
+			
+			anmapa.Button_stdms;
+			anmapa.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+			
+				int x = anmapa.getcx;
+				int y = anmapa.getcy;
+				GuiItem::setasrototaker("anmapa", iRotoIleRot, iRotoIleObrotow);
+				anmapa.setframe(1,0);
+				anmapa.setpos(x, y);
+				clsave.bset("guimapa_taken");
+				.advsetstate("state_takemap");
+				anmapa.addmethod("rototaker_endroto", func {
+					.hide;
+					anguimapa.show;
+					.advsetstdstate;
+					fxfounditem1.play;
+					if( .enabled_tutorial )	{
+						.show_tutorial("T9mapicon", .tutpos);
+						.tutpoint("anguimapa", "ld");
+					}
+					guihint.switchtoskip;
+					} );
+				fxbook3.play;
+				anmapa.rototaker_startwh(anguimapa.getcx,anguimapa.getcy,anmapa.getw, anmapa.geth, anguimapa.getw, anguimapa.geth);
+				} );
+			butgame.add("anmapa");
+		}
+		
+		.butpopexit;
+		.butpopexitisinramka;
+		
+		mus.smixer = ("engine");
+		mus.playstr("banshee1.ogg -v 60 -l");
+		.sfxs = (A, "ceglamove", "ceglaput", "prund", "clickoblok", "book3", "founditem1");
+		
+		//grall.move(171,0);
+		imgbgdzban.setpos(0,0);
+		.copyanima("andymek", "andymek2");
+		.copyanima("ananimopen", "animopen2");
+		ananimopen.show;
+		ananimopen.setz(40);
+		animopen2.addmethod("onfinish", "mopen_dzban");
+		
+		.setasitemtopck("anksiezyc");
+		
+		.copyanima("anmaski", "anmaski2");
+		anmaski.addtogamevars("anmaski1");
+		
+		new int iilekat = 4;
+		.copyanima(grelsc.first, "anrot1");
+		.copyanima(grelsc.first, "anrot2");
+		anrot1.hide; anrot2.hide;
+		new filter ftrot1; new filter ftrot2;
+		new real robrot;
+		new int ilesteps;
+		anrot1.setpos(anzlozone.getcx, anzlozone.getcy);
+		anrot2.setpos(anzlozone.getcx, anzlozone.getcy);
+		anpodpo.setpos(anzlozone.getcx, anzlozone.getcy);
+		
+		new vector vpos;
+		grelsc.eval( func {
+			.setframe(-1, .actionnr(-1) );
+			vpos.add( vpos.size ); 
+			.setpos( anzlozone.getcx, anzlozone.getcy );
+			} );
+		if( clsave.bis("e1_mg00dzban_hash" ) )	{
+			for( int i=0; i<vpos.size; i++ ) {
+				vpos.set( i, clsave.get("e1_mg00dzban_pos_"+i) );
+				<grelsc.get(i)>.setframe( -1, vpos.get(i) );
+			}
+		} else	{
+			vpos.hash;
+			for( int i=0; i<vpos.size; i++ )
+				clsave.set("e1_mg00dzban_pos_"+i, vpos.get(i) );
+			clsave.bset("e1_mg00dzban_hash" );
+			grelsc.each( func { (@id) .mchange(id, vpos.get(id) ); } );
+		}
+		
+		new int idclick = 0;
+		new string sclicked1;
+		new string sclicked2;
+		grelsc.eval( func {
+			.Button_isinalpha;
+			.addmethod("butmoveon", func {
+				if( .advstdstate )	{
+					//advmouse.setbut;
+					anblink.setframe(-1, .framenr);
+					anblink.setpos(.getposx, .getposy);
+					anblink.show;
+				}
+				} );
+			.addmethod("butmoveoff", func {
+				//advmouse.setstd;
+				anblink.hide;
+				} );
+			.addmethod("butclick", func {
+				if( .advstdstate && clsave.bis("guimapa_taken") )	{
+					if( idclick==0 )	{
+						idclick++;
+						.mmask(this);
+						fxclickoblok.play;
+					} else if (idclick==1)	{
+						if( sclicked1!=this )	{
+							fxclickoblok.play;
+							idclick++;
+							.mmask(this);
+							sgmstate = "check";
+							timcheck.play;
+						}
+					}
+				}
+				} );
+			butgame.add(this);
+			} );
+		.timer = ("timcheck", 500, func {
+			idclick = 0;
+			//.advsetstdstate;
+			//.mchange( <sclicked1>.actionnr(-1), <sclicked2>.actionnr(-1) );
+			.mrot( <sclicked1>.actionnr(-1), <sclicked2>.actionnr(-1) );
+			anmaski1.hide;
+			anmaski2.hide;
+			} );
+		.timer = ("timrot", 50, func {
+			if( ilesteps>0 )	{
+				ftrot1.rotate( -robrot );
+				ftrot2.rotate( robrot );
+				anrot1.setpos(anzlozone.getcx, anzlozone.getcy);
+				anrot2.setpos(anzlozone.getcx, anzlozone.getcy);
+				ilesteps--;
+				.play;
+			} else {
+				fxceglamove.stop(false);
+				fxceglaput.play;
+				ftrot1.unlink; ftrot2.unlink;
+				anrot1.hide; anrot2.hide;
+				<sclicked1>.show; <sclicked2>.show;
+				.mchange( <sclicked1>.actionnr(-1), <sclicked2>.actionnr(-1) );
+				.mcheckend;
+			}
+			} );
+		if( clsave.bis("e1_mg00dzban_ulozony") )	{
+			.mshowmoon;
+		} else if ( clsave.bis("guimapa_taken") )
+			guihint.switchtoskip;
+		.stdstart;
+	}
+	mcheckend	{
+		bool b = 1;
+		for( int i=0; i<grelsc.size; i++)	{
+			@s = grelsc.get(i);
+			if( <s>.framenr!=i ) b=0;
+		}
+		if( b )	{
+			.mskipmg;
+		} else .advsetstdstate;
+	}
+	mskipmg	{
+		clsave.bset("e1_mg00dzban_ulozony");
+		.mshowmoon;
+		sgmstate="state_open";
+		animopen2.play(1);
+	}
+	mshowmoon	{
+		guihint.switchtohint;
+		butgame.remove("grelsc");
+		grelsc.hide;
+		anksiezyc.show;
+		animopen2.setframe(1, animopen2.nofframes(1)-1 );
+	}
+	mchange(int idsrc, int idest)	{
+		if( idsrc==idest ) return;
+		@s = grelsc.get(idsrc);
+		@s2 = grelsc.get(idest);
+		@ifr = <s>.framenr;
+		<s>.setframe( -1, <s2>.framenr );
+		<s2>.setframe( -1, ifr );
+		clsave.set("e1_mg00dzban_pos_"+ <s2>.actionnr(-1), ifr );
+		clsave.set("e1_mg00dzban_pos_"+ <s>.actionnr(-1), <s>.framenr );
+	}
+	mrot(int idsrc, int idest)	{
+		@s = grelsc.get(idsrc);
+		@s2 = grelsc.get(idest);
+		<s>.hide;
+		<s2>.hide;
+		
+		anrot1.show;
+		anrot2.show;
+		@f1 = <sclicked1>.framenr;
+		@f2 = <sclicked2>.framenr;
+		anrot1.setframe( <s>.actionnr(-1), f1 );
+		anrot2.setframe( <s2>.actionnr(-1), f2 );
+		ftrot1.link("anrot1");
+		ftrot2.link("anrot2");
+		ftrot1.setpivottype(2);
+		ftrot2.setpivottype(2);
+		//anrot1.setpos(anzlozone.getcx, anzlozone.getcy);
+		//anrot2.setpos(anzlozone.getcx, anzlozone.getcy);
+		@ile = anrot1.nofframes(-1);
+		if( f1>f2 )	{
+			@steps1 = f1-f2;
+			@steps2 = f2 + (ile-f1);
+			if( steps1 < steps2 )	{
+				.mupdate(steps1, -1);
+			} else {
+				.mupdate(steps2, 1);
+			}
+		} else {
+			@steps1 = f2-f1;
+			@steps2 = f1 + (ile-f2);
+			if( steps1 < steps2 )	{
+				.mupdate(steps1, 1);
+			} else {
+				.mupdate(steps2, -1);
+			}
+		}
+		fxceglamove.play;
+		timrot.play;
+	}
+	mupdate(int steps, int isgn)	{
+		ilesteps = steps * iilekat;
+		robrot = ( isgn*360/(anrot1.nofframes(-1)*iilekat) );
+	}
+	mmask(string s)	{
+		|int x, int y| = mouse.getpos;
+		if( idclick==1 )	{
+			andymek.setpos(x,y);
+			andymek.play(0);
+		} else {
+			andymek2.setpos(x,y);
+			andymek2.play(0);
+		}
+		<"sclicked"+idclick>.set(s);
+		@s2 = "anmaski"+idclick;
+		<s2>.setframe(0, <s>.framenr);
+		<s2>.show;
+	}
+	mopen_dzban	{
+		.advsetstdstate;
+	}
+	anksiezyc_TAKE	{	.popitem_gotocenter("kolatka");	}
+	anksiezyc_INPCK	{
+		.addtopck("kolatka");
+		clsave.bset("e1_wyciagnela_kolatke");
+		sgmstate = "end";
+		/*.timplay("timend", 1000, func {
+				.gotoadv("ad00_endintro", "gamead00_endintro0");
+				ccs.buildfromscreen;
+			} );*/
+		.timplay("timend", 1000, "mend");
+	}
+	mend	{
+		//.gotoadv("ad00_endintro", "gamead00_endintro0");
+		.stdexitadvadv("ad00_endintro", "gamead00_endintro0"); 
+	}
+	HINT_CLICK	{
+		if( !clsave.bis("guimapa_taken") )	{
+			.showhint("anmapa");
+		} else if (!clsave.bis("e1_mg00dzban_ulozony") && .advstdstate) {
+			string s[2];
+			for( int i=0; i<grelsc.size; i++)	{
+				s0 = grelsc.get(i);
+				if( <s0>.framenr!=i ) {
+					for( int j=0; j<grelsc.size; j++ )	{
+						s1 = grelsc.get(j);
+						if( <s1>.framenr == i )	{
+							anpodpo.setframe(0,<s0>.framenr);
+							.showhint("anpodpo");
+							anpodpo.setframe(0,<s1>.framenr);
+							.showhint("anpodpo");
+							return;
+						}
+					}
+				}
+			}
+			.showhint("anokladka_2v");
+		} else if (!clsave.bis("ma_kolatka")) 
+			.showhint("anksiezyc");
+		else  
+			.showhint("anpopexit");
+	}
+	SKIP_CLICK	{
+		if(.advstdstate)	{
+			.mskipmg;
+		}
+	}
+}
+
+
+game TestFilm2 : StdGame	{
+	init	{
+		StdGame::init("film");
+		advmouse.set("empty");
+		
+		new Film film1;
+		film1.bcenter = (true);
+		film1.bborders = (true);
+		film1.musicclass = ("mus");
+		
+		film1.playfilm( "scripts/cs01_barghest/", "film" );
+	}
+	mouse_lclick	{
+		if( film1.isplaying ) film1.stop(true);
+	}
+}
+
+game TestFilm : StdGame	{
+	init	{
+		StdGame::init("testfilm2");
+		
+		new Film film1;
+		film1.addmethod("onfinish", "film1_filmend");
+		
+		//film1.setpos(200, 100);
+		.showfps;
+		
+		new TicksCounter tc1;
+		
+		//ccs.enter( func { .playfilm; } );
+		/*.newtext("txtinfo", "print: 1-film1, 2-film2, 3-repeat film", .stdfont(24), .white);
+		txtinfo.setpos( iResX - txtinfo.getw - 10, 0 );
+		txtinfo.setz(20);*/
+		new img imgbg;
+		imgbg.create( iResX, iResY, .black, 255 );
+		imgbg.setz(-1);
+	}
+	key_down	{
+		if( keyboard.iskey("1") )	{
+			film1.setcycle(2);
+			//imgbg.hide;
+			tc1.start;
+			film1.playfilm("scripts/testfilm/", "film");
+		} else if (keyboard.iskey("2") ) {
+			film1.setcycle(2);
+			//imgbg.hide;
+			tc1.start;
+			film1.playfilm("scripts/testfilm2/", "film");
+		} else if  (keyboard.iskey("3")) film1.play;
+	}
+	showfps	{
+		if( !.hasvar("cfps") )	{
+			new CalcFPS cfps;
+			cfps.stdset(14, 10, 10);
+		}
+		cfps.play;
+	}
+	film1_filmend	{
+		.free;
+		tc1.print("film time: ");
+	}
+}

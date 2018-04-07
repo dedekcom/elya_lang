@@ -1,0 +1,277 @@
+
+class classjoyslice {
+
+	init( string ssrc, string sact, int x, int y, real rratiox, real rratioy, real rratioa, int z ) {
+		this.copyanimaactz(ssrc, "anjoyb", sact+"b", z);
+		anjoyb.anaddfilter();
+		anjoyb.setpivottype( 2 );
+		this.copyanimaactz(ssrc, "anjoyw", sact+"w", z+1);
+		anjoyw.anaddfilter();
+		anjoyw.setpivottype( 2 );
+		new int _ix = x;
+		new int _iy = y;
+		new real _rratiox = rratiox;
+		new real _rratioy = rratioy;
+		new real _rratioa = rratioa;
+		
+	}
+
+	update( int aix, int aiy ) {
+		int ix = _rratiox*aix + _ix + icx;
+		int iy = _rratioy*aiy + _iy + icy;
+		real ra = 0.0001 + _rratioa * aix;
+		real ro = 1.6*(80+aix+aiy);
+
+		anjoyw.setpos( ix, iy );
+		anjoyw.setangle( ra );
+		anjoyw.setopacity( ro );
+
+		anjoyb.setpos( ix, iy );
+		anjoyb.setangle( ra );
+	}
+
+	show() {
+		anjoyw.show();
+		anjoyb.show();
+	}
+
+	hide() {
+		anjoyw.hide();
+		anjoyb.hide();
+	}
+
+	int isin( int x, int y, bool b1, bool b2 ) {
+		return anjoyw.isin( x,y,b1,b2 );
+	}
+
+}
+
+class classknob : classadvobject, classadvbut, classjoyslice 	{
+	init(string ssrc, string sact, int x, int y, real rratiox, real rratioy, real rratioa, int z ) {
+		this.addtogamevars(this.getname());
+		classadvobject::init();
+		classadvbut::init(this.getname());
+		classjoyslice::init(ssrc,sact,x,y,rratiox,rratioy,rratioa,z);
+		new int istate;	// 0 - okragly, 1 - krzyzyk, 2 - poziomy, 3 - pionowy (jeszcze nie mam zaprogramowanego i moze nie bedzie potrzebny)
+		new int iknobx;
+		new int iknoby;
+		new int irelx;
+		new int irely;
+		new real dist;
+		new bool bgrab;
+	}
+	/**********************************************/
+	moveon() {
+		if( bgrab==false)	{
+			anhandr.play("handrmoveon");
+			advmouse.setactive();
+		}
+	}
+	moveoff() {
+		if( bgrab==false)	{
+			anhandr.play("handrmoveoff");
+			advmouse.setstd();
+		}
+	}
+	clickon()	{	this.knobdown();	}
+	lrel()		{	this.knobup();		}
+	int getposx()	{	return anjoyw.getposx();	}
+	int getposy()	{	return anjoyw.getposy();	}
+	int getz()	{	return anjoyw.getz();	}
+	/**********************************************/
+	onmousemove(int x, int y)	{
+		this.knobupdate();
+	}
+	/**********************************************/
+	handupdate() {
+		anhandr.setpos( iknobx + icx, iknoby + icy );
+		//anhandr.setangle( (-iknobx-iknoby)/4 );
+	}
+	knobupdate() {
+		if ( bgrab == true ) {
+			int iwx = mouse.getpx() - irelx - icx;
+			int iwy = mouse.getpy() - irely - icy;
+
+			// horyzontalny
+			if ( istate == 2 ) {	iwy = 0;	}
+
+			// okragly
+			dist = math.length( iwx, iwy );
+			if ( dist > 55 ) {
+				iwx = (55*iwx)/dist;
+				iwy = (55*iwy)/dist;
+			}
+
+			// krzyzyk
+			if ( istate == 1 ) {
+				real x1 = 55-math.abs(iwx);
+				real y1 = 55-math.abs(iwy);
+				real dist1 = math.length( x1, y1 );
+				if ( dist1 < 55 ) {
+					x1 = 55 - (55*x1)/dist1;
+					y1 = 55 - (55*y1)/dist1;
+					if ( iwx < 0 ) { iwx = -x1;} else { iwx = x1;}
+					if ( iwy < 0 ) { iwy = -y1;} else { iwy = y1;}
+				}
+			}
+	
+			iknobx = iwx;
+			iknoby = iwy;
+
+			mouse.setpos( iknobx + icx + irelx, iknoby + icy + irely );
+
+			this.mknobrotate();
+		}
+	}
+	fintim()	{
+		if ( bgrab == false ) {
+			if ( iknobx != 0 || iknoby != 0 ) {
+				iknobx /= 2;
+				iknoby /= 2;
+				this.mknobrotate();
+			}
+		}
+	}
+	knobdown() {
+		irelx = mouse.getpx() - icx - iknobx;
+		irely = mouse.getpy() - icy - iknoby;
+
+		bgrab = true;
+
+//		anhandr.play("handrdown");
+//		anhandl.play("handldown");
+
+		anhandr.play("handrgrab");
+		mouse.hide();
+	}
+
+	knobup() {
+		bgrab = false;
+//		anhandr.play("handrup");	
+//		anhandl.play("handlup");	
+		anhandr.play("handrdrop");
+		mouse.show();
+	}
+
+	mknobrotate() {
+		clknob.update( iknobx, iknoby );
+		cloponka1.update( iknobx, iknoby );
+		cloponka2.update( iknobx, iknoby );
+		cloponka3.update( iknobx, iknoby );
+		if ( iknoby < 24) {
+			cldrazek.show();
+			cldrazek.update( iknobx, iknoby );
+		} else {
+			cldrazek.hide();
+		}
+		this.handupdate();
+	}
+}
+
+class classdzoj : classadvbut {
+
+	init( string sfile ) {
+		classadvbut::init( this.getname() );
+
+		new int icx = 592+50;
+		new int icy = 456;
+
+		new bool bbutl;	// stany wcisniecia guzikow
+		new bool bbutr;
+
+		new int ibutlframe = 0;
+		new int ibutrframe = 0;
+		
+		this.newanima( "anjoycase",sfile,1000 );
+		anjoycase.setframe( "case", 0 );
+		this.copyanimaactz( "anjoycase", "anjoybutl", "butl",  1055 );
+		this.copyanimaactz( "anjoycase", "anjoybutr", "butr",  1055 );
+		this.copyanimaactz( "anjoycase", "anhandl",   "handbutl", 1100 );
+		this.copyanimaactz( "anjoycase", "anhandr",   "handr", 1100 );
+		
+			// 16 x 2006 dominik
+		classadvbut::setasbutton("anjoybutl","butl");
+		anjoybutl.addtogamevars("anjoybutl");
+		anjoybutl.addmethod("moveon","butl_moveon");
+		anjoybutl.addmethod("moveoff","butl_moveoff");
+		anjoybutl.addmethod("clickon","butldown");
+		anjoybutl.addmethod("lrel","butlup");
+		anjoybutl.addmethod("moveoff","butl_moveoff");
+		classadvbut::setasbutton("anjoybutr","butr");
+		anjoybutr.addtogamevars("anjoybutr");
+		anjoybutr.addmethod("clickon","butrdown");
+		anjoybutr.addmethod("lrel","butrup");
+		
+		// czesci dzoja
+		new classknob clknob(   "anjoycase", "knob",   0,  0,  1.0,  1.0,  -0.3, 1060 );
+		new classjoyslice cldrazek(  "anjoycase", "stick",  1, 56,  0.1, 0.22,  -0.5, 1050 );
+		new classjoyslice cloponka1( "anjoycase", "part1", -4, 45, 0.16, 0.16,  -0.5, 1040 );
+		new classjoyslice cloponka2( "anjoycase", "part2", -3, 54, 0.08, 0.08,  -0.2, 1030 );
+		new classjoyslice cloponka3( "anjoycase", "part3", -5, 65, 0.04, 0.04, -0.05, 1020 );
+
+		// lapka
+		anhandr.anaddfilter();
+		anhandr.setpivottype(2);
+
+		// initialize
+		this.setcenter( icx, icy );
+
+		this.cnewtimerfin( "timdzoj", 1, 1, "mtimdzojfin" );
+		timdzoj.play();
+		
+		grbuts.sortimgs();
+	}
+	
+	bool isin(int x, int y, bool igv, bool iga)	{	return anjoycase.isin(x,y,igv,iga);	}
+	clickon() {	}
+	moveon()	{}
+	moveoff()	{}
+
+	butl_moveon() {	anhandl.play("handbutlmoveon");	}
+	butl_moveoff() {	anhandl.play("handbutlmoveoff");	}
+
+	setcenter( int aicx, int aicy ) {
+		icx = aicx;
+		icy = aicy;
+
+		int ix = icx-592;
+		int iy = icy-456;
+		anjoybutl.setpos(ix,iy);
+		anjoybutr.setpos(ix,iy);
+		anjoycase.setpos(ix,iy);
+
+		clknob.mknobrotate();
+	}
+
+	int getwahx()	{	return clknob.varget("iknobx");	}
+	int getwahy()	{	return clknob.varget("iknoby");	}
+	bool getbutl()	{	return bbutl;	}
+	bool getbutr()	{	return bbutr;	}
+
+	butlup() {
+		bbutl = false;
+		anjoybutl.play( "butlgoup" );
+	}
+	butrup() {
+		bbutr = false;
+		anjoybutr.play( "butrgoup" );
+	}
+	butldown() {
+		bbutl = true;
+		anjoybutl.play( "butlgodown" );
+	}
+	butrdown() {
+		bbutr = true;
+		anjoybutr.play( "butrgodown" );
+	}
+	setstate( int aistate ) {	clknob.varset("istate",aistate);	}
+	setbutl( bool bstate ) {	bbutl = bstate;	}
+	update()	{	clknob.knobupdate();	}
+
+	mtimdzojfin() {
+		// knob
+		clknob.fintim();
+		this.dzoj_UPDATE();
+		this.play();
+	}
+}

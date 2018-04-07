@@ -1,0 +1,116 @@
+/**************************************************************/
+	// operacje na obrazach, dzwiekach, timerach i animacjach
+class gmobjvec {
+	init()	{
+		new vector lsim;
+		lsim.type("string");
+	}
+	int size()	{ return lsim.size(); }
+	hash()	{ lsim.hash(); }
+	string first()	{ return lsim.get(0); }
+	string last()	{ return lsim.get( lsim.size()-1 ); }
+	print()	{	lsim.print();	}
+	string get(int i)	{ return lsim.get(i); }
+	add(string simg)	{	lsim.add(simg);	}
+	addonce(string simg)	{	
+		if( lsim.contains(simg)==false )	{
+			lsim.add(simg);
+		}
+	}
+	remove(string simg)	{	lsim.remove(simg);	}
+	int find(string simg)	{ return lsim.find(simg); }
+	int contains(string simg)	{ return lsim.contains(simg); }
+	addgroup(string sob, int ile)	{
+		this.addgroup2( sob, 0, ile-1 );
+	}
+	addgroup2(string sob, int ifrom, int ito)	{
+		while( ifrom <= ito )	{
+			this.add( sob+ifrom );
+			ifrom++;
+		}
+	}
+	movefrom(string simg, int x, int y)	{
+		int i = this.find(simg);
+		if( i>=0 )	{
+			while( i<lsim.size() )	{
+				<lsim.get(i)>.move(x,y);
+				i++;
+			}
+		}
+	}
+	move(int x, int y)	{		// img, an
+		int ile = lsim.size();
+		for(int i=0; i<ile; i++)	{
+			<lsim.get(i)>.move(x,y);
+		}
+	}
+	setpos(int x, int y)	{		// img, an
+		for(int i=0; i<lsim.size(); i++)	{
+			<lsim.get(i)>.setpos(x,y);
+		}
+	}
+	show()	{		// img, an
+		for(int i=0; i<lsim.size(); i++)	{
+			<lsim.get(i)>.show();
+		}
+	}
+	hide()	{		// img, an
+		for(int i=0; i<lsim.size(); i++)	{
+			<lsim.get(i)>.hide();
+		}
+	}
+	stop(int fin)	{		// an, snd, timer
+		for(int i=0; i<lsim.size(); i++)	{
+			<lsim.get(i)>.stop(fin);
+		}	
+	}
+	play()	{		// snd, timer
+		for(int i=0; i<lsim.size(); i++)	{
+			<lsim.get(i)>.play();
+		}	
+	}	
+	nplay(int iact)	{	// an
+		for(int i=0; i<lsim.size(); i++)	{
+			<lsim.get(i)>.play(iact);
+		}	
+	}
+	splay(string sact)	{	// an
+		for(int i=0; i<lsim.size(); i++)	{
+			<lsim.get(i)>.play(sact);
+		}	
+	}
+	setdelay(int d)	{
+		for(int i=0; i<lsim.size(); i++)	{
+			<lsim.get(i)>.setdelay(d);
+		}	
+	}
+	addmethod(string sdest, string ssrc)	{
+		for(int i=0; i<lsim.size(); i++)	{
+			<lsim.get(i)>.addmethod(sdest, ssrc);
+		}	
+	}
+	string getimg(int x, int y, int bignorehidden, int bignorealpha)	{
+		int ile = lsim.size();
+		for( int i=0; i<ile; i++)	{
+			if( <lsim.get(i)>.isin( x,y,bignorehidden,bignorealpha )==true )	{
+				return lsim.get(i);
+			}
+		}
+		return null;
+	}
+	ssetframe(string sac, int ifr)	{
+		for(int i=0; i<lsim.size(); i++)	{
+			<lsim.get(i)>.setframe(sac, ifr);
+		}	
+	}
+	isetframe(int iac, int ifr)	{
+		for(int i=0; i<lsim.size(); i++)	{
+			<lsim.get(i)>.setframe(iac, ifr);
+		}	
+	}
+	eval(string sfunc)	{
+		for(int i=0; i<lsim.size(); i++)	{
+			<lsim.get(i)>.<sfunc>();
+		}
+	}
+}

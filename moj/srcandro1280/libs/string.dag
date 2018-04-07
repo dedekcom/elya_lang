@@ -1,0 +1,6 @@
+
+class string_pack {
+	init()	{}
+	each(string sfun)	{	for(int i=0; i<_s.length(); i++) <_s.getb(0,i)>.<sfun>();	}
+	
+}

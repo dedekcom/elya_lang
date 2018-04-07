@@ -1,0 +1,85 @@
+game Szuflady : Kajuta	{
+	init	{
+		Kajuta::init("szuflady");
+		
+		.imgs = (A, "bg.jpg", "maski.pyzH 20", "els.pyzG 10");
+		.copyanima("anmaski", "anmaski2");
+		
+		.titsounds = (A, "lektor1", "Ka¿da szuflada pasuje tylko do jednego miejsca. Zamieniaj szuflady miejscami tak aby u³o¿yc ka¿d± na swoim miejscu.", "stdret",
+			"lektor2","Try to align the patterns in the wood so that the markings run consistently across each row of drawers.", "stdret"
+			);
+		
+		.sfxs = (A, "szufladaput 70", "szufladaklik", "szufzmiana 50");
+		
+		new vector vels; vels.vecnewint(12);
+		vels.hash;
+		new int iframe1;
+		new int iframe2;
+		
+		grels.each( func { (@id)
+			.setframe(-1, vels.get(id) );
+			.Button_stdms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				fxszufladaklik.play;
+				if( anmaski.isvisible )	{
+					anmaski2.setframe( .actionnr(-1), 0 );
+					iframe2 = .framenr;
+					anmaski2.show;
+					igmstate = 2;
+					tim1.play;
+				} else {
+					anmaski.setframe( .actionnr(-1), 0 );
+					iframe1 = .framenr;
+					anmaski.show;
+				}
+				} );
+			but1.add(this);
+			} );
+			
+		.timer = ("tim1", 500, func {
+			@id1 = anmaski.actionnr(-1);
+			@id2 = anmaski2.actionnr(-1);
+			<grels.get(id1)>.setframe(-1, iframe2);
+			<grels.get(id2)>.setframe(-1, iframe1);
+			fxszufzmiana.play;
+			if( <grels.get(id1)>.framename->contains("ok") || <grels.get(id2)>.framename->contains("ok") )
+				fxszufladaput.play;
+			tim2.play;
+			} );
+		.timer = ("tim2", 500, func {
+			anmaski.hide;
+			anmaski2.hide;
+			bool b = true;
+			@s = "";
+			for( int i=0; i< grels.size; i++)	{
+				if( !<grels.get(i)>.framename->contains("ok") )	{
+					s += " " + i;
+					b=false;
+				}
+			}
+			if( b ) {
+				.timplay("timend", 1000, "mend" );
+			} else igmstate = 1;
+			} );
+		
+		.match3but;
+		if( Trudnosc<2) anmatch3but.move(0, -10);
+		if( igmdebug )	.mbutnext;
+		.mskipminigame;
+		
+		ccs.enter( func { .txtplay("lektor1"); } );
+	}
+	mend	{
+		.mprzejdz("HOSalaturecka"); 
+	}
+	match3_won	{ .mend;	}
+	skip_minigame	{	.mend;	}
+	anbutnext_click	{
+		.mend;
+	}
+	hint_click	{
+		igmstate=0;
+		.txtplay("lektor2");
+	}
+}

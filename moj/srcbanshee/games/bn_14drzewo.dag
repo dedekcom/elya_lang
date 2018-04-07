@@ -1,0 +1,57 @@
+
+game mg14_drzewo :Banshee {
+	init{
+    Banshee::init("mg14_drzewo");
+     
+    .imgs = (A,"bkg.jpg 1" ,"popup_bkg.pyz 2","rubin_anim.pyzH 3","rubin_1.pyzH 4", "ramka.pyz 22","popexit.pyz 23"  );
+    .sfxs =(A, "bgrwiatrN 30"); 
+	.butpopexit;
+		 imgbkg {
+		.addmethod("isbutin", func { (@x, @y)
+			!anramka.isin(x,y,0,0) ;
+			} );
+		.addmethod("butclick", func {
+			if( !.advstdstate ) return;
+			 .mend;
+			} );
+  		butgame.add(this);
+  	}; 
+     if (!clsave.bis("taken_rubin_1") )
+     {
+        .setasitemtopck("anrubin_1");
+        anrubin_1.show();
+        anrubin_anim.show();
+        anrubin_anim.anopacityframe;
+	      anrubin_anim.play(1);   
+     } 
+
+     
+    .stdstart;  
+  }// koniec init 
+ 
+   anrubin_1_TAKE	{
+     anrubin_anim.stop(false); 	
+     anrubin_anim.hide();
+    .popitem_gotocenter("rubin_1");	
+    .set_mg_finished;  
+  }
+   
+   anrubin_1_INPCK {
+    .addtopck("rubin_1");
+    .timfinito;
+  }      
+     
+
+  mend	{
+    .stdexitdefadv("ad14_wielkiedrzewo", "gamead14_wielkiedrzewo0"); 
+  }
+  
+  HINT_CLICK {
+    if (!clsave.bis("taken_rubin_1") )
+      .showhint("anrubin_1");  
+    else
+      .showhint("anpopexit");   
+  } 
+ 
+}
+ 

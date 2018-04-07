@@ -1,0 +1,133 @@
+
+class classsound {
+	init()	{
+		new string _csplay = null;
+	}
+	creset()	{ _csplay = null; }
+	string cgetactsnd()	{ return _csplay; }
+	crselfplay(string ssnd)	{
+		if( this.cisplaying()==false )	{
+			this.cbplay(ssnd);
+		} else if ( this.cgetactsnd()!=ssnd )	{
+			this.cbplay(ssnd);
+		}
+	}
+	cbplay(string ssnd)	{
+		if(_csplay!=null)	{	<_csplay>.stop(true);		}
+		_csplay = ssnd;
+		if( ssnd!=null )	{
+			<ssnd>.play();
+		}
+		//engine.print("gram "+ssnd);
+	}
+	crplay(string ssnd)	{
+		if(_csplay!=null)	{	
+			if( <_csplay>.isplaying() == true )	{
+				return;
+			}
+		} 
+		_csplay = ssnd;
+		if( ssnd!=null )	{
+			<ssnd>.play();
+		}
+	}
+	crandplay(string ssnd, int irand, string styp)	{
+		if( irand.rand( irand )==0 )	{
+			this.<"c"+styp+"play">( ssnd );
+		}
+	}
+	cactsndstop(int ifin)	{
+		if(_csplay!=null)	{ 
+			<_csplay>.stop(ifin); 
+		}
+	}
+	int cisplaying()	{
+		if(_csplay!=null)	{ 
+			return <_csplay>.isplaying(); 
+		} else {
+			return false;
+		}
+	}
+	crbgplay(string ssnd)	{
+		if( ssnd == null )	{ return; }
+		if( <ssnd>.isplaying()==false)	{
+			<ssnd>.play();
+		}
+	}
+}
+
+/***************************************************************************/
+class classsndbank	{
+	init()	{
+		new int itype;
+		new int ilicz = 0;
+		new int iile;
+		new string splay=null;
+		new string ssnd = "snd";
+	}
+	/********************************/
+	loadsingle(string sfile, int ile)	{
+		if( ile<=0)	{	iile=0;	return;	}
+		iile=ile;
+		itype=0;
+		for( int i=0; i<ile; i++)	{
+			newvars::newsnd( ssnd+i, sfile );
+		}
+	}
+	/********************************/
+	load(string sfilebase, int ifilefrom, int ifileto, int ityp, int itypstart)	{
+		iile = ifileto-ifilefrom+1;
+		if(iile<=0)	{
+			iile = 0;
+			return;
+		}
+		newvars::newsnds( ssnd, 0, sfilebase, ifilefrom, ifileto);
+		itype = ityp;			// 0 - po kolei, 1 - random
+		if(itypstart==1)	{	// 0 - od pierwszego, 1 - randomowy
+			ilicz = ilicz.rand( iile );
+		}
+	}
+	addmethod(string ssig, string sfunc)	{
+		for( int i=0; i<iile; i++)	{
+			<ssnd+i>.addmethod( ssig, sfunc );
+		}
+	}
+	stop(int ifin)	{
+		if(splay!=null)	{ <splay>.stop(ifin); }
+	}
+	int isplaying()	{
+		if(splay!=null)	{ return <splay>.isplaying(); }
+		else {	return false;	}
+	}
+	randplay( int irand )	{
+		if( irand.rand( irand )==0 )	{
+			this.play();
+		}
+	}
+	play()	{
+		this.stop(false);
+		this.bgplay();
+	}
+	/************************************************/
+	rbgplay()	{
+		if( this.isplaying()==true )	{	return;	}
+		this.bgplay();
+	}
+	rplay()	{
+		if( this.isplaying()==false )	{	this.play();	}
+	}
+	bgplay()	{
+		splay = ssnd + ilicz;
+		<splay>.play();
+		if( itype==0)	{
+			ilicz = (ilicz+1)%iile;
+		} else if (itype==1)	{
+			ilicz = ilicz.rand( iile );
+		}
+	}
+	setvol(int vol)	{
+		for( int i=0; i<iile; i++)	{
+			<ssnd+i>.setvol( vol );
+		}
+	}
+}

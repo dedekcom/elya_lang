@@ -1,0 +1,249 @@
+
+game mg29_beczka3 :Banshee{
+	init{
+    Banshee::init("mg29_beczka3");
+    .imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2" ,"kurek.pyz 3", "table.pyzH 4", "kropla.pyzH 5","wine_bottle.pyzH 6",  "przepis.pyzH 16", "licznik1.pyzH 17","licznik2.pyzH 17","licznik3.pyzH 17", "reset.pyzH 17","popexit.pyz 27" );
+    .butpopexit;
+	
+	.sfxs = (A, "bgrsala2N 30", "openwindow", "kropla1");
+	
+    .setasitemtopck("anwine_bottle");
+	anwine_bottle.setframe(0,.bottle_level);
+	new int beczka_index = 3;
+	
+	.newsndfree("no_bottle_snd", "kinnat_c3d3_24");
+    no_bottle_snd.addmethod("onfinish", "advsetstdstate");  
+	
+    imgbkg {
+		.addmethod("isbutin", func { (@x, @y)
+			!anpopup_bkg.isin(x,y,0,0) ;
+			} );
+		.addmethod("butclick", func {
+			if( !.advstdstate ) return;
+			 .mend;
+			} );
+  		butgame.add(this);
+  	};
+    
+    ankurek{
+        .Button_isinvis;
+        .addmethod("butmoveon", func {
+  			 	 
+  				advmouse.set("take");
+  				  
+        } );
+  			.addmethod("butmoveoff", func {
+  				 
+  				  advmouse.setstd;
+  				} );
+        .addmethod("butclick", func { 
+			if( !.advstdstate  ) return;
+			if (!clsave.bis("e1_mg29_beczka"+beczka_index+"_bottle_on"))
+				.cbplay("no_bottle_snd");
+			else
+			{
+				if (.butelka_niepelna)
+				{
+					.play(0);
+					fxopenwindow.play();
+					ankropla.anfadein(100,func{ankropla.anfadeout(100,null);fxkropla1.play;});
+					int count = clsave.get("e1_mg29_beczka_"+beczka_index);
+					count+= 1;
+					clsave.set("e1_mg29_beczka_"+beczka_index ,count);
+					int frame = count-1;
+					<"anlicznik"+beczka_index>.setframe(-1, frame);
+					<"anlicznik"+beczka_index>.show();
+					anwine_bottle.setframe(0, .bottle_level);
+				}
+				//else
+				//	.reset_bottle;
+				 
+			}
+        } );   
+        butgame.add(this);
+          
+     };
+     
+     antable{
+        .Button_isinvis;
+        .addmethod("butmoveon", func {
+  			 
+			if (!clsave.bis("e1_mg29_beczka"+beczka_index+"_bottle_on"))
+				advmouse.set("use");
+  				  
+        } );
+  			.addmethod("butmoveoff", func {
+  				 
+  				  advmouse.setstd;
+  				} );
+        .addmethod("butclick", func { 
+          if( !.advstdstate  ) return;
+          
+        } );   
+        butgame.add(this);
+          
+     }; 
+	 
+	  anreset{
+        .Button_isinvis;
+        .addmethod("butmoveon", func {
+  			 
+			advmouse.set("take");
+  				  
+        } );
+		.addmethod("butmoveoff", func {
+			 
+			  advmouse.setstd;
+			} );
+        .addmethod("butclick", func { 
+          if( !.advstdstate  ) return;
+			.reset_bottle;
+        } );   
+        butgame.add(this);
+		.butdisable; 
+          
+     }; 
+    
+    if(clsave.bis("e1_mg29_beczka"+beczka_index+"_bottle_on"))
+    {
+		anwine_bottle.show; 
+		butgame.removebut("antable");
+		.show_przepis;
+    }
+	
+     
+    .stdstart; 
+  }// koniec init 
+	
+	mend {
+		.stdexitdefadv("ad29_beczka"+beczka_index, "gamead29_beczka"+beczka_index+"0"); 
+	}
+  
+	anwine_bottle_TAKE {
+		.item_takecenter("wine_bottle");
+		clsave.set("e1_mg29_beczka"+beczka_index+"_bottle_on",0);
+		butgame.addbut("antable");
+		.hide_przepis; 
+	} 
+  
+   anwine_bottle_INPCK {
+     .addtopck("wine_bottle");
+ 
+	}
+ 
+	reset_bottle{
+		anwine_bottle.setdelay(3);
+		anwine_bottle.play("reset"+.bottle_level);
+		anwine_bottle.setdelay(1);
+		clsave.set("e1_mg29_beczka_1",0);
+		clsave.set("e1_mg29_beczka_2",0);
+		clsave.set("e1_mg29_beczka_3",0);
+		clsave.set("e1_mg29_beczka_4",0);
+		anlicznik1.hide;
+		anlicznik2.hide;
+		anlicznik3.hide;
+	}
+	
+	butelka_niepelna{
+		if (.bottle_level < 7)
+			return true;
+		else
+			return false;
+	}
+	
+	bottle_level{
+		int count1 = clsave.get("e1_mg29_beczka_1");
+		int count2 = clsave.get("e1_mg29_beczka_2");
+		int count3 = clsave.get("e1_mg29_beczka_3");
+		int count4 = clsave.get("e1_mg29_beczka_4");
+		return count1 + count2 + count3 + count4;
+	}
+	
+	show_przepis{
+		anprzepis.anfadein(200,null);
+		anreset.anfadein(200,null);
+		anreset.butenable; 
+		int count1 = clsave.get("e1_mg29_beczka_1");
+		if ( count1 >0)
+		{
+			int  frame = count1 -1;
+			anlicznik1.setframe(-1,frame);
+			anlicznik1.anfadein(200,null);	
+		}
+		
+		int count2 = clsave.get("e1_mg29_beczka_2");
+		if ( count2 >0)
+		{
+			int  frame = count2 -1;
+			anlicznik2.setframe(-1,frame);
+			anlicznik2.anfadein(200,null);	
+		}
+		
+		int count3 = clsave.get("e1_mg29_beczka_3");
+		if ( count3 >0)
+		{
+			int  frame = count3 -1;
+			anlicznik3.setframe(-1,frame);
+			anlicznik3.anfadein(200,null);	
+		}
+		 
+		
+	}
+	
+	hide_przepis{
+		anprzepis.anfadeout(200,null);
+		anreset.hide;
+		anreset.butdisable; 
+		if (<"anlicznik1">.isvisible)
+		{
+			<"anlicznik1">.hide;	
+		}
+		if (<"anlicznik2">.isvisible)
+		{
+			<"anlicznik2">.hide;	
+		}
+		if (<"anlicznik3">.isvisible)
+		{
+			<"anlicznik3">.hide;	
+		}
+	}
+  
+	USE_wine_bottle
+	{
+		.advsetstdstate();
+		if(antable.isin(mouse.getpos,0,1) ) {
+			._removefrompck("wine_bottle",1);
+			anwine_bottle.setframe(0,.bottle_level);
+			anwine_bottle.styperoto = ("init");
+			anwine_bottle.setpos(0,0);
+			anwine_bottle.anfadein(500,null); 
+			clsave.bset("e1_mg29_beczka"+beczka_index+"_bottle_on"); 
+			advmouse.setstd;
+			butgame.removebut("antable");
+			.show_przepis; 
+			
+		} else {
+			.item_gotopck;
+		}
+	}       
+   
+	HINT_CLICK {
+		int act_component_level = clsave.get("e1_mg29_beczka_"+beczka_index);
+		if (clsave.bis("e1_mg29_beczka"+beczka_index+"_bottle_on") &&  act_component_level < 2 && .butelka_niepelna) 
+			.showhint("ankurek");
+		else if (clsave.bis("e1_mg29_beczka"+beczka_index+"_bottle_on") &&  act_component_level > 2)  
+			.showhint("anreset");
+		else if (clsave.bis("e1_mg29_beczka"+beczka_index+"_bottle_on") &&  act_component_level < 2 && .bottle_level >= 7)  	
+			.showhint("anreset");
+		else if (clsave.bis("e1_mg29_beczka"+beczka_index+"_bottle_on") &&  act_component_level == 2)  
+			.showhint("antable");	
+		else if (clsave.bis("ma_wine_bottle") && act_component_level != 2 ) 
+		{
+			.showhint("antable");	
+			.showhintitem("wine_bottle");		
+		}
+		
+		else
+			.showhint("anpopexit");   
+	}
+}

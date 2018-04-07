@@ -1,0 +1,157 @@
+
+game Klodki : Kajuta	{
+	init	{
+		Kajuta::init("klody");
+		.imgs = (A, "bgklody.jpg", "klody.pyzG 5", "kloda1.pyzH 10",
+			"szyfr1.pyzGH 15", "kloda2.pyzH 10", "szyfr2.pyzGH 15");
+		
+		new itemadder clk1;
+		new itemadder clk2;
+		
+		.titsounds = (A, ":lilian1", "I must use a specific combination of digits and letters to unlock the padlocks.", "stdret",
+			":lilian2", "Maybe the secret document I found could help me figure out these codes.", "stdret");
+		
+		.sfxs = (A, "cyk", "klodkago", "wcisnij");
+		
+		grklody.eval( func {
+			.Button_isinalpha;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				igmstate = 31;
+				
+				@id = .actionnr(-1) + 1;
+				<"clk"+id>.freeitem;
+				.setframe(-1,0);
+				.setpos(0,0);
+				<"ankloda"+id>.setpos(0,0);
+				<"clk"+id>.showitem( "ankloda"+id, "kloda"+id+"_shown");
+				
+				but1.removebut(this);
+				} );
+			but1.add(this);
+			} );
+		grszyfr1.eval( func {
+			.addmethod("isbutin", func { (@x, @y) igmstate==40 && .isin(x,y,0,1); } );
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=40 ) return;
+				if( .isvisible ) {
+					.hide;
+				} else {
+					.show;
+				}
+				fxwcisnij.play;
+				if( .mvis(1) && .mvis(2) && .mvis(3) && .mvis(7) && !.mvis(0) && !.mvis(4)
+					&& !.mvis(5) && !.mvis(6) && !.mvis(8) && !.mvis(9) )	{
+					ankloda1.setframe(1,0);
+					<grklody.get(0)>.setframe(-1,1);
+					fxcyk.play;
+					grszyfr1.hide;
+					igmstate = 5;
+					.timplay("timkloda1", 1000, func { 
+						grszyfr1.eval( func { but1.removebut(this); .hide; } );
+						fxklodkago.play;
+						clk1.gotodestan("ankloda1", grklody.get(0), 15, "kloda1_ok");
+						} );
+				}
+				} );
+			but1.add(this);
+			} );
+		grszyfr2.eval( func {
+			.Button_isinalpha;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=30 ) return;
+				.ansetnextfr;
+				if( .mfr(0)==0 && .mfr(1)==5 && .mfr(2)==0 && .mfr(3)==3 )	{
+					ankloda2.setframe(1,0);
+					<grklody.get(1)>.setframe(-1,1);
+					fxcyk.play;
+					grszyfr2.hide;
+					igmstate = 5;
+					.timplay("timkloda2", 1000, func { 
+						grszyfr2.hide;
+						fxklodkago.play;
+						clk2.gotodestan("ankloda2", grklody.get(1), 15, "kloda2_ok");
+						} );
+				}
+				} );
+			but1.add(this);
+			} );
+		
+		.match3but;
+		.mskipminigame;
+		.img = ("$scripts/common/showhint.pyz 800");
+		
+		ccs.enter( func { .txtplay("lilian1"); } );
+	}
+	kloda1_shown	{
+		grszyfr1.show;
+		ankloda1.setframe(-1,1);
+		igmstate=40;
+	}
+	kloda2_shown	{
+		grszyfr2.show;
+		igmstate=30;
+	}
+	kloda1_ok	{
+		ankloda1.hide;
+		.mcheck;
+	}
+	kloda2_ok	{
+		ankloda2.hide;
+		.mcheck;
+	}
+	mcheck	{
+		if( <grklody.get(0)>.framenr==1 && <grklody.get(1)>.framenr==1 )	{
+			igmstate = 3;
+			//clsave.set("item_szyfr",0);
+			anitemszyfr.showszyfr;
+			//.timplay("timend", 1000, func { .mprzejdz("Korytarzkrata"); } );
+		} else igmstate=1;
+	}
+	showszyfr	{
+		.setframe(1,0);
+		.setpos(0,0);
+		itszyf.showitem(this, func { .timplay("timszyf", 1000, func { anitemszyfr.hideszyfr; } ); } );
+	}
+	hideszyfr	{
+		itszyf.hideitem(this, func {
+			anitemszyfr {
+				itszyf.freeitem;
+				.hide;
+			};
+			.timplay("timend", 1000, "mend" );
+			} );
+	}
+	mend	{
+		clsave.set("item_szyfr",0);
+		.mprzejdz("Korytarzkrata");
+	}
+	match3_won	{	.mend;	}
+	skip_minigame	{	.mend;	}
+	mvis(int id)	{ !<grszyfr1.get(id)>.isvisible; }
+	mfr(int id)	{ <grszyfr2.get(id)>.framenr;	}
+	mret	{ igmstate=1;	}
+	tit_lclick	{
+		if( igmstate==40 && !ankloda1.isin(mouse.getpos,1,1) )	{
+			igmstate=5;
+			grszyfr1.hide;
+			clk1.gotodestan("ankloda1", grklody.get(0), 15, func { igmstate=1; ankloda1.hide; but1.add(grklody.get(0)); } );
+		} else if( igmstate==30 && !ankloda2.isin(mouse.getpos,1,1) )	{
+			igmstate=5;
+			grszyfr2.hide;
+			clk2.gotodestan("ankloda2", grklody.get(1), 15, func { igmstate=1; ankloda2.hide; but1.add(grklody.get(1));});
+		}
+	}
+	kajuta_hint_click	{
+		/*anshowhint.setpos( anitemszyfr.getcx, anitemszyfr.getpy-5 );
+		anshowhint.play(0);*/
+		igmstate=12;
+		.txtplay("lilian2");
+	}
+}

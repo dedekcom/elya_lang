@@ -1,0 +1,136 @@
+class classadvkomputro : classadv	{
+	init()	{
+		igmstate = 0;
+		classadv::init();
+		this.setwavpath("sounds/komputro/");
+		this.newsnd("sfxgetitem", "sfx/getitem.wav");
+		bsms.setstd();		// ustawia standardowo 
+		clmusic.play();
+		clbuts.reset();
+		//clesav.save();
+	}
+	playtalk	{	.play("talk"+2->rand);	}
+	cfinprof	{	if (.actionname->strsube(1)=="talk")	.playtalk;	}
+	cshowbut(@dir)	{	clp.show(cbok.getimgfunc("getcx"), cbok.getimgfunc("getcy"), dir); }
+	profstop	{	anprof.play("stand");	}
+	jackstop	{	anjack.play("stand");	}
+	jacksay(string s)    {
+		<GAME>(s) { (@s)
+			classsound::cbplay2(s);
+			anjack.playtalk;
+		};
+	}
+	profsay(string s)    {
+		<GAME>(s) { (@s)
+			classsound::cbplay2(s);
+			anprof.playtalk;
+		};
+	}
+	loadguys	{	._loadguys("scripts/common/profesor","scripts/common/jacek"); }
+	_loadguys(string sprof, string sjack)	{
+		new anima anprof (sprof) { (@sprof)
+			.load(sprof+".pyz");
+			.setz(100);
+			.setframe("stand",0);
+			.addmethod("onfinish", "cfinprof");
+		};
+		new anima anprofsh	{
+			.copy("anprof");
+			.setframe("shadow",0);
+			.setz(15);
+		};
+		new anima anjack (sjack) { (@sjack)
+			.load(sjack + ".pyz");
+			.setframe("stand",0);
+			.addmethod("onfinish", "cfinprof");
+			.setz(110);
+		};
+		new anima anjacksh	{
+			.copy("anjack");
+			.setframe("shadow",0);
+			.setz(15);
+		};
+	}
+	komnapis(string sname, string snapis, int isize, string scol, int z)	{
+		int c[3];
+		match(scol)	{
+			"red"		=> |c0,c1,c2| = 255, 15, 15;
+			"lred"	=> |c0,c1,c2| = 255, 105, 105;
+			"green"	=> |c0,c1,c2| = 15, 255, 15;
+			"blue"	=> |c0,c1,c2| = 15, 15, 255;
+			"lblue"	=> |c0,c1,c2| = 105, 105, 255;
+			"black"	=> |c0,c1,c2| = 5, 5, 5;
+			? 		=> |c0,c1,c2| = 255, 255, 255;
+		}
+		new TextDb <sname>(null,isize, snapis, c0,c1,c2, 0,0,isize/2, z, "center");
+		<sname>.stdshadow( ( isize<=12 ? 1 : 2 ) );
+		<sname>.hide;
+	}
+	napisshow(int x, int y)	{
+		.show;
+		.move(x,y);
+	}
+	napispod(string s)	{	.napisshow(<s>.getcx-.getw/2, <s>.getey+5); }
+	loadlekcja	{
+		new db dblekcja;
+		dblekcja.load("scripts/common/lekcje.db");
+		@id = dblekcja.findbyrow( gameapi.getgamename );
+		.komnapis("tdlekcja", dblekcja.get(id,1), 22, dblekcja.get(id,2), 200);
+		tdlekcja.napisshow(3,3);
+		@icol = 3;
+		while(icol<dblekcja.getcolsno(id) )	{
+			.komnapis(dblekcja.get(id, icol), dblekcja.get(id,icol+1),
+				dblekcja.get(id,icol+2), dblekcja.get(id, icol+3), 200);
+			icol+=4;
+		}
+	}
+	printend(string s)	{
+		new gfxSquare gsend(100,100,600,400);
+		gsend.set(.grey(240), 255);
+		gsend.build;
+		gsend.setz(1500);
+		gsend.shadow(2,2,128);
+		
+		new TextDb tdend(null, 12, s, .blue, 125,115, 5, 1550, "left");
+	}
+	/***********************************************************/
+	exit()	{
+		bsms.setstd;
+		this.game_exit;
+	}
+	public askrestart()	{	claskexit.askrestart;	}
+	/***********************************************************/
+	advclick()	{
+		if( igmdebug && (igmstate==0 || igmstate==5) )	{
+			this.cactsndstop(true);
+		}
+	}
+	public keyrestart	{
+		if( igmdebug && keyboard.iskeydown("lctrl") && keyboard.iskey("r") )
+			gameapi.play(this);
+	}
+	/***********************************************************/
+	keydown()	{
+		if( igmdebug==false )	{	return;	}
+		
+		if( keyboard.iskey("p") )	{
+			clpause.pause();
+		} else if( keyboard.iskey("escape") )	{
+			claskexit.askexittomenu();
+		} else {
+// 			clnextgm.checkkey();
+		}
+	}
+	/***********************************************************/
+	key_down	{
+		if( igmdebug && keyboard.iskeydown("lctrl") && keyboard.iskey("r") )	.crestart;
+	}
+	cbok_MOVEON	{	sndakskermovon.play;	}
+}
+
+class Komputro : classadvkomputro, GameController	{
+	init(string s)	{
+		classadvkomputro::init;
+		GameController::init(s);
+	}
+}

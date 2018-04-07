@@ -1,0 +1,86 @@
+game Opowiesc : Dzieje	{
+	init	{
+		Dzieje::init("opowiesc");
+		new int Row = 0;
+		.sfxs=(A,"step", "struga");
+		.newdb("dbopo", "opowiesc.db");
+		for( int i=0; i<dbopo.getrowsno; i++)	{
+			.addsnd("snd_"+i, dbopo.get(i,2));
+		}
+		.stdexportsnd;
+		new bool bLoop;
+		new img imgbg;
+		imgbg.load("scripts/plansza/opobg.png");
+		new snd sndbgr;
+		sndbgr.addmethod("onfinish", func {	if( bLoop ) .play;	} );
+		new anima anview;
+		anview.addmethod("onfinish", func {	if( .actionname->contains("L") ) .play(-1);	} );
+		.path = ("plansza");
+		new Buttons butopo("przyciskiopo.pyz");
+		butopo {
+			<grbuts.get( grbuts.findsac("help"))>.hide;
+			};
+		butopo.bcheck2klik = (false);
+		new Button butnut;
+		butnut.bcheck2klik = (false);
+		butnut.load("grnutka", "nutkaopo.pyz", func { (@id)
+				.Button_isin;
+				.setframe(0,1);
+				.addmethod("butclick", func {
+					@s = grnutka.get(0);
+					if( <s>.framenr )	{
+						<s>.setframe(0,0);
+						clmusic.reset;
+					 } else {
+						<s>.setframe(0,1);
+						clmusic.play;
+					}
+					fxpik1.play;
+					} );
+				.addmethod("butmoveon", func { fxstep.play; advmouse.setbut; } );
+				.addmethod("butmoveoff", func { advmouse.setstd; } );
+			} );
+		.path = ("opowiesc");
+		
+		.mnext(0);
+	}
+	butopo_moveon	{	fxstep.play;	}
+	butopo_lclick	{
+		match(sobject)	{
+			"help" => ;
+			"exit" => gameapi.play("MenuPreh");
+			"next" => .mnext(1);
+			"prev" => .mnext(-1);
+			"restart" => gameapi.play("Opowiesc");
+			? => ;
+		}
+	}
+	mnext(int id)	{
+		sndbgr.stop(false);
+		.cactsndstop(false);
+		bLoop = false;
+		Row+=id;
+		if( Row<0 )	{
+			Row=0;
+			.mnext(0);
+			return;
+		}
+		if( Row>=dbopo.getrowsno )	{
+			gameapi.play("MenuPreh");
+			return;
+		}
+		anview.load( .getgraphpath + "sc" + dbopo.get(Row,0) + ".pyz" );
+		anview.play(0);
+		if( dbopo.getcolsno(Row)>3 )	{
+			@s = dbopo.get(Row,3);
+			@s2;
+			if( s.contains("bgr") ) {	s2=BGRPATH;	bLoop=true;	}
+			else s2 = SFXPATH;
+			if( dbopo.getcolsno(Row)>4 )	bLoop = dbopo.get(Row,4);
+			sndbgr.load( s2 + s + ".wav");
+			sndbgr.setvol(40);
+			sndbgr.play;
+		}
+		.cbplay("snd_"+Row);
+	}
+}

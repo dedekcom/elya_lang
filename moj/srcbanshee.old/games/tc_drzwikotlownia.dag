@@ -1,0 +1,258 @@
+
+
+new int SuwakiRow = 16;
+game Drzwikotlownia : Kajuta	{
+	init	{
+		Kajuta::init("drzwikotlownia");
+		
+		int irow = SuwakiRow;
+		
+		.titsounds = (A, "lektor1", "U³ó¿ herb firmy White Star, przesuwaj±c jego fragmenty.|Jak chcesz przesun±æ jeden z fragmentów, kliknij na niego.", "stdret"
+			);
+		
+		.sfxs = (A, "nasadza 60", "blokmove 50", "wcisnij 70");
+		
+		.imgs = (A, "bkg.pyz", "zasuwy.pyz 10", "zamek.pyz 15", "drzwi.pyz 20", "maska.pyz 50");
+		
+		new int Rows;
+		new int Cols;
+		match(SuwakiRow)	{
+			9 => { |Rows, Cols| = 3,3; }
+			12 => { |Rows, Cols| = 3,4; }
+			16 => { |Rows, Cols| = 4,4; }
+			24 => { |Rows, Cols| = 4,6; }
+			35 => { |Rows, Cols| = 5,7; }
+			40 => { |Rows, Cols| = 5,8; }
+			? => ;
+		}
+		
+		.newgrimg("grels", "p"+irow, 25);
+		
+		new vector vx1;
+		new vector vy1;
+		grels.each( func { (@id)
+			.var2("myid", id);
+			vx1.add( .getpx );
+			vy1.add( .getpy );
+			} );
+		vx1.add( <grels.last>.getex );
+		vy1.add( <grels.last>.getpy );
+		
+		new vector vsuw;
+		vsuw.vecnewint(grels.size);
+		vsuw.add(-1);
+		
+		vsuw.set(11,-1);
+		<grels.get(11)>.hide;
+		
+		vsuw.hash;
+		.mrestore;
+		
+		//.mpanel;
+		
+		if( igmdebug )	.mbutnext;
+		.mskipminigame;
+		
+		.match3but;
+		if( Trudnosc<2) anmatch3but.move(0, -10);
+		
+		ccs.enter( func {
+			.txtplay("lektor1");
+			} );
+	}
+	/************** wyjscia *****************/
+	anbutnext_click	{
+		.mend;
+	}
+	mend	{
+		if( AdventureMode )	{
+			clsave.bset("ukonczone_drzwikotlownia");
+			.mprzejdz("DrzwikotlowniaB");
+		} else {
+			.mprzejdz("MainMenu");
+		}
+	}
+	match3_won	{ .mend; }
+	skip_minigame	{	.mend;	}
+	/*******************************/
+	mgo	{	igmstate = 1;	}
+	int mget(int r, int c)	{
+		if( r>=0 && r<Rows && c>=0 && c<Cols ) vsuw.get(r*Cols + c);
+		else -2;
+	}
+	bool mcheck(string s, int id, int r, int c)	{
+		if( .mget(r,c)==-1 )	{
+			@id2 = r*Cols + c;
+			vsuw.swap(id, id2);
+			.mrestore;
+			.mcheckwin;
+			fxblokmove.play;
+			true;
+		} else false;
+	}
+	mcheckwin	{
+		bool b = true;
+		for( int i=0; i<grels.size; i++)	{
+			if( <grels.get(i)>.myid != i )
+				b = false;
+		}
+		if( b )	{
+			.mend;
+			igmstate = 2;
+		}
+	}
+	mrestore	{
+		for( int i=0; i<Rows; i++)	{
+			for( int j=0; j<Cols; j++)	{
+				@id = i*Cols + j;
+				@id2 = vsuw.get(id);
+				if( id2>=0 )	{
+					@s = grels.get( id2 );
+					<s>.msetpos(id);
+				}
+			}
+		}
+	}
+	msetpos(int id)	{
+		.ansetbpos( vx1.get(id), vy1.get(id) );
+		.myid = (id);
+	}
+	tit_lclick	{
+		if( igmstate==0)	.cactsndstop(true);
+		if( igmstate==1 )	{
+			if( grels.isin(mouse.getpos, 1,1) )	{
+				@s = grels.getsfound;
+				@id = <s>.myid;
+				@row = id/Cols;
+				@col = id%Cols;
+				
+				@mx = <s>.getcx;
+				@my = <s>.getcy;
+				@x = mouse.getpx;
+				@y = mouse.getpy;
+				if( x >= mx && y <= my )	{
+					if( .mcheck(s, id, row-1, col) ) {
+					} else if( .mcheck(s, id, row, col+1) ) {
+					} else if( .mcheck(s, id, row+1, col) ) {
+					} else if( .mcheck(s, id, row, col-1) ) {
+					}
+				} else if ( x >= mx && y >= my )	{
+					if( .mcheck(s, id, row+1, col) ) {
+					} else if( .mcheck(s, id, row, col+1) ) {
+					} else if( .mcheck(s, id, row, col-1) ) {
+					} else if( .mcheck(s, id, row-1, col) ) {
+					}
+				} else if ( x <= mx && y >= my )	{
+					if( .mcheck(s, id, row+1, col) ) {
+					} else if( .mcheck(s, id, row, col-1) ) {
+					} else if( .mcheck(s, id, row, col+1) ) {
+					} else if( .mcheck(s, id, row-1, col) ) {
+					}
+				} else if ( x <= mx && y <= my )	{
+					if( .mcheck(s, id, row-1, col) ) {
+					} else if( .mcheck(s, id, row, col-1) ) {
+					} else if( .mcheck(s, id, row, col+1) ) {
+					} else if( .mcheck(s, id, row+1, col) ) {
+					}
+				} else {
+					if( .mcheck(s, id, row, col-1) ) {
+					} else if( .mcheck(s, id, row-1, col) ) {
+					} else if( .mcheck(s, id, row, col+1) ) {
+					} else if( .mcheck(s, id, row+1, col) ) {
+					}
+				}
+				if( <s>.actionnr(-1)==<s>.myid )
+						fxwcisnij.play;
+			}
+		}
+	}
+	mouse_rclick	{
+		//if( igmdebug ) grels.free;
+	}
+}
+
+
+game DrzwikotlowniaB : Kajuta	{
+	init	{
+		Kajuta::init("drzwikotlowniab");
+		.path = ("drzwikotlownia");
+		
+		.imgs = (A, "bkg.pyz", "zasuwy.pyz 10", "zamek.pyz 15", "drzwi.pyz 20", "maska.pyz 50",
+			"klocek.pyzH 625", "klocekb.pyzH 625");
+		.newgrimg("grels", "p16", 25);
+		<grels.get(11)>.hide;
+		
+		.sfxs = (A, "putklocek", "putdiament");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1", "Brakuje dwoch elementow", func {
+			tcr.ahide;
+			if( clsave.bis("item_klocek") )	{
+				igmstate=1; 
+			} else {
+				.timplay("tim2", 1000, func { .mprzejdz("Kotlownia"); } );
+			}
+			});
+		
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		ccs.enter( func {
+			if( clsave.bis("item_klocek") )	igmstate=1;
+			else .timplay("tim1",1000, func { .txtplay("lilian1"); }); 
+			} );
+	}
+	mend	{
+		.mprzejdz("HOKotlownia");
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( anitemklocek.isin(mouse.getpos,1,1) )	{
+			anklocek.ansetcpos(anitemklocek.getcx, anitemklocek.getcy);
+			anklocek.show;
+			.mssetobj("anklocek");
+			anitemklocek.hide;
+			igmstate=2;
+		} else if( anitemklocekb.isin(mouse.getpos,1,1) )	{
+			anklocekb.ansetcpos(anitemklocekb.getcx, anitemklocekb.getcy);
+			anklocekb.show;
+			.mssetobj("anklocekb");
+			anitemklocekb.hide;
+			igmstate=2;
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		
+		if( <s>.aninlod(25) )	{
+			clsave.set("item_" + s.strsubbs("an"), 0);
+			<s>.setpos(0,0);
+			<s>.setz(30);
+			fxputdiament.play;
+			if( clsave.is("item_klocek",0) && clsave.is("item_klocekb", 0) )	{
+				fxputklocek.play;
+				anzasuwy.hide;
+				.timplay("tim3", 500, func {
+					grels.hide;
+					anklocek.hide;
+					anklocekb.hide;
+					andrzwi.setframe(1,0);
+					.timplay("tim4", 1000, "mend");
+					} );
+			} else igmstate = 1;
+		} else {
+			<s>.hide;
+			<s>.setpos(0,0);
+			if( s.gete(0,1)=="b" )	anitemklocekb.show;
+			else anitemklocek.show;
+			igmstate=1;
+		}
+	}
+	hint_click	{
+		if( clsave.bis("item_klocek") )	{
+			.playhints("anitemklocek", "anklocek");
+		} else if ( clsave.bis("item_klocekb") )	{
+			.playhints("anitemklocekb", "anklocekb");
+		}
+	}
+}

@@ -1,0 +1,48 @@
+
+game Lada : Jogi {
+	init	{
+		Jogi::init("lada");
+		
+		.imgs = (A, "bkg.pyz", "ludek1.pyzP 100", "ludek2.pyzP 100", "klient.pyz 200", "mowi.pyzH 250", "ladaup.pyz 300",
+			"ladadown.pyz 120");
+		
+		new gmimgvec grtorty;
+		"grtorty" .* "torty.pyz";
+		grtorty.setz(20);
+		
+		.timer = ("timstart", 2000, func {
+			anklient.anplayfin(-1, func {
+				anmowi.show;
+				timgo.play;
+				} );
+			} );
+		.timer = ("timgo", 1000, func {
+			<grtorty.first>.setz(130);
+			<grtorty.first>.play(-1);
+			} );
+		timstart.play;
+	}
+	angoleft_click	{
+		gameapi.play("Tasma");
+	}
+	angoright_click	{
+		|iMemoW, iMemoH| = 6, 3;
+		iMemoTryb = 1;
+		gameapi.play("Memo");
+	}
+}
+
+game Tasma : Jogi {
+	init	{
+		Jogi::init("tasma");
+		.imgs = (A, "bkg.pyz", "ludek.pyzP 10");
+	}
+	angoleft_click	{
+		|iMemoW, iMemoH| = 6, 5;
+		iMemoTryb = 2;
+		gameapi.play("Memo");
+	}
+	angoright_click	{
+		gameapi.play("Lada");
+	}
+}

@@ -1,0 +1,104 @@
+class signal_pack	{
+	init()	{}
+	addsignals(string san)	{
+		<san>.addmethod("operator<", func { (string sfun) this.addmethod("onfinish", sfun ); } );
+	}
+}
+/***************************************************************************/
+	// rozszerzenia dla animcaji
+class anima_pack : signal_pack	{
+	init()	{}
+	public resizemethods(string san)	{
+		<san>.addmethod("_clanbuildpomvars", func { new int _ixp; new int _iyp; } );
+		<san>._clanbuildpomvars();
+		<san>.addmethod("setbpos", func {(int x, int y) this.setpos( x-this.lodx, y-this.lody ); });
+		<san>.addmethod("saverelpos", func {(int x,int y)_ixp=x-this.getpx;_iyp=y-this.getpy;} );
+		<san>.addmethod("setrelpos", func{(int x, int y) this.setbpos( x - _ixp, y - _iyp );});
+		<san>.addmethod("mssaverelpos", func {this.saverelpos( mouse.getpos );} );
+		<san>.addmethod("mssetrelpos", func {this.setrelpos( mouse.getpos );});
+		<san>.addmethod("rplay", func {(string sact)if( !this.isplaying(sact) ) this.play(sact);});
+		<san>.addmethod("setcpos", func {(int x, int y)this.setbpos( x-this.getw/2, y-this.geth/2 );});
+		<san>.addmethod("operator=", func { (string s) this.copy(s); } );
+		<san>.addmethod("operator==", func { (string s)
+			.actionnr==<s>.actionnr && .framenr==<s>.framenr; } );
+		this.addsignals(san);
+	}
+}
+
+class timer_pack : signal_pack	{
+	init()	{}
+	resizemethods(string sob)	{
+		this.addsignals(sob);
+	}
+}
+/***************************************************************************/
+class vector_pack	{
+	init()	{}
+	each(string sfun)	{	for( int i=0; i<.size; i++) this.<sfun>(.get(i));	}
+	resizemethods(string svec)	{
+		<svec>.addmethod("each", "each");
+		<svec>.addmethod("operator-", func { (def x) this.remove(x); this; } );
+		<svec>.addmethod("operator+", func { (def x) this.add(x); this; } );
+	}
+}
+
+/***************************************************************************/
+
+class classanfilter	{
+	init()	{}
+	buildanfilter()	{
+		new filter ft;
+		ft.link( this.getname() );
+		ft.setpivottype(1);
+	}
+	public build(string san)	{
+		<san>.addmethod("buildanfilter","buildanfilter");
+		<san>.buildanfilter();
+		<san>.addmethod("setopacity",	func {	(int iop) ft.setopacity(iop); }		);
+		<san>.addmethod("setzoom",		func {	(real r) ft.setzoom(r); }			);
+		<san>.addmethod("setangle",		func {	(real r) ft.setangle(r); }			);
+		<san>.addmethod("getangle",		func {	return ft.getangle; }			);
+		<san>.addmethod("rotate",		func {	(real r)	ft.rotate(r); }			);
+		<san>.addmethod("setpivottype",	func {	(int ityp) ft.setpivottype(ityp); }	);
+		<san>.addmethod("unlink",		func {	ft.unlink(); }					);
+		<san>.addmethod("link",			func {	ft.link(this); }					);
+		<san>.addmethod("blend",		func {	(string s) ft.blend(s); }			);
+		<san>.addmethod("mask",		func {	(string s) ft.mask(s); }			);
+	}
+}
+
+/***************************************************************************/
+
+class classancounter	{
+	init()	{
+		new int iile;
+		new int id;
+		new string _san;
+		new vector _vs;
+		new int _pos;
+	}
+	set(string sname, int ile)	{
+		_san = sname;
+		iile = ile;
+		id = 0;
+		_pos = sname.length();
+		_vs.resize( ile, false );
+	}
+	string get()	{
+		string s = _san+id;
+		id = (id+1)%iile;
+		return s;
+	}
+	string getf()	{
+		for(int i=0; i<iile; i++)	{
+			if( !_vs.get(i) )	{
+				_vs.set(i, true);
+				return _san+i;
+			}
+		}
+		return null;	// brak wolnych
+	}
+	retf(string s)	{	_vs.set( s.getb( _pos, 10 ), false );	}
+	isfree(int pos)	{	return _vs.get(pos);	}
+	int getile()	{	return iile;	}
+}

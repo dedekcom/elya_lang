@@ -1,0 +1,9 @@
+
+class BehReader	{
+	init(string sfile)	{
+		new db dbeh;
+		dbeh.loadbeh(sfile);
+		
+		new int idline = 0;
+	}
+}

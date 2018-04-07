@@ -1,0 +1,248 @@
+
+game mg42_krata :Banshee {
+	init{
+		Banshee::init("mg42_krata");
+		.imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2","lancuch1.pyzH 3", "lancuch2.pyzH 4","lancuch3.pyzH 5","popup2_mask.pyzH 6","szekla1.pyzH 6","szekla2.pyzH 6", "ramka.pyz 7","popexit.pyz 8", "popup2_bkg.pyzH 9", "popup2_ramka.pyzH 14", "popup2_popexit.pyzH 15", 
+		"popup2_lancuch.pyzH 11", "szekla_obszar.pyzH 12", "popup2_szekla.pyzH 12", "popup2_szekla2_anim.pyzH 13");
+		.butpopexit;
+		.sfxs = (A,"bgrmorze3N 10","sruba", "lancuch", "klodkago"); 
+		// .addtopck("szekla1"); //do testow  
+		// .addtopck("szekla2"); //do testow 
+		 new bool popup2_open ;  
+	    imgbkg {
+			.addmethod("isbutin", func { (@x, @y)
+				!anpopup_bkg.isin(x,y,0,0);
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+				 .mend;
+				} );
+			butgame.add(this);
+		}; 
+		
+		anpopup2_popexit {
+			.Button_isinalpha;
+			.addmethod("butmoveon", func {
+		 	 if( !popup2_open) return;
+				advmouse.setstd;
+				.setframe(-1,1);
+				} );
+			.addmethod("butmoveoff", func {
+				 if(!popup2_open) return;
+				advmouse.setstd;
+				.setframe(-1,0);
+				} );
+			.addmethod("butclick", func {
+			 	if(!popup2_open) return;
+			   .close_popup2(null);
+				} );
+			butgame.add(this);
+		}; 
+		
+		anpopup2_mask {
+			.addmethod("isbutin", func { (int x, int y)
+			  .advstdstate && .isin(x,y,0,0)  ;
+				} ); 
+			.addmethod("butmoveon", func {
+		 	    if (!popup2_open )
+					advmouse.set("loupe"); 
+				else
+					advmouse.setstd; 
+          
+			 } );
+			.addmethod("butmoveoff", func {
+			   advmouse.setstd;
+				 
+			 } );
+			.addmethod("butclick", func {
+				if( !.advstdstate || popup2_open ) return;
+					.open_popup2();
+				advmouse.setstd; 
+			} );
+			 
+			butgame.add(this);
+		}; 
+ 
+		anszekla_obszar
+		{
+			.addmethod("isbutin", func { (int x, int y)
+			  ( .advstdstate || sgmstate == "getitem") && .isin(x,y,0,0) && popup2_open ;
+				} ); 
+			.addmethod("butmoveon", func {
+		 	    if (popup2_open )
+					advmouse.set("use"); 
+				else
+					advmouse.setstd; 
+          
+			 } );
+			.addmethod("butmoveoff", func {
+			   advmouse.setstd;
+				 
+			 } );
+			.addmethod("butclick", func {
+				if( !.advstdstate || popup2_open ) return;
+				 
+				advmouse.setstd; 
+			} );
+			 
+			butgame.add(this);
+		
+		};
+		 
+		.newsndfree("snd_zla_czesc", "kinnat_c4d4_33");
+		snd_zla_czesc.addmethod("onfinish", "advsetstdstate");
+		
+		.newsndfree("snd_szekla", "kinnat_c4d4_33a");
+		snd_szekla.addmethod("onfinish", "advsetstdstate");
+		
+		 
+		
+		
+		if(!clsave.bis("e1_mg42_krata_lancuch1_clicked"))
+		{
+			.newsndfree("snd_lancuch", "kinnat_c4d4_32");
+			snd_lancuch.addmethod("onfinish", "advsetstdstate"); 
+			
+			anlancuch1
+			{
+			  .show();
+			  .Button_isinalpha;
+			  .addmethod("butmoveon", func {
+					if( !.advstdstate )  return;
+					if(!clsave.bis("e1_mg42_krata_lancuch1_clicked"))
+						advmouse.set("take"); 
+						
+				} );
+				.addmethod("butmoveoff", func {
+					if( !.advstdstate ) return;
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+					clsave.bset("e1_mg42_krata_lancuch1_clicked");
+					.anfadeout(300,null);
+					fxlancuch.play();
+					anlancuch2.anfadein(300,func{anlancuch2.anfadeout(300,null); anlancuch3.anfadein(300,func{.cbplay("snd_lancuch");
+					if (popup2_open)
+						anpopup2_lancuch.anfadein(300,null);	
+						 
+					});});
+					advmouse.setstd;
+				} ); 	
+				
+				butgame.add(this);
+			};  		
+	 	}
+		else
+		{
+			anlancuch3.show;
+		}
+		
+		if(clsave.bis("e1_mg42_krata_lancuch2_clicked"))
+		{
+			anlancuch3.show;
+		}
+		
+		anpopup2_szekla2_anim.addmethod("onfinish", func{.timfinito;});
+		.stdstart; 
+		
+		}// koniec init 
+  
+	mend	{
+		.stdexitdefadv("ad42_poklad", "gamead42_poklad0"); 
+	}
+  
+	open_popup2
+	{
+		anpopup2_bkg.show;
+		anpopup2_ramka.show;
+		anpopup2_popexit.show;
+		
+		if (clsave.bis("e1_mg42_krata_lancuch1_clicked"))
+			anpopup2_lancuch.show;
+		if (clsave.bis("e1_mg42_krata_szekla_inserted"))
+			anpopup2_szekla.show;	
+		
+		popup2_open =  true;
+	}
+	
+	close_popup2()
+	{
+		popup2_open =  false;
+		anpopup2_bkg.hide; 
+		anpopup2_ramka.hide;
+		anpopup2_popexit.hide;
+		if (clsave.bis("e1_mg42_krata_lancuch1_clicked"))
+			anpopup2_lancuch.hide;
+		if (clsave.bis("e1_mg42_krata_szekla_inserted"))
+			anpopup2_szekla.hide;	
+		if (clsave.bis("e1_mg42_krata_szekla_inserted"))
+				anpopup2_szekla.hide;
+		if (clsave.bis("e1_mg42_krata_szekla_completed"))
+				anpopup2_szekla2_anim.hide;
+		
+		.advsetstdstate; 
+	}
+
+	USE_szekla1
+	{
+		.advsetstdstate();
+		if(popup2_open && anszekla_obszar.isin(mouse.getpos,0,1) && clsave.bis("e1_mg42_krata_lancuch1_clicked"))	{
+			fxklodkago.play;
+			.removefrompck("szekla1");
+			anpopup2_szekla.anfadein(500,null); 
+			advmouse.setstd;
+			anszekla1.show;
+			clsave.bset("e1_mg42_krata_szekla_inserted");
+		} else {
+			.item_gotopck;
+		}
+	 
+	}  
+	
+	USE_szekla2
+	{
+		.advsetstdstate();
+		if(popup2_open && anszekla_obszar.isin(mouse.getpos,0,1) && clsave.bis("e1_mg42_krata_szekla_inserted"))	{
+			fxsruba.play;
+			.removefrompck("szekla2");
+			anpopup2_szekla2_anim.play(0); 
+			advmouse.setstd;
+			anszekla2.show;
+			clsave.bset("e1_mg42_krata_szekla_completed");
+			.cbplay("snd_szekla");
+			.set_mg_finished;
+			 
+		} else {
+			if (popup2_open && clsave.bis("e1_mg42_krata_lancuch1_clicked") && !clsave.bis("e1_mg42_krata_szekla_inserted"))
+				.cbplay("snd_zla_czesc");	
+			.item_gotopck;
+		}
+	 
+	}  
+
+	 
+   
+	HINT_CLICK {
+		if(!clsave.bis("e1_mg42_krata_lancuch1_clicked"))
+			.showhint("anlancuch1");
+		else if(clsave.bis("ma_szekla1") && ! popup2_open)
+			.showhint("anpopup2_mask");
+		else if(clsave.bis("ma_szekla2") && ! popup2_open)
+			.showhint("anpopup2_mask");	
+		else if(clsave.bis("ma_szekla1") &&  popup2_open)
+		{
+			.showhintitem("szekla1");
+			.showhint("anszekla_obszar");	
+		}
+		else if(clsave.bis("ma_szekla2") &&  popup2_open)
+		{
+			.showhintitem("szekla2");
+			.showhint("anszekla_obszar");	
+		}
+		else
+			
+			.showhint("anpopexit");   
+	}
+}
+ 

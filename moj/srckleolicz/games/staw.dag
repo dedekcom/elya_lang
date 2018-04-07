@@ -1,0 +1,95 @@
+/****************************************************/
+class ObjPusher	{
+	init()	{
+		new real rp;	// droga
+		new int icyc=0;
+		new real ra;	// przyspieszenie
+		new real rdiv=1;
+	}
+	set(real r, real a, real rd, int cyc)	{
+		|rp,ra,rdiv,icyc| = r,a,rd,cyc;
+		while(cyc<0)	{	a/=rd;cyc++;	}
+	}
+	bool next()	{
+		rp+=ra;
+		if(icyc<0)	{
+			ra*=rdiv;
+			icyc++;
+		} else if(icyc>0){
+			ra/=rdiv;
+			icyc--;
+		}
+		return ( icyc==0 );
+	}
+	real get()		{	return rp;	}
+	real geta()	{	return ra;	}
+}
+
+class classgamestaw : classadvcontroller	{
+	init()	{
+		classadvcontroller::init();
+		new int ileticks = 3;
+		
+		ptankleo.disable(6);		ptankleo.disable(8);		ptankleo.disable(9);
+		ptankleo.disable(11);	ptankleo.disable(13);
+		
+		anlilia.setframe(1,0);
+		anlilie.eval("buildlil");
+		anlilie.eval("lilpos");
+		anlilia.buildlil();
+		anlilia.liliapos();
+		this.cnewtimercyclefin("timlil", 1, 1, "fintim");
+		timlil.play();
+	}
+	buildlil()	{
+		new int iside = 2;
+		new int itick = itick.rand(ileticks);
+		new ObjPusher ops;
+		
+		int it = it.rand(12);
+		for(int i=0; i<it; i++)	this.setlil();
+	}
+	setlil()	{
+		if( ops.next() )	{
+			real ra = 1.2;
+			real rd = 1.14;
+			int it = 5;
+			match(iside)	{
+				0 => {ops.set(0,ra,rd,it); iside=1;}
+				1 => {ops.set(0,-ra,rd,-it);iside=2;}
+				2 => {ops.set(0,-ra,rd,it);
+					this.setpos(0,0);
+					iside=3;}
+				3 => {ops.set(0,ra,rd,-it);iside=0;}
+				?=>;
+			}
+		}
+		this.move( ops.geta(), 0 );
+	}
+	lilpos()	{
+		if( itick==0 )	{
+			itick=ileticks-1;
+			this.setlil();
+		} else
+			itick--;
+	}
+	liliapos()	{
+		this.lilpos();
+		anpanzab.setpos( this.getcx()+8, this.getcy()-7 );
+	}
+	fintim()	{
+		anlilie.eval("lilpos");
+		anlilia.liliapos();
+		this.play();
+	}
+}
+
+game gamestaw0 : classgamestaw	{
+	init()	{	classgamestaw::init();	}
+}
+game gamestaw1 : classgamestaw	{
+	init()	{
+		classgamestaw::init();
+		
+	}
+}

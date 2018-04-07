@@ -1,0 +1,54 @@
+path:
+	srcadamigo2/
+
+src:
+	libs/system.dag
+	libs/collections.dag
+	libs/music.dag
+	libs/vars.dag
+	libs/mouse.dag
+	libs/saves.dag
+	libs/length.dag
+	libs/packs.dag
+	libs/containers.dag
+	libs/sounds.dag
+	libs/game.dag
+	libs/buttons.dag
+	libs/masks.dag
+	libs/basetypes.dag
+	libs/gametools.dag
+	libs/gamecontroller.dag
+	libs/loaders.dag
+	libs/script.dag
+	libs/adv.dag
+	gameobjs/asker.dag
+	gameobjs/placepointer.dag
+	gameobjs/fadeinout.dag
+	gameobjs/counter.dag
+	gameobjs/texttyper.dag
+	gameobjs/delaytaker.dag
+	gameobjs/imgmover.dag
+	gameobjs/rewinder.dag
+	gameobjs/painter.dag
+	gameobjs/trianglewalker.dag
+	gameobjs/buttons.dag
+	templates/tmenu.dag
+	templates/tmemo.dag
+	templates/tpainter.dag
+	templates/troznice.dag
+	games/advadamigo.dag
+	games/main.dag
+	games/games.dag
+	games/kolorowanka.dag
+	games/dopas.dag
+	games/wstaw.dag
+	games/gamezdadnij.dag
+	games/gamememo.dag
+	games/roznice.dag
+	games/puzzle.dag
+
+all:
+	dd1.dag
+
+out:
+	srcadamigo2/adamigo2.odd

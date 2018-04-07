@@ -1,0 +1,21 @@
+
+new int PrzygodaNumer = 1;
+new int PrzygodaMode = 0;
+
+class classadvstdgame : classadvcontroller	{
+	init	{
+		clbuts.reset;
+		classadvcontroller::init;
+		.advsave_game;
+	}
+	/*********************************************/
+	advload_game	{	._advload("save"+PrzygodaNumer);	}
+	advsave_game	{	._advsave("save"+PrzygodaNumer);	}
+	/*********************************************/
+}
+
+game gameadvdef : classadvstdgame	{
+	init	{
+		classadvstdgame::init;
+	}
+}

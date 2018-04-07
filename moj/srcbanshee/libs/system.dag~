@@ -1,0 +1,251 @@
+/******** konstrukcje  ********************/
+new string	A = "!!!";
+new real		PI = 3.14159265358979323846;
+new int		BYTE0 = "0"->getbyte(0);
+new int		BYTE9 = "9"->getbyte(0);
+new int		BYTEa = "a"->getbyte(0);
+new int		BYTEz = "z"->getbyte(0);
+new int		BYTEA = "A"->getbyte(0);
+new int		BYTEZ = "Z"->getbyte(0);
+new int		BYTE_ = "_"->getbyte(0);
+new int		BYTESPACE = " "->getbyte(0);
+
+public empty_func	{}
+
+public varget(string svar)				{	[svar];				}
+public varset(string svar, def val)			{	<svar> = val;			}
+public varnew(string styp, string svar)			{	new <styp> <svar>;	}
+public varnewif(string styp, string svar)		{	if( !.hasvar(svar) )	.varnew(styp,svar);}
+public vardelif(string svar)				{	if( .hasvar(svar) )	.vardel(svar);		}
+public vardel(string svar)				{	delete <svar>;		}
+public reader(string sname)	{
+	.varnewif("def", sname);
+	.addmethod( sname, func { [.methodname]; } );
+}
+public writer(string sname)	{
+	.varnewif("def", sname);
+	.addmethod( sname+"=", func { (def val) <.methodname->strsube(1)> = val; } );
+}
+public var(string sname)	{
+	.reader(sname);
+	.writer(sname);
+}
+public var2(string sname, def val)	{
+	.var(sname);
+	<sname> = val;
+}
+public withlist(string sfun)	{
+	@s = _;
+	while( A != s )	{
+		.<sfun>(s);
+		@s = _;
+	}
+}
+public withlist2(string sfun)	{
+	@s = _;
+	while( A != s )	{
+		@s1 = _;
+		.<sfun>(s1,s);
+		@s = _;
+	}
+}
+public vars	{	.withlist("var");}
+public vars2	{	.withlist2("var2");}
+
+/*****************************************************/
+public builder_func(string sfun)	{
+	<.getbuildername>.<.getbuildername+sfun>;
+}
+public callfun(string sob, string sfun)	{
+	if( sfun!=null ) sob==null ? .<sfun> : <sob>.<sfun>;
+}
+public string add_callfun(string spref, string sob, string sfun)	{ <gameapi.getgamename> (spref, sob, sfun) { (@spref, @sob, @sfun)
+	@s = spref + "_callfun_";
+	.vars2(A, s+"sob",sob, s+"sfun",sfun);
+	.addmethod(s, func {
+		@s = .methodname;
+		.callfun( [s + "sob"], [s + "sfun"] );
+		} );
+	s;
+}; }
+public string fullname_callfun(string sob, string sfun)	{
+	.add_callfun(.getfullname, sob, sfun);
+}
+public dprint(string smsg)	{
+	int d = engine.getstack;
+	("stack=" + d + " : " +smsg)->print;
+}
+public printargs(int ile)	{
+	ile.print;
+	string sargs = "";
+	while( ile>0 )	{
+		def s = _;
+		sargs = "(" + s.gettype + ") " + s + "  " + sargs;
+		ile--;
+	}
+	engine.print("args: " + sargs);
+}
+/*****************************************************/
+public bool in	{
+	bool b = false;
+	@x = .get;
+	@y = _;
+	while( A != y )	{
+		if( !b )	b = x==y;
+		@y=_;
+	}
+	b;
+}
+public with(string sfun)	{
+	string sob = _;
+	while( sob!=A )	{
+		<sob>.<sfun>();
+		sob=_;
+	}
+}
+public copycall(string sfun, string sob)	{
+	string s = "__call" + sfun;
+	new string <s>;
+	<s> = sob;
+	.addmethod( sfun, func {
+		string sf = .methodname;
+		< [ "__call" + sf ] >.<sf>();
+		});
+}
+public copycalls(string sobj)	{
+	string s = _;
+	while( s!=A )	{
+		.copycall( s, sobj ); 
+		s=_;
+	}
+}
+/***********************************/
+public mresize()	{	< .gettype + "_pack">::resizemethods( this );	}
+/******** petle ********************/
+public times(string sfun)		{	this.for_plus(0, this.get()-1, sfun );		}
+public upto(int ito, string sfun)	{	this.for_plus( this.get(), ito, sfun );	}
+public downto(int ito, string sfun)	{	this.for_minus( this.get(), ito, sfun );	}
+public for_plus(int ifrom, int ito, string sfun)	{
+	if( ito-ifrom<=0 )	return;
+	for( ; ifrom<=ito; ifrom++)	this.<sfun>(ifrom);
+}
+public for_minus(int ifrom, int ito, string sfun)	{
+	if( ifrom-ito<=0 )	return;
+	for( ; ifrom>=ito; ifrom--)	this.<sfun>(ifrom);
+}
+public double_for(int w, int h, string sfun)	{
+	int j;
+	for( int i=0; i<w; i++)	{
+		for( j=0; j<h; j++)	{
+			this.<sfun>(i,j);
+		}
+	}
+}
+/****************************************/
+
+// klasa do np. dynamicznego tworzenia obiektow z prefixem+id
+class classobjcounter	{
+	init(string sprefix)	{
+		new string _sprefix=sprefix;
+		new int _iile=0;
+		.var2("limit",0);
+	}
+	string get()	{
+		if( limit>0 ) _iile=_iile%limit+1;
+		else _iile++;
+		return _sprefix + (_iile-1);
+	}
+	int size()	{_iile;}
+	int getid(int id)	{	_sprefix + (_iile-1-id);	}
+}
+
+/*class classvsigobj	{
+	init()	{
+		new bool bplaying=false;
+	}
+	virtual play()	{	bplaying=true;	}
+	virtual stop(bool bstop)	{ 
+		bplaying=false;
+		if( bstop )	{	this.onfinish();	}
+	}
+	virtual bool isplaying()	{	bplaying;	}
+}*/
+
+/***************************************************************************/
+
+class classsignals	{
+	init()	{}
+	/********** std obj **********************/
+	stdfinish(string sob) { <sob>.addmethod("onfinish",func { this.<this.getname()+"_FINISH">();}); }
+	stdstart(string sob) { <sob>.addmethod("onstart",func { this.<this.getname()+"_START">(); }); }
+	stdsigs(string sob)	{
+		this.stdstart(sob);
+		this.stdfinish(sob);
+	}
+	/********** anima **********************/
+	buildanima(string san)	{
+		this.stdsigs(san);
+		<san>.addmethod("onendframe", func { this.<this.getname()+"_ENDFRAME">(); } );
+	}
+	/********** snd **********************/
+	buildsnd(string ssnd)	{	this.stdsigs(ssnd);		}
+	/********** timer **********************/
+	buildtimer(string stimer)	{
+		this.stdsigs(stimer);
+		<stimer>.addmethod("ontick", func { this.<this.getname()+"_TICK">(); });
+	}
+	/********** button *******************/
+	buildbut(string sbut)	{
+		<sbut>.addmethod("onclick", func { this.<this.getname()+"_CLICK">(); });
+		<sbut>.addmethod("onrel", func { this.<this.getname()+"_REL">(); });
+		<sbut>.addmethod("onmoveon", func { this.<this.getname()+"_MOVEON">(); });
+		<sbut>.addmethod("onmoveoff", func { this.<this.getname()+"_MOVEOFF">(); });
+	}
+}
+
+/******************************************************************/
+
+class classlocker	{
+	init()	{
+		new bool _block = true;
+	}
+	public lock()	{	_block=true;	}
+	public unlock()	{	_block=false;	}
+	public setlock(bool b)	{	_block=b;	}
+	public bool getlock()	{	return _block;	}
+	public bool unlocked	{	_block==false;	}
+	public setaslocker(string sob)	{
+		<sob>.addmethod("buildlocker", func { new bool _block=true; });
+		<sob>.buildlocker;
+		<sob>.addmethod("lock", "lock");
+		<sob>.addmethod("unlock", "unlock");
+		<sob>.addmethod("setlock", "setlock");
+		<sob>.addmethod("getlock", "getlock");
+		<sob>.addmethod("unlocked", "unlocked");
+	}
+}
+
+/***************************************************************************/
+
+module classdbreader	{
+	init()	{
+		new db dbl;
+	}
+	readdb( string sfunc )	{
+		int id = 0;
+		int ile = dbl.getrowsno();
+		while( id < ile )	{
+			this.<sfunc>( id );
+			id++;
+		}
+	}
+	readrow( string srow, string sfunc )	{
+		int ipos = dbl.findbyrow( srow );
+		if( ipos >= 0 )	{
+			this.<sfunc>( ipos );
+		}
+	}
+}
+
+/***************************************************************************/
+

@@ -1,0 +1,18 @@
+
+class AnimaFx	{
+	init {}
+	build(string san)	{
+		<san>.addmethod("_buildanfx", func {
+			new db dbsnd;
+			dbsnd.dbbuild(3);
+			for( int i=0; i<dbsnd.getrowsno; i++) dbsnd.set(i,0, dbsnd.get(i,0)+"_"+dbsnd.get(i,1));
+			} );
+		<san>._buildanfx;
+		<san>.addmethod("onsetframe", func {
+			@id = dbsnd.findbyrow(.actionname+"_"+.framenr);
+			if( id>=0 ) {
+				<"fx"+dbsnd.get(id,2)>.play;
+			}
+			} );
+	}
+}

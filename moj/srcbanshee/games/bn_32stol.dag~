@@ -1,0 +1,31 @@
+
+game mg32_stol :Banshee {
+	
+	init{
+	 
+		Banshee::init("mg32_stol");
+			.imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2",   "ramka.pyz 15" , "popexit.pyz 16");
+		.butpopexit;
+		.butpopexitisinramka;   
+		.stdstart; 
+		
+		if (!clsave.bis("e1_mg32_stol_intro_spoken"))
+		{
+			.newsnd("snd_intro", "kinnat_c4d4_24");
+			snd_intro.addmethod("onfinish", "advsetstdstate"); 
+			.cbplay("snd_intro"); 	
+			clsave.bset("e1_mg32_stol_intro_spoken");			
+		 }
+		
+	}// koniec init 
+	 
+	
+	HINT_CLICK {
+		.showhint("anpopexit"); 
+	}
+  
+	mend	{
+		 .stdexitdefadv("ad32_pracownia", "gamead32_pracownia0");
+	}
+}
+ 

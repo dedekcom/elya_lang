@@ -1,0 +1,23 @@
+game mg10_poison :Banshee {
+	init{
+		Banshee::init("mg10_poison");
+		
+		.imgs = (A, "bkg.jpg", "ramka.pyz 20", "klatka.pyz H");
+		
+		.sfxs = (A, "bgrlas2N");
+		
+		new Film filmb;
+		filmb.musicclass = ("mus");
+		filmb.addmethod("onfinish", "mend");
+		filmb.load("scripts/cs10_poison/", "film");
+		filmb.showfirstframe;
+		filmb.setpos( anklatka.getpx, anklatka.getpy );
+		ccs.enter( func {
+			filmb.play;
+			} );
+	}
+	mend	{  
+		.stdexitdefadv("ad10_ogrodrozany", "gamead10_ogrodrozany0");
+	}
+}
+

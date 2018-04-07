@@ -1,0 +1,344 @@
+
+class clmiotla {
+	init(string s)	{
+		new int irow = dbter.findbyrow(s);
+		new int icol = 0;
+		new int icols = (irow>=0 ? dbter.getcolsno(irow) : 0);
+	}
+	next	{
+		int id = dbter.get(irow, icol);
+		icol = (icol+1)%icols;
+		id;
+	}
+}
+
+new bool bMiotlaPowtorka = false;
+game Miotla : StdGame	{
+	init	{
+		StdGame::init("miotla");
+		
+		.imgs = (A, "niebo.pyz", "chmura1.pyz 5", "sun.pyz 6", "gory1.pyzH 10", "chmury2.pyzH 20", "chmury3.pyzH 30",
+				"drzewa.pyzH 40", "drzewa2.pyzH 50", "drzewa3.pyzH 60", "kk.pyzP 55", "bum.pyzH 65",
+				"klawisze.pyz 100");
+		anklawisze.move(0, 10);
+		
+		.sfxs = (A, "bgrwiatr2N", "hit1", "orzel1", "golab1", "ges1", "mewa1", "ptak1", "pelikan1", "padlglaz");
+		mus.playstr("marsz.ogg -v 50 -l");
+		
+		new classlives clive;
+		//( ile, idamage, x,y, int h, int r1, int g1, int b1, int a1, int r2, int g2, int b2, int a2, int z, string sside)
+		clive.set(100, 3, 13,7, 10, .red,255, .green,255, 70, "left");
+		
+		@ilebum = 20;
+		new gmimgvec grbum;
+		grbum.ancopies("anbum", ilebum);
+		new classancounter ctbum;
+		ctbum.set("anbum_",ilebum);
+		
+		for( int i=1; i<=6; i++)
+			.loadptak(i);
+		
+		real rch1 = -0.334;
+		new AnMover csky1("anniebo", rch1, 0);
+		.copyanima("anniebo", "anniebo2");
+		new AnMover csky2("anniebo2", rch1, 0);
+		anniebo2.move( anniebo.getw, 0 );
+		new AnMover csky3("anchmura1", rch1, 0);
+		csky1.play;
+		csky2.play;
+		csky3.play;
+		
+		.newdb("dbter", "tereny.db");
+		
+		.loadtasma("gory1", 20, 58, 4);
+		.loadtasma("chmury2", 30, 91, 1);
+		.loadtasma("chmury3", 35, 80, 1.5);
+		.loadtasma("drzewa", 20, 122, 7);
+		.loadtasma("drzewa2", 30, 210, 14);
+		.loadtasma("drzewa3", 30, 275, 21);
+		
+		ankk.move(300, 250);
+		
+		ankk.addmethod("onfinish", func { 
+			if( .actionname=="spada1" )	{
+				.play("spada2");
+				igmstate = 3;
+			}
+			} );
+		
+		new int icykler = 0;
+		new int icyklimit = 100000;
+		new int dolnyprog = 100;
+		.cycle = ("timcyk", func {
+			.mcyk;
+			
+			int dy = 10;
+			int dx = 10;
+			if( igmstate==1 )	{
+				if( keyboard.iskeydown("up") )	{
+					if( ankk.actionname!="up")
+						ankk.play("up");
+					if( ankk.getpy>dy )
+						ankk.move(0,-dy);
+				} else if (keyboard.iskeydown("down"))	{
+					if( ankk.actionname!="down")
+						ankk.play("down");
+					if( ankk.getey<iResY-dy-dolnyprog )
+						ankk.move(0,dy);
+				} else {
+					if( ankk.isplaying("right")==false )
+						ankk.play("right");
+				}
+				if (keyboard.iskeydown("left"))	{
+					if( ankk.getpx > dx )
+						ankk.move(-dx,0);
+				} else if (keyboard.iskeydown("right"))	{
+					if( ankk.getex < iResX-dx )
+						ankk.move(dx,0);
+				}
+			} else if (igmstate==3 )	{
+				ankk.move(dx,dy);
+				if( ankk.getpx > iResX+50 || ankk.getpy > iResY+50 )	{
+					igmstate = 4;
+				}
+			} else if (igmstate==4 )	{
+				if( bwygrali )	{
+					if( bspadamy )	{
+						igmstate = 6;
+						ccs.close( func {
+							gameapi.play("Cs31Endlot");
+							} );
+					}
+				} else {
+					if( bstracilster )	{
+						igmstate=5;
+						.mrestart;
+					}
+				}
+			}
+			
+			.play;
+			} );
+		
+		for( int i=0; i<500; i++)
+			.mcyk;
+		
+		if( bModeEasy )	{
+			.newdb("dbptak", "ptaki_easy.db");
+		} else {
+			.newdb("dbptak", "ptaki.db");
+		}
+		new int idptak = 0;
+		new int iptaszyle = 0;
+		.cnewtimercyclefin("timptak",50,1,func { <GAME> {
+			for( int i=0; i<4; i++ )
+				.moutptak(dbptak.get(idptak,i), i);
+			idptak++;
+			
+			match(idptak)	{
+				10 => timptak.setcycle(40);
+				20 => timptak.setcycle(35);
+				? => ;
+			}
+			
+			if( idptak < dbptak.getrowsno )
+				timptak.play;
+			}; } );
+		
+		
+		new vector vptak;
+		new vector vpdamage;
+		// golab, mewa, orzel, szary, pelikan, ges
+		vptak.beginadd("begin", 20, 25, 30, 19, 24, 28);
+		vpdamage.beginadd("begin", 2, 3, 7, 2, 5, 6);
+		
+		new bool bwygrali = false;
+		new bool bstracilster = false;
+		new bool bspadamy = false;
+		
+		.sounds = (A, "sndnar1", "Kajko i Kokosz spieszyli siê nad morze by odci±æ drogê ucieczki czarnoksiê¿nikowi Hodonowi który wykrad³ ukochanego kruka Jagi Gdasia; Ciotka Kokosza czarownica Jaga po¿yczy³a im swoj± miot³ê i ma¶æ latania aby ubiegli Hodona", func { .kasay(1); },
+			":kajko1", "Dobrze siê prowadzi ta miot³a", func { .kosay(1); },
+			":kokosz1", "¦wie¿y rocznik; Ciotka kupi³a j± na kredyt; Musimy uwa¿aæ ¿eby nie zarysowaæ trzonka",
+				func { .kasay(2); },
+			":kajko2", "Spokojna g³owa omijam bez problemu wszystkie drzewa", func { .kosay(2); },
+			":kokosz2", "Nie o drzewa siê martwiê; Spójrz tam!", func { .kasay(3); },
+			":kajko3", "Rrety! Ca³a chmara ptaków; Odlatuj± do ciep³ych krajów czy co?", func { .kosay(3); },
+			":kokosz3", "Omijaj je Kajku¶ ja nie chcê spadaæ na drzewo!", func { ankk.play("right"); .cbplay("sndnar2"); },
+			"sndnar2", "U¿yj strza³ek aby unikaæ zderzeñ z ptakami; Wystrzegaj siê du¿ych ptaków jak orze³ lub gê¶ gdy¿ zderzenie z nimi wyrz±dza najwiêksze szkody", "mstart",
+			":kajko4", "Trzymaj siê tym razem lepiej mi pójdzie", "mstart",
+			":kajko5", "Straci³em sterowno¶æ ratuj siê kto mo¿e!", func { bstracilster=true; },
+			":kokosz4", "Hurra! Dali¶my radê! Ptaszyska ominiête! Kajko jeste¶ mistrzem latania!", func { .kasay(6); },
+			":kajko6", "Najlepszy mistrz nie poradzi jak koñczy siê paliwo; W³a¶nie zu¿y³em ostatni± dawkê ma¶ci latania",
+				func { .kosay(5); },
+			":kokosz5", "Co? Czy to znaczy ¿e", func { .kasay(7); bwygrali=true; ankk.play("spada2"); igmstate=3; },
+			":kajko7", "Spadamy!", func { bspadamy=true; },
+			":kokosz6", "Au!", null,
+			":kokosz7", "Uwa¿aj!", null,
+			":kokosz8", "W lewo!", null,
+			":kokosz9", "Do góry!", null,
+			":kokosz10", "A ten gdzie?", null,
+			":kokosz11", "Wymiñ ojoj!", null
+			);
+		
+		timcyk.play;
+		ccs.enter( func {
+			if( bMiotlaPowtorka )	{
+				bMiotlaPowtorka = false;
+				.kasay(4);
+			} else .cbplay("sndnar1");
+			} );
+	}
+	mrestart	{
+		fxpadlglaz.play;
+		ccs.close( func {
+			bMiotlaPowtorka = true;
+			gameapi.play("Miotla");
+			} );
+	}
+	mstart	{
+		timptak.play;
+		igmstate = 1;
+	}
+	kosay(int i)	{	.cbplay("kokosz"+i);	ankk.play("koko"); }
+	kasay(int i)	{	.cbplay("kajko"+i);	ankk.play("kajko"); }
+	moutptak(int id, int tor)	{
+		if( id )	{
+			@s = <"ctp"+id>.get;
+			<s>.ansetbpos( iResX + 100->rand, tor*(iResY-dolnyprog)/4 + 20 - 41->rand );
+			<s>.play(0);
+			iptaszyle++;
+		}
+	}
+	loadptak(int id)	{
+		.newanima("anptak"+id, "ptak"+id+".pyz", ankk.getz);
+		<"anptak"+id>.hide;
+		@s = "grp"+id;
+		new gmimgvec <s>;
+		@ile = 40;
+		<s>.ancopies("anptak"+id, ile);
+		<s>.eval( func {
+			.var2("iptak", this->strsubbs("anptak")->to_i);
+			// golab, mewa, orzel, szary, pelikan, ges
+			match(iptak)	{
+				1,4 => "fxgolab1";
+				2 => "fxmewa1";
+				3 => "fxorzel1";
+				5 => "fxpelikan1";
+				6 => "fxges1";
+				? => ;
+			}
+			@sptak = _;
+			.var2("sfxptak", sptak);
+			
+			.addmethod("onfinish", func {
+					.play(0);
+				});
+			.addmethod("onendframe", func {
+				@x1 = .getex;
+ 				.move( -vptak.get(iptak-1), 0 );
+ 				@x2 = .getex;
+ 				if( x1 >= iResX && x2 < iResX )	{
+					<sfxptak>.playif;
+ 				}
+ 				if( x2 < 0 )	{
+					iptaszyle--;
+					if( iptaszyle<=1 && idptak >= dbptak.getrowsno && igmstate==1)	{
+						.kosay(4);
+						igmstate = 2;
+					}
+					.stop(false);
+					.hide;
+ 				} else {
+					@dh = .geth/4;
+					if( .mbum(.getpx, .getcy) ) {}
+					else if( .mbum(.getcx, .getcy+dh) ) {}
+					else if( .mbum(.getcx, .getey-dh) ) {}
+					else if( .mbum(.getcx, .getcy) ) {}
+ 				}
+				});
+			} );
+		new classancounter <"ctp"+id>;
+		<"ctp"+id>.set("anptak"+id+"_",ile);
+	}
+	mbum(int x, int y)	{
+		if( .actionnr(-1)==0 && ankk.isin(x,y,1,1) )	{
+			@s = ctbum.get;
+			<s>.setpos(x,y);
+			<s>.play(0);
+			<sfxptak>.playif;
+			fxhit1.play;
+			if( !clive.destroyed ) {
+				clive.damage( vpdamage.get(iptak-1) );
+				if( clive.destroyed )	{
+					igmstate = 2;
+					.cbplay("kajko5");
+					ankk.play("spada1");
+				} else if( 3->rand==0 )	{
+					.crplay("kokosz"+(6->rand+6));
+				}
+			}
+			.play(1);
+			1;
+		} else 0;
+	}
+	loadtasma(string st, int ile, int cykl, real rmov)	{
+		new int <"ic"+st> = cykl;
+		
+		string s0;
+		
+		new clmiotla <"clm"+st>(st);
+		
+		s0 = "gr"+st;
+		new gmimgvec <s0>;
+		<s0>.ancopies("an"+st, ile);
+		
+		s0 = "ct"+st;
+		new classancounter <s0>;
+		<s0>.set( "an"+st+"_", ile );
+		
+		new AnMover <"cm"+st>("gr"+st, -rmov, 0);
+	}
+	mcyk	{
+		icykler = (icykler+1)%icyklimit;
+		.mnext("gory1");
+		.mnext("chmury2");
+		.mnext("chmury3");
+		.mnext("drzewa");
+		.mnext("drzewa2");
+		.mnext("drzewa3");
+	}
+	mnext(string st)	{
+		<"cm"+st>.move;
+		int ic = ["ic"+st];
+		if( icykler%ic==0 )	{
+			ic = <"clm"+st>.next;
+			if( ic ) {
+				ic--;
+				@s = <"ct"+st>.get;
+				<s>.show;
+				<s>.setframe(ic,0);
+				<s>.setpos(iResX-<s>.lodx, 0);
+			}
+		}
+	}
+	csky1_finish	{
+		if( anniebo.getex<=0 )	{
+			.reset;
+			csky2.reset;
+			anniebo.setpos(0,0);
+			anniebo2.setpos(anniebo.getex,0);
+		}
+	}
+	csky3_finish	{
+		if(anchmura1.getex < -10) anchmura1.setpos(iResX+10,0);
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(1);
+	}
+	mouse_rclick	{
+		if( igmdebug ) {
+			.mend;
+		}
+	}
+}
+

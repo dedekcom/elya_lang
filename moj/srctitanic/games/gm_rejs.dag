@@ -1,0 +1,319 @@
+
+
+new bool bRejsRepeat = false;
+game Rejs : StdGame	{
+	init	{
+		StdGame::init("rejs");
+		
+		.imgs = (A, "bkg.pyz", "woda1.pyzP 10", "woda2.pyzG 5", "kk.pyzP 20", "deszcz.pyzH 200", "blysk3.pyz 190",
+			"els.pyzH", "$scripts/miotla/klawisze.pyz 205");
+		
+		.sfxs = (A, "bgrmorzeN", "bgrdeszcz 80", "perun1", "perun2", "uderzwlodz");
+		
+		new gmimgvec grel;
+		@ile = 100;
+		grel.ancopies("anels", ile);
+		grel.eval( func {
+			.vars2(A,"xpos",0.0,"rdx",0.0, "idtor", 0); 
+			.addmethod("elmove", func {
+				xpos += rdx*rspeed;
+				int x = xpos;
+				if( x )	{
+					xpos -= x;
+					.move(-x, 0);
+				}
+				} );
+			} );
+		new gmimgvec grska;
+		
+		new classancounter cpel;
+		cpel.set("anels_",ile);
+		
+		new int idprzes = 0;
+		if( bModeEasy )	{
+			.newdb("dbel", "rejs_easy.db");
+		} else {
+			.newdb("dbel", "rejs.db");
+		}
+		
+		.timer = ("timel", 2000, func {
+			for( int i=0; i<3; i++)	{
+				string sid = dbel.get(idprzes,i);
+				if( sid )	{
+					@s = cpel.get;
+					<s>.setframe(sid.to_i-1,0);
+					match(sid)	{
+						"1","2","3" => 0;
+						"1a","2a","3a" => 1;
+						"4","5" => 2;
+						"4a","5a" => 3;
+						"6","7","8","9" => 4;
+						"6a","7a","8a","9a" => 5;
+						"10","11","12" => 6;
+						"13","14" => 7;
+						? => ;
+					}
+					int id2 = _;
+					<s>.idtor = (id2);
+					if( id2==7 )	{
+						<s>.rdx = (1.5*vprzes.last);
+						<s>.move(iResX-<s>.getpx, 0);
+					} else 	{
+						<s>.rdx = (vprzes.get(id2));
+						
+						//<s>.move(iResX-<s>.getpx, 0);
+						<s>.setpos( iResX, vlev.get(id2) );
+					}
+					<s>.xpos = (0.0);
+					<s>.msetz(id2,1);
+					//<s>.show;
+					<s>.play(-1);
+					grska.add(s);
+				}
+			}
+			idprzes++;
+			if( idprzes<dbel.getrowsno )
+				.play;
+			} );
+		
+		
+		new vector vwoda; vwoda.type("real");
+		vwoda.beginadd("begin", 0.28, 1.27, 2.4, 5.54);
+		new vector vprzes; vprzes.type("real");
+		@r1 = 0.75;
+		vprzes.beginadd("begin", r1, (r1+vwoda.get(1))/2, vwoda.get(1),
+			(vwoda.get(1)+vwoda.get(2))/2, vwoda.get(2), (vwoda.get(2)+vwoda.get(3))/2, vwoda.get(3));
+		
+		grwoda2.each( func { (@id)
+			new string skopia = this + "_1";
+			.copyanima(this, skopia);
+			<skopia>.move(.getw,0);
+			new string skopia2 = this + "_2";
+			.copyanima(this, skopia2);
+			<skopia2>.move(2*.getw,0);
+			new string skopia3 = this + "_3";
+			.copyanima(this, skopia3);
+			<skopia3>.move(3*.getw,0);
+			new real rmovx = 0.0;
+			new real rdx = vwoda.get(id);
+			.addmethod("wodamove", func { (real speed)
+				rmovx += rdx*speed;
+				int x = rmovx;
+				if( x )	{
+					rmovx-=x;
+					.move(-x,0);
+					<skopia>.move(-x,0);
+					<skopia2>.move(-x,0);
+					<skopia3>.move(-x,0);
+					if( <skopia2>.getpx<0 )	{
+						x = 2*.getw;
+						.move(x, 0);
+						<skopia>.move(x,0);
+						<skopia2>.move(x,0);
+						<skopia3>.move(x,0);
+					}
+				}
+				} );
+			} );
+		.copyanima("anbkg", "anbg2");
+		anbg2.move(anbg2.getw, 0);
+		new real rwodax = 0.0;
+		new real rspeed = 1.0;
+		.cycle = ("timwoda", func {
+			grwoda2.eval1("wodamove", rspeed);
+			rwodax += rspeed * vwoda.get(0);
+			int x = rwodax;
+			if( x )	{
+				rwodax -= x;
+				anbkg.move( -x, 0 );
+				anbg2.move( -x, 0 );
+				if( anbg2.getpx<0 )	{
+					x = anbkg.getw;
+					anbkg.move(x, 0);
+					anbg2.move(x, 0);
+				}
+			}
+			
+			int id = 0;
+			while(id<grska.size)	{
+				@s = grska.get(id);
+				<s>.elmove;
+				if( <s>.getex < 0 )	{
+					<s>.anhide;
+					grska.remove(s);
+				} else {
+					if( <s>.mcheck )	{
+						.mend;
+						fxuderzwlodz.play;
+						return;
+					}
+					id++;
+				}
+			}
+			
+			if( idprzes>= dbel.getrowsno && grska.empty )	{
+				.mfinish;
+			} else
+				.play;
+			} );
+		timwoda.play;
+		
+		new filter ftkk;
+		ftkk.link("ankk");
+		ftkk.setpivottype(1);
+		new vector vkk;
+		vkk.beginadd("begin", 1,1,2,2,3,3,3,4,4,4,4,3,3,3,2,2,1,1,0,0,0);
+		new int idrot = 0;
+		new vector vlev;
+		//vlev.beginadd("begin", <grwoda2.get(0)>.getpy, <grwoda2.get(1)>.getpy, <grwoda2.get(2)>.getpy, <grwoda2.get(3)>.getpy );
+		int y[2];
+		for( int i=0; i<3; i++)	{
+			y0 = <grwoda2.get(i)>.getpy;
+			y1 = <grwoda2.get(i+1)>.getpy;
+			vlev.add( y0 );
+			vlev.add( (y0+y1)/2 );
+		}
+		vlev.add( y1 );
+		
+		new vector vzoom; vzoom.type("real");
+		vzoom.beginadd("begin", 0.16,0.27, 0.4,0.5, 0.65,0.8, 1.0 );
+		new int ilelevel = vzoom.size - 1;
+		new int ilevel = ilelevel;
+		.cycle = ("timkk", func {
+			real dx = vzoom.get(ilevel)*15.0;
+			
+			if( igmstate==1 )	{
+				if( keyboard.iskeydown("left") )	{
+					if( ankk.getpx > 40 )
+						ankk.move(-dx, 0);
+				} else if (keyboard.iskeydown("right") )	{
+					if( ankk.getex < iResX-100 )
+						ankk.move(dx, 0);
+				}
+			}
+			ftkk.setanglezoom( vkk.get(idrot), vzoom.get(ilevel) );
+			idrot = (idrot+1)%vkk.size;
+			
+			.play;
+			} );
+		
+		.mkkpos(300);
+		timkk.play;
+		
+		.sounds = (A, "sndnar1", "Ksiê¿ycowy kamieñ prowadzi³ Kajka i Kokosza ku wyspie Hokulandii gdzie w posêpnym zamczysku na skale mieszka³ czarnoksiê¿nik Hodon; Przyjaciele starali siê nie straciæ l±du z oczu aby w razie uszkodzenia ³odzi nie uton±æ",
+			func { .cbplay("kokosz1"); },
+			":kokosz1", "My¶la³em ¿e ten rejs mo¿e byæ niebezpieczny; Jak na raziê nudzê siê i robiê siê g³odny; D³ugo jeszcze bêdziemy p³yn±æ?", func { .cbplay("kajko1"); },
+			":kajko1", "Sk±d mam wiedzieæ? Lepiej nie narzekaj bo sprowadzisz jakie¶ nieszczê¶cie", func { .cbplay("kokosz2"); },
+			":kokosz2", "Ee tam; Nie pamiêtam kiedy ostatnio uczestniczy³em w tak nudnej przygodzie", func { timrain.play; },
+			":kajko2", "Teraz ci lepiej?", func { .cbplay("kokosz3"); },
+			":kokosz3", "Przeklêta pogoda; Mia³em na my¶li co¶ innego; Jakie¶ morskie przygody a nie burzê",
+				func { .cbplay("kajko3"); },
+			":kajko3", "No to ciekawe co powiesz na to; Widzê na horyzoncie ska³y i mielizny", func { .cbplay("kokosz4"); },
+			":kokosz4", "Odwo³uje wszystko co mówi³em; Mo¿emy to jako¶ omin±æ?", func { .cbplay("kajko4"); },
+			":kajko4", "Za pó¼no; Trzymaj ster bêdziemy manewrowaæ miêdzy przeszkodami", "mstart"
+			);
+		
+		.timer = ("timrain", 1000, func { .mrain; timrain2.play; } );
+		.timer = ("timrain2", 2000, func { .cbplay("kajko2"); });
+		
+		if( bRejsRepeat )	{
+			bRejsRepeat = false;
+			.mstart;
+			.mrain;
+		} else .cbplay("sndnar1");
+	}
+	mrain	{
+		andeszcz.play(0);
+		anblysk3.play(0);
+		fxbgrdeszcz.playloop;
+	}
+	mstart	{
+		igmstate = 1;
+		timel.play;
+	}
+	mouse_lclick	{
+		if( igmdebug )	{
+			.cactsndstop(1);
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug )	{
+			//.cactsndstop(1);
+			.mfinish;
+		}
+	}
+	key_down	{
+		if( igmstate == 1 )	{
+			@moved = false;
+			real rx;
+			if( keyboard.iskey("down") )	{
+				ilevel++;
+				if( ilevel>ilelevel ) ilevel=ilelevel;
+				else {
+					//rx = (1.0/vzoom.get(ilevel))*(iResX/2-ankk.getposx);
+					rx = 0;
+				}
+				moved = true;
+			} else if (keyboard.iskey("up") )	{
+				ilevel--;
+				if( ilevel<0) ilevel = 0;
+				else {
+					rx = (vzoom.get(ilevel+1)-vzoom.get(ilevel))*(iResX/2-ankk.getposx);
+				}
+				moved = true;
+			}
+			if( moved )	{
+				.mkkpos(rx+ankk.getposx);
+				for( int i=0; i<grska.size; i++ )	{
+					if( <grska.get(i)>.mcheck )	{
+						.mend;
+						return;
+					}
+				}
+			}
+		}
+	}
+	mkkpos(int dx)	{
+		ankk.setpos(dx, vlev.get(ilevel));
+		ankk.msetz(ilevel,0);
+	}
+	msetz(int z, int z2)	{
+		.setz(50 + z*10 + z2);
+	}
+	mcheck	{
+		//int x1 = vzoom.get(ilevel)*45.0+ankk.getpx;
+		//int x2 = ankk.getex-(vzoom.get(ilevel)*80.0);
+		int x1 = vzoom.get(ilevel)*36.0+ankk.getpx;
+		int x2 = ankk.getex-(vzoom.get(ilevel)*64.0);
+		int dt = 0.1*.getw;
+		int px1 = .getpx + dt;
+		int px2 = .getex - dt;
+		return ( igmstate==1 && idtor==ilevel && (
+			( x1 <= px1 && x2 >= px1 ) ||
+			( x1 >= px1 && x2 <= px2 ) ||
+			( x1 <= px2 && x2 >= px2 ) ||
+			( x1 <= px1 && x2 >= px2 )
+			));
+	}
+	mend	{
+		igmstate = 2;
+		timel.stop(false);
+		timwoda.stop(false);
+		timkk.stop(false);
+		ankk.stop(false);
+		anwoda1.stop(false);
+		andeszcz.stop(false);
+		anblysk3.stop(false);
+		ccs.close( func {
+			bRejsRepeat = true;
+			gameapi.play(GAME);
+			} );
+	}
+	mfinish	{
+		igmstate = 3;
+		ccs.close( func {
+			gameapi.play("Cs32Endrejs");
+			} );
+	}
+}
+

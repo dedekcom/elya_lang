@@ -1,0 +1,237 @@
+/*****************************************************/
+public callfun(string sob, string sfun)	{if( sfun!=null ) sob==null ? this.<sfun>() : <sob>.<sfun>();}
+public _stdanloop()	{	this.play(-1); }
+public _stdanhide()	{	this.hide();	}
+public _stdsndloop()	{	this.play(); }
+public __std_finish()	{	this.<this+"_FINISH">();	}
+public looponfinish(string san)	{	<san>.addmethod("onfinish", "_stdanloop");	}
+public hideonfinish(string san)	{	<san>.addmethod("onfinish", "_stdanhide");	}
+/*****************************************************/
+public string strsube(int ile)	{	return this.getb( 0, this.length()-ile );	}
+public string strsubb(int ile)	{	return this.getb( ile, this.length() - ile );	}
+public string strsubbs(string s)	{	return this.strsubb( s.length() );	}
+public string strsubes(string s)	{	return this.strsube( s.length() );	 }
+public string strgetto(string schar)	{	return this.getb(0, this.find(schar));	}
+public string strgetfromto(int ipos, string schar)	{	return this.getb(ipos, this.find(schar));	}
+public string strgetfrom(string schar)	{	return .getb(.find(schar)+schar.length, .length );	}
+public strremove(string s)	{	.set( .strgetto(s) + .strgetfrom(s) ); }
+/*****************************************************/
+public swap(string s1, string s2)	{
+	string s = [s1];
+	<s1> = [s2];
+	<s2> = s;
+}
+public bool stats(int ile)	{	(ile <= 0) ? false : ( ile.rand(100)<=ile );}
+public int between(int i1, int i, int i2)	{	( i < i1 ) ? i1 : (i>i2) ? i2 : i;}
+public def max(def val1, def val2)	{	val1>val2 ? val1 : val2;	}
+public def min(def val1, def val2)		{	val1<val2 ? val1 : val2;	}
+/*************** do wykorzystania na obiektach!! ***********************************/
+public anresizemets()	{	anima_pack::resizemethods(this.getname());	}
+public def anfirstnontr	{	classansearcher::firstnotrx1y(this);	}
+public anloopfin()	{	this.addmethod("onfinish", "_stdanloop");	}
+public anloopplay(int iact)	{	this.anloopfin();	this.play(iact);	}
+public anloopsplay(string sact)	{	this.anloopfin();	this.play(sact);	}
+public anhidefin()	{	this.addmethod("onfinish","_stdanhide");	}
+public anputgr()	{	this.setz( this.getey() );	}
+public anputy(int ypos)	{	this.move(0, ypos - this.geth() - this.getpy());	}
+public anputx(int xpos)	{	this.move(0, xpos - this.geth() - this.getpy());	}
+public ansetposgr(int x, int y)	{	this.setpos(x,y);	this.anputgr();	}
+public anplayz(int id, int z)	{	this.setz(z);	this.play(id);	}
+public anplaygr(int id)	{	this.play(id);	this.anputgr();	}
+public anplayzpos(int id, int z, int x, int y)	{	this.setpos(x,y);	this.anplayz(id,z);	}
+public anplaypos(int x, int y)	{	this.setpos(x,y);	this.play(-1);	}
+public anplayposgr(int x, int y)	{	this.ansetposgr(x,y);	this.play(-1);	}
+public anplaypos2(int x, int y, string sact)	{	this.setpos(x,y);	this.play(sact);	}
+public anplaypos3(int x, int y, int iact)	{	this.setpos(x,y);	this.play(iact);	}
+public anhide()	{	this.stop(false);	this.hide();	}
+public andownpos(int x, int y)	{	this.setpos( x, y-this.geth() );	}
+public ansetbpos(int x, int y)	{	this.setpos( x-this.lodx(), y-this.lody() );	}
+public ansetcpos(int x, int y)	{	.ansetbpos( x - .getw/2, y - .geth/2 );	}
+public ansetframe(int id)	{	this.setframe( this.actionnr(-1), id );	}
+public int anonscreen()	{	return clsurf.inscreen(this.getcx(), this.getcy(), this.getw()/2, this.geth()/2);	}
+public objplayfin(string sfun)	{	this.addmethod("onfinish", sfun);	this.play();	}
+public objplayloop()	{	this.addmethod("onfinish","_stdsndloop");		this.play();	}
+public anplayfin(int iact, string sfun)	{	this.addmethod("onfinish", sfun);	this.play(iact);	}
+public anytoz()	{	this.setz(this.getposy());	}
+public string annextaction(string sact)	{return this.nameofaction( (this.actionnr(sact)+1)%this.nofactions() );}
+public anaddfilter()	{	classanfilter::build(this.getname());	}
+public anputc(int x1, int y1, int x2, int y2)	{
+	.ansetbpos(x1,y1);
+	.move( (x2-x1-.getw)/2, (y2-y1-.geth)/2 );
+}
+public aninlod(int itoler)	{	itoler.length( .getpx - .lodx, .getpy - .lody ) <= itoler; }
+/***************** vector ****************/
+public vecinc(int pos)	{	this.set( pos, this.get(pos)+1 );	}
+public vecdec(int pos)	{	this.set( pos, this.get(pos)-1 );		}
+public vecnewint(int ile)	{
+	this.free();
+	if( ile>0 )	for( int i=0; i<ile; i++)	{	this.add(i);	}
+}
+public veccopy(string svec)	{
+	this.free();
+	for( int i=0; i< <svec>.size(); i++ )	this.add( <svec>.get(i) );
+}
+public int vecnextid(def val)	{
+	int id = .find(val);
+	if( id>=0 )	id = (id+1)%.size;
+	id;
+}
+public int vecprevid(def val)	{
+	int id = .find(val);
+	if( id>0 )	id--;
+	else if (id==0)	id = .size-1;
+	id;
+}
+public def vecget(int id)	{
+	( id>=0 && id<.size) ? .get(id) : null;
+}
+public def vecnext(def val)	{	.vecget( .vecnextid(val) );	}
+public def vecprev(def val)	{	.vecget( .vecprevid(val) );	}
+public def veclast()	{
+	int ile = this.size();
+	ile>0 ? this.get(ile-1) : null;
+}
+public def vecpop()	{
+	@x = .last;
+	.removeat( .size - 1 );
+	x;
+}
+public veclimes(int ile)	{	while( .size > ile )	_ = .vecpop;	}
+public def vecpopfront()	{
+	def x = this.get(0);
+	this.removeat( 0 );
+	return x;
+}
+public insertsort(int ile, string sgetfun, string scomparefun, string sswapfun)	{
+	if( ile<=1 )	{	return;	}
+	def s[2], int id, int i, int j;
+	for( i=0; i<ile; i++)	{
+		s0 = this.<sgetfun>(i);
+		id = i;
+		for( j=i+1; j<ile; j++)	{
+			s1 = this.<sgetfun>(j);
+			if( this.<scomparefun>(s1,s0) )	{
+				s0 = s1;
+				id = j;
+			}
+		}
+		this.<sswapfun>(i,id);
+	}
+}
+public obbuildfromstring(string s, string separator, string sfunadd)	{
+	int pos = s.find(separator);
+	while( pos>-1 )	{
+		this.<sfunadd>( s.getb(0,pos) );
+		s = s.strsubb(pos+1);
+		pos = s.find(separator);
+	}
+	if( s.length()>0 )	{	this.<sfunadd>(s);	}
+}
+public vecsort(string scomparefun)	{ .insertsort( .size, "get", scomparefun,"swap" ); }
+public string vecbuildfromstring(string s, string separator)	{
+	this.free();
+	this.obbuildfromstring(s,separator,"add");
+}
+public vecremoveto(int ito)		{	for( int i=0; i<ito; i++ ) this.removeat(0);		}
+public vecremovefrom(int ifrom)	{	while( ifrom<this.size() ) this.removeat(ifrom);	}
+public vecposfromto(int i1, int i2)	{
+	if( i1==i2 || .size==0 )	return;
+	def x = .get(i1);
+	if( i1>i2 )	for( int i=i1; i>i2; i--)	{	.set(i, .get(i-1));		}
+	else if (i1<i2)	for( int i=i1; i<i2; i++)	{	.set(i, .get(i+1));	}
+	.set(i2,x);
+}
+public vecposfirst( def x )	{
+	int id = .find(x);
+	if( id>=0 )	.vecposfromto(id, 0);
+	else	.addbegin(x);
+}
+public vecposlast( def x )	{
+	int id = .find(x);
+	if( id>=0 )	.vecposfromto(id, .size-1);
+	else	.addbegin(x);
+}
+public vecset(def x, def d2)	{
+	int id = .find(x);
+	if( id>=0 )	.set(id,d2);
+}
+/************** db ************************/
+public dbbuild(int icol)	{
+	if( icol<=0 )	return;
+	icol--;
+	string s = _, int id;
+	for( int i = 0; s!=A; )	{
+		if( i==0 )	id = this.addbeginrow() - 1;
+		this.addbegin(0,s);
+		s = _;
+		i = (i<icol)? i+1 : 0;
+	}
+}
+public dbremovelast()	{
+	.removerow( .getrowsno-1 );
+}
+public dbcuttosize(int isize)	{
+	if( isize>0 ) while( .getrowsno > isize )	.dbremovelast;
+	else	.free;
+}
+public dbaddlast(string svar)	{	this.add( this.getrowsno()-1, svar );	}
+public dbaddstringrow(string s, string separator)	{
+	_ = this.addrow();
+	this.obbuildfromstring(s,separator,"dbaddlast");
+}
+public dbaddrowfrom(string sdb, int irow, int icol)	{
+	if( <sdb>.rowinrange(irow) && icol>=0)	{
+		int id = this.addrow()-1;
+		int ile = <sdb>.getcolsno(irow);
+		while( icol < ile )	{
+			this.add( id, <sdb>.get( irow, icol ) );
+			icol++;
+		}
+	}
+}
+public string dbchecknext(int irow, int icol)	{
+	icol++;
+	icol < this.getcolsno(irow) ? this.get(irow,icol) : null;
+}
+public string dbgets(string s, int icol)	{return this.get( this.findbyrow(s), icol );}
+public int dbinsertless(int i1)	{
+	int id = this.addrow()-1;
+	this.add(id,i1);
+	this.dbsort("cmpless");
+	while( id>=0 )	{
+		if( i1==this.get(id,0) )	return id;
+		id--;
+	}
+	return -1;
+}
+public bool dbdelvar(int irow, string svar)	{return this.dbdelvarn(irow,svar,1);}
+public bool dbdelvarn(int irow, string svar, int n)	{
+	int id = this.dbfindinrow(irow,svar);
+	if( id>=0 )	{
+		this.removen(irow,id,n);
+		return true;
+	}
+	return false;
+}
+public int dbfindinrow(int irow, string svar)	{
+	if( this.rowinrange(irow) )	{
+		for( int i=0; i<this.getcolsno(irow); i++)	if( this.get(irow,i)==svar )	return i;
+	}
+	return -1;
+}
+public int dbfindbycol(int icol, string svar)	{
+	for( int i=0; i<this.getrowsno(); i++)	{if( this.get(i,icol)==svar ) return i;}
+	return -1;
+}
+public bool dbrowcontains(int irow, string svar)	{	return this.dbfindinrow(irow,svar)!=-1;	}
+public string dbfirst(int id)		{	return this.get(id,0);	}	
+public bool cmpless(int i1, int i2)	{	return i1<i2;	}
+public bool cmpabove(int i1, int i2)	{	i1>i2;	}
+public bool dbfirstless(int i1, int i2)	{	.get(i1,0) < .get(i2,0);	}
+public dbsort(string scomparefun)	{	.insertsort( .getrowsno, "dbfirst",scomparefun, "swap" ); }
+/************** int ************************/
+public int randdiff(int zakres, int odjakiej)	{
+	if( zakres<=1 )	{	return -1;	}
+	for( int i1 = odjakiej.rand(zakres); i1==odjakiej; i1=odjakiej.rand(zakres) )	{}
+	return i1;
+}

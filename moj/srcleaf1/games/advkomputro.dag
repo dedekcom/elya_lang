@@ -1,0 +1,103 @@
+
+new string sAskerGame;
+class Game : classadv, GameController, Localize	{
+	init(string s)	{
+		igmstate = 0;
+		classadv::init;
+		GameController::init(s);
+		Localize::init;
+		clbuts.setcursorpos(0, 0);
+		claskexit.setcursorpos(0, 0);
+		|new int X1, new int Y1, new int X2, new int Y2| = 117, 85, 916, 684;
+		.path = (s);
+		.setwavpath(SNDPATH);
+		.sfxs=(A,"pop 50", "pik1");
+		bsms.setstd;		// ustawia standardowo 
+		clmusic.play;
+		clbuts.reset;
+		dzmouse.setstd;
+		new Music mus;
+		if( igmdemo )	{
+			new anima anpieczatka {
+				.load("scripts/common/pieczatka.pyz");
+				.setz(2000);
+				.hide;
+			};
+		}
+		new int _idialvolume = 100;
+		ccs.hide;
+		
+		new Button butleaf;
+	}
+	/***********************************************/
+	_button_click	{	.<this+"_click">;	}
+	cstrzalki	{
+		.newanima("angoleft", "$scripts/common/goleft.pyz", 1000);
+		.newanima("angoright", "$scripts/common/goright.pyz", 1000);
+		angoleft.Button_stdalpha;
+		angoright.Button_stdalpha;
+		angoleft.addmethod("butclick", "_button_click");
+		angoright.addmethod("butclick", "_button_click");
+		butleaf.add("angoleft");
+		butleaf.add("angoright");
+	}
+	cbutexit	{
+		.newanima("anbutexit", "$scripts/common/butexit.pyz", 1000);
+		anbutexit.Button_stdalpha;
+		anbutexit.addmethod("butclick", "_button_click");
+		butleaf.add("anbutexit");
+	}
+	cshowbut(@dir)	{	clp.show(cbok.getimgfunc("getcx"), cbok.getimgfunc("getcy"), dir); }
+	napisshow(int x, int y)	{
+		.show;
+		.move(x,y);
+	}
+	napispod(string s)	{	.napisshow(<s>.getcx-.getw/2, <s>.getey+5); }
+	crect	{	new Rect rec(600,196,403,497);	}
+	crect2	{	new Rect rec2(6,174,1012,530);	}
+	inpiecz(int x, int y)	{
+		if( igmdemo )	{
+			anpieczatka.setpos(x,y);
+			anpieczatka.show;
+		}
+	}
+	askfor(@s)	{ if( igmstate!=111) {sAskerGame=s; claskexit.askexittomenu; }	}
+	outpiecz	{	if(igmdemo)	anpieczatka.hide;	}
+	/***********************************************************/
+	onmusicfin      {       mus.play;       }
+	exit	{
+		bsms.setstd;
+		.game_exit;
+		if( igmsubtitle )	{
+			subtitle.reset;
+		}
+	}
+	public askrestart	{	claskexit.askrestart;	}
+	/***********************************************************/
+	advclick()	{
+		if( igmdebug && (igmstate==0 || igmstate==5) )	{
+			this.cactsndstop(true);
+		}
+	}
+	cvol=(int ivol)	{	_idialvolume = .between(0, ivol, 100);	}
+	cvol	{ _idialvolume;	}
+	cvplay(string ssnd)	{
+		.cbplay(ssnd);
+		<ssnd>.setvol(.cvol);
+	}
+	gotoadv(string spath, string sgame)	{
+		sgmlastscene = gameapi.getgamename;
+		sgmglobpath = spath;
+		sgmgame = sgame;
+		gameapi.play("gameadvdef");
+	}
+}
+
+class Jogi : Game	{
+	init(string s)	{
+		Game::init(s);
+		.cstrzalki;
+		.cbutexit;
+	}
+	anbutexit_click	{ gameapi.play("Menu"); }
+}

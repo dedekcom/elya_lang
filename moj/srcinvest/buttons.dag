@@ -1,0 +1,143 @@
+class Button : ObjController	{
+	init	{
+		ObjController::init;
+		new gmimgvec grbuts;
+		.vars2(A,"sobject", null, "sclicked",null,"bcheck2klik", 0);
+		
+		new int ipadclick = 0;
+	}
+	print		{	grbuts.print;		}
+	sort		{	grbuts.sortimgs;	}
+	addgroups	{	grbuts.addgroups;	grbuts.sortimgs;	}
+	addgroup(string s)	{	grbuts.addgr(s);	grbuts.sortimgs;	}
+	addlist		{	grbuts.addlist;		grbuts.sortimgs;	}
+	add(string sob)	{	grbuts.add(sob);	grbuts.sortimgs;	}
+	addonce(string sob)	{ grbuts.addonce(sob);	grbuts.sortimgs;	}
+	addbut(string sob)	{ grbuts.addonce(sob);	grbuts.sortimgs;	}
+	contains(string sob)	{ grbuts.contains(sob);	}
+	removebutlist	{	.withlist("removebut"); }
+	removebut(string sbut)	{
+		grbuts.remove(sbut);
+		bool b = (sobject!=null || sclicked!=null);
+		if( sbut==sobject ) sobject=null;
+		if( sbut==sclicked ) sclicked = null;
+		if( b )	{
+			.onmousemove;
+		}
+	}
+	load(string sname, string sfile, string sfuninit) {
+		<GAME>.varnew("gmimgvec", sname);
+		sname .* sfile;
+		<sname>.each( sfuninit );
+		.addgroup(sname);
+	}
+	remove(string sname)	{
+		if( <GAME>.hasvar(sname) )	{
+			//for( int i=0; i < <sname>.size; i++ )	grbuts.remove( <sname>.get(i) );
+			grbuts.removegr(sname);
+		}
+	}
+	loadfrom(string sname, string spath, string sfile, string sfuninit) {
+		@s = .getgraphpath;
+		.setgraphpath(spath);
+		.load(sname,sfile,sfuninit);
+		.setgraphpath(s);
+	}
+	onmouselclick	{
+		
+		if( .checktouchpad && bcheck2klik )	{
+			if( ipadclick )	{
+				@s = sobject;
+				//.onmousemove;
+				if( s==sobject )	{
+					ipadclick=0;
+					._butmouselclick;
+				} else if ( sobject==null )	{
+					ipadclick=0;
+				}
+			} else {
+				ipadclick=1;
+				//.onmousemove;
+			}
+		} else {
+			._butmouselclick;
+		}
+	}
+	_butmouselclick	{
+		.<this + "_lclick">;
+		if( sobject!=null)	{
+			sclicked = sobject;
+			if (<sobject>.hasaddedmet("butclick") )
+				<sobject>.butclick;
+		}
+	}
+	onmouselrel	{
+		if( .checktouchpad )	{
+			.lastoff;
+		}
+		.<this + "_lrel">;
+		if( sclicked!=null && <sclicked>.hasaddedmet("butlrel") )	{
+			<sclicked>.butlrel;
+		} else sclicked=null;
+	}
+	onmousemove	{
+		if( sclicked!=null )	{
+			if( <sclicked>.hasaddedmet("butmoving") )	<sclicked>.butmoving;
+		}
+		|int x, int y| = mouse.getpos;
+		if(grbuts.isinfunc(x,y,"isbutin") )	{
+			@s = grbuts.getsfound;
+			if( s!=sobject )	{
+				.lastoff;
+				sobject = s;
+				.<this + "_moveon">;
+ 				if( <s>.hasaddedmet("butmoveon") )
+					<s>.butmoveon;
+			}
+		} else {
+			.lastoff;
+		}
+	}
+	lastoff	{
+		if( sobject!=null )	{
+			.<this + "_moveoff">;
+			if( <sobject>.hasaddedmet("butmoveoff") )
+				<sobject>.butmoveoff;
+			sobject = null;
+		}
+	}
+	/*
+	virtual bool isbutin(int x, int y)	{ 0; }
+	virtual butclick	{}
+	virtual butmoveon {}
+	virtual butmoveoff {}*/
+}
+new snd sndfxmoveonms;
+sndfxmoveonms.load("sounds/sfx/butmoveon2.ogg");
+sndfxmoveonms.setvol(50);
+public Button_isin		{	.addmethod("isbutin", func { (@x,@y) .isin(x,y,1,0); } );	}
+public Button_isinvis		{	.addmethod("isbutin", func { (@x,@y) .isin(x,y,0,0); } );	}
+public Button_isinalpha		{	.addmethod("isbutin", func { (@x,@y) .isin(x,y,1,1); } );	}
+public Button_isinvisalpha	{	.addmethod("isbutin", func { (@x,@y) .isin(x,y,0,1); } );	}
+public Button_moveon		{
+	.addmethod("butmoveon", func {
+		sndakskermovon.playif;
+		advmouse.setbut;
+		if( .nofframes(-1)>1 ) .setframe(-1,1);
+	} );
+}
+public Button_moveonplay		{
+	.addmethod("butmoveon", func {
+		sndakskermovon.play;
+		advmouse.setbut;
+		if( .isplaying(-1)==false ) .play(-1);
+	} );
+}
+public Button_moveoff		{	.addmethod("butmoveoff", func { advmouse.setstd; .setframe(-1,0);} );	}
+public Button_moveonms		{	.addmethod("butmoveon", func { advmouse.setbut; } );			}
+public Button_moveonfxms	{	.addmethod("butmoveon", func { advmouse.setbut; sndfxmoveonms.playif; } );			}
+public Button_moveoffms		{	.addmethod("butmoveoff", func { advmouse.setstd; } );			}
+public Button_std		{	.Button_isin; .Button_moveon; .Button_moveoff;				}
+public Button_stdalpha		{	.Button_isinalpha; .Button_moveon; .Button_moveoff;			}
+public Button_stdms		{	.Button_isinalpha; .Button_moveonms; .Button_moveoffms;			}
+

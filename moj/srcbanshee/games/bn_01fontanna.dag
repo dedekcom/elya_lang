@@ -1,0 +1,314 @@
+
+game mg01Fontanna : Banshee	{
+	init	{
+		Banshee::init("mg01_fontanna");
+		
+		.imgs = (A, "bkg.jpg", "woda.pyzP 5", "wodamask.pyz 10", "dzwonekblue.pyz 60",
+			"oczy.pyzG 25", "czachy.pyzGH 30", "bluszcz.pyz 35", "medalfontanna.pyz 40",
+			"popexit.pyz 45", "ramka.pyz 42");
+		
+		new int idclick = clsave.get("e1_mg01_idclick");
+		
+		if( clsave.bis("taken_dzwonekblue") )
+			andzwonekblue.hide;
+		else
+			.setasitemtopck("andzwonekblue");
+		
+		if( clsave.bis("e1_medalfontanna_taken") )
+			anmedalfontanna.hide;
+		else	{
+			.setasitemtopck("anmedalfontanna");
+			 
+		}
+		
+		.timer = ("timreset", 500, func {  
+			/*grczachy.each( func { (@id)
+				 @id = .actionnr(-1);
+				.setframe(-1, 0);
+				  
+			} );*/
+			
+			for( int i=0; i<=3; i++) {
+				<"anczachadymi"+i>.setframe(-1, 0);
+			}
+			groczy.each( func { (@id)
+				 @id = .actionnr(-1);
+				.setframe(-1, 0);
+			} );
+			.ustaw_wode; 
+			
+		} );  
+		 
+		.newsndfree("snd_medalion", "kinnat_c1d1_2e");
+		snd_medalion.addmethod("onfinish", "advsetstdstate");     
+ 
+		.newsndfree("snd_czaszki_wsadzone", "kinnat_c1d1_1aaa");
+		snd_czaszki_wsadzone.addmethod("onfinish", "advsetstdstate");     
+		 
+		
+		.newsndfree("snd_czegos_brakuje", "kinnat_c1d1_3a");
+		snd_czegos_brakuje.addmethod("onfinish", "advsetstdstate");    
+		
+		.newsndfree("snd_brakuje_reszty_czaszek", "kinnat_c1d1_3c");
+		snd_brakuje_reszty_czaszek.addmethod("onfinish", "advsetstdstate"); 
+
+		.newsndfree("snd_reset_czaszek", "kinnat_c1d1_3f");
+		snd_reset_czaszek.addmethod("onfinish", "advsetstdstate");   	
+		
+		 
+		.askopis("mg01");
+		anaskopis.hide;
+		if (clsave.bis("e1_czaszka1_put") &&  clsave.bis("e1_czaszka2_put")  && clsave.bis("e1_czaszka3_put") &&  idclick < 4)
+		{
+			anaskopis.show;	
+			guihint.switchtoskip;   
+		}
+		
+		   
+		/*if( !clsave.bis("e1_czaszka1_put") )
+			.addtopck("czaszka1");
+		if( !clsave.bis("e1_czaszka2_put") )
+			.addtopck("czaszka2");
+		if( !clsave.bis("e1_czaszka3_put") )
+			.addtopck("czaszka3"); 
+		 */ 
+		
+		.sfxs = (A, "woda2PL 10", "putitem1 80", "przekladnia1", "bgrdeszczN 10", "bgrrzeka1N 30");
+		
+		.butpopexit;
+		.butpopexitisinramka;
+		
+		anaskopis.ansetbpos( anpopexit.getcx + anaskopis.getw, anpopexit.getcy - anaskopis.geth/2); 
+		 
+		<grczachy.first>.show;
+		<grczachy.first>.setz(31);
+		grczachy.each( func { (int id)
+			 
+			.addtogamevars("anczachadymi"+id);
+			.ustaw_czache(clsave.get("e1_mg01_"+this+"_frame"));
+			if( !.isvisible )
+				.setframe(id, 2);
+			.addmethod("isbutin", func { (@x, @y)
+				.isin(x,y,0,1);
+				} );
+			.addmethod("butmoveon", func {
+				 
+				if( .isvisible && idclick <4)
+					advmouse.set("take");
+				else if (idclick <4)
+				{
+					advmouse.set("use");
+				}
+				} );
+			.addmethod("butmoveoff", func {
+				 
+					advmouse.setstd;
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate || timreset.isplaying || idclick == 4) return;
+				if( !.isvisible )
+				{
+					.cbplay("snd_czegos_brakuje");
+					return;
+				}
+				
+				if(.getfreeczacha)
+				{
+					.cbplay("snd_brakuje_reszty_czaszek");
+					return;	
+				}
+				int frno = .framenr;
+				if (frno > 1)
+					frno = 0;
+				
+				 
+				//if (frno == 0)
+				{
+					@idf = (frno+1)%2;
+					clsave.set("e1_mg01_"+this+"_frame", idf);
+					.ustaw_czache(idf);
+
+					@s = ""+.actionnr(-1)+"_"+idclick;
+					fxprzekladnia1.play;
+					
+				 	match( s )	{
+						"2_0" => .mgoclick(1);
+						"1_1" => .mgoclick(2);
+						"3_2" => .mgoclick(3);
+						"0_3" =>  {
+							idclick++;
+							.ustaw_wode;
+						}
+						? => {
+							idclick = 0;
+							.reset_czaszek;
+							  
+						}
+					}   
+					 
+					clsave.set("e1_mg01_idclick", idclick); 
+				 }
+				} );
+			butgame.add(this);
+			} );
+		  grczachy.removeat(0);
+		
+		for( int i=1; i<=3; i++) {
+			if( clsave.bis("e1_czaszka"+i+"_put") )	{
+				.wstaw_czaszke(i, clsave.get("e1_czaszka"+i+"_putplace") );
+			}
+		}
+		.ustaw_wode;
+		
+		//mus.playstr("banshee1.ogg -v 30 -l");
+		.stdstart;
+	}
+	
+	reset_czaszek()
+	{
+		 for (int i = 0; i<4; i++)
+			clsave.set("e1_mg01_anczachy"+i+"_frame", 0);
+		 .cbplay("snd_reset_czaszek");  
+		 timreset.play;
+		  
+	}
+	 
+	 
+	ustaw_wode	{
+		if( idclick < 4 )	anwoda.play(idclick);
+		
+		else 
+		{
+			anwoda.anhide;
+			anaskopis.anfadeout(500,null);
+			guihint.switchtohint;   
+		}	
+		anmedalfontanna.setframe(0, idclick);
+	}
+	ustaw_czache(int idf)	{
+		@id = .actionnr(-1);
+		.setframe(-1, idf );
+		<groczy.get(id)>.setframe(-1,idf);
+	}
+	mgoclick(int id)	{
+		if( .framenr==1 )	{
+			anwoda.play(id);
+		 	idclick++;
+		 } else {
+		 	anwoda.play(0);
+			.reset_czaszek();
+		 	idclick=0;
+		}
+	}
+	USE_czaszka1	{	._check_use(1);	}
+	USE_czaszka2	{	._check_use(2);	}
+	USE_czaszka3	{	._check_use(3);	}
+	_check_use(int id)	{
+		.advsetstdstate;
+		if( grczachy.isin(mouse.getpos,0,0) )	{
+			.removefrompck("czaszka"+id);
+			fxputitem1.play;
+			advmouse.set("take");
+			.wstaw_czaszke(id, grczachy.getsfound);
+			
+			if (clsave.bis("e1_czaszka1_put") && clsave.bis("e1_czaszka2_put") && clsave.bis("e1_czaszka3_put"))
+			{
+				.cbplay("snd_czaszki_wsadzone");
+				anaskopis.show;	
+				guihint.switchtoskip; 
+			}
+		} else
+			.item_gotopck;
+	}
+	wstaw_czaszke(int idczacha, string sczachaput)	{
+		grczachy.remove(sczachaput);
+		<sczachaput>.show;
+		int pose = clsave.get("e1_mg01_"+sczachaput+"_frame");
+		if (pose)
+			<sczachaput>.setframe(-1,pose);
+		else
+			<sczachaput>.setframe(-1,0);
+			
+		clsave.bset("e1_czaszka"+idczacha+"_put");
+		clsave.set("e1_czaszka"+idczacha+"_putplace",sczachaput);
+	}
+	anmedalfontanna_TAKE	{
+		if( anmedalfontanna.framenr==4 ) {
+			clsave.bset("e1_medalfontanna_taken");
+			.popitem_gotocenter("medalfontanna");
+		}
+		else 
+			.cbplay("snd_medalion"); 	
+		 
+		
+	}
+	anmedalfontanna_INPCK	{
+		.addtopck("medalfontanna");
+		.checkend;
+	}
+	andzwonekblue_TAKE	{	.popitem_gotocenter("dzwonekblue");	}
+	andzwonekblue_INPCK	{
+		.addtopck("dzwonekblue");
+		.checkend;
+	}
+	checkend	{
+		if( clsave.bislist("taken_dzwonekblue & taken_medalfontanna") )
+			.mend;
+	}
+	mend	{
+		.stdexitdefadv("ad01_widokogolny", "gamead01_widokogolny0");
+	}
+	HINT_CLICK	{
+		if( !clsave.bis("taken_dzwonekblue") )	{
+			.showhint("andzwonekblue");
+		} else if ( !clsave.bis("taken_czaszka1") || !clsave.bis("taken_czaszka2") 
+			|| !clsave.bis("taken_czaszka3") )	{
+			.showhint("anpopexit");
+		} else if ( .getfreeczacha )	{
+			.showhintitem("czaszka"+.getfreeczacha);
+			.showhint(grczachy.first);
+		} else if ( idclick < 4 )	{
+			if( anczachadymi2.framenr==0 && idclick==0 )	{
+				.showhint("anczachadymi2");
+			} else if( anczachadymi1.framenr==0 && idclick==1 )	{
+				.showhint("anczachadymi1");
+			} else if( anczachadymi3.framenr==0 && idclick==2 )	{
+				.showhint("anczachadymi3");
+			} else if( anczachadymi0.framenr==0 && idclick==3 )	{
+				.showhint("anczachadymi0");
+			} else {
+				for( int i=0; i<=3; i++ )
+					if( <"anczachadymi"+i>.framenr )
+						.showhint("anczachadymi"+i);
+			}
+		} else if( !clsave.bis("e1_medalfontanna_taken") )	{
+			.showhint("anmedalfontanna");
+		} else .showhint("anpopexit");
+	}
+	getfreeczacha	{
+		if( clsave.bis("ma_czaszka1") ) 1;
+		else if( clsave.bis("ma_czaszka2") ) 2;
+		else if( clsave.bis("ma_czaszka3") ) 3;
+		else 0;
+	}
+	SKIP_CLICK {
+		idclick = 4;
+		clsave.set("e1_mg01_idclick",idclick);
+		for (int i = 0; i<4; i++)
+			clsave.set("e1_mg01_anczachy"+i+"_frame", 1);
+		  
+		for( int i=0; i<=3; i++) 
+			<"anczachadymi"+i>.setframe(-1, 1);
+		
+		groczy.each( func { (@id)
+			 @id = .actionnr(-1);
+			.setframe(-1, 1);
+		} );
+		.ustaw_wode;   
+		anaskopis.anfadeout(500,null);
+		guihint.switchtohint;     
+	}  
+	
+	
+}
+

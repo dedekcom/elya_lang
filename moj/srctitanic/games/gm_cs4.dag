@@ -1,0 +1,36 @@
+
+game Cs4Ogien : StdGame	{
+	init	{
+		StdGame::init("cs4ogien");
+		.path = ("adjaga");
+		
+		.newgrimg("grbg", "cs4bg", 0);
+		
+		.img = ("cs4list.pyzH 55");
+		.copyanima("ancs4list", "anlist");
+		
+		.sfxs = (A, "ogien2N");
+		
+		grbg.eval( func { .setz(.actionnr(-1)*10); } );
+		grbg.nplay(-1);
+		ccs.enter( func {
+			.cbplay("jaga1");
+			ancs4list.anplayfin(0, "mend");
+			.timer = ("timlist", 1000, func {
+				anlist.anplayfin(1, "mend");
+				} );
+			timlist.play;
+			} );
+		.sounds = (A, ":jaga1", "Oto co my¶lê o tym wszystkim; Niech Mirmi³ da nam ¶wiêty spokój", "mend");
+	}
+	mend	{
+		if( anlist.isplaying(-1)==false && ancs4list.isplaying(-1)==false && !.cisplaying )	{
+			ccs.close( func {
+				.gotoadv("adjaga", "gameadjaga0");
+				} );
+		}
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

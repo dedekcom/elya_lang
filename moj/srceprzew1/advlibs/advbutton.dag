@@ -1,0 +1,96 @@
+/*
+	tworzy z button z obiektu graficznego
+*/
+
+module modadvbut	{
+	init()	{}
+	setasbutton(string san, string sname, string styp)	{
+		<san>.addmethod("setadvbutmets","setadvbutmets");
+		<san>.addmethod("setbuttyp","setbuttyp");
+		<san>.addmethod("setadvbutpos","setadvbutpos");
+		<san>.addmethod("setbutdir","setbutdir");
+		<san>.addmethod("setbutbase1","setbutbase1");
+		<san>.addmethod("setbutbase2","setbutbase2");
+		<san>.addmethod("getbase1","getbase1");
+		<san>.addmethod("getbase2","getbase2");
+		<san>.addmethod("getbutdir","getbutdir");
+		<san>.addmethod("getbutname","getbutname");
+		<san>.addmethod("gettyp","gettyp");
+		<san>.addmethod("getgox","getgox");
+		<san>.addmethod("getgoy","getgoy");
+		<san>.setadvbutmets(sname);
+		<san>.setbuttyp(styp);
+	}
+	setmet(string san, string smet, string styp)	{
+		<san>.addmethod( smet, smet + styp );
+	}
+	setadvbutmets(string sname)	{
+		new string _styp;
+		new string _sname = sname;
+		new int igox = this.getposx();		// jak dojsc do tego..
+		new int igoy = this.getposy();
+		new string _sbutdir = "auto";
+		new string _sbase1 = null;
+		new string _sbase2 = null;
+	}
+	setbuttyp(string s)	{
+		_styp = s;	
+		string san = this.getname();
+		modadvbut.setmet(san, "clickon", s);
+		modadvbut.setmet(san, "moveon", s);
+		modadvbut.setmet(san, "moveoff", s);
+		
+		if( s=="but" )	{
+			_sbase1 = modadv.get("look:",1);
+			_sbase2 = modadv.get("look:",2);
+		} else if (s=="item" )	{
+			_sbase1 = modadv.get("take:",1);
+			_sbase2 = modadv.get("take:",2);
+			// stworz 
+		} else if (s=="doors")	{
+			_sbase1 = modadv.get("doors:",1);
+			_sbase2 = modadv.get("doors:",2);
+		} else if (s=="pocket")	{
+		}
+	}
+	clickonbut()	{
+		clwalkq.visit( this.getname() );
+
+	}
+	clickonitem()	{	clwalkq.visit( this.getname() );	}
+	clickondoors()	{	clwalkq.visit( this.getname() );	}
+	clickonpocket()	{	this.itemclick();	}
+	moveonbut()	{	
+		advmouse.setactive();
+	}
+	moveonitem()	{
+		advmouse.setactive();
+	}
+	moveondoors()	{
+		advmouse.setexit();	
+	}
+	moveonpocket()	{
+		advmouse.setactive();
+	}
+	moveoff()	{
+		advmouse.setstd();
+	}
+	moveoffbut()	{advmouse.setstd();}
+	moveoffitem()	{advmouse.setstd();}
+	moveoffdoors()	{advmouse.setstd();}
+	moveoffpocket()	{
+		advmouse.setstd();
+		this.itemmoveoff();	
+	}
+	setadvbutpos(int x, int y)	{	igox=x;	igoy=y;		}
+	setbutdir(string sdir)	{	_sbutdir=sdir;	}
+	setbutbase1(string sb1)	{	_sbase1=sb1;	}
+	setbutbase2(string sb2)	{	_sbase2=sb2;	}
+	string getbase1()	{	return _sbase1;	}
+	string getbase2()	{	return _sbase2;	}
+	string getbutdir()	{	return _sbutdir;	}
+	string getbutname()	{	return _sname;	}
+	string gettyp()	{	return _styp;	}
+	int getgox()	{	return igox + clcamera.getposx();	}
+	int getgoy()	{	return igoy + clcamera.getposy();	}
+}

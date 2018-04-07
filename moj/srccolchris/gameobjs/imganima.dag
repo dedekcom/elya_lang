@@ -1,0 +1,38 @@
+
+class imganima : gmimgvec	{
+	init	{
+		gmimgvec::init;
+		new int idgran = 0;
+		new timer timan;
+		timan.settick(1);
+		timan.addmethod("onfinish", func {
+			idgran++;
+			@s = .getbuildername;
+			if( idgran == <s>.size )	{
+				<s>.<s+"_finish">;
+			} else {
+				.setframe(idgran);
+				<s>.<s+"_endframe">;
+				.play;
+			}
+			} );
+	}
+	load(string simg, string sfiletype, int istart, int istop, int icycle)	{
+		timan.setcycle(icycle);
+		for( int i=istart; i<istop; i++)	{
+			@s = simg + i;
+			.newimg("an" + s, s + "." + sfiletype, 0);
+			.add("an" + s);
+		}
+		.setframe(0);
+	}
+	play	{
+		.setframe(0);
+		timan.play;
+	}
+	setframe(int id)	{
+		.hide;
+		idgran = id;
+		<.get(id)>.show;
+	}
+}

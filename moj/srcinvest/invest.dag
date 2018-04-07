@@ -1,0 +1,305 @@
+
+public inv_imgborders(int w, int r, int g, int b, int a)	{
+	new img _img_bor;
+	_img_bor.create(.getw, w, r,g,b,a);
+	_img_bor.setpos(.getpx, .getpy );
+	.blit("_img_bor");
+	_img_bor.move(0, .geth-w);
+	.blit("_img_bor");
+	_img_bor.create(w,.geth,r,g,b,a);
+	_img_bor.setpos(.getpx, .getpy);
+	.blit("_img_bor");
+	_img_bor.move(.getw-w, 0);
+	.blit("_img_bor");
+	delete _img_bor;
+}
+
+public white	{	return 255, 255, 255; }
+public black	{	return 0,0,0;	}
+public grey(int c)	{	return c,c,c;	}
+public blue	{	return 0,0,255;	}
+public red	{	return 255,0,0;	}
+public green	{	return 0,255,0;	}
+public transparent	{	return 0,0,0,0;	}
+
+public inv_dbaddrow(string s)	{
+	@id = .addrow - 1;
+	.add(id, s);
+}
+public inv_dbaddrowbegin(string s)	{
+	_ = .addbeginrow;
+	.add(0, s);
+}
+public inv_dbaddrows	{
+	@s = _;
+	while( s!=A )	{
+		.inv_dbaddrowbegin(s);
+		@s = _;
+	}
+}
+
+gameapi.play("Main");
+
+game Main	{
+	init	{
+		new db dbgra;
+		dbgra.loadscript("scripts/config.db");
+		if( dbgra.getrowsno>0 && dbgra.getcolsno(0)>1 )	{
+			gameapi.play(dbgra.get(0,1));
+		} else gameapi.play("Invest");
+	}
+}
+
+game Invest	{
+	init	{
+		engine.setdebugstate(3);
+		new string spath = "input_invest/";
+		new string soutpath = "output_invest/";
+		
+		new font fnt;
+		fnt.load("configs/fonts/normal.ttf", 10);
+		new text txt1;
+		txt1.setfont("fnt");
+		
+		new db dbconf;
+		dbconf.load(spath + "invest.cfg");
+		
+		/*ddvector : ago_d.csv.14, 14, ago_d.csv,  : row: 0
+		ddvector : ago_d.csv.24, 24, ago_d.csv,  : row: 1
+		ddvector : ago_d.csv.54, 54, ago_d.csv,  : row: 2
+		ddvector : fpko_d.csv.14, 14, fpko_d.csv,  : row: 3
+		ddvector : fpko_d.csv.24, 24, fpko_d.csv,  : row: 4
+		ddvector : fpko_d.csv.54, 54, fpko_d.csv,  : row: 5*/
+		
+		new db dbdane;
+		string s = null;
+		new db dbp;	// pomiary
+		new img img1;
+		new img imbg;
+		imbg.setz(1);
+		new img imchart;
+		new int depth;
+		
+		new int wswieca = 5;
+		new int chartw = 50;
+		new int charth = 50;
+		new int dx = 2;
+		new int dotylu;
+		new int doprzodu;
+		new int isize;
+		new real hchart = 200;
+		real r[8];
+		int i[3];
+		string s[2];
+		real maxprice;
+		real minprice;
+		new int idpom;	// id pomiaru
+		new int ilecen = 5;
+		int idouble;
+		real chancegrow;
+		int deplimit = 25;		// glebokosc do ktorej wrzuca po 2 wykresy na strone
+		int dtdata = 10;
+		
+		new db dbhtm;
+		dbhtm.inv_dbaddrows(A, "<html>",
+			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">",
+			"<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"pl\" lang=\"pl\">",
+			"<head>",
+			"<meta http-equiv=\"Content-Language\" content=\"pl\" />",
+			"<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-2\" />",
+			"<meta name=\"Author\" content=\"Dominik Dagiel\" />",
+			"<title>Dominik Dagiel: Analiza wykresow</title>",
+			"</head>",
+			"<body>",
+			"<h3> Analiza wykresow dla sesji "
+			);
+		bool bdata = true;
+		idouble = -1;
+		for( int i=0; i<dbconf.getrowsno; i++)	{
+			if( dbconf.get(i,2)!=s )	{
+				s = dbconf.get(i,2);
+				dbdane.loadscript( spath + s );
+				/*1999-04-20 46.7099 46.7099 43.1539 44.0871 228962
+				1999-04-21 43.9987 44.1853 43.5271 43.7138 171561*/
+				isize = dbdane.getrowsno;
+				if( bdata )	{
+					bdata = false;
+					dbhtm.inv_dbaddrow( dbdane.get(isize-1,0) + "</h3>");
+				}
+				dbhtm.inv_dbaddrow("<br /><h4>" + s + "</h4><br />");
+				chancegrow = 0.0;
+			}
+			depth = dbconf.get(i, 1);
+			
+			if( depth<=deplimit ) idouble=0;
+			if( depth < 50 )	{
+				wswieca = 5;
+				dx = 1;
+			} else if (depth < 100 )	{
+				wswieca = 3;
+				dx = 1;
+			} else {
+				wswieca = 3;
+				dx = 0;
+			}
+			
+			dbp.loadscript( spath + dbconf.get(i, 0) );
+			/*0.999688 608
+			0.999662 544*/
+			
+			// szerokosc: -pol depth , depth, last, pol depth
+			dotylu = depth/2 + depth;
+			//doprzodu = depth/2;
+			doprzodu = depth;
+			
+			dbhtm.inv_dbaddrow( "<table>" );
+			for( int serie=0; serie < dbp.getrowsno; serie++ )	{
+				
+				imchart.create( (dotylu + 1 + doprzodu)*(wswieca+dx), hchart, .grey(240), 255 );
+				imbg.create( imchart.getw + 2*chartw, imchart.geth + 2*charth, .white, 255 );
+				imbg.inv_imgborders(1, .black, 255);
+				
+				idpom = dbp.get(serie,1);
+				
+				img1.create( wswieca, imchart.geth, .grey(192), 255 );		// last
+				img1.setpos( .swpos(dotylu), 0 );
+				imchart.blit("img1");
+				
+				txt1.txtset( dbdane.get( idpom, 0 ) );			// napisz date
+				txt1.setpos( chartw + img1.getcx - txt1.getw/2, charth - txt1.geth - 2 );
+				imbg.blit("txt1");
+				
+				img1.create( wswieca, imchart.geth, .grey(192), 255 );		// first
+				img1.setpos( .swpos(dotylu-depth), 0 );
+				imchart.blit("img1");
+				txt1.txtset( dbdane.get( idpom-depth, 0 ) );			// napisz date
+				txt1.setpos( chartw + img1.getcx - txt1.getw/2, charth - txt1.geth - 2 );
+				imbg.blit("txt1");
+				
+				img1.create( (wswieca+dx)*(depth-1), imchart.geth, .grey(222), 255 );	// badane dla daty
+				img1.setpos( .swpos(dotylu-depth+1), 0 );
+				imchart.blit("img1");
+				
+				img1.create( 1, imchart.geth, .black, 32 );	// pokaz inne daty
+				i0 = 0;
+				for( int l=-dotylu; l<doprzodu+1; l+=dtdata)	{
+					img1.setpos( .swpos(l+dotylu)+wswieca/2, 0 );
+					imchart.blit("img1");
+					i1 = idpom + l;
+					if( i1<isize && i1>=0 )	{
+						i0 = (i0+1)%2;
+						txt1.txtset( dbdane.get(i1,0) );
+						txt1.setpos( chartw + img1.getpx - txt1.getw/2, imbg.geth - charth + 2 );
+						if( i0 ) txt1.move( 0, txt1.geth + 1 );
+						imbg.blit("txt1");
+					}
+				}
+				
+				img1.create( imchart.getw, 1, .black, 32 );
+				for( int l=0; l<=ilecen; l++)	{		// rysuj linie cen
+					img1.setpos(0, l*imchart.geth/ilecen);
+					imchart.blit("img1");
+				}
+				
+				r0 = 0.0;
+				r1 = 10000000.0;
+				for( int k=-dotylu; k < 1 + doprzodu; k++)	{
+					i0 = k+idpom;
+					if( i0 >= 0 && i0 < isize )	{
+						r2 = dbdane.get(i0,2);
+						r3 = dbdane.get(i0,3);
+						if( r2 > r0 ) r0 = r2;
+						if( r3 < r1 ) r1 = r3;
+					}
+				}
+				maxprice = r0;
+				r0 = r0 - r1;		// max roznica cen
+				r5 = hchart.to_r/r0;	// scale ratio
+				r6 = r1;		// minimalna cena
+				minprice = r1;
+				i1 = wswieca/2;
+				for( int k=-dotylu; k < 1 + doprzodu; k++)	{
+					i0 = k+idpom;
+					if( i0 >= 0 && i0 < isize )	{
+						r1 = dbdane.get(i0,1);	// open
+						r2 = dbdane.get(i0,2);	// max
+						r3 = dbdane.get(i0,3);	// min
+						r4 = dbdane.get(i0,4);	// close
+						
+						i2 = (r2-r3)*r5;
+						if( i2<=0 ) i2 = 1;
+						img1.create( 1, i2, .black, 255 );
+						img1.setpos( .swpos(k+dotylu)+i1, hchart - ((r2-r6)*r5) );
+						imchart.blit("img1");
+						
+						if( r1<=r4 )	{
+							if( r1==r4 )	{
+								img1.create( wswieca, 1, .black, 255 );
+							} else	{
+								i2 = (r4-r1)*r5;
+								if( i2<=0 ) i2 = 1;
+								img1.create( wswieca, i2, .white, 255 );
+								img1.inv_imgborders(1, .black, 255);
+							}
+							img1.setpos( .swpos(k+dotylu), hchart - (r4-r6)*r5 );
+							imchart.blit("img1");
+						} else {
+							i2 = (r1-r4)*r5;
+							if( i2<=0 ) i2 = 1;
+							img1.create( wswieca, i2, .black, 255 );
+							img1.setpos( .swpos(k+dotylu), hchart - (r1-r6)*r5 );
+							imchart.blit("img1");
+						}
+					}
+				}
+				imchart.setpos( chartw, charth );
+				imbg.blit("imchart");
+				imchart.setpos(0,0);
+				
+				for( int l=0; l<=ilecen; l++)	{
+					txt1.txtset( maxprice - l.to_r*(maxprice-minprice)/ilecen.to_r );
+					txt1.setpos( imbg.getw - chartw + 2, charth + l*imchart.geth/ilecen.to_r - txt1.geth/2 );
+					imbg.blit("txt1");
+				}
+				
+				txt1.txtset( s + "  depth: " + dbconf.get(i,1) );
+				txt1.setpos( imbg.getcx - txt1.getw/2, charth/2 - (0.66*txt1.geth) );
+				imbg.blit("txt1");
+				
+				s1 = dbconf.get(i,0) + serie + ".bmp";
+				imbg.save( soutpath + s1 );
+				
+				//dbhtm.inv_dbaddrow("<img src=\"" + s1 + "\" />");
+				
+				if( depth<=deplimit )	{
+					if( idouble==0 )	{
+						dbhtm.inv_dbaddrow("<tr>");
+						idouble = 1;
+					} else idouble=0;
+				} else dbhtm.inv_dbaddrow("<tr>");
+				
+				@splik = dbconf.get(i,0) + serie + ".png";
+				dbhtm.inv_dbaddrow("<td><img src=\"" + splik + "\" /></td>");
+				dbhtm.inv_dbaddrow("<td style=\"font-size: 9pt;\">"+splik+"</td>");
+				
+				if( depth<=deplimit )	{
+					if( idouble==0 )	dbhtm.inv_dbaddrow("</tr>");
+				} else dbhtm.inv_dbaddrow("</tr>");
+			}
+			if( depth<=deplimit && idouble==1 )	{
+				idouble = 0;
+				dbhtm.inv_dbaddrow("</tr>");
+			}
+			dbhtm.inv_dbaddrow("</table>");
+		}
+		dbhtm.inv_dbaddrow("</body>");
+		dbhtm.inv_dbaddrow("</html>");
+		
+		dbhtm.savescript( soutpath + "index.html" );
+
+		gameapi.play("exit");
+	}
+	swpos(int id)	{
+		id * (wswieca+dx);
+	}
+}

@@ -1,0 +1,153 @@
+
+game MainMenu : DziejeGame	{
+	init	{
+		DziejeGame::init("mainmenu");
+		
+		.imgs = (A, "bkg"+LANG+".pyz", "prof.pyzL 30", "maska.pyz 20");
+		.sfxs = (A, "putpuz2 50");
+		
+		|int x, int y| = -10, -50;
+		anprof.move(x,y);
+		anmaska.move(x,y);
+		
+		.sounds = (A,
+			"sndgo", "Witam w czwartym programie z serii Dzieje Ludzi; Dzi¶ poznamy ¿ycie w staro¿ytnej Grecji", "mendpro",
+			"sndzycie", "¯ycie i wynalazki w staro¿ytnej Grecji", "mendpro",
+			"sndbajka", "Niesamowite przygody Herkulesa i Diossosa", "mendpro",
+			"sndquiz", "Wielki test wiedzy o Grecji", "mendpro",
+			"sndgry", "Gry edukacyjne", "mendpro"
+			);
+		
+		new Buttons cbut("buts"+LANG+".pyz");
+		
+		if( igmipad )	{
+			cbut.bcheck2klik = (1);
+		}
+		
+		//mus.playstr("eg1wstep.ogg -v 50 eg1petla.ogg -v 50 -l");
+		ccs.enter( func {
+			if( igmbegin )	{
+				igmbegin = 0;
+				.mprof("sndgo");
+			} else igmstate =1;
+		} );
+	}
+	cbut_lclick	{
+		if( igmstate!=1 ) return;
+		match( sobject )	{
+			"zycie" => gameapi.play("Grecja");
+			"gry" => gameapi.play("MenuGry");
+			"bajka" => gameapi.play("Bajka");
+			"quiz" => {
+				sSubMenu = "quiz";
+				gameapi.play("SubMenu");
+			 }
+			? => ;
+		}
+	}
+	cbut_moveon	{
+		fxputpuz2.play;
+		if( igmstate==1)	{
+			string s = "snd"+sobject;
+			if( !this.cisplaying() || this.cgetactsnd()!=s )	.mprof(s);
+		}
+	}
+	mprof(string s)	{
+		.cactsndstop(false);
+		.cbplay(s);
+		anprof.play("talk");
+	}
+	mendpro	{
+		igmstate = 1;
+		anprof.play("stand");
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game MenuGry : DziejeGame	{
+	init	{
+		DziejeGame::init("menugry");
+		.path = ("menus");
+		.sfxs = (A, "putpuz2 50");
+		
+		.subgamebg;
+		.img = ("belkagry.pyz");
+		new Buttons cbut("grybuts.pyz");
+		.sounds = (A,
+			"sndkons", "Rekonstrukcje", null,
+			"sndsuwaki", "Suwaki", null,
+			"sndzludz", "Z³udzenia", null,
+			"sndpuzzle", "Puzzle", null,
+			"sndkolo", "Kolorowanie", null
+			);
+		if( igmipad )	{
+			cbut.bcheck2klik = (1);
+		}
+	}
+	cbut_lclick	{
+		if( sobject == "zludz" )	{
+			gameapi.play("Zludz");
+		} else {
+			sSubMenu = sobject;
+			gameapi.play("SubMenu");
+		}
+	}
+	cbut_moveon	{
+		fxputpuz2.play;
+		.crselfplay("snd" + sobject);
+	}
+}
+
+new string sSubMenu = "kons";
+game SubMenu : DziejeGame	{
+	init	{
+		DziejeGame::init("submenu");
+		.path = ("menus");
+		.subgamebg;
+		.sfxs = (A, "putpuz2 50");
+		.img = ("$scripts/menus/belka"+sSubMenu+".pyz");
+		new Buttons cbut(sSubMenu+"buts.pyz");
+		if( igmipad )	{
+			cbut.bcheck2klik = (1);
+		}
+		.sounds = (A,
+			"sndql", "Test normalny", null,
+			"sndqt", "Test trudny", null
+			);
+	}
+	cbut_lclick	{
+		match( sSubMenu )	{
+			"kons" => {
+				iRekoLevel = 1 + sobject;
+				gameapi.play("Reko");
+			}
+			"kolo" => {
+				sobject;
+				gameapi.play("Kolo");
+			}
+			"puzzle" => {
+				3 + sobject;
+				gameapi.play("Puzzle");
+			}
+			"suwaki" =>	{
+				SuwakiRow = sobject;
+				gameapi.play("Suwaki");
+			}
+			"zludz" => {
+				EpokiLevel = (sobject=="babki" ? 3 : 1);
+				gameapi.play("Epoki");
+			}
+			"quiz" => {
+				QuizMode = sobject;
+				gameapi.play("Quiz");
+			}
+			? => ;
+		}
+	}
+	cbut_moveon	{
+		fxputpuz2.play;
+		if( sSubMenu=="quiz" ) .crselfplay("sndq"+sobject);
+	}
+}

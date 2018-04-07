@@ -1,0 +1,227 @@
+/**************************************************************/
+	// zmienna globalna - stan gry
+new int igmstate;
+/**************************************************************/
+	// standardowa klasa do tworzenia zmiennych
+class newvars	{
+	init()	{ 
+		new string _sclpath = "";
+		new string _sclwavpath = "";
+	}
+	setgraphpath(string spath)	{	_sclpath = spath;	}
+	setwavpath(string spath)	{ _sclwavpath = spath; }
+	string getgraphpath()	{	return _sclpath; }
+	newanima(string sname, string sfile, int z)	{
+		new anima <sname>;
+		<sname>.load(_sclpath + sfile);
+		<sname>.setz(z);
+	}
+	newstdanima(string sname, string sfile, int z)	{
+		this.newanima(sname, sfile, z);
+		this.stdanaction(sname);
+	}
+	copyanimaactz(string ssrc, string sdest, string saction, int z)	{
+		this.copyanimaact(ssrc, sdest, saction);
+		<sdest>.setz(z);
+	}
+	copyanimaact(string ssrc, string sdest, string saction)	{
+		this.copyanima(ssrc, sdest);
+		<sdest>.setframe( saction, 0 );
+	}
+	copyanima(string ssrc, string sdest)	{
+		new anima <sdest>;
+		<sdest>.copy( ssrc );
+	}
+	copyanimas(string san, string sname, int istart, int ilosc)	{
+		if (ilosc<0)	{return;}
+		for(int i=0; i<ilosc; i++)	{
+			this.copyanima( san, sname + (istart + i)  );
+		}
+	}
+	newanimas(string sname, string sfile, int z, int ilosc)	{
+		if(ilosc<0) {	return; }
+		this.newanima(sname+"0", sfile, z);		// pierwsza load z zerem
+		this.copyanimas(sname+"0", sname, 1, ilosc-1);		// pozostale kopiowane z niej
+	}
+	int newanframes(string san, string sname, int iaction)	{	// tworzy animacje z klatek
+		int ile = <san>.nofframes( iaction );
+		this.copyanimas( san, sname, 0, ile );
+		for(int i=0; i<ile; i++)	{
+			<sname+i>.setframe(iaction, i);
+		}
+		return ile;		// zwraca ilosc stworzonych animacji
+	}
+	newcanvas(string sname, int w, int h, int r, int g, int b, int a, int z)	{
+		new img <sname>;
+		<sname>.create(w,h,r,g,b,a);
+		<sname>.setz(z);
+	}
+	newimg(string sname, string sfile, int z)	{
+		new img <sname>;
+		<sname>.load(_sclpath + sfile);
+		<sname>.setz(z);
+	}
+	copyimg(string ssrc, string sdest)	{
+		new img <sdest>;
+		<sdest>.copy(ssrc);
+	}
+	playmusic(string sfile)	{
+		gameapi.playmusic( _sclwavpath + sfile );
+	}
+	newsnd(string sname, string sfile)	{
+		new snd <sname>;
+		<sname>.load( _sclwavpath + sfile);
+	}
+	_stdsndloop()	{	this.play(); }
+	newsndloop(string sname, string sfile)	{
+		this.newsnd(sname,sfile);
+		this.looponfinish1( sname );
+	}
+	looponfinish1( string sob )	{
+		<sob>.addmethod("onfinish","_stdsndloop");
+	}
+	sndplayloop(string sob)	{
+		this.looponfinish1( sob );
+		<sob>.play();
+	}
+	newsnds(string sbase, int inamestart, string sfilebase, int ifilefrom, int ifileto)	{
+		string s;
+		int ile = ifileto-ifilefrom+1;
+		for(int i=0; i<ile; i++)	{
+			s = sbase + (inamestart + i);
+			new snd <s>;
+			<s>.load( _sclwavpath + sfilebase + (ifilefrom+i) + ".wav" );
+		}
+	}
+	newtimer(string sname, int idelay, int iticks)	{
+		new timer <sname>;
+		<sname>.settick(iticks);
+		<sname>.delay(idelay);
+	}
+	newtimercycle(string sname, int icycle, int iticks)	{
+		new timer <sname>;
+		<sname>.settick(iticks);
+		<sname>.setcycle(icycle);
+	}
+	_stdanloop()	{	this.play(-1); }
+	_stdanhide()	{	this.hide();	}
+	looponfinish(string san)	{
+		<san>.addmethod("onfinish", "_stdanloop");
+	}
+	hideonfinish(string san)	{
+		<san>.addmethod("onfinish", "_stdanhide");
+	}
+	stdanaction(string san)	{
+		string s = <san>.actionname();
+		if( s.contains("L") != false )	{
+			this.looponfinish(san);
+		} else if( s.contains("H") != false )	{
+			this.hideonfinish(san);
+		}
+		if( s.contains("P") != false )	{
+			<san>.play(-1);
+		}
+	}
+	int newanactions(string san, string sname)	{
+		int ile = <san>.nofactions();
+		this.copyanimas( san, sname, 0, ile );
+		for(int i=0; i<ile; i++)	{
+			<sname+i>.setframe(i,0);
+			this.stdanaction(sname+i);
+		}
+		return ile;
+	}
+	int newanfrbyact(string san, string sname)	{
+		int ile = <san>.nofactions();
+		int ile2;
+		for( int i=0; i<ile; i++)	{
+			ile2 = this.newanframes(san, sname+i+"_", i);
+		}
+		return ile;
+	}
+	int loadanfrbyact(string san, string sfile, int z)	{
+		string s = "_"+san;
+		this.newanima(s,sfile,z);
+		int ile = this.newanfrbyact(s, san);
+		<s>.hide();
+		return ile;
+	}
+	int loadanactions(string san, string sfile, int z)	{
+		string s = "_"+san;
+		this.newanima(s, sfile, z);
+		int ile = this.newanactions(s, san);
+		<s>.hide();
+		return ile;
+	}
+	int loadanframes(string san, string sfile, int iaction, int z)	{
+		string s = "_"+san;
+		this.newanima(s, sfile, z);
+		int ile = this.newanframes(s, san, iaction);
+		<s>.hide();
+		return ile;
+	}
+	newbutimg(string sbut, string sstd, string smov, string sclick, string smouse)	{
+		new button <sbut>;
+		<sbut>.set(sstd, smov, sclick);
+		<sbut>.setmouse(smouse);
+	}
+	newbutan(string sbut, string sanstd, string sanmov, string sanclick, string smouse)	{
+		new button <sbut>;
+		<sbut>.setan(sanstd, sanmov, sanclick);
+		<sbut>.setmouse(smouse);
+	}
+	/*****************************************************/
+	newdb(string sdb, string sfile)	{
+		new db <sdb>;
+		<sdb>.load( _sclpath + sfile );
+	}
+	/*****************************************************/
+	swap(string s1, string s2)	{
+		string s = [s1];
+		<s1> = [s2];
+		<s2> = s;
+	}
+	/*************** do wykorzystania na obiektach!! ***********************************/
+	anloopfin()	{	this.addmethod("onfinish", "_stdanloop");	}
+	anloopplay(int iact)	{	this.anloopfin();	this.play(iact);	}
+	anhidefin()	{	this.addmethod("onfinish","_stdanhide");	}
+	anputgr()	{	this.setz( this.getey() );	}
+	ansetposgr(int x, int y)	{	this.setpos(x,y);	this.anputgr();	}
+	anplayz(int id, int z)	{	this.setz(z);	this.play(id);	}
+	anplaygr(int id)	{	this.play(id);	this.anputgr();	}
+	anplayzpos(int id, int z, int x, int y)	{	this.setpos(x,y);	this.anplayz(id,z);	}
+	anplaypos(int x, int y)	{	this.setpos(x,y);	this.play(-1);	}
+	anplayposgr(int x, int y)	{	this.ansetposgr(x,y);	this.play(-1);	}
+	anplaypos2(int x, int y, string sact)	{	this.setpos(x,y);	this.play(sact);	}
+	anplaypos3(int x, int y, int iact)	{	this.setpos(x,y);	this.play(iact);	}
+	anhide()	{	this.stop(false);	this.hide();	}
+	andownpos(int x, int y)	{	this.setpos( x, y-this.geth() );	}
+	ansetbpos(int x, int y)	{	this.setpos( x-this.lodx(), y-this.lody() );	}
+	int anonscreen()	{	return clsurf.inscreen(this.getcx(), this.getcy(), this.getw()/2, this.geth()/2);	}
+	objplayfin(string sfun)	{	this.addmethod("onfinish", sfun);	this.play();	}
+	objplayloop()	{	this.addmethod("onfinish","_stdsndloop");		this.play();	}
+	anplayfin(int iact, string sfun)	{	this.addmethod("onfinish", sfun);	this.play(iact);	}
+}
+
+/***************************************************************************/
+
+module classdbreader	{
+	init()	{
+		new db dbl;
+	}
+	readdb( string sfunc )	{
+		int id = 0;
+		int ile = dbl.getrowsno();
+		while( id < ile )	{
+			this.<sfunc>( id );
+			id++;
+		}
+	}
+	readrow( string srow, string sfunc )	{
+		int ipos = dbl.findbyrow( srow );
+		if( ipos >= 0 )	{
+			this.<sfunc>( ipos );
+		}
+	}
+}
+

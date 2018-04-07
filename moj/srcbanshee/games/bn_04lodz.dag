@@ -1,0 +1,163 @@
+
+game mg04_lodz :Banshee {
+	init{
+    Banshee::init("mg04_lodz");
+    .imgs = (A, "$scripts/mg04_glowa1/bkg.jpg 1", "base.pyz 2", "krysztal_blue.pyzH 3", "medalion.pyzH 4",  "ramka.pyz 5", "popexit.pyz 6", 
+	  "kruk_idle.pyzH 7", "flight.pyzH 8", "medalion_w_dziobie.pyzH 9", "drzwi_otwarte_obszar.pyzH 10","medalion_wlozony.pyzH 11" );
+    .butpopexit;
+    .butpopexitisinramka;
+    
+    .sfxs = (A, "bgrmorze3N 30", "ptakout 40", "openwindow", "opendoor2");
+    
+    if (!clsave.bis("e1_kruk_odlecial"))	{
+		ankruk_idle.play("loop");   
+		.newsndfree("sndkrukodlecial", "kinnat_c1d1_15a");
+		 sndkrukodlecial.addmethod("onfinish", func{
+			.advsetstdstate;
+			 
+		} );
+     }
+                                               
+    //.addtopck("kluczlodz"); 
+    
+    if (!clsave.bis("taken_krysztal_blue_2"))
+    { 
+		ankrysztal_blue.show;
+		.setasitemtopck("ankrysztal_blue");  
+		if (!clsave.bis("e1_kruk_odlecial"))
+			ankrysztal_blue.disable = (true); 
+		else
+			ankrysztal_blue.disable = (false); 
+    }  
+    
+    
+    ankruk_idle {
+		.Button_isin; 
+		.Button_moveonms;
+		.Button_moveoffms;
+		.addmethod("butclick", func {
+		if( !.advstdstate || clsave.bis("e1_kruk_odlecial")) return;
+			  .hide();
+		clsave.bset("e1_kruk_odlecial");
+		ankruk_idle.stop(false);
+		fxptakout.play;
+		anflight.play(0);
+		//sgmstate = "state_kruk_odlatuje";
+		ankrysztal_blue.disable = (false); 
+      } );
+			 
+			butgame.add(this);
+		};
+    
+    anflight {
+      .addmethod("onfinish", func {
+			  .hide(); 
+			  .cbplay("sndkrukodlecial");
+          
+      //  .mend();   
+				} );
+		};   
+    
+	.newsndfree("sndlocked", "kinnat_56");
+	//anmedalion_wlozony.Button_stdms;
+	anmedalion_wlozony.addmethod("butmoveon", func {
+    			 
+    			if (!clsave.bis("e1_lodz_odblokowana") )
+					advmouse.set("use");
+            else
+              advmouse.setstd;
+          } );
+	anmedalion_wlozony.addmethod("butmoveoff", func {
+    			 
+    			  advmouse.setstd;
+    			} );
+           
+	anmedalion_wlozony.addmethod("isbutin", func { (@x, @y) .isin(x,y,0,0); } );
+	anmedalion_wlozony.addmethod("butclick", func { 
+		if( .advstdstate && !clsave.bis("e1_lodz_odblokowana") )
+			.crplay("sndlocked");
+		} );
+	butgame.add("anmedalion_wlozony");
+	andrzwi_otwarte_obszar{
+		.Button_isinvis; 
+		.Button_moveoffms; 
+		.addmethod("butmoveon", func {
+			if (clsave.bis("e1_lodz_odblokowana") )
+				advmouse.set("gouu");
+			else
+				advmouse.setstd;
+		} );
+		.addmethod("butclick", func {
+			if (clsave.bis("e1_lodz_odblokowana") )
+				.stdexitdefadv("ad05_lodz", "gamead05_lodz0"); 
+			} );
+		butgame.add(this);	
+	}; 
+	
+	
+    if( clsave.is("GAME_sgmlastscene", "gamead04b_lodz0") )	{
+		.advsetstdstate;
+    } 
+	else {
+		ccs.enter( func {
+			if( !clsave.bis("e1_lodz_1st_click") )	{
+				clsave.bset("e1_lodz_1st_click");
+				.gotoadv("ad04b_lodz", "gamead04b_lodz0");
+			} else	{
+				.advsetstdstate;
+			}
+			 
+		});
+	}
+    } // koniec init
+    
+	ankrysztal_blue_TAKE	{.check_finished();	.item_takecenter("krysztal_blue_2"); advmouse.setstd;	}
+	ankrysztal_blue_INPCK	{
+		  .addtopck("krysztal_blue_2");
+    //  if (!clsave.bis("ma_kluczlodz"))
+    //    .timfinito;
+	} 
+   
+	mend	{
+		.stdexitdefadv("ad04_brzegjeziora", "gamead04_brzegjeziora0"); 
+	}
+  
+  HINT_CLICK {
+    if (!clsave.bis("e1_kruk_odlecial"))
+    {
+      .showhint("ankruk_idle");
+    }
+    else if(!clsave.bis("taken_krysztal_blue_2"))
+      .showhint("ankrysztal_blue");
+    else if(clsave.bis("ma_kluczlodz"))
+    {
+        .showhintitem("kluczlodz"); 
+        .showhint("anmedalion_wlozony");  
+    }
+	
+	else if(clsave.bis("e1_lodz_odblokowana"))
+    {
+        .showhint("andrzwi_otwarte_obszar");  
+    }
+    else
+      .showhint("anpopexit"); 
+  }            
+	USE_kluczlodz	{
+		if( anmedalion_wlozony.isin(mouse.getpos,0,0) )	{
+			clsave.bset("e1_lodz_odblokowana");
+			butgame.removebut("anmedalion_wlozony");
+		//	butgame.onmousemove;
+			.removefrompck("kluczlodz");
+		//	sgmstate = "state_openlodz";
+			anbase.playsmooth("open");
+			advmouse.set("gouu"); 
+			fxopenwindow.play;
+			fxopendoor2.play;
+			anmedalion_wlozony.playsmooth("open");
+		} else {
+			.advsetstdstate;
+			.item_gotopck;
+		}
+	}
+}
+ 

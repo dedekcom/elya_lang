@@ -1,0 +1,19 @@
+
+new string sAskerGame;
+class StdGame : classadv, GameController, Localize	{
+	init(string s)	{
+		igmstate = 0;
+		classadv::init;
+		GameController::init(s);
+		Localize::init;
+		.path = ( s);
+		.setwavpath(SNDPATH);
+		bsms.setstd;		// ustawia standardowo 
+		advmouse.setstd;
+	}
+	exit	{
+		bsms.setstd;
+		.game_exit;
+	}
+}
+

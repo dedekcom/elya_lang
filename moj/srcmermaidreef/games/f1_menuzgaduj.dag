@@ -1,0 +1,184 @@
+
+game MenuZgaduj : FarmStd {
+	init	{
+		FarmStd::init("menu_zgaduj");
+		
+		.imgs = (A, "bg1.pyz", "sun.pyzP 2", "chmury.pyzG 4", "bg2.pyz 6", "swinka.pyz 10", "krowa.pyz 15", "plot1.pyz 20", "plot2.pyz 20",
+			"mysz.pyz 25", "ptak.pyz 25", "mic.pyz 30", "bzyki.pyzG 50");
+		
+		.sounds = (A, "sndlearn", "Learn about sounds of animals", null,
+			"sndplay", "Play the game", null );
+		
+		.sfxs = (A, "bgrlas1N 40", "krowa 50", "piglet1 50");
+		
+		.cbutexit;
+		
+		.mkchmura(grchmury.get(0),0.66667);
+		.mkchmura(grchmury.get(1),1);
+		
+		// 1.20,-1.60,0.16,2
+		.gmbuildroto("anmic", 1, -1, 0.15, 2, true);
+		
+		answinka.caddymek;
+		ankrowa.caddymek;
+		grbzyki.eval( func {
+			<GAME>.cbzyczek(this, .getpx, .getpy);
+			.play(-1);
+			} );
+		
+		.stdenter;
+	}
+	butmoveon_answinka	{	fxpiglet1.playif; .cbselfplay("sndplay");	}
+	butmoveon_ankrowa	{	fxkrowa.playif; .cbselfplay("sndlearn");		}
+	butclick_answinka	{	iZgadujMode = 2; .stdexit("Zgaduj");	}
+	butclick_ankrowa	{	iZgadujMode = 1; .stdexit("Zgaduj");	}
+	butclick_anbutexit	{	.stdexit("MainMenu");	}
+}
+
+class BajkaStd : FarmStd	{
+	init(string s)	{
+		FarmStd::init(s);
+		music.smixer = ("engine");
+		.cbutexit;
+		.cbutmuz;
+		
+		music.smixer = ("engine");
+		ccs.enter( func {
+			.refreshstdstate;
+			if( bMusic )
+				music.playstr("farma2.ogg -l -v 50");
+			} );
+	}
+	butmuz_playmusic	{
+		music.playstr("farma2.ogg -l -v 50");
+	}
+}
+
+game MenuBajka : BajkaStd {
+	init	{
+		BajkaStd::init("menu_bajka");
+		
+		.imgs = (A, "bkg.pyz", "$scripts/mg_outro/sun.pyzP 2", "chmura1.pyz 5", "chmura2.pyz 5", "bajpies.pyz 10", "bajkot.pyz 10",
+			"beny.pyz 15", "oczy.pyzP 20", "$scripts/menu_zgaduj/bzyki.pyzG 50");
+		ansun.scmove(80,0);
+		
+		.gmbuildroto("anchmura2", 0.2, -9, 0.6, 2, true);
+		.gmbuildroto("anchmura1", 9, -0.2, 0.6, 2, true);
+		
+		anbajpies.caddymek;
+		anbajkot.caddymek;
+		grbzyki.eval( "anplaybzyczek" );
+	}
+	butclick_anbajpies	{	sndfxbutclick1.play; sBajkaName="pies";	.stdexit("Bajka");	}
+	butclick_anbajkot	{	sndfxbutclick1.play; sBajkaName="kot";	.stdexit("Bajka");	}
+	butmoveon_anbajpies	{	sndfxmoveon2.play;	}
+	butmoveon_anbajkot	{	sndfxmoveon2.play;	}
+	butclick_anbutexit	{	music.fadeout(800);	.stdexit("MainMenu");	}
+}
+
+game MenuKolo : FarmStd {
+	init	{
+		FarmStd::init("menu_kolotryb");
+		.path = ("mg_kolo");
+		
+		.imgs = (A, "bkg.pyz", "chmury.pyzG 5", "bg2.pyz 10", "krowa.pyz 15", "indi.pyz 15",
+			"modefree.pyz 30", "modecolor.pyz 30",
+			"menugirl.pyz 40", "menuboy.pyz 40");
+		
+		.sounds = (A, "sndcolor", "Paint copies of the small pictures", null,
+			"sndfree", "Color the pictures", null);
+		
+		.gmbuildroto("anmenuboy", 1.5, 0, 0.3, 2, true);
+		.gmbuildroto("anmenugirl", 0, -1.5, 0.3, 2, true);
+		
+		.sfx = ("bgrlas1N 40");
+		
+		.cbutexit;
+		
+		.mkchmura(grchmury.get(3),-0.66667);
+		.mkchmura(grchmury.get(2),-1);
+		.mkchmura(grchmury.get(0),-0.25);
+		.mkchmura(grchmury.get(1),-0.33334);
+		
+		anmodefree.buildfadebut(1);
+		anmodecolor.buildfadebut(1);
+		
+		.stdenter;
+	}
+	butmoveon_anmodefree	{	sndfxmoveon2.play; .cbselfplay("sndfree");	}
+	butmoveon_anmodecolor	{	sndfxmoveon2.play; .cbselfplay("sndcolor");	}
+	butclick_anmodefree	{	sndfxbutclick1.play; iKoloMode = 1; .stdexit("MenuKoloImg");	}
+	butclick_anmodecolor	{	sndfxbutclick1.play; iKoloMode = 2; .stdexit("MenuKoloImg");	}
+	butclick_anbutexit	{	.stdexit("MainMenu");	}
+}
+
+new int iPageKoloImg = 1;
+game MenuKoloImg : FarmStd {
+	init	{
+		FarmStd::init("menu_koloimg");
+		.path = ("mg_kolo");
+		
+		.imgs = (A, "bkg.pyz", "chmury.pyzG 5", "bg2.pyz 10", "krowa.pyz 15", "indi.pyz 15",
+			"menugirl.pyz 40", "menuboy.pyz 40", "wybor.pyzG 30",
+			 "$scripts/menu_puzimg/butprev.pyz 20", "$scripts/menu_puzimg/butnext.pyz 20");
+		
+		.sfx = ("bgrlas1N 40");
+		
+		anbutprev.scmove(-15, -80);
+		anbutnext.ansetbpos( anbutprev.getpx, anbutprev.getey + 15->igetsc );
+		
+		anbutprev.Button_addstd;
+		anbutnext.Button_addstd;
+		
+		.gmbuildroto("anmenuboy", 1.5, 0, 0.3, 2, true);
+		.gmbuildroto("anmenugirl", 0, -1.5, 0.3, 2, true);
+		
+		.cbutexit;
+		
+		.mkchmura(grchmury.get(3),-0.66667);
+		.mkchmura(grchmury.get(2),-1);
+		.mkchmura(grchmury.get(0),-0.25);
+		.mkchmura(grchmury.get(1),-0.33334);
+		
+		grwybor.eval( func {
+			.Button_std;
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					sndfxbutclick1.play;
+					iKoloImage = .actionname->strsubb(1);
+					.stdexit("Kolololo");
+				}
+				} );
+			butgame.add(this);
+			} );
+		_ = .mshowpage(0);
+		
+		.stdenter;
+	}
+	bool mshowpage(int page)	{
+		bool b = true;
+		iPageKoloImg += page;
+		if( iPageKoloImg < 1 ) {
+			iPageKoloImg = 1;
+			b = false;
+		} else if ( iPageKoloImg>3 ) {
+			iPageKoloImg = 3;
+			b = false;
+		}
+		grwybor.hide;
+		int pos = (iPageKoloImg-1)*4;
+		for( int i=pos; i<pos+4 && i<grwybor.size; i++ )	{
+			<grwybor.get(i)>.show;
+		}
+		b;
+	}
+	mbutnext(int id)	{
+		if( .advstdstate )	{
+			if( .mshowpage(id) )
+				sndfxbutclick1.play;
+		}
+	}
+	butclick_anbutprev	{	.mbutnext(-1);	}
+	butclick_anbutnext	{	.mbutnext(1);	}
+	butclick_anbutexit	{	.stdexit("MenuKolo");	}
+}

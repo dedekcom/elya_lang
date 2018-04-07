@@ -1,0 +1,148 @@
+game mg10_grogulec :Banshee {
+	init{
+		Banshee::init("mg10_grogulec");
+ 
+		.sfxs = (A, "bgrlas2N", "wylaniasie2", "ceglaput", "dluto", "boom1 15");
+		.imgs = (A, "bkg.jpg","popup_bkg.pyz 1", "ramka.pyz 2","smok.pyz 2","smok_light.pyzH 3", "smok_rozwalony.pyzH 4","anim_coord.pyzH 5", "popexit.pyz 13", "elixirH.pyz 14");
+	  .butpopexit;
+      
+     imgbkg {
+  		.addmethod("isbutin", func { (@x, @y)
+  			!anpopup_bkg.isin(x,y,0,0);
+  			} );
+  		.addmethod("butclick", func {
+  			if( !.advstdstate ) return;
+  			 .mend;
+  			} );
+    		butgame.add(this);
+    	};
+     if (!clsave.bis("e1_mg10_grogulec_lights_on") )
+     {  
+        ansmok{
+          .Button_isinalpha;
+          .addmethod("butmoveon", func {
+    				if( !.advstdstate) return;
+  				  if (!clsave.bis("e1_mg10_grogulec_lights_on"))
+              advmouse.set("use"); 
+            else
+              advmouse.setstd;
+            } );
+    			.addmethod("butmoveoff", func {
+    				if( !.advstdstate ) return;
+    				  advmouse.setstd;
+    				} ); 
+            butgame.add(this);
+          };           
+    }
+    ansmok_light{
+      .Button_isinalpha;
+      .addmethod("butmoveon", func {
+				if( !.advstdstate) return;
+			  if (!clsave.bis("e1_mg10_grogulec_smok_rozwalony"))
+          advmouse.set("use"); 
+        else
+          advmouse.setstd;
+        } );
+			.addmethod("butmoveoff", func {
+				if( !.advstdstate ) return;
+				  advmouse.setstd;
+				} ); 
+        butgame.add(this);
+      };           
+    
+    if(clsave.bis("e1_mg10_grogulec_lights_on"))
+    {
+      ansmok_light.show();
+      ansmok.hide();
+    }
+    
+    if(clsave.bis("e1_mg10_grogulec_smok_rozwalony") && !clsave.bis("taken_elixir"))
+    {
+      ansmok_rozwalony.show();
+      .setasitemtopck("anelixir"); 
+      anelixir.show;  
+    }
+    
+    if(!clsave.bis("e1_mg10_grogulec_smok_rozwalony"))
+    {
+      new Film filmb;
+    	filmb.musicclass = ("mus");
+    	filmb.addmethod("onfinish", func {
+        .advsetstdstate;
+        ansmok_rozwalony.show();
+        anelixir.show;
+        .hide;
+    		 
+    		} );
+    	filmb.load("scripts/cs10_grogulec/", "film");
+    	filmb.showfirstframe;
+    	filmb.setz(5);
+    	filmb.setpos( ananim_coord.getpx, ananim_coord.getpy );
+    	filmb.hide;
+    }
+     
+	.stdstart;  
+  } // koniec init
+
+	 anelixir_TAKE {
+    .popitem_gotocenter("elixir");
+    .set_mg_finished;   
+  }
+   anelixir_INPCK {
+    .addtopck("elixir"); 
+    .timfinito;
+  }
+  USE_oczy	{
+		.advsetstdstate();
+    if(ansmok.isin(mouse.getpos,0,0)  )	{
+      .removefrompck("oczy");
+      fxceglaput.play;
+      fxwylaniasie2.play;
+      ansmok_light.anfadein(400,null);  
+      clsave.bset("e1_mg10_grogulec_lights_on"); 
+    }
+    else
+    {   
+			.advsetstdstate;
+			.item_gotopck;
+		}
+	} 
+  
+  USE_kilof	{
+		.advsetstdstate();
+    if(ansmok_light.isin(mouse.getpos,0,0) && clsave.bis("e1_mg10_grogulec_lights_on"))	{
+      .removefrompck("kilof");
+      clsave.bset("e1_mg10_grogulec_smok_rozwalony"); 
+       filmb.play;
+       .setasitemtopck("anelixir");
+    }
+    else
+    {   
+			.advsetstdstate;
+			.item_gotopck;
+		}
+	} 
+   HINT_CLICK {
+    if (clsave.bis("taken_oczy") && !clsave.bis("e1_mg10_grogulec_lights_on"))
+    { 
+      .showhint("ansmok");   
+      .showhintitem("oczy");
+    }
+    else  if (clsave.bis("e1_mg10_grogulec_lights_on") && clsave.bis("taken_kilof") && !clsave.bis("e1_mg10_grogulec_smok_rozwalony"))
+    { 
+      .showhint("ansmok_light");   
+      .showhintitem("kilof");
+    }
+    else if(clsave.bis("e1_mg10_grogulec_smok_rozwalony") && !clsave.bis("taken_elixir"))
+    {
+      .showhint("anelixir"); 
+    }
+    else
+      .showhint("anpopexit");
+  }    
+  
+  mend	{  
+		.stdexitdefadv("ad10_ogrodrozany", "gamead10_ogrodrozany0");
+	}
+}
+

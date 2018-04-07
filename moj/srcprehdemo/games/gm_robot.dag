@@ -1,0 +1,89 @@
+game Robot : Komputro {
+	init	{
+		Komputro::init("robot");
+		.path = ("robot");
+		.bkg = ("bkg.pyz");
+		.loadlekcja;
+		tdlekcja.move(0,-5);
+		.imgs = (A, "robo.pyz 10");
+		.copyanima("anrobo", "anl");
+		anl.setframe("left",0);
+		anl.anloopfin;
+		.copyanima("anrobo", "anr");
+		anr.setframe("right",0);
+		anr.anloopfin;
+		.copyanima("anrobo", "anczek");
+		anczek.setframe("left",0);
+		anczek.hide;
+		new @itafle = 8;
+		int j, string s, int itaf=itafle-1;
+		for( int i=0; i<itafle; i++)	{
+			for( j=0; j<itafle; j++)	{
+				s = "imgt"+i+"_"+j;
+				new img <s>;
+				if( i==0 || j==0 || i==itaf || j==itaf)	<s>.create(53, 53, 100,100,255, 255);
+				else	<s>.create(53, 53, .white, 255);
+				<s>.setpos( 10 + i*56, 10 + j*56 );
+			}
+		}
+		.robpos(1,3);
+		
+		new classsimplebutton cbok;
+		cbok.build("scripts/common/butok.pyz", "imglobcurs", 546,525, 100, 0);
+		new classsimplebutton cbhelp;
+		cbhelp.build("scripts/common/help.pyz", "imglobcurs", 650,527, 100, 0);
+		
+		new gfxSquare gsq(50,50,700,500);
+		gsq.set(.grey(40), 240);
+		gsq.build;
+		gsq.setz(100);
+		gsq.hide;
+		
+		new db dbopis;
+		new @Level = 0;
+		new @stdfont12 = .snewfont( "configs/fonts/normal.ttf", 14);
+		
+		.sounds = (A,
+			"sndintro", "Przed nami kolejna lekcja: podstawy programowania obiektowego",
+				func { <GAME>{ .buildopis; .viewopis; }; }
+		);
+		.cbplay("sndintro");
+	}
+	recreate	{
+		int j, string s, int itaf=itafle-1;
+		for( int i=0; i<itafle; i++)	{
+			for( j=0; j<itafle; j++)	{
+				if( i==0 || j==0 || i==itaf || j==itaf)	<s>.create(53, 53, 100,100,255, 255);
+				else	<s>.create(53, 53, .white, 255);
+			}
+		}
+	}
+	setcol(int i, int j, int r, int g, int b)	{
+		string s = "imgt"+i+"_"+j;
+		<s>.create(53, 53, r,g,b,255);
+		<s>.setpos( 10 + i*56, 10 + j*56 );
+	}
+	setrobpos(int x, int y)	{
+		anrobo.ansetbpos(x,y);
+		anl.setpos( anrobo.getpos );
+		anr.setpos( anrobo.getpos );
+	}
+	robpos(int i, int j)	{
+		|i,j| = <"imgt"+i+"_"+j>.getpos;
+		.setrobpos( i + (53-anrobo.getw)/2, j+40-anrobo.geth );
+	}
+	buildopis	{
+		dbopis.load( .getgraphpath + "opis" + Level + ".db");
+		.deletegmobj("tdopis");
+		new TextDb tdopis(stdfont12, 10, "$var:dbopis", .grey(200), 70,70, 4,150, "left");
+		tdopis.hide;
+	}
+	viewopis	{
+		gsq.show;
+		tdopis.show;
+	}
+	mouse_lclick	{
+		.cactsndstop(true);
+		if( igmstate!=1 ) return;
+	}
+}

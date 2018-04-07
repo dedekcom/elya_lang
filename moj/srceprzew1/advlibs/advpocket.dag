@@ -1,0 +1,214 @@
+
+
+class classadvpocket : gmimgvec	{
+	init()	{
+		gmimgvec::init();
+		new int iX;
+		new int iY;
+		new int iNumItems = 0;
+		new int iMaxItems = 14;
+		new int iScale;
+		new string sState = "closed";
+		new string _sanim = this.getname();
+		_sanim = _sanim.strsubbs( _spocketpref );
+		new string sItem = null;
+		new string sFocusItem = null;
+		new string _sbase = "imgpocket";
+		new int _ibase = _sbase.length();
+		this.newarray("img", _sbase, iMaxItems );
+		this.addgroup(_sbase, iMaxItems);
+		this.setz(1000);
+		new string sitempath;
+		new vector arPocket;
+		arPocket.type("string");
+		this.cnewtimercyclefin("tim", 1, 1, "evalpocket");
+		
+		sitempath = modadv.get("itempath:",1);
+		int z = this.getz();
+		new img imitem;
+		imitem.setz(z+1);
+		new img immarker;
+		immarker.load( sitempath + "itemmarker.png" );
+		immarker.setz(z-1);
+		immarker.hide();
+		
+		this.hide();
+		this.itemhide();
+
+		new bool bskip=false;
+	}
+	skip()	{
+		bskip=true;	
+	}
+	skipitem()	{
+		if( sItem!=null )	{	bskip=true;	}
+	}
+	additem(string sname)	{
+		arPocket.add(sname);
+		string s = _sbase+iNumItems;
+		<s>.load( sitempath + sname + ".png" );
+		<s>.setz( this.getz() );
+		<s>.hide();
+		iNumItems++;
+	}
+	removeitem(string sname)	{
+		sname.print();
+		arPocket.remove( sname );
+		iNumItems = arPocket.size();
+
+		if ( sState == "opened" ){
+			this.hide();
+		}
+
+		string simg;
+		string sitem;
+		for (int i=0; i<iNumItems; i++){
+
+			simg = _sbase+i;
+			sitem = arPocket.get(i);
+			<simg>.load( "scripts/ksiezyc/items/"+sitem+".png" );
+			<simg>.setz( this.getz() );
+			if (sState == "closed" ){
+				<simg>.hide();
+			}
+
+		}
+	}
+	useitem()	{
+		if( sItem!=null )	{
+			this.removeitem( sItem );
+			this.itemhide();
+		}
+	}
+	evalpocket(){
+		this.play();
+		if ( sState == "open" ){
+			iScale+=16;
+		} else if ( sState == "close" ){
+			iScale-=16;
+		}
+		if ( iScale > 116 ){
+			this.stop(false);
+			iScale = 116;
+			sState = "opened";
+		} else if ( iScale < 0 ){
+			this.stop(false);
+			iScale = 0;
+			sState = "closed";
+		}
+		real dRadius = (iScale * iScale )/550;
+		//real dRadius = iScale.sqrt(iScale)*2;
+		real dAngle;
+		string s;
+		for (int i=0; i< iNumItems; i++){
+			dAngle = dRadius*i-(dRadius*iNumItems/2.0) -90.0 + dRadius/2;
+			s = this.get(i);
+			<s>.setpos( dAngle.cos( dAngle ) * iScale + iX - 76/2, dAngle.sin( dAngle ) * iScale + iY - 75/2 );
+			<s>.show();
+		}
+		if ( sState == "closed" ){
+			this.hide();
+		}
+	}
+	pocketpos(int x, int y)	{
+		int ix = x-iX;
+		int iy = y-iY;
+		this.move(ix,iy);
+		iX=x;
+		iY=y;
+	}
+	pockettoggle(){
+		if ( sState == "opened" ){
+			sState = "close";
+			immarker.hide();
+			tim.play();
+		} else if ( sState == "closed" ){
+			sState = "open";
+			iX = <_sanim>.getposx();
+			iY = <_sanim>.getposy()-<_sanim>.geth()/2;
+			this.itemhide();
+			this.show();
+			tim.evalpocket();
+			tim.play();
+		} else if ( sState == "open" ){
+			sState = "close";
+		} else if ( sState == "close" ){
+			sState = "open";
+		}
+	}
+	string getitem()	{	return sItem;	}
+	itemhide(){
+		sFocusItem = null;
+		sItem = null;
+		imitem.hide();
+	}
+	itemclick()	{
+		this.skip();
+		if ( sState == "closed" ){
+			this.pockettoggle();
+		} else if ( sState == "opened" ){
+			if ( sFocusItem != null ){
+				sItem = sFocusItem;
+				<sFocusItem>.hide();
+				imitem.load( sitempath + arPocket.get( sFocusItem.getb(_ibase,3) ) + "no.png" );
+				imitem.show();
+				imitem.setz( this.getz() + 1 );
+				this.setitempos();
+				this.pockettoggle();
+			} else {
+				this.pockettoggle();
+			}
+		} else if ( sState == "open" ){
+			this.pockettoggle();
+		} else if ( sState == "close" ){
+			this.pockettoggle();
+		}
+	}
+	int isin(int x, int y, bool bignorehidden, bool bignorealpha)	{
+		int id = gmimgvec::isin(x,y,bignorehidden,bignorealpha);
+		if( id!=false )	{
+			sFocusItem = this.get( id-1 );
+		} else {
+			sFocusItem = null;
+			id = <_sanim>.isin(x,y,bignorehidden,bignorealpha);
+		}
+		return id;
+	}
+	setitempos()	{
+		imitem.setpos( mouse.getpx()-76/2, mouse.getpy()-75/2 );
+	}
+	itemmoveoff()	{
+		if ( sState == "opened" ){
+			immarker.hide();
+		}
+	}
+	itemmoveon()	{
+		if ( sState == "opened" ){
+			if (sFocusItem != null){
+				immarker.setpos( <sFocusItem>.getpx(), <sFocusItem>.getpy() );
+				immarker.show();
+			} 
+		}
+	}
+	onmouselclick(int x, int y)	{
+		if(bskip==true)	{
+			bskip=false;
+			return;
+		}
+		if( sState=="opened" || sState=="open" )	{
+			this.pockettoggle();
+		} else {
+			this.itemhide();
+		}
+	}
+	onmousemove(int x, int y)	{
+		if ( sItem != null ){
+			this.setitempos();
+		}
+		if ( sState == "opened" ){
+			if( this.isin(x,y,true,true)!=false )	{
+				this.itemmoveon();
+			}
+		}
+	}
+}

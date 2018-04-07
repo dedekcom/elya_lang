@@ -1,0 +1,53 @@
+
+new anima anmsc;
+
+class classadvmouse	{
+	init()	{
+		//new anima anmsc;
+		new string sactac;
+	}
+	public load(string sname)	{
+		anmsc.load(sname);
+		anmsc.addmethod("onendframe", "setnextframe");
+		anmsc.addmethod("onsetframe", func { .hide; } );
+		anmsc.hide();
+	}
+	public stdload	{
+		if( !igmdebug && .checktouchpad )	.load("scripts/common/kursorypad.pyz");
+		else .load("scripts/common/cursors.pyz");
+	}
+	setnextframe	{
+		anmsc.ansetnextfr;
+		mouse.setcursor("anmsc");
+	}
+	setif(string sac)	{
+		if( .get!=sac )
+			.set(sac);
+	}
+	set(string saction)	{
+		sactac = saction;
+		//anmsc.setframe( saction, 0 );
+		if( !anmsc.isplaying( saction ) )	{
+			anmsc.play( saction );
+		}
+		mouse.setcursor("anmsc");
+	}
+	setstd()	{	this.set("normal");	}
+	setactive()	{	this.set("active");	}
+	setact()	{	this.set("active");	}
+	setbut		{	this.set("active");	}
+	setexit()	{	this.set("exit");	}
+	setwait()	{	this.set("wait");	}
+	get()		{	anmsc.actionname();	}
+	lodx	{	anmsc.lodx;	}
+	lody	{	anmsc.lody;	}
+	refresh	{ if( sactac!=null ) .set(sactac);	}
+}
+
+new classadvmouse advmouse;
+advmouse.stdload;
+
+if( !.checktouchpad )	{
+	advmouse.setstd;
+	engine.stdbutcursor("anmsc");
+}

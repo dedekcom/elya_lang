@@ -1,0 +1,129 @@
+
+public playmainmusic	{
+	music.smixer = ("engine");
+	music.playstr( sgmpuzpref + ".ogg -l -v 50");
+}
+
+game Intro : MermaidStd	{
+	init	{
+		MermaidStd::init("intro");
+		.imgs = (A, ( .isjpgame ? "introbg.jpg" : "bkg.pyz"), "tytul.pyzGH 10");
+		
+		new int idtyt = 0;
+		ccs.enter( func {
+			.advsetstdstate;
+			.mtytgo;
+			} );
+		
+		.playmainmusic;
+	}
+	mend	{
+		match(sgmpuzpref)	{
+			"xmas" => "MenuXmas";
+			? => "MenuImg";
+		}
+		.stdexit;
+	}
+	mouse_lclick	{
+		.mend;
+	}
+	mtytgo	{
+		if( idtyt >= grtytul.size )	{
+			.mend;
+		} else {
+			int time = ( idtyt == grtytul.size-1 ? 4000 : 1000 );
+			<grtytul.get(idtyt)>.anfadein(time, "mtytgo");
+			idtyt++;
+		}
+	}
+}
+
+
+game Outro : MermaidStd	{
+	init	{
+		MermaidStd::init("outro");
+		.imgs = (A, "bkg.jpg");
+		
+		.stdenter;
+		.timplay("timfinish", 12000, "mend");
+	}
+	mend	{
+		if( .advstdstate )	{
+			sgmstate = "state_exit";
+			music.fadeout(800);
+			.closexit;
+		}
+	}
+	mouse_lclick	{
+		.mend;
+	}
+}
+
+/*
+game TestFilm
+{
+        init
+        {
+                new video myvideo;
+                new video myvideo2;
+                new video myvideo3;
+                new int rc;
+                new string fileinfo;
+                //rc=myvideo.playfile("video/bunny.ogg", 100,100,800,600);
+                engine.print("RC: "+rc);
+                engine.print("finished .play, starting .open");
+                rc=myvideo.open("video/bunny.ogg", 100,100,800,800);
+                rc=myvideo2.open("video/bunny.ogg", 400,400,300,300);
+                rc=myvideo3.open("video/bunny.ogg", 100,100,300,300);
+                engine.print("RC: "+rc);
+                engine.print("Duration: "+myvideo.getduration);
+                fileinfo="framerate:"+myvideo.getframerate+" size: "+myvideo.getvideowidth+"x"+myvideo.getvideoheight;
+                engine.print(fileinfo);
+                
+                myvideo.addmethod("onfinish", func { engine.print("video end"); } );
+                myvideo.setz(20);
+                myvideo.setblendmode(2);
+                
+                myvideo2.setz(10);
+                myvideo2.setflipmode(1);
+                myvideo2.setblendmode(1);
+                myvideo2.setalpha(128);
+                myvideo3.setz(30);
+                myvideo3.setflipmode(2);
+                myvideo.play;
+                //myvideo2.play;
+                //myvideo3.play;
+                engine.print("INIT END");
+        }
+
+        mouselclick
+        {
+                if( myvideo.isplaying ) "video is playing"->print;
+                else "video stopped"->print;
+                engine.print("Current frame: "+myvideo.getframenum);
+        }
+
+        mousemove
+        {
+                //myvideo.setpos(mouse.getpx, mouse.getpy);
+                //myvideo2.setangle(mouse.getpx);
+        }
+
+        mouserclick
+        {
+                myvideo.stop(true);  // w tym wypadku nawet jesli video nie jest odgrywane, topowinno odpalic funkcje 'onfinish', poniewaz argument bfinish = true
+        }
+
+        keydown
+        {
+                if( keyboard.iskey("s") )
+                {
+                        myvideo.play;
+                        //myvideo2.play;
+                        //myvideo3.play;
+                }
+                else if( keyboard.iskey("p") ) myvideo.pause;
+                else if (keyboard.iskey("r") ) myvideo.resume;
+        }
+}
+*/

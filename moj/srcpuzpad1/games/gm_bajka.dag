@@ -1,0 +1,53 @@
+
+new int iBajkaNr = 1;
+
+game Bajka : StdGame	{
+	init	{
+		StdGame::init("bajka");
+		
+		.img = ("bkg.pyz");
+		
+		new int ibajkax = 10;
+		new int ibajkay = 10;
+		new int ibajkaex = 864;
+		new int ibajkaey = 647;
+		new gmimgvec grels;
+		
+		if( iBajkaNr==1 )	{
+			.imgs = (A, "b1_bg.pyz", "b1_c1.pyzP 5", "b1_ptak1.pyzP 10", "b1_ptak2.pyzP 15", "b1_ptak3.pyzP 20",
+				"b1_c2.pyzP 25", "b1_l1.pyzP 30", "b1_bg2.pyzP 35", "b1_l2.pyzP 40", "b1_lisc1.pyzP 45",
+				"b1_l3.pyzP 50");
+			anb1_c1.mxmover(0.13, 100, 0);
+			anb1_ptak1.mxmover(2, 150, -5);
+			anb1_ptak2.mxmover(-4, -100, 25);
+			anb1_ptak3.mxmover(9, 250, -465);
+			anb1_c1.mxmover(-0.33, -200, 0);
+			grels.addlist(A, "anb1_bg", "anb1_l1", "anb1_bg2", "anb1_l2", "anb1_lisc1", "anb1_l3");
+		}
+		
+		.mclip;
+	}
+	mclip	{
+		grels.eval( func { .clip( ibajkax, ibajkay, ibajkaex, ibajkaey ); } );
+	}
+	mxmover(real dx, int lim, int pos)	{
+		grels.add(this);
+		.vars2(A, "dx", dx, "ilim", lim, "ipos", pos, "xmov", 0.0);
+		.addmethod("onendframe", func {
+			xmov += dx;
+			int x = xmov;
+			if( x )	{
+				xmov-=x;
+				.move(x, 0);
+				if( dx>0 )	{
+					if( .getpx+ilim > ibajkaex )
+						.setpos( ibajkax - .getw + ipos, .getposy );
+				} else {
+					if( .getex+ilim < ibajkax )
+						.setpos( ibajkaex + ipos, .getposy );
+				}
+			}
+			} );
+	}
+}
+

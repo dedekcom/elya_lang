@@ -1,0 +1,219 @@
+new int iMemoTryb=1;	// 0 - player na czas, 1 - player vs computer, 2 - player vs player
+new int iMemoW;
+new int iMemoH;
+new int iMemoAI = 0;	// poziom trudnosci
+
+class TMemo : GameController	{
+	init()	{}
+	public tinit(string sndbase, string spath, string sbkg, string stafle, string snakl, int dt)	{
+		.setgraphpath(spath);
+		GameController::init(sndbase);
+		
+		.newanima("anbkg", sbkg, 0);
+		.newanima("antaf", stafle, 10);
+		.newanima("annak", snakl, 20);
+		
+		new int ipredkosc = 25;
+		new gmimgvec grtaf;
+		new gmimgvec grnak;
+		new vector veci	{
+			.vecnewint( antaf.nofframes(0) );
+			.hash;
+		};
+		string s, int i[3], int j;
+		i0 = 0;
+		for( int i=0; i<iMemoW; i++)	{
+			for( j=0; j<iMemoH; j++)	{
+				new anima <"antaf"+i0>(i0) {
+					(int i)
+					.mresize;
+					this .= "antaf";
+					.setframe(0, veci.get(i/2));
+					.anaddfilter;
+					.unlink;
+					grtaf.add( this );
+				};
+				new anima <"annak"+i0> {
+					.mresize;
+					this .= "annak";
+					.anaddfilter;
+					grnak.add(this);
+				};
+				i0++;
+			}
+		}
+		antaf.hide;
+		annak.hide;
+		grtaf.hash;
+		i0=0;
+		i1 = antaf.getw + dt;
+		i2 = antaf.geth + dt;
+		for( i=0; i<iMemoW; i++)	{
+			for( j=0; j<iMemoH; j++)	{
+				<grtaf.get(i0)>.setbpos( i1*i, i2*j );
+				<grnak.get(i0)>.setbpos( i1*i, i2*j );
+				i0++;
+			}
+		}
+		grtaf.eval("link");
+		i1 = (800-grtaf.getw())/2;
+		i2 = (600-grtaf.geth())/2;
+		grtaf.move( i1, i2 );
+		grnak.move( i1, i2 );
+		new int iplayer=1;
+		new int icompplayer = 0;	// 1v2
+		new classfadeinout clfio;
+		new classfadeinout clfio2;
+		new int imemostate=0;
+		new string staf1;
+		new string staf2;
+		new string snak1;
+		new string snak2;
+		new int ileai = .between(1, .between(5, iMemoW*iMemoH*0.2, 10) + iMemoAI, 20);
+		new string sset1;
+		new string sset2;
+		new vector vecai	{
+			.mresize;
+			.type("string");
+		};
+		new int iaistate = 0;
+		.newtimer("timwait", 500, 1);
+		timwait.mresize;
+		.cnewtimerfin("timpoka", 500, 1, "endset22");
+	}
+	tstart()	{
+		imemostate = 1;
+		if( iMemoTryb==1 )	{
+			icompplayer=2;
+		}
+	}
+	/******************************************************/
+	aigo()	{
+		imemostate=11;
+		.tclicks( sset1 );
+	}
+	aigo2()	{
+		.tclicks( sset2 );
+	}
+	int aifind1(string sob, int i,  int ile)	{
+		if( sob==null )	return -1;
+		int ifr = <sob>.framenr;
+		string s;
+		for (; i<ile; i++)	{
+			s = .get(i);
+			if( s!=null && s!=sob && ifr==<s>.framenr && .tstats(i))	return i;
+		}
+		-1;
+	}
+	bool tstats(int id)	{	.stats(100-id*10);	}
+	startai(string sfun)	{
+		if( iplayer==icompplayer )	{
+			int ile = .min(vecai.size, ileai);
+			if( sfun=="aigo" )	{
+				imemostate = 11;
+				int i[3];
+				i2 = -1;
+				for(i0=0; i0<ile; i0++)	{
+					i2 = vecai.aifind1( vecai.get(i0), i0+1, ile );
+					if( i2>=0 && .tstats(i0))	{
+						i1 = i0;
+						i0 = ile;
+					} else
+						i2=-1;
+				}
+				if( i2>=0 )	{		// znalazl pare
+					sset1 = vecai.get(i1);
+					sset2 = vecai.get(i2);
+				} else {
+					sset1 = grtaf.rand;
+					sset2 = null;
+				}
+			} else {
+				if( sset2 == null )	{
+					int id = vecai.aifind1( sset1, 0, ile );
+					if (id>=0 && .tstats(id))	sset2 = vecai.get(id);
+					else 	sset2 = grtaf.randdiff( sset1 );
+				}
+			}
+			"timwait" ..< sfun;
+			timwait.play;
+		}
+	}
+	/******************************************************/
+	endset3()	{
+		imemostate=1;
+		if( iMemoTryb>0 )	{
+			.tnextplayer;
+			.startai("aigo");
+		}
+	}
+	endset2	{	timpoka.play;	}
+	endset22	{
+		imemostate=3;
+		<snak2>.hide;
+		if( <staf1>.framenr == <staf2>.framenr )	{
+			_ = "grnak" .- snak1 .- snak2;
+			_ = "grtaf" .- staf1 .- staf2;
+			vecai.set( vecai.find( staf1 ), null );
+			vecai.set( vecai.find( staf2 ), null );
+			if( grtaf.empty )	{
+				imemostate = 5;
+				clfio.setopacity(1, -ipredkosc, staf1, null );
+				clfio2.setopacity(1, -ipredkosc, staf2, null );
+				.tfinish;
+			} else {
+				clfio.setopacity(1, -ipredkosc, staf1, func {
+						<staf1>.hide;	<staf2>.hide;
+						if( iplayer!=icompplayer) imemostate=1;
+						.startai("aigo");
+					});
+				clfio2.setopacity(1, -ipredkosc, staf2, null );
+				.tpoint;
+			}
+		} else {
+			<snak1>.show;
+			<snak2>.show;
+			clfio.setopacity(1, ipredkosc, snak1, "endset3");
+			clfio2.setopacity(1, ipredkosc, snak2, null );
+			.terror;
+		}
+	}
+	tclicks(string sob)	{	.tclick(<sob>.getcx, <sob>.getcy);	}
+	tclick(int x, int y)	{
+		if( grnak.isin( x, y, true, true ) )	string s = grnak.getsfound;
+		else return;
+		.tchoose;
+		//engine.setdebugstate(true);
+		if( imemostate==1 || imemostate==11 ) {
+			imemostate--;
+			snak1 = s;
+			staf1 = grtaf.getimg(<s>.getcx, <s>.getcy, true, true );
+			vecai.vecset( staf1, null );
+			vecai.addbegin( staf1 );
+			vecai.veclimes(30);
+			clfio.setopacity(1, -ipredkosc, s, func {
+				<snak1>.hide;
+				imemostate+=2;
+				.startai("aigo2");
+				});
+		} else if (imemostate==2 || imemostate==12)	{
+			imemostate-=2;
+			snak2 = s;
+			staf2 = grtaf.getimg(<s>.getcx, <s>.getcy, true, true );
+			vecai.vecset(staf2,null);
+			vecai.addbegin( staf2 );
+			vecai.veclimes(30);
+			clfio.setopacity(1, -ipredkosc, s, "endset2");
+		}
+	}
+	mouselclick()	{
+		if( imemostate.in(A,1,2))	.tclick( mouse.getpos );
+		GameController::mouselclick;
+	}
+	tnextplayer	{	iplayer = iplayer==1 ? 2 : 1;	}
+	/*********************/
+	virtual tfinish	{}
+	virtual tpoint		{}
+	virtual terror		{}
+	virtual tchoose	{}
+}

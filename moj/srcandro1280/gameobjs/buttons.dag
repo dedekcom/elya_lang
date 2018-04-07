@@ -1,0 +1,309 @@
+class Button : LObjController	{
+	init	{
+		LObjController::init;
+		.unlock;
+		new gmimgvec grbuts;
+		.vars2(A,"sobject", null, "sclicked",null,"bcheck2klik", 0);
+		
+		new int ipadclick = 0;
+	}
+	print		{	grbuts.print;		}
+	sort		{	grbuts.sortimgs;	}
+	addgroups	{	grbuts.addgroups;	grbuts.sortimgs;	}
+	addgroup(string s)	{	grbuts.addgr(s);	grbuts.sortimgs;	}
+	addlist		{	grbuts.addlist;		grbuts.sortimgs;	}
+	add(string sob)	{	grbuts.add(sob);	grbuts.sortimgs;	}
+	addonce(string sob)	{ grbuts.addonce(sob);	grbuts.sortimgs;	}
+	addbut(string sob)	{ grbuts.addonce(sob);	grbuts.sortimgs;	}
+	contains(string sob)	{ grbuts.contains(sob);	}
+	addlocker(string sob)	{
+		.add(sob);
+		classlocker::setaslocker(sob);
+	}
+	removebutlist	{	.withlist("removebut"); }
+	removebut(string sbut)	{
+		grbuts.remove(sbut);
+		bool b = (sobject!=null || sclicked!=null);
+		if( sbut==sobject ) sobject=null;
+		if( sbut==sclicked ) sclicked = null;
+		if( b )	{
+			.onmousemove;
+		}
+	}
+	removebutmoveoff(string sbut)	{
+		grbuts.remove(sbut);
+		.checkmoveoff(sbut);
+	}
+	checkmoveoff(string sbut)	{
+		if( sbut==sobject )	{
+			.lastoff;
+			.onmousemove;
+		}
+	}
+	load(string sname, string sfile, string sfuninit) {
+		<GAME>.varnew("gmimgvec", sname);
+		sname .* sfile;
+		<sname>.each( sfuninit );
+		.addgroup(sname);
+	}
+	remove(string sname)	{
+		if( <GAME>.hasvar(sname) )	{
+			//for( int i=0; i < <sname>.size; i++ )	grbuts.remove( <sname>.get(i) );
+			grbuts.removegr(sname);
+		}
+	}
+	loadfrom(string sname, string spath, string sfile, string sfuninit) {
+		@s = .getgraphpath;
+		.setgraphpath(spath);
+		.load(sname,sfile,sfuninit);
+		.setgraphpath(s);
+	}
+	onmouselclick	{
+		if( .getlock ) return;
+		
+		if( .checktouchpad && bcheck2klik )	{
+			if( ipadclick )	{
+				@s = sobject;
+				//.onmousemove;
+				if( s==sobject )	{
+					ipadclick=0;
+					._butmouselclick;
+				} else if ( sobject==null )	{
+					ipadclick=0;
+				}
+			} else {
+				ipadclick=1;
+				//.onmousemove;
+			}
+		} else {
+			._butmouselclick;
+		}
+	}
+	onmouserclick	{
+		if( !.getlock ) {
+			if (sobject!=null && <sobject>.hasaddedmet("butrclick") )
+				<sobject>.butrclick; 
+		}
+	}
+	_butmouselclick	{
+		.<this + "_lclick">;
+		if( sobject!=null)	{
+			sclicked = sobject;
+			if (<sobject>.hasaddedmet("butclick") )
+				<sobject>.butclick;
+		}
+	}
+	onmouselrel	{
+		if( .getlock ) return;
+		if( .checktouchpad )	{
+			.lastoff;
+		}
+		.<this + "_lrel">;
+		if( sclicked!=null && <sclicked>.hasaddedmet("butlrel") )	{
+			<sclicked>.butlrel;
+		} else sclicked=null;
+	}
+	onmousemove	{
+		if( .getlock ) return;
+		if( sclicked!=null )	{
+			if( <sclicked>.hasaddedmet("butmoving") )	<sclicked>.butmoving;
+		}
+		|int x, int y| = mouse.getpos;
+		if(grbuts.isinfunc(x,y,"isbutin") )	{
+			@s = grbuts.getsfound;
+			if( s!=sobject )	{
+				.lastoff;
+				sobject = s;
+				.<this + "_moveon">;
+ 				if( <s>.hasaddedmet("butmoveon") )
+					<s>.butmoveon;
+			}
+		} else {
+			.lastoff;
+		}
+	}
+	lastoff	{
+		if( sobject!=null )	{
+			.<this + "_moveoff">;
+			if( <sobject>.hasaddedmet("butmoveoff") )
+				<sobject>.butmoveoff;
+			sobject = null;
+		}
+	}
+	refresh	{
+		.lastoff;
+		.onmousemove;
+	}
+	/*
+	virtual bool isbutin(int x, int y)	{ 0; }
+	virtual butclick	{}
+	virtual butmoveon {}
+	virtual butmoveoff {}*/
+}
+
+public Button_isin		{	.addmethod("isbutin", func { (@x,@y) .isin(x,y,1,0); } );	}
+public Button_isinvis		{	.addmethod("isbutin", func { (@x,@y) .isin(x,y,0,0); } );	}
+public Button_isinalpha		{	.addmethod("isbutin", func { (@x,@y) .isin(x,y,1,1); } );	}
+public Button_isinvisalpha	{	.addmethod("isbutin", func { (@x,@y) .isin(x,y,0,1); } );	}
+public Button_moveon		{
+	.addmethod("butmoveon", func {
+		sndfxmoveonms.playif;
+		advmouse.setbut;
+		if( .nofframes(-1)>1 ) .setframe(-1,1);
+	} );
+}
+public Button_moveonstate		{
+	.addmethod("butmoveon", func {
+		if( .advstdstate )	{
+			sndfxmoveonms.playif;
+			advmouse.setbut;
+			if( .nofframes(-1)>1 ) .setframe(-1,1);
+		}
+	} );
+}
+public Button_moveonplay		{
+	.addmethod("butmoveon", func {
+		sndfxmoveonms.play;
+		advmouse.setbut;
+		if( .isplaying(-1)==false ) .play(-1);
+	} );
+}
+public Button_moveoff		{	.addmethod("butmoveoff", func { advmouse.setstd; .setframe(-1,0);} );	}
+public Button_moveonms		{	.addmethod("butmoveon", func { advmouse.setbut; } );			}
+public Button_moveonfxms	{	.addmethod("butmoveon", func { advmouse.setbut; sndfxmoveonms.playif; } ); }
+public Button_moveonfxmstate	{
+	.addmethod("butmoveon", func {
+		if( .advstdstate )	{
+			advmouse.setbut; 
+			sndfxmoveonms.playif; 
+		}
+		} );
+	}
+public Button_moveoffms		{	.addmethod("butmoveoff", func { advmouse.setstd; } );			}
+public Button_std		{	.Button_isin; .Button_moveon; .Button_moveoff;				}
+public Button_stdstate		{	.Button_isin; .Button_moveonstate; .Button_moveoff;				}
+public Button_stdalpha		{	.Button_isinalpha; .Button_moveon; .Button_moveoff;			}
+public Button_stdms		{	.Button_isinalpha; .Button_moveonms; .Button_moveoffms;			}
+public Button_stdmstate		{	.Button_isinalpha; .Button_moveonmstate; .Button_moveoffms;			}
+public Button_stdclick		{	.addmethod("butclick", "Button_butclick" );		}
+public Button_addstd	{
+	.Button_std;
+	.Button_stdclick;
+	butgame.add(this);
+}
+public Button_addstdalpha	{
+	.Button_stdalpha;
+	.Button_stdclick;
+	butgame.add(this);
+}
+public Button_addstdstate	{
+	.Button_stdstate;
+	.addmethod("butclick", func {
+		if( .advstdstate )	{
+			sndfxbutclick1.playif;
+			.Button_butclick;
+		} else .<"butclick_nostdstate_"+this>;
+		} );
+	butgame.add(this);
+}
+public Button_butclick		{	.<"butclick_"+this>;	}
+public Button_butmoveon		{	.<"butmoveon_"+this>;	}
+public Button_butmoveoff	{	.<"butmoveoff_"+this>;	}
+
+class Buttons : LObjController	{
+	init(string sfile)	{
+		LObjController::init;
+		.unlock;
+		new gmimgvec grbuts;
+		new int __id = 0;
+		new string sanbut = "anbut";
+		.newanima(sanbut, sfile, 10);
+		_ = .newanactionsgr(sanbut, sanbut, "grbuts");
+		anbut.hide;
+		grbuts.setz(10);
+		grbuts.removeif( func {
+			if( .actionname=="bkg" ) { .setz( .getz-1); true; }
+			else false; 
+			});
+		new string slastb = null;
+		.vars2(A,"sobject", null, "bvisible", true, "balpha", true);
+		
+		new int ipadclick = 0;
+		.var2("bcheck2klik", false);
+	}
+	_release()	{
+		if( .checktouchpad )	{
+			ipadclick = 0;
+		}
+		<slastb>.setframe(-1,0);
+		.copyobj;
+		.<this + "_moveoff">();
+		slastb = null;
+		//bsms.setstd;
+		advmouse.setstd;
+	}
+	getbut	{	grbuts.getsfound;	}
+	onmousemove()	{
+		if( .getlock ) return;
+		grbuts.setframe(-1,0);
+		def id =  grbuts.isin(mouse.getpos,bvisible,balpha);
+		if( slastb!=null ) <slastb>.setframe(-1, 1);
+		if( id ) {
+			string s = grbuts.getsfound;
+			if( s!=slastb )	{
+				if( slastb!=null )	._release;
+				slastb = s;
+				<s>.setframe(-1,1);
+				.copyobj;
+				//bsms.setact;
+				advmouse.setact;
+				.<this + "_moveon">();
+			}
+		} else if( slastb!=null )	{
+			._release;
+		}
+		//slastb==null ? bsms.setstd : bsms.setact;
+	}
+	copyobj()	{	sobject = <slastb>.actionname;	}
+	onmouselclick()	{
+		if( .getlock ) return;
+		
+		if( .checktouchpad && bcheck2klik )	{
+			if( ipadclick )	{
+				ipadclick=0;
+				._butmouselclick;
+			} else {
+				ipadclick=1;
+				.onmousemove;
+			}
+		} else {
+			._butmouselclick;
+		}
+	}
+	_butmouselclick	{
+		if( slastb!=null )	{
+			.copyobj;
+			.<this + "_lclick">;
+		}
+	}
+	onmouselrel	{
+		if( .getlock ) return;
+		if( slastb!=null )	{
+			.copyobj;
+			.<this + "_lrel">;
+		}
+	}
+	disable	{
+		.lock;
+		grbuts.hide;
+		if( slastb!=null )	{
+			//bsms.setstd;
+			advmouse.setstd;
+			slastb=null;
+		}
+	}
+	enable	{
+		.unlock;
+		grbuts.show;
+	}
+}

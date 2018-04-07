@@ -1,0 +1,60 @@
+
+/***************************************************************************/
+class classgamemusic : classdbreader	{
+	init()	{
+		classdbreader::init();
+		new string smuspath = "";
+		new string sbgrpath = "";
+		new snd _sndbgr;
+		_sndbgr.addmethod("onfinish", "_stdsndloop");
+	}
+	reset()	{
+		gameapi.stopmusic();
+		this.stopbgr();
+	}
+	_stdsndloop()	{	this.play(); }
+	load(string sfile)	{	dbl.loadscript( sfile );	}
+	musicpath(string s)	{	smuspath = s;	}
+	sndbgrpath(string s)	{	sbgrpath=s;	}
+	_play(int ipos)	{
+		int i[3], string s[2];
+		i0 = 1;
+		i1 = dbl.getcolsno( ipos );
+		while( i0 < i1 )	{
+			s0 = dbl.get( ipos, i0 );	i0++;
+			if( s0 == "music" )	{
+				s1 = smuspath + dbl.get( ipos, i0 );
+				i0++;
+				if( i0 < i1 )	{
+					if( dbl.get( ipos, i0 )=="vol" )	{
+						i0++;
+						gameapi.setmusicvol( dbl.get( ipos, i0 ) );
+						i0++;
+					}
+				} else {
+					gameapi.setmusicvol( 100 );
+				}
+				gameapi.playmusic( s1 );
+			} else if (s0 == "bgr")	{
+				_sndbgr.load( sbgrpath + dbl.get( ipos, i0 ) );
+				i0++;
+				if( i0 < i1 )	{
+					if( dbl.get( ipos, i0 )=="vol" )	{
+						i0++;
+						_sndbgr.setvol( dbl.get( ipos, i0 ) );
+						i0++;
+					}
+				} else {
+					_sndbgr.setvol( 100 );
+				}
+				this.playbgr();
+			} else {	i0++;	}
+		}
+	}
+	play()	{
+		this.reset();
+		this.readrow( gameapi.getgamename(), "_play" );
+	}
+	playbgr()		{	_sndbgr.play();	}
+	stopbgr()	{	_sndbgr.stop(false);	}
+}

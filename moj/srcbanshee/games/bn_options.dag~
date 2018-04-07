@@ -1,0 +1,204 @@
+game mgOptions : StdGame	{
+	init	{
+		StdGame::init("mg_options"); 
+		.imgs = (A, "bkg.jpg 1", "baza.pyz 2", "fullscreen.pyz 4","fullscreen_check.pyzH 5", "cursor.pyz 5","cursor_checkH.pyz 6", "ok.pyz 6",
+		"volume.pyz 108", "volume_zakres.pyzH 4","music.pyz 108", "music_zakres.pyzH 4", "voice.pyz 108", "voice_zakres.pyzH 4"          
+		); 
+		
+		mus.smixer = ("engine");
+		mus.playstr("ck1_loop.ogg -v 40 -l");
+		//mouse.showsys;
+		 
+		new bool bFullScreen =  true; 
+		new bool bStandardCursor =  true; 
+		if(clsmen.has("currentprofile"))
+		{
+			bFullScreen =  clsmen.get("fullscreen");
+			bStandardCursor = clsmen.get("system_cursor");
+			if( bFullScreen ) 
+				anfullscreen_check.show;
+			else 
+				anfullscreen_check.hide;
+				
+			if( bStandardCursor ) 
+				ancursor_check.show;
+			else 
+				ancursor_check.hide;
+			
+			/*if( bStandardCursor ) 
+			{
+				.mshowsysmouse;
+			}
+			else
+			{
+				.mshowsoftmouse;
+			}*/
+			 	
+		}
+		
+		clsmen.saveonset = (true);
+		
+		anok.Button_isinalpha;
+		anok.Button_moveoff;
+		anok.Button_moveon_std;
+		anok.addmethod("butclick", func {
+			.mend;
+		} ); 
+		butgame.add("anok"); 
+		
+		anfullscreen.Button_isinalpha;
+		anfullscreen.Button_moveoff;
+		anfullscreen.Button_moveon_std;
+		anfullscreen.addmethod("butclick", func {
+			.changefullscreen;
+		} ); 
+ 
+		butgame.add("anfullscreen");
+		
+		ancursor.Button_isinalpha;
+		ancursor.Button_moveoff;
+		ancursor.Button_moveon_std;
+		ancursor.addmethod("butclick", func {
+			bStandardCursor = !bStandardCursor;
+			if( bStandardCursor ) 
+			{
+				/*ancursor_check.show;
+				mouse.showsys;
+				mouse.hide;
+				engine.refresh;
+				engine.redraw;*/
+				.mshowsysmouse;
+			}
+			else
+			{
+				/*ancursor_check.hide;
+				mouse.hidesys;	
+				mouse.show;*/
+				.mshowsoftmouse;
+				//mouse.setpos( .getcx, .getcy );
+				//engine.redraw;
+			}
+			
+			clsmen.set("system_cursor", bStandardCursor);
+			//engine.setcursor(bStandardCursor);
+			 
+		} ); 
+ 
+		butgame.add("ancursor");
+		
+		anvolume{
+		 
+			@dx = 50;
+			@x = anvolume_zakres.getpx + dx;
+			@ex = anvolume_zakres.getex - dx;
+			.vars2(A, "ypos", anvolume_zakres.getcy, "xpos", x, "expos", ex);
+			.Button_isin;
+			.Button_moveoff;
+			.Button_moveon_std;
+			.addmethod("butmoving", func {
+				@x = mouse.getpx;
+				if( x <= xpos )	.ansetcpos(xpos, ypos);
+				else if (x>=expos) .ansetcpos( expos, ypos);
+				else .ansetcpos( x, ypos );
+				real r[2];
+				r0 = expos - .getcx;
+				r1 = expos - xpos;
+				clsmen.set("sound_volume", (1.0-(r0/r1))*100.0);
+				.wczytajglosnosc;
+				mus.updatevolume;
+				} );
+			 
+			.suwakpos( clsmen.get("sound_volume")->to_r/100.0 );
+			 
+			butgame.add(this);
+		}; 
+		
+		anmusic{
+		 
+			@dx = 50;
+			@x = anmusic_zakres.getpx + dx;
+			@ex = anmusic_zakres.getex - dx;
+			.vars2(A, "ypos", anmusic_zakres.getcy, "xpos", x, "expos", ex);
+			.Button_isin;
+			.Button_moveoff;
+			.Button_moveon_std;
+			.addmethod("butmoving", func {
+				@x = mouse.getpx;
+				if( x <= xpos )	.ansetcpos(xpos, ypos);
+				else if (x>=expos) .ansetcpos( expos, ypos);
+				else .ansetcpos( x, ypos );
+				real r[2];
+				r0 = expos - .getcx;
+				r1 = expos - xpos;
+				clsmen.set("music_volume", (1.0-(r0/r1))*100.0);
+				.wczytajglosnosc;
+				mus.updatevolume;
+				} );
+			 
+			.suwakpos( clsmen.get("music_volume")->to_r/100.0 );
+			 
+			butgame.add(this);
+		}; 
+		
+		anvoice{
+		 
+			@dx = 50;
+			@x = anvoice_zakres.getpx + dx;
+			@ex = anvoice_zakres.getex - dx;
+			.vars2(A, "ypos", anvoice_zakres.getcy, "xpos", x, "expos", ex);
+			.Button_isin;
+			.Button_moveoff;
+			.Button_moveon_std;
+			.addmethod("butmoving", func {
+				@x = mouse.getpx;
+				if( x <= xpos )	.ansetcpos(xpos, ypos);
+				else if (x>=expos) .ansetcpos( expos, ypos);
+				else .ansetcpos( x, ypos );
+				real r[2];
+				r0 = expos - .getcx;
+				r1 = expos - xpos;
+				clsmen.set("voice_volume", (1.0-(r0/r1))*100.0);
+				.wczytajglosnosc;
+				mus.updatevolume;
+				} );
+			 
+			.suwakpos( clsmen.get("voice_volume")->to_r/100.0 );
+			 
+			butgame.add(this);
+		}; 
+	}
+	changefullscreen	{
+		classadv::changefullscreen;
+		bFullScreen = clsmen.get("fullscreen");
+		if( bFullScreen ) 
+			anfullscreen_check.show;
+		else 
+			anfullscreen_check.hide;
+	}
+	mshowsysmouse	{
+		int x = mouse.getpx;
+		int y = mouse.getpy;
+		mouse.hide;
+		mouse.showsys;
+		//mouse.setpos(x, y);
+		ancursor_check.show;
+		engine.refresh;
+		engine.redraw;
+	}
+	mshowsoftmouse	{
+		|int x, int y| = mouse.getsyspos;
+		mouse.hidesys;	
+		mouse.show;
+		mouse.setpos(x, y);
+		ancursor_check.hide;
+		engine.refresh;
+		mouse.setpos(x+1, y+1);
+		engine.redraw;
+	}
+	suwakpos(real r)	{	.ansetcpos(xpos + r*(expos-xpos), ypos);	}
+	
+	mend	{
+		ccs.buildfromscreen;
+		gameapi.play("MainMenu"); 
+	}
+}

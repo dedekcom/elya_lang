@@ -1,0 +1,670 @@
+
+new string sArcheo = "cytra";
+game Archeo : DziejeGame	{
+	init	{
+		DziejeGame::init("archeo");
+		
+// 		cytra.pyz  dzban.pyz  obrazek.pyz  pisarz.pyz
+		.clogo;
+		.subgamebg;
+		.img = ("$scripts/menus/belkaarcheo.pyz");
+		.sfxs = (A, "getpuz 60", "putpuz 60");
+		
+		new gmimgvec grels;
+		"grels" ..< (sArcheo+".pyz");
+		new string slastob = grels.last;
+		grels.removelast;
+		<slastob>.hide;
+		<slastob>.setpos( iResX/2, 0 );
+		grels.hash;
+		grels.sortz(10);
+		int id = grels.size->rand;
+		new string srand = grels.get(id);
+		grels.removeat(id);
+		<srand>.setz(5);
+		<srand>.setpos(0,0);
+		
+		new Rect rec1( iResX/2+10,Y1, X2-(iResX/2)-10, Y2-Y1-10);
+		rec1.fitgrouprand("grels");
+		
+		new classplacepointer2 clp;
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		.sounds = (A,
+			"snd1", "Archeolodzy znale¼li staro¿ytny przedmiot egipski; Z³ó¿ go w ca³o¶æ wiedz±c ¿e", func { .cbplay("snd2"); clp.showob(srand,"ld"); },
+			"snd2", "ta czê¶æ le¿y ju¿ na swoim miejscu", func { clp.stoph; igmstate = 1; },
+			"sndcytra", "Z³o¿yli¶my egipsk± cytrê", null,
+			"snddzban", "Oto piêkny dzban; S³u¿y³ egipskiej gospodyni wiele lat nim siê zbi³ a dzi¶ go zrekonstruowali¶my", null,
+			"sndobrazek", "Po ciê¿kiej pracy zrekonstruowali¶my egipski fresk", null,
+			"sndpisarz", "Zrekonstruowali¶my pos±¿ek egipskiego pisarza", null
+			);
+		.cbplay("snd1");
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxgetpuz.play;
+			@s = grels.getsfound;
+			<s>.setz(300);
+			.mssetobj(s);
+			grels.remove(s);
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		fxputpuz.play;
+		if( <s>.aninlod(30->igetsc) )	{
+			<s>.setz(5);
+			<s>.setpos(0,0);
+			if( grels.empty )	{
+				igmstate = 2;
+				<slastob>.show;
+				.cbplay("snd"+sArcheo);
+			}
+		} else {
+			grels.add(s);
+			grels.sortz(10);
+		}
+	}
+	mouse_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}
+
+new string sSzkielet = "kon";
+game Szkielety : DziejeGame	{
+	init	{
+		DziejeGame::init("szkielety");
+		.sfxs = (A, "getpuz 60", "putpuz 60");
+		if( sSzkielet=="krokodyl")
+			.newanima("anbutx", "xkrok.pyz", 100);
+		else .newanima("anbutx", "butx.pyz", 100);
+		new Button butx;
+		anbutx.Button_std;
+		butx.add("anbutx");
+		
+		.clogo;
+		.subgamebg;
+		.imgs = (A,"$scripts/menus/belkaszkielety.pyz");
+		.newanima("anend", sSzkielet+"end.pyz", 50);
+		.newanima("anpodpo", "podpo"+sSzkielet+".pyz", 100);
+		anpodpo.hide;
+		anend.hide;
+		new classfadeinout clfio;
+		anend.anaddfilter;
+		
+		new gmimgvec grels;
+		"grels" ..< (sSzkielet+".pyz");
+		new string slastob = grels.last;
+		grels.hash;
+		grels.sortz(10);
+		int id = grels.size->rand;
+		new string srand = grels.get(id);
+		grels.removeat(id);
+		<srand>.setz(5);
+		<srand>.setpos(0,0);
+		
+		new Rect rec1( iResX/2+10,Y1, X2-(iResX/2)-10, Y2-Y1-10);
+		rec1.fitgrouprand("grels");
+		
+		new classplacepointer2 clp;
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		.sounds = (A,
+			"snd1", "Z³ó¿ ko¶ci egipskiego zwierzêcia wiedz±c ¿e", func { .cbplay("snd2"); clp.showob(srand,"ld"); },
+			"snd2", "ta ko¶æ le¿y ju¿ na swoim miejscu", func { clp.stoph; igmstate = 1; },
+			"snd3", "Najed¼ tutaj ¿eby zobaczyæ szkielet", func { clp.stoph; }
+			);
+		.cbplay("snd1");
+		mus.playstr("egipt1.ogg -v 40");
+	}
+	butx_moveon	{
+		anend.setframe(-1,1);
+	}
+	butx_moveoff	{
+		anend.setframe(-1,0);
+	}
+	clbuts_help_butmoveon	{
+		if( igmstate==1 ) {
+			anpodpo.show;
+		}
+	}
+	clbuts_help_butmoveoff	{
+		anpodpo.hide;
+		anpodpo.ansetnextfr;
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxgetpuz.play;
+			@s = grels.getsfound;
+			<s>.setz(300);
+			.mssetobj(s);
+			grels.remove(s);
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		fxputpuz.play;
+		if( <s>.aninlod(30->igetsc) )	{
+			<s>.setz(5);
+			<s>.setpos(0,0);
+			if( grels.empty )	{
+				igmstate = 2;
+				anend.setopacity(0);
+				anend.show;
+				clfio.setopacity( 1, 10, "anend", func {
+					anend.unlink;
+					clp.showob("anbutx", "lu");
+					.cbplay("snd3");
+					} );
+			}
+		} else {
+			grels.add(s);
+			grels.sortz(10);
+		}
+	}
+}
+
+game Rydwan : DziejeGame	{
+	init	{
+		DziejeGame::init("rydwan");
+		.path = ("kons");
+		
+// 		cytra.pyz  dzban.pyz  obrazek.pyz  pisarz.pyz
+		.clogo;
+		.subgamebg;
+		.img = ("$scripts/menus/belkakonstruktor.pyz");
+		.img = ("rydwanp.pyz");
+		
+		.sfxs = (A, "getpuz 60", "putpuz 60");
+		
+		new gmimgvec grels;
+		"grels" ..< "rydwan.pyz";
+		.mwyjmij("a6_6");
+		.mwyjmij("b1_6");
+		.mwyjmij("c3_6");
+		
+		grels.hash;
+		grels.sortz(10);
+		
+		new Rect rec1( 0,Y1, iResX/2-X1, Y2-Y1-10);
+		rec1.fitgrouprand("grels");
+		
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		.sounds = (A,
+			"snd1", "Z³ó¿ odpowiednie rzuty rydwanu; Dla u³atwienia ko³a zosta³y ustawione na swoim miejscu", func { igmstate=1; },
+			"sndend", "Dobrze", null
+			);
+		.cbplay("snd1");
+	}
+	mwyjmij(string s)	{
+		int id = grels.findsac(s);
+		s = grels.get(id);
+		grels.removeat(id);
+		<s>.setz(5);
+		<s>.setpos(0,0);
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxgetpuz.play;
+			@s = grels.getsfound;
+			<s>.setz(300);
+			.mssetobj(s);
+			grels.remove(s);
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		fxputpuz.play;
+		if( <s>.aninlod(30->igetsc) )	{
+			<s>.setz(5);
+			<s>.setpos(0,0);
+			if( grels.empty )	{
+				igmstate = 2;
+				.cbplay("sndend");
+			}
+		} else {
+			grels.add(s);
+			grels.sortz(10);
+		}
+	}
+	mouse_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}
+
+new string sLutnia = "gitara";
+game Lutnia : DziejeGame	{
+	init	{
+		DziejeGame::init("lutnia");
+		.path = ("kons");
+		
+		.clogo;
+		.subgamebg;
+		.img = ("$scripts/menus/belkakonstruktor.pyz");
+		
+		.sfxs = (A, "getpuz 60", "putpuz 60");
+		
+		new gmimgvec grels;
+		"grels" ..< (sLutnia+".pyz");
+		new string srand = grels.first;
+		.mwyjmij("1_start");
+		new int wysyp = 2;
+		new gmimgvec grplus;
+		int id = .mcontains("grels","plus");
+		while( id>=0 )	{
+			grplus.add( grels.get(id) );
+			grels.removeat(id);
+			id = .mcontains("grels","plus");
+		}
+		grplus.hide;
+		
+		if( sLutnia=="gitara" )
+			new Rect rec1( 0,Y1, iResX/2+150, Y2-Y1-10);
+		else	new Rect rec1( iResX/2-150,Y1, iResX/2+140, Y2-Y1-10);
+		rec1.fitgrouprand("grels");
+		
+		new DelayMover cmov;
+		cmov.unlock;
+		new classplacepointer2 clp;
+		
+		.sounds = (A,
+			"sndlutnia", "Z³ó¿ egipsk± lutniê; Uwaga;", func { .cbplay("snd2"); clp.showob(srand,"ld"); },
+			"sndgitara", "Odpowiednikiem egipskiej lutni jest dzisiejsza gitara", func { .cbplay("snd2"); clp.showob(srand,"ld"); },
+			"snd2", "Czê¶ci uk³adaj po kolei pocz±wszy od tej która le¿y ju¿ na swoim miejscu", func { igmstate=1; clp.stoph; },
+			"sndend", "Dobrze", null
+			);
+		.cbplay("snd"+sLutnia);
+	}
+	int mcontains(string sgr, string s)	{
+		for( int i=0; i< <sgr>.size; i++)
+			if ( < <sgr>.get(i)>.framename->contains(s) ) return i;
+		-1;
+	}
+	mwyjmij(string s)	{
+		int id = grels.findsac(s);
+		s = grels.get(id);
+		grels.removeat(id);
+		<s>.setz(5);
+		<s>.setpos(0,0);
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxgetpuz.play;
+			@s = grels.getsfound;
+			<s>.setz(300);
+			.mssetobj(s);
+			grels.remove(s);
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		fxputpuz.play;
+		if( <s>.aninlod(30->igetsc) && wysyp==<s>.actionname )	{
+			<s>.setz(5);
+			<s>.setpos(0,0);
+			@id = .mcontains("grplus", <s>.framename+"_plus");
+			if( id>=0 )	{
+				@s2 = grplus.get(id);
+				grplus.removeat(id);
+				<s2>.setpos(0,0);
+				<s2>.setz(5);
+				<s2>.show;
+			}
+			if( grels.findsac(wysyp)<0 )	wysyp++;
+			if( grels.empty )	{
+				igmstate = 2;
+				.cbplay("sndend");
+			}
+		} else {
+			grels.add(s);
+			grels.sortz(10);
+		}
+	}
+	mouse_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}
+
+game Ship : DziejeGame	{
+	init	{
+		DziejeGame::init("ship");
+		.path = ("kons");
+		
+		.clogo;
+		.subgamebg;
+		.img = ("$scripts/menus/belkakonstruktor.pyz");
+		
+		.sfxs = (A, "getpuz 60", "putpuz 60");
+		
+		new gmimgvec grels;
+		"grels" ..< "ship.pyz";
+		new string slastob = grels.last;
+		grels.removelast;
+		<slastob>.hide;
+		<slastob>.setz(20);
+		grels.hash;
+		grels.sortz(10);
+		int id = grels.size->rand;
+		new string srand = grels.get(id);
+		grels.removeat(id);
+		<srand>.setz(5);
+		<srand>.setpos(0,0);
+		
+		new Rect rec1( iResX/2-10,Y1, iResX/2+10, Y2-Y1-10);
+		rec1.fitgrouprand("grels");
+		
+		new classplacepointer2 clp;
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		.sounds = (A,
+			"snd1", "Zbuduj egipski okrêt", func { .cbplay("snd2"); clp.showob(srand,"ld"); },
+			"snd2", "ta czê¶æ le¿y ju¿ na swoim miejscu", func { clp.stoph; igmstate = 1; },
+			"sndend", "Brawo!", null
+			);
+		.cbplay("snd1");
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxgetpuz.play;
+			@s = grels.getsfound;
+			<s>.setz(300);
+			.mssetobj(s);
+			grels.remove(s);
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		fxputpuz.play;
+		if( <s>.aninlod(30->igetsc) )	{
+			<s>.setz(5);
+			<s>.setpos(0,0);
+			if( grels.empty )	{
+				igmstate = 2;
+				<slastob>.show;
+				.cbplay("sndend");
+			}
+		} else {
+			grels.add(s);
+			grels.sortz(10);
+		}
+	}
+}
+
+game Swiatynia : DziejeGame	{
+	init	{
+		DziejeGame::init("swiatynia");
+		.path = ("kons");
+		
+		.clogo;
+		.subgamebg;
+		.img = ("$scripts/menus/belkakonstruktor.pyz");
+		.sfxs = (A, "getpuz 60", "putpuz 60");
+		new gmimgvec grels;
+		"grels" ..< "swiatynia.pyz";
+		new string srand = grels.first;
+		grels.removeat(0);
+		new gmimgvec grplus;
+		int id = .mcontains("grels","plus");
+		while( id>=0 )	{
+			grplus.add( grels.get(id) );
+			grels.removeat(id);
+			id = .mcontains("grels","plus");
+		}
+		grplus.hide;
+		
+		new Rect rec1( iResX/2-150,Y1, iResX/2+140, Y2-Y1-10);
+		rec1.fitgrouprand("grels");
+		
+		new DelayMover cmov;
+		cmov.unlock;
+		new classplacepointer2 clp;
+		new vector vcheck;
+		vcheck.type("string");
+		
+		.sounds = (A,
+			"sndgo", "Zbuduj fragment egipskiej ¶wi±tyni", func { igmstate=1; },
+			"sndend", "¦wietnie; Gratulujê", null
+			);
+		.cbplay("sndgo");
+	}
+	int mcontains(string sgr, string s)	{
+		for( int i=0; i< <sgr>.size; i++)
+			if ( < <sgr>.get(i)>.framename->contains(s) ) return i;
+		-1;
+	}
+	mwyjmij(string s)	{
+		int id = grels.findsac(s);
+		s = grels.get(id);
+		grels.removeat(id);
+		<s>.setz(5);
+		<s>.setpos(0,0);
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxgetpuz.play;
+			@s = grels.getsfound;
+			<s>.setz(300);
+			.mssetobj(s);
+			grels.remove(s);
+		}
+	}
+	mnot(int id)	{
+		for( int i=0; i<grels.size; i++) if( <grels.get(i)>.framenr==id ) return 1;
+		0;
+	}
+	menabled(string s)	{
+		vcheck.free;
+		vcheck.vecbuildfromstring(s, "_");
+		for( int i=0; i< vcheck.size; i++) if( .mnot(vcheck.get(i)) ) return 0;
+		1;
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		fxputpuz.play;
+		if( <s>.aninlod(30->igetsc) && .menabled(<s>.framename) )	{
+			<s>.setz(5);
+			<s>.setpos(0,0);
+			@id = .mcontains("grplus", "x" + <s>.framenr + "_plus");
+			if( id>=0 )	{
+				@s2 = grplus.get(id);
+				grplus.removeat(id);
+				<s2>.setpos(0,0);
+				<s2>.setz(5);
+				<s2>.show;
+			}
+			if( grels.empty )	{
+				igmstate = 2;
+				.cbplay("sndend");
+			}
+		} else {
+			grels.add(s);
+			grels.sortz(10);
+		}
+	}
+	mouse_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}
+
+game Wejscie : DziejeGame	{
+	init	{
+		DziejeGame::init("wejscie");
+		.sfxs = (A, "getpuz 60", "putpuz 60");
+		.clogo;
+		.subgamebg;
+		.img = ("$scripts/menus/belkakonstruktor.pyz");
+		
+		new gmimgvec gr1;
+		"gr1" ..< "wej1.pyz";
+		new gmimgvec gr2;
+		"gr2" ..< "wej2.pyz";
+		
+		gr1.hide;
+		gr2.hide;
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		string s[2];
+		new gmimgvec grels;
+		for( int i=3; i<=9; i++)	{
+			s0 = "gr"+i;
+			new gmimgvec <s0>;
+			s0 .* ("wej"+i+".pyz");
+			grels.addgr(s0);
+		}
+		grels.sortz(10);
+		new gmimgvec gready;
+		
+		/*1 - 8   / animacja / txt: zbudujemy zamkniêcie komnaty grobowej w piramidzie, widzimy na obrazku sciane do komnaty z malym wejsciem
+9-12   / animacja/  txt: po bokach wejscia znajdowaly sie tysiace kamieni z ktorych zbudowano piramide, pomiedzy nimi zostawiono waskie przejscie
+1 - po prawej stronie wejscia ustawiono specjalnie przygotowana w kamieniolomie sciane, ustaw j±
+2a, 2b, 2c - postaw 6 mocnych drewnianych klocków
+3a, 3b, 3c - na nich postaw 3 kamienne bloki
+4 - postaw druga sciane po lewej stronie wejscia, przygotowana specjalnie w kamieniolomie
+5a,5b, 5c - po³uz w odpowiednim miejscu 3 kamienne belki w ksztalcie walcow
+6 - wluz w otwory w scianie ostatnia belke
+7a, 7b, 7c - przywiaz grubymi linami kamienne bloki tak aby zawisly na belkach
+
+brawo, wejscie ju¿ zbudowane, budowniczowie zabiora teraz drewniane klocki i 3 kamienne bloki zawiisna na linach, azby zamknac wejscie kaplani przetna liny a kamienne bloki spadna na dol i zatarasuja wejscie*/
+		<gr1.first>.show;
+		new int shiftx;
+		new int shifty;
+		.sounds = (A,
+			"snd1", "Zbudujemy zamkniêcie komory grobowej w piramidzie", func {
+				new int ilicz1 = 0;
+				.timer = ("tim1", 500, func {
+					<gr1.get(ilicz1)>.show;
+					ilicz1++;
+					if( ilicz1<gr1.size )	.play;
+					} );
+				tim1.play;
+				.cbplay("snd2");
+				},
+			"snd2", "Oto ¶ciana komnaty z ma³ym wej¶ciem", func {
+				new int ilicz2 = 0;
+				.timer = ("tim2", 500, func {
+					<gr2.get(ilicz2)>.show;
+					ilicz2++;
+					if( ilicz2<gr2.size )	.play;
+					} );
+				tim2.play;
+				.cbplay("snd3");
+				},
+			"snd3", "Wokó³ wej¶cia stoj± tysi±ce kamieni u¿ytych do budowy piramidy", func {	.cbplay("snd4"); },
+			"snd4", "Po prawej stronie wej¶cia ustaw kamienn± ¶cianê", func { igmstate = 1; },
+			"snd5", "Teraz postaw 6 mocnych drewnianych klocków", func { igmstate = 2; },
+			"snd6", "Na klockach postaw 3 kamienne bloki", func { igmstate=3; },
+			"snd7", "Postaw drug± ¶cianê po lewej stronie wej¶cia", func { igmstate=4; },
+			"snd8", "Teraz po³ó¿ w odpowiednim miejscu 3 kamienne belki w kszta³cie walców", func { igmstate=5; },
+			"snd9", "W³ó¿ w otwory w ¶cianie ostatni± belkê", func { igmstate=6; },
+			"snd10", "Przywi±¿ grubymi linami kamienne bloki tak aby zawis³y na belkach", func { igmstate=7; },
+			"sndend", "Brawo; Wej¶cie zbudowane; Budowniczowie zabior± drewniane klocki", func {
+				.mhide("15_2a");
+				.mhide("16_2b");
+				.mhide("16_2c");
+				.cbplay("sndend2");
+				},
+			"sndend2", "i 3 kamienne bloki zawisn± na linach; Po przeciêciu lin bloki spadn± i zatarasuj± wej¶cie", func {
+				.mhide("21_7a"); .mhide("21_7b"); .mhide("21_7c");
+				.newtimer("timput", 1, 42);
+				int x = 280->igetsc;
+				<.mget("17_3a")>.clip(x,Y1,X2,Y2);
+				<.mget("17_3b")>.clip(x,Y1,X2,Y2);
+				<.mget("17_3c")>.clip(x,Y1,X2,Y2);
+				timput.addmethod("ontick", func {
+					<.mget("17_3a")>.move(0,1);
+					<.mget("17_3b")>.move(0,1);
+					<.mget("17_3c")>.move(0,1);
+					} );
+				timput.play;
+				}
+			);
+		.cbplay("snd1");
+	}
+	mget(string s)	{
+		gready.get( gready.findsfr(s) );
+	}
+	mhide(string s)	{
+		<.mget(s)>.hide;
+	}
+	cmov_GET	{
+		if( igmstate<1 || igmstate>7 ) return;
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxgetpuz.play;
+			@s = grels.getsfound;
+			<s>.setz(300);
+			shiftx = <s>.getpx;
+			shifty = <s>.getpy;
+			<s>.setframe(-1,1);
+			shiftx -= <s>.getpx;
+			shifty -= <s>.getpy;
+			<s>.move(shiftx, shifty);
+			.mssetobj(s);
+			//.setcobj(s);
+			//.move(0,0);
+			grels.remove(s);
+		}
+	}
+	menabled(string s)	{
+		@s2 = "gr"+(igmstate+2);
+		if( <s2>.contains(s) )	{
+			<s2>.remove(s);
+			true;
+		} else false;
+	}
+	clbuts_help_butclick	{
+		if( igmstate<1 || igmstate>7 ) return;
+		.cbplay("snd"+(igmstate+3));
+		igmstate = 15;
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		fxputpuz.play;
+		if( <s>.aninlod(30->igetsc) && .menabled(s) )	{
+			<s>.setz(5);
+			<s>.setpos(0,0);
+			gready.add(s);
+			if( <"gr"+(igmstate+2)>.empty )	{
+				igmstate++;
+				if( igmstate==8 )	{
+					.cbplay("sndend");
+				} else {
+					.cbplay("snd"+(igmstate+3));
+					igmstate = 15;
+				}
+			}
+		} else {
+			<s>.setframe(-1,0);
+			<s>.setpos(0,0);
+			//<s>.move(-shiftx, -shifty);
+			grels.add(s);
+			grels.sortz(10);
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

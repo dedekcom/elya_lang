@@ -1,0 +1,69 @@
+/**	metody rozpoczynajace sie na "c" sa metodami klasy, natomiast na "ob" dotycza obiektu "pathf" **/
+
+class classpathf 	{
+	init()	{ 
+		new path ptf;
+		new string swalkto = null;
+		new string _sanim;
+		ptf.addmethod("onfinish", "_cptffin");
+		this.addsigs("_cptfstdreach", "_cptfstdarrive");
+	}
+	build(string san, string sfile, int x, int y, int istep, int ityp)	{
+		ptf.build(san, sfile, x, y, istep, ityp);
+		_sanim = san;
+	}
+	copy(string san, string sname, int ianstep)	{		// tworzy nowy obiekt ze sciezka tego
+		new classpathf <sname>;
+		<sname>.copy( san, "ptf", ianstep);
+	}
+	addsigs(string sreach, string sarrive)	{
+		if(sreach!=null)	{
+			ptf.addmethod("onreach", sreach);
+		}
+		if(sarrive!=null)	{
+			ptf.addmethod("onarrive", sarrive);
+		}
+	}
+	_cptfstdreach(string s)	{}
+	_cptfstdarrive()	{}
+	/************************** funkcje dla pathf ***************************************/
+	move(int x, int y)	{
+		ptf.move( x, y );
+	}
+	setpos(int x, int y)	{
+		ptf.setpos(x,y);
+	}
+	show()	{	ptf.show();	}
+	/*****************************************************************/
+	walkto(string simg, int x, int y)	{
+		swalkto = simg;
+		ptf.goto( x, y );
+	}
+	goto(int x, int y)	{
+		this.walkto( null, x, y );
+	}
+	gotorel(int x, int y)	{
+		this.goto( <_sanim>.getpx() + x, <_sanim>.getey() + y );
+	}
+	int iswalking()	{	return ptf.iswalking();	}
+	stand()	{	
+		ptf.stand(); 
+	}
+	/*****************************************************************/
+	anstand()	{	<_sanim>.play("stand"+this.getdir());	}
+	ansay()		{	<_sanim>.play("talk"+this.getdir());	}
+	/*****************************************************************/
+	_cptffin()	{
+		if( swalkto!=null )	{
+			ptf.onreach(swalkto);		// dotarcie do zadanego obiektu
+			swalkto=null;
+		} else {
+			ptf.onarrive();		// dotarcie do punktu
+		}
+	}
+	/*****************************************************************/
+	string getdir()	{
+		string sdir = <_sanim>.actionname();
+		return sdir.gete(0, 2);
+	}
+}

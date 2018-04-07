@@ -1,0 +1,128 @@
+
+new int igmogg = false;
+new int igmreklamy = dbconf.dbgetint("igmreklamy:");
+
+new string sAskerGame;
+class StdGame : classadv, GameController, Localize	{
+	init(string s)	{
+		igmstate = 0;
+		classadv::init;
+		GameController::init(s);
+		Localize::init;
+		clbuts.setcursorpos(0, 0);
+		claskexit.setcursorpos(0, 0);
+		.path = ( sgmversion + "/" + s);
+		.setwavpath(SNDPATH);
+		clmusic.play;
+		clbuts.reset;
+		claskexit.reset;
+		advmouse.setstd;
+		new Music mus;
+		
+		if( igmdemo )	{
+			.newimg("imglite", "$scripts/"+sgmversion+"/lite.png", 105);
+			imglite.setpos( iResX-imglite.getw, -1 );
+		}
+		
+		new Button but1;
+	}
+	cloadbut(string s)	{
+		if( engine.fileexist("scripts/"+sgmversion+"/common/"+s+".pyz") )
+			"$scripts/"+sgmversion+"/common/"+s+".pyz";
+		else "$scripts/common/"+s+".pyz";
+	}
+	cwideversion	{ sgmversion.in(A, "christmas");	}
+	cbutexit	{
+		if( .cwideversion )	{
+			.newanima("anbutexit", .cloadbut("butexit_mac"), 300);
+		} else {
+			.newanima("anbutexit", .cloadbut("butexit"), 300);
+		}
+		anbutexit.Button_std;
+		anbutexit.addmethod("butclick", func { <GAME>.<this+"_lclick">; } );
+		but1.add("anbutexit");
+	}
+	cbutmusic		{
+		if( .cwideversion )	{
+			.newanima("anbutmusic", .cloadbut("butmuz_mac"), 300);
+		} else if (igmiphone )	{
+			.newanima("anbutmusic", .cloadbut("butmuz_iphone"), 300);
+		} else	{
+			.newanima("anbutmusic", .cloadbut("butmuz"), 300);
+		}
+		if( !bPlayMusic )	{
+			anbutmusic.setframe(1,0);
+			.csoundoff;
+		} else .csoundon;
+		anbutmusic.Button_std;
+		anbutmusic.addmethod("butclick", func {
+			@id = .framenr;
+			if( bPlayMusic )	{
+				.csoundoff;
+				.setframe(1,id);
+				<GAME>.stop_music;
+			} else {
+				.csoundon;
+				.setframe(0,id);
+				<GAME>.play_music;
+			}
+			} );
+		but1.add("anbutmusic");
+	}
+	csoundoff	{
+		bPlayMusic = false;
+		engine.setsndvol(0);
+	}
+	csoundon	{
+		bPlayMusic = true;
+		engine.setsndvol(100);
+	}
+	/********************* adv **************************************/
+	cutscene	{
+		new CutScene ccs(0, 0, iResX, iResY);
+		ccs.delay(50);
+		ccs.setz(2000);
+	}
+	gotoadv(string spath, string sgame)	{
+		sgmlastscene = gameapi.getgamename;
+		sgmglobpath = spath;
+		sgmgame = sgame;
+		gameapi.play("gameadvdef");
+	}
+	/********************* helpful **************************************/
+	crect	{	new Rect rec(600,196,403,497);	}
+	crect2	{	new Rect rec2(6,174,1012,530);	}
+	cshowbut(string sbut, @dir)	{
+		clbuts (sbut, dir) { (string sbut, @dir)
+			clp.show( buts.callimgfun( sbut, "getcx"), buts.callimgfun( sbut, "getcy"), dir ); 
+		};
+	}
+	napisshow(int x, int y)	{
+		.show;
+		.move(x,y);
+	}
+	napispod(string s)	{	.napisshow(<s>.getcx-.getw/2, <s>.getey+5); }
+	/***********************************************************/
+	advclick()	{
+		if( igmdebug && (igmstate==0 || igmstate==5) )	{
+			this.cactsndstop(true);
+		}
+	}
+	key_down	{
+		if( igmandroid && keyboard.iskey("F1") && <GAME>.hasvar("anbutexit") )	{
+			anbutexit.butclick;
+		}
+		if( igmdebug && keyboard.iskeydown("lctrl") && keyboard.iskey("r") )	.crestart;
+	}
+	askfor(@s)	{ if( igmstate!=111) {sAskerGame=s; claskexit.askexittomenu; }	}
+	public askrestart	{	claskexit.askrestart;	}
+	/***********************************************************/
+	onmusicfin      {	mus.play;	}
+	exit	{
+		.game_exit;
+		if( igmsubtitle )	{
+			subtitle.reset;
+		}
+	}
+}
+

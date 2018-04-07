@@ -1,0 +1,80 @@
+
+game PuzzleBa : StdGame	{
+	init	{
+		StdGame::init("puzzleb");
+		
+		new img imgbkg;
+		imgbkg.create(iResX, iResY, .white, 255);
+		
+		new gmimgvec grm;
+		"grm" ..< "pjaski_3_4.pyz";
+// 		grm.move(-<grm.first>.getpx,-<grm.first>.getpy);
+		grm.hide;
+		
+		.newimg("imgp1", "jaskiniowcy2.jpg", 20);
+		new img imgp;
+		imgp.create(imgp1.getw, imgp1.geth, .transparent);
+		imgp.blit("imgp1");
+		delete imgp1;
+		//.newanima("imgp", "jaki2.pyz", 20);
+		imgp.setpos( <grm.first>.getpx, <grm.first>.getpy );
+		imgp.hide;
+		
+		new filter ft1;
+		
+		new string smoved = "imgp";
+// 		new string smoved = grm.get(0);
+		new int iobx = 0;
+		new int ioby = 0;
+		//new int iobx = <smoved>.lodx;
+		//new int ioby = <smoved>.lody;
+		
+		ft1.link(smoved);
+		ft1.setmaskalpha(true);
+		<smoved>.show;
+		<smoved>.setpos( <grm.first>.getpx, <grm.first>.getpy );
+		
+		new string smask = grm.get(11);
+		
+		ft1.mask(smask);
+		
+		//gameapi.play("PuzzleC");
+		
+		new img im1;
+		im1.create( <smask>.getw, <smask>.geth, .transparent );
+		im1.setpos( <smask>.getpx, <smask>.getpy );
+		im1.blit( smoved );
+		
+		
+	}
+	mouse_move	{
+		//<smoved>.setpos(mouse.getpx-500, mouse.getpy-300);
+		//<smoved>.setpos(mouse.getpx-iobx, mouse.getpy-ioby);
+		im1.setpos(mouse.getpos);
+	}
+}
+
+game PuzzleC : StdGame	{
+	init	{
+		StdGame::init("puzzleb");
+		
+		new img imgbkg;
+		imgbkg.create(iResX, iResY, .white, 255);
+		
+		new gmimgvec grm;
+		"grm" ..< "pjaski_3_4.pyz";
+// 		grm.move(-<grm.first>.getpx,-<grm.first>.getpy);
+		//grm.hide;
+		
+		string s = grm.first;
+		
+		new img im1;
+		im1.create(<s>.getw, <s>.geth, .transparent);
+		im1.setpos(<s>.getpx, <s>.getpy);
+		im1.blit(s);
+	}
+	mouse_move	{
+		im1.setpos(mouse.getpos);
+	}
+}
+

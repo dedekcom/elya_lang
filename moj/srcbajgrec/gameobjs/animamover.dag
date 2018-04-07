@@ -1,0 +1,32 @@
+/*************************************************************************/
+
+class AnMover	{
+	init(string san, real x, real y)	{
+		new timer tmov;
+		tmov.settick(1);
+		tmov.setcycle(1);
+		new real rdx = x;
+		new real rdy = y;
+		new real rsx = 0;
+		new real rsy = 0;
+		new string sanima = san;
+		tmov.addmethod("onfinish", func {
+			rsx += rdx;
+			rsy +=rdy;
+			int x = rsx;
+			int y = rdy;
+			if( x || y ) {
+				<sanima>.move(x,y);
+				rsx-=x;
+				rsy-=y;
+			}
+			.play;
+			} );
+	}
+	play	{
+		rsx = 0;
+		rsy = 0;
+		tmov.play;
+	}
+	stop	{	tmov.stop(false);	}
+}

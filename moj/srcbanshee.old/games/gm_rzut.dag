@@ -1,0 +1,181 @@
+
+game Rzut : StdGame	{
+	init	{
+		StdGame::init("rzut");
+		//kajko.pyz  lina.pyz  mach.pyz  mysz.pyz
+		
+		.imgs = (A, "$scripts/adbrama/adbrama.png", "$scripts/adbrama/maskanoc.pyz 100", "$scripts/adbrama/woda.pyzP 5",
+			"mysz.pyz 10", "kajko.pyz 20", "lina.pyzH 10", "mach.pyz 10");
+		.copyanima("anwoda", "anwoda2");
+		anwoda2.play(1);
+		
+		new int komwariant = 0;
+		.sounds = (A, ":kajko1", "Odsuñ siê zarzucê linê na bramê", "mstart2",
+			":kokosz_w0", "Auu! Chcesz mnie po³amaæ?", "mnextka",
+			":kajko_w0", "Przepraszam; Wy¶lizgnê³a mi siê lina; Teraz pójdzie lepiej", "mstart",
+			":kokosz_w1", "Auu! Znowu!", "mnextka",
+			":kajko_w1", "Staram siê!", "mstart",
+			":kokosz_w2", "Teraz by³o milimetry od g³owy dobrze ¿e mam he³m", "mstart",
+			":kokosz_w3", "W bramê celuj!", "mstart",
+			":kajko2", "Ups; Trochê w bok posz³o", "mstart",
+			":kokosz1", "Hurra uda³o siê!", func { .cbplay("kajko3"); },
+			":kajko3", "Przytrzymaj linê; Wspinam siê na bramê", func {
+				.gotoadv("adbrama", "gameadbrama0");
+				}
+			);
+		
+		new filter ftlina;
+		ftlina.link("anlina");
+		ftlina.setpivottype(2);
+		
+		new real rdx;
+		new real rdy;	// step
+		new real _rx;
+		new real _ry;
+		new real _srx = 580;
+		new real _sry = 663;
+		new string sframe;
+		new real rrx;	// steps
+		new real rry;
+		new int licznik;
+		
+		.cycle = ("timgo", func {
+			int dx = rrx;
+			int dy = rry;
+			rrx += rdx;
+			rry += rdy;
+			anlina.move(rrx-dx, rry-dy);
+			licznik++;
+			if( licznik<10)
+				.play;
+			else {
+				match(sframe)	{
+					"13", "15" => {
+						fxskladadeski.play;
+						ccs.close( func {
+							ccs.show;
+							.cbplay("kokosz1");
+							} );
+					}
+					"17","19","9","11" => {
+						fxuderzwstol.play;
+						.mups2;
+					}
+					? => {
+						.mups;
+					}
+				}
+			}
+			} );
+		
+		.sfxs = (A, "bgrzabyN 20", "sowa1N 20", "wyrzut 50", "uderzwstol", "mlotek1", "zamach2", "skladadeski");
+		
+		.cbplay("kajko1");
+	}
+	mnextka	{	.cbplay("kajko_w"+(komwariant-1));	}
+	mstart2	{
+		igmstate = 1;
+		ankajko.play(0);
+		anmach.play(0);
+		fxwyrzut.playloop;
+	}
+	mstart	{ ccs.enter( "mstart2" ); }
+	mups	{
+		ccs.close( func {
+			ccs.show;
+			anlina.hide;
+			if( komwariant==2 )
+				fxmlotek1.play;
+			else fxuderzwstol.play;
+			.cbplay("kokosz_w" + komwariant);
+			if( komwariant<3 ) komwariant++;
+			} );
+	}
+	mups2	{
+		ccs.close( func {
+			ccs.show;
+			anlina.hide;
+			.cbplay("kajko2");
+			} );
+	}
+	mouse_lclick	{
+		if( igmdebug ) {.cactsndstop(true);}
+		if( igmstate==1 )	{
+			int w = anmach.getw;
+			int h = anmach.geth;
+			real y; real x; real kat;
+			real c = (w.to_r*w.to_r + h.to_r * h.to_r)->sqrt;
+			
+			sframe = anmach.framename;
+			
+			match(sframe)	{
+				"3","5","7" => { x=w; y=h; kat=.masin(x/c,270);}
+				"9","11","13" => { x=w; y=-h; kat=.masin(-y/c,0);}
+				"15","17","19" => { x=-w; y=-h; kat=.masin(-x/c,90);}
+				"21","23","25","1" => { x=-w; y=h; kat=.masin(y/c,180); }
+				? => ;
+			}
+			
+			int srx = 580;
+			int sry = 660;
+			rrx = 0;
+			rry = 0;
+			licznik = 0;
+			
+			//kat.print;
+			anlina.setpos(0,0);
+			anlina.show;
+			ftlina.setrotate(kat-90);
+			//("klatka: " + anmach.framename)->print;
+			//""->print;
+			_rx = x;
+			_ry = y;
+			match(sframe)	{
+				"3", "5", "7" => { .mlin(-1,-1); }
+				"9","11","13" => { .mlin(-1, 1); }
+				"15","17","19" => { .mlin(1,1); }
+				"21","23","25","1" => { .mlin(1,-1); }
+				? => ;
+			}
+			
+			anmach.stop(false);
+			anmach.hide;
+			ankajko.stop(false);
+			
+			fxwyrzut.stop(false);
+			fxzamach2.play;
+			
+			igmstate = 2;
+			timgo.play;
+			
+			//sframe.print;
+			//""->print;
+		}
+	}
+	masin(real r, real kat)	{
+		r = r->asin*(180.0/r.getpi) + kat;
+		//("klatka: " + anmach.framename+ " kat: " +r)->print;
+		r;
+	}
+	mlin(int dx, int dy)	{
+		anlina.move(_srx + dx*anlina.getw + _rx, _sry + dy*anlina.geth + _ry);
+		if( dx>0 ) anlina.move(-20, 0 );
+		int ex = 1024;
+		int ey = 768;
+		int px = 0;
+		int py = 0;
+		if( dx < 0 ) px = _srx-20;
+		else ex = _srx+20;
+		if( dy < 0 ) py = _sry-20;
+		else ey = _sry+20;
+		anlina.clip(px,py,ex,ey);
+		
+		real dzielnik = 4.5;
+		rdx = _rx/dzielnik;
+		rdy = _ry/dzielnik;
+	}
+	mouse_rclick	{
+		if( igmdebug )	.mstart;
+	}
+}
+

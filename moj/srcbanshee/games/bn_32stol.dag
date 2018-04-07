@@ -1,0 +1,543 @@
+
+game mg32_stol :Banshee {
+	
+	init{
+		 
+		new string act_id = "null"; 
+		Banshee::init("mg32_stol");
+			.imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2", "stojak.pyzH 3", "lejek.pyzH 4",  
+			"niebiesko_zielony.pyzH 5" , "zielony.pyzH 6" ,"zielono_czerwony.pyzH 6" , "czerwony.pyzH 6" , 
+			"niebiesko_zielony_nalewanie.pyzH 7" , "zielony_nalewanie.pyzH 7" ,"zielono_czerwony_nalewanie.pyzH 7" ,"czerwony_nalewanie.pyzH 7" , "kran.pyz 7",
+			"czerwony_wlany.pyzH 8","zielono_czerwony_wlany.pyzH 9","zielony_wlany.pyzH 10", "niebiesko_zielony_wlany.pyzH 11", "eliksir_podgrzany.pyzH 12",  
+			"buteleczka.pyzH 14", "fire.pyzH 14", "eliksir_zycia.pyzH 15", "tuby_efekt.pyzH 16","elixir_glow.pyzH 17","babelki1.pyzH 18","babelki2.pyzH 18","babelki3.pyzH 18",
+			"ramka.pyz 15" ,"przepis.pyzH 16", "popexit.pyz 17");
+		
+		.sfxs = (A, "bgrpodziemia3N 30", "fireN 10","wlewa", "laboratorium", "magical", "click",  "openwindow 20" );   
+		 
+		
+		anfire.anopacityframe; 
+		antuby_efekt.anopacityframe;
+		anbabelki1.anopacityframe;
+		//antuby_efekt.setdrawmode(1);
+		//anbabelki2.setdrawmode(1);
+	//	anbabelki2.setdrawmode(1);
+		anbabelki2.anopacityframe;
+		anbabelki3.anopacityframe;
+		//anelixir_glow.setdrawmode(1);
+		//anfire.play(0);
+		 
+		.butpopexit;
+		.butpopexitisinramka;   
+		/*  if (!clsave.bis("mg32_stol_buteleczki_dodane")) //testy
+		{
+			.addtopck("eliksir_zielono_czerwony"); 
+			.addtopck("eliksir_czerwony"); 
+			.addtopck("eliksir_niebiesko_zielony"); 
+			.addtopck("eliksir_zielony"); 
+			.addtopck("buteleczka"); 
+			clsave.bset("mg32_stol_buteleczki_dodane");
+			clsave.bset("e1_mg44_wiadro_instrukcja_eliksir_wzieta");
+		} 
+		 */ 
+		
+		.init_anim_onfinish("zielono_czerwony");
+		.init_anim_onfinish("czerwony");
+		.init_anim_onfinish("niebiesko_zielony");
+		.init_anim_onfinish("zielony");
+		
+		 
+		
+		if (clsave.bis("e1_mg32_stol_buteleczka_stoi") && !clsave.bis("taken_eliksir_zycia"))
+		{
+			anbuteleczka.show;
+		}
+		
+		if (!clsave.bis("e1_mg32_stol_ogien_zapalony"))
+		{
+			fxlaboratorium.stop(false);
+			anfire {
+				.addmethod("isbutin", func { (@x, @y)
+					  .isin(x,y,0,0);
+					} ); 
+				.addmethod("butmoveon", func {
+				 
+						advmouse.set("take");					
+				} );
+				.addmethod("butmoveoff", func {
+					 
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+					if( !.advstdstate ) return;
+						 
+						if (clsave.bis("e1_mg32_stol_wszystko_wlane"))
+						{
+							clsave.bset("e1_mg32_stol_ogien_zapalony");
+							.play(0); 
+							advmouse.setstd;
+							butgame.removebut(this);
+							aneliksir_podgrzany.anfadein(500,null);
+							//antuby_efekt.anfadein(500,func{antuby_efekt.play(0);});
+							antuby_efekt.play(0);
+							 
+							//anbabelki1.anfadein(500,func{anbabelki1.play(0);});
+							anbabelki1.play(0);
+							//anbabelki2.anfadein(500,func{anbabelki2.play(0);});
+							anbabelki2.play(0);
+							//anbabelki3.anfadein(500,func{anbabelki3.play(0);});
+							anbabelki3.play(0);
+							fxlaboratorium.playloop;
+							 
+						}
+					} );
+				butgame.add(this);
+			}; 
+		}
+		else
+		{
+			anfire.play(0); 
+			aneliksir_podgrzany.show;
+			antuby_efekt.play(0);
+			anbabelki1.play(0);
+			anbabelki2.play(0);
+			anbabelki3.play(0);
+			fxlaboratorium.playloop;
+		}
+		
+		if (!clsave.bis("e1_mg32_stol_wszystko_wlane"))
+		{
+			 
+			.newsndfree("snd_zla_butelka", "kinnat_c4d4_50");
+			snd_zla_butelka.addmethod("onfinish", "advsetstdstate");
+			
+			
+			anlejek {
+				.addmethod("isbutin", func { (@x, @y)
+					  .isin(x,y,0,0);
+					} ); 
+				.addmethod("butmoveon", func {
+					advmouse.set("use");					
+				} );
+				.addmethod("butmoveoff", func {
+					 
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+					if( !.advstdstate ) return;
+						if(act_id == "null")
+							return;
+						//.check_elixir(act_id); 
+						 
+						if (!clsave.bis("e1_mg44_wiadro_instrukcja_eliksir_wzieta"))
+						{
+							.cbplay("snd_brak_przepisu");
+							 
+							.move_back_id(act_id);
+							 
+						}
+						else{
+							 
+							.check_elixir(act_id);
+						}
+						advmouse.setstd;
+	  
+					} );
+					
+				.addmethod("butrel", func {.butclick;});
+				
+				butgame.add(this);
+			}; 
+		};
+		
+		.newsndfree("snd_brak_przepisu", "kinnat_c4d4_50b");
+		snd_brak_przepisu.addmethod("onfinish", "advsetstdstate");
+		 
+		
+		if (!clsave.bis("e1_mg32_stol_buteleczka_nalana"))
+		{
+			 
+			.newsndfree("snd_podgrzac", "kinnat_c4d4_50a");
+			snd_podgrzac.addmethod("onfinish", "advsetstdstate");
+			
+			ankran {
+				.addmethod("isbutin", func { (@x, @y)
+					  .isin(x,y,0,0);
+					} ); 
+				.addmethod("butmoveon", func {
+					 
+						advmouse.set("take");					
+				} );
+				.addmethod("butmoveoff", func {
+					 
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+					if( !.advstdstate ) return;
+						if (clsave.bis("e1_mg32_stol_ogien_zapalony") && clsave.bis("e1_mg32_stol_buteleczka_stoi"))
+						{
+							clsave.bset("e1_mg32_stol_buteleczka_nalana");	
+							butgame.removebut(this);
+							.play(1);
+							fxopenwindow.play;
+							fxmagical.play;
+							advmouse.setstd;
+							//anbuteleczka.hide;
+							aneliksir_zycia.anfadein(500,null);
+							aneliksir_zycia.butenable();
+							anelixir_glow.anfadein(1000,func{anelixir_glow.anfadeout(1000,null);});
+						}
+							
+					} );
+				butgame.add(this);
+			}; 
+		};
+		
+		if (!clsave.bis("taken_eliksir_zycia") )
+		{
+			.setasitemtopck("aneliksir_zycia");
+			aneliksir_zycia.show();
+			if (!clsave.bis("e1_mg32_stol_buteleczka_nalana"))
+			{
+				aneliksir_zycia.butdisable;  
+				aneliksir_zycia.hide;
+			}
+			
+		}  
+		
+		 
+		.init_buteleczka("niebiesko_zielony");
+		.init_buteleczka("zielony");
+		.init_buteleczka("zielono_czerwony"); 
+		.init_buteleczka("czerwony");  
+		 
+		if (clsave.bis("e1_mg44_wiadro_instrukcja_eliksir_wzieta"))
+			anprzepis.show;
+		.stdstart; 
+	}// koniec init 
+	
+	USE_eliksir_czerwony {
+        .use_eliksir("czerwony");  
+	}  
+	
+	USE_eliksir_zielono_czerwony {
+         .use_eliksir("zielono_czerwony"); 
+	} 
+	
+	USE_eliksir_niebiesko_zielony {
+         .use_eliksir("niebiesko_zielony"); 
+	} 
+	
+	USE_eliksir_zielony {
+         .use_eliksir("zielony"); 
+	} 
+	
+	USE_buteleczka {
+        .advsetstdstate;
+		clsave.bset("e1_mg32_stol_buteleczka_stoi");
+		anbuteleczka.anfadein(500,null); 
+		.removefrompck("buteleczka");
+		 
+	} 
+	
+	aneliksir_zycia_TAKE	{	
+		anbuteleczka.hide;
+		.set_mg_finished;
+		.popitem_gotocenter("eliksir_zycia");	
+	}
+	
+	aneliksir_zycia_INPCK {
+      .addtopck("eliksir_zycia");
+	  .timfinito;
+    }  
+	
+	check_elixir(string name)
+	{
+		if(name == "anniebiesko_zielony")
+		{
+			if (clsave.bis("e1_mg32_stol_zielony_nalany"))
+			{
+				.click_on_lejek("niebiesko_zielony"); 
+				clsave.bset("e1_mg32_stol_wszystko_wlane");
+				butgame.removebut("anlejek");
+				butgame.removebut("anniebiesko_zielony");
+				 
+			}
+			else
+			{
+				.cbplay("snd_zla_butelka");
+				.move_back("niebiesko_zielony");
+			}
+		}
+
+		else if(name == "anzielony")
+		{
+			if (clsave.bis("e1_mg32_stol_zielono_czerwony_nalany"))
+			{
+				.click_on_lejek("zielony"); 
+				butgame.removebut("anzielony");
+			}
+			else
+			{
+				.cbplay("snd_zla_butelka");
+				.move_back("zielony");
+			}
+		}
+
+		else if(name == "anzielono_czerwony")
+		{
+			if (clsave.bis("e1_mg32_stol_czerwony_nalany"))
+			{
+				.click_on_lejek("zielono_czerwony"); 
+				butgame.removebut("anzielono_czerwony");
+			}
+			else
+			{
+				.cbplay("snd_zla_butelka");
+				.move_back("zielono_czerwony");
+			}
+		}
+		else if(name == "anczerwony")
+		{
+			.click_on_lejek("czerwony"); 
+			butgame.removebut("anczerwony");
+		}
+	
+	
+	}
+
+	use_eliksir(string name)
+	{
+		.advsetstdstate;
+		if (!clsave.bis("e1_mg44_wiadro_instrukcja_eliksir_wzieta"))
+		{
+			.cbplay("snd_brak_przepisu");
+			clsave.bset("e1_mg32_stol_"+name+"_uzyty");
+			.removefrompck("eliksir_"+name); 
+			.move_back(name);
+			 
+		}
+		else{
+			clsave.bset("e1_mg32_stol_"+name+"_uzyty");
+			.init_buteleczka(name);
+			if(anlejek.isin(mouse.getpos,0,0))	{
+				.check_elixir("an"+name);
+			}
+			else 
+			{
+				.move_back(name);
+			}
+			.removefrompck("eliksir_"+name); 
+		}
+	}
+	
+	click_on_lejek(string name)
+	{
+		<"an"+name+"_nalewanie">.play(0);
+		<"an"+name>.hide;
+		clsave.bset("e1_mg32_stol_"+name+"_nalany");
+		butgame.removebut("an"+name); 
+		act_id = "null"; 
+		 
+		
+	}
+	
+	move_back(string name)
+	{
+		clsave.bset("e1_mg32_stol_"+name+"_uzyty");
+		.init_buteleczka(name);
+		<"an"+name>.setz(5);
+		<"an"+name>.play(0); 
+		<"an"+name>.setpos(0,0);
+		<"an"+name>.anfadein(500,null);
+		act_id = "null";
+		fxclick.play;
+	}
+	move_back_id(string id)
+	{
+		<id>.setz(5);
+		<id>.play(0); 
+		<id>.setpos(0,0);
+		<id>.anfadein(500,null);
+		act_id = "null";
+		fxclick.play;
+	}
+	
+	init_anim_onfinish(string name)
+	{
+		<"an"+name+"_nalewanie">(name)
+		{
+			(string name) 
+			.vars2(A,"name", name); 
+			.addmethod("onfinish", 
+			 
+			func{
+				.hide;
+				<"an"+.name>.setz(5);
+				<"an"+.name>.setpos(0,0);
+				<"an"+.name>.play(1);
+				<"an"+.name>.anfadein(500,null);
+				<"an"+.name+"_wlany">.anfadein(500,null);
+				if (clsave.bis("e1_mg32_stol_wszystko_wlane"))
+					.cbplay("snd_podgrzac");
+				
+			});
+		   
+		
+		};
+	}
+	
+	init_buteleczka(string name){
+		if (!clsave.bis("e1_mg32_stol_"+name+"_uzyty"))
+			return;
+		if(!clsave.bis("e1_mg32_stol_"+name+"_nalany"))
+		{
+			<"an"+name>
+			{
+				.show;
+				.addmethod("isbutin", func { (@x, @y)
+				  .isin(x,y,0,0) && !anlejek.isin(mouse.getpos,0,0);
+				} );
+				.addmethod("butmoveon", func {
+					advmouse.set("take");	
+				} );
+				.addmethod("butmoveoff", func {
+				 
+				  advmouse.setstd;
+				} ); 
+				.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+					if (act_id == "null")
+					{
+						act_id = this;
+						.setz(500);
+						.play(2); 
+						.setpos(mouse.getpos);
+						 fxclick.play;
+					}
+					else if(act_id == this)
+					{ 
+						act_id = "null";
+						.setz(5);
+						.play(0); 
+						.setpos(0,0);
+						fxclick.play; 
+					}
+					 
+				} );
+				.addmethod("butrel", func {
+					.butclick;
+					 
+				} );
+				butgame.add(this);
+				
+			
+			};
+		}
+		else
+		{
+			<"an"+name>.play(1);	
+			<"an"+name+"_wlany">.show;
+		}
+				
+	}
+	 
+	mouse_move	{
+		if (act_id != "null")
+		{
+		  <act_id>.setpos(mouse.getpos);
+		  <act_id>.play(2);
+		}
+	}
+	HINT_CLICK {
+		if (!clsave.bis("e1_mg44_wiadro_instrukcja_eliksir_wzieta"))
+		{
+			.showhint("anpopexit"); 
+			return;
+		}
+		if(!clsave.bis("e1_mg32_stol_czerwony_nalany"))
+		{
+			if ( clsave.bis("ma_eliksir_czerwony"))
+			{
+				.showhintitem("eliksir_czerwony");
+				.showhint("anlejek");   
+			}
+			else if (clsave.bis("e1_mg32_stol_czerwony_uzyty")  )
+			{
+				.showhint("anlejek");  
+				.showhint("anczerwony");	
+			}
+			else
+				.showhint("anpopexit"); 
+		}
+		else if (clsave.bis("e1_mg32_stol_czerwony_nalany") && !clsave.bis("e1_mg32_stol_zielono_czerwony_nalany"))
+		{
+			if ( clsave.bis("ma_eliksir_zielono_czerwony"))
+			{
+				.showhintitem("eliksir_zielono_czerwony");
+				.showhint("anlejek");   
+			}
+			else if (clsave.bis("e1_mg32_stol_zielono_czerwony_uzyty")  )
+			{
+				.showhint("anlejek");  
+				.showhint("anzielono_czerwony");	
+			}
+			else
+				.showhint("anpopexit"); 	
+		}
+		else if (clsave.bis("e1_mg32_stol_zielono_czerwony_nalany") && !clsave.bis("e1_mg32_stol_zielony_nalany"))
+		{
+			if ( clsave.bis("ma_eliksir_zielony"))
+			{
+				.showhintitem("eliksir_zielony");
+				.showhint("anlejek");   
+			}
+			else if (clsave.bis("e1_mg32_stol_zielony_uzyty")  )
+			{
+				.showhint("anlejek");  
+				.showhint("anzielony");	
+			}
+			else
+				.showhint("anpopexit"); 	
+		}
+		else if (clsave.bis("e1_mg32_stol_zielony_nalany") && !clsave.bis("e1_mg32_stol_niebiesko_zielony_nalany"))
+		{
+			if ( clsave.bis("ma_eliksir_niebiesko_zielony"))
+			{
+				.showhintitem("eliksir_niebiesko_zielony");
+				.showhint("anlejek");   
+			}
+			else if (clsave.bis("e1_mg32_stol_niebiesko_zielony_uzyty")  )
+			{
+				.showhint("anlejek");  
+				.showhint("anniebiesko_zielony");	
+			}
+			else
+				.showhint("anpopexit"); 	
+		}
+		else if (clsave.bis("e1_mg32_stol_niebiesko_zielony_nalany") && !clsave.bis("e1_mg32_stol_ogien_zapalony"))
+		{
+			.showhint("anfire");
+		} 
+		else if (clsave.bis("ma_buteleczka") && !clsave.bis("e1_mg32_stol_buteleczka_stoi"))
+		{
+			.showhintitem("buteleczka");
+			.showhint("anbuteleczka");
+		} 
+		else if (clsave.bis("e1_mg32_stol_buteleczka_stoi") && !clsave.bis("e1_mg32_stol_buteleczka_nalana"))
+		{
+			.showhint("ankran");
+		} 
+		else if (clsave.bis("e1_mg32_stol_buteleczka_nalana") && !clsave.bis("taken_eliksir_zycia"))
+		{
+			.showhint("aneliksir_zycia");
+		} 
+		
+		else
+			.showhint("anpopexit"); 	
+	}
+  
+	mend	{
+		 .stdexitdefadv("ad32_pracownia", "gamead32_pracownia0");
+	}
+}
+ 

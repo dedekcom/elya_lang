@@ -1,0 +1,507 @@
+
+game mg12_studnia :Banshee {
+	 
+	init{
+  
+		new int offsetx = -10;
+		new int offsety = -10;
+		
+		if (.checktouchpad)
+		{
+			offsetx = -10;
+			offsety = -30;
+		}
+		new string act_id = "empty";
+		Banshee::init("mg12_studnia");
+
+		.imgs = (A,"bkg.jpg 0","popup_bkg.pyz 1","wlew.pyzH 2", "slot_1.pyzH 3", "slot_2.pyzH 3", "slot_3.pyzH 3", "slot_4.pyzH 3", "slot_5.pyzH 3", "slot_6.pyzH 3", "slot_7.pyzH 3", "slot_8.pyzH 3","slot_9.pyzH 3","slot_10.pyzH 3","slot_11.pyzH 3","slot_12.pyzH 3","slot_13.pyzH 3","slot_14.pyzH 3", "1.pyz 4", "2.pyz 4", "3.pyz 4","4.pyz 4","5.pyz 4","6.pyz 4","7.pyz 4","8.pyz 4","9.pyz 4","10.pyz 4","11.pyz 4","12.pyz 4","13.pyz 4","14.pyz 4", "final.pyzH 5" ,"anim_coord.pyzH 45","final_bkg.pyzH 46","nakladka.pyz 48","rune_5.pyzH 49", "popexit.pyz 55");
+  
+		imgbkg {
+			.addmethod("isbutin", func { (@x, @y)
+				!anpopup_bkg.isin(x,y,0,0);
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+				 .mend;
+				} );
+				butgame.add(this);
+		 }; 
+
+	 
+		.butpopexit;
+		.askopis("mg12");
+		anaskopis.hide;	
+		anaskopis.ansetbpos( anpopexit.getcx + anaskopis.getw, anpopexit.getcy - anaskopis.geth/2);
+		.newsndfree("snd_final", "kinnat_c2d2_2e");
+		snd_final.addmethod("onfinish", "advsetstdstate");     
+		 
+		//.addtopck("rondel_z_woda");
+		.setasitemtopck("anrune_5"); 
+		 
+		.sfxs =(A, "bgrwiatrN 30", "click", "wylewanie"); 
+		
+		if (clsave.bis("e1_mg12_studnia_won"))  
+		{	
+			if (!clsave.bis("e1_mg12_studnia_runa_to_take"))
+				annakladka.hide;
+			anfinal.show;
+		}
+		else
+		{
+			anfinal.addmethod("onfinish", func{.cbplay("snd_final");});    
+			guihint.switchtoskip;
+			anaskopis.show;	
+		}
+	
+		if (!clsave.bis("e1_mg12_studnia_napelniona"))
+		{
+			anwlew{
+			.Button_isinvis;
+			.addmethod("butmoveon", func {
+				 
+				if (!clsave.bis("e1_mg12_studnia_napelniona") && clsave.bis("e1_mg12_studnia_won"))
+					advmouse.set("use"); 
+				else
+					advmouse.setstd;  
+			} );
+				.addmethod("butmoveoff", func {
+					 
+					  advmouse.setstd;
+					} ); 
+			butgame.add(this);
+			};      
+		   
+		   new Film filmb;
+				filmb.musicclass = ("mus");
+				filmb.addmethod("onfinish", func {
+					  .hide;
+				  anfinal_bkg.show();
+				  annakladka.show;
+				  anrune_5.show(); 
+				  clsave.bset("e1_mg12_studnia_runa_to_take");
+			  } );
+				filmb.load("scripts/cs12_studnia/", "film");
+				filmb.showfirstframe;
+				filmb.setz(49);
+				filmb.setpos(ananim_coord.getpx, ananim_coord.getpy );
+				filmb.hide; 
+				 
+		anslot_1{
+			.Button_isinvis;    
+			.vars2(A,"id","1", "obj_id","empty");
+
+			butgame.add(this);
+		}; 
+		anslot_2{
+			.Button_isinvis;    
+			.vars2(A,"id","2", "obj_id","empty");
+
+			butgame.add(this);
+		};
+		anslot_3{
+			.Button_isinvis;    
+			.vars2(A,"id","3","obj_id","empty");
+
+			butgame.add(this);
+		};
+		anslot_4{
+			.Button_isinvis;    
+			.vars2(A,"id","4","obj_id","empty");
+
+			butgame.add(this);
+		};
+		
+		anslot_5{
+			.Button_isinvis;    
+			.vars2(A,"id","5","obj_id","empty");
+
+			butgame.add(this);
+		};
+		anslot_6{
+			.Button_isinvis;    
+			.vars2(A,"id","6","obj_id","empty");
+
+			butgame.add(this);
+		};
+		anslot_7{
+			.Button_isinvis;    
+			.vars2(A,"id","7","obj_id","empty");
+
+			butgame.add(this);
+		};
+		anslot_8{
+			.Button_isinvis;    
+			.vars2(A,"id","8","obj_id","empty");
+
+			butgame.add(this);
+		};
+		anslot_9{
+			.Button_isinvis;    
+			.vars2(A,"id","9","obj_id","empty");
+
+			butgame.add(this);
+		};
+		anslot_10{
+			.Button_isinvis;    
+			.vars2(A,"id","10","obj_id","empty");
+
+			butgame.add(this);
+		};
+		anslot_11{
+			.Button_isinvis;    
+			.vars2(A,"id","11","obj_id","empty");
+
+			butgame.add(this);
+		};
+		anslot_12{
+			.Button_isinvis;    
+			.vars2(A,"id","12","obj_id","empty");
+
+			butgame.add(this);
+		};
+		anslot_13{
+			.Button_isinvis;    
+			.vars2(A,"id","12","obj_id","empty");
+		   
+			butgame.add(this);
+		};
+		anslot_14{
+			.Button_isinvis;    
+			.vars2(A,"id","12","obj_id","empty");
+
+			butgame.add(this);
+		}; 
+			  
+		.init_block("1", "14"); 
+		.init_block("2", "13"); 
+		.init_block("3", "12");
+		.init_block("4", "11"); 
+		.init_block("5", "10"); 
+		.init_block("6", "9");  
+		.init_block("7", "8"); 
+		.init_block("8", "7"); 
+		.init_block("9", "6");
+		.init_block("10", "5"); 
+		.init_block("11", "4"); 
+		.init_block("12", "3");
+		.init_block("13", "2"); 
+		.init_block("14", "1"); 
+		
+		for( int i=1; i<=14; i++){ 
+			if (clsave.bis("e1_mg12_studnia_"+i+"_good"))
+			{ 
+			  (<"anslot_"+i>.obj_id = ("good"));
+			   butgame.removebut("an"+i);
+			   <"an"+i>.hide();
+			   <"anslot_"+i>.show();
+			}
+			
+			 
+			
+			if (clsave.bis("e1_mg12_studnia_slot_"+i+"_obj_id"))
+			{
+				string id = clsave.get("e1_mg12_studnia_slot_"+i+"_obj_id");
+				 
+				if (id != "good")
+				{
+					if (id == "empty")
+						id  = clsave.get("e1_mg12_studnia_act_id");	
+					 
+					<"anslot_"+i>.obj_id = (id);
+					<"an"+id>.setpos(<"anslot_"+i>.getcx,<"anslot_"+i>.getcy);
+					<"an"+id>.vars2(A,"id", id, "slot", i); 
+				}  
+			} 
+		} 
+	}
+	else
+	{
+		for( int i=1; i<=14; i++)	{ 
+			<"an"+i>.hide;
+		}
+		
+		anfinal_bkg.show();
+		
+		if (!clsave.bis("takenan_anrune_5"))
+		{ 
+			anrune_5.show();
+		} 
+	}
+			 
+	.stdstart; 
+	   
+		 
+	}// koniec init 
+	  
+	init_block(string id, string slot)
+	{
+		//clsave.set("e1_mg12_studnia_slot_"+id+"_obj_id",<"anslot_"+id>.obj_id);
+		<"an"+id>(id,slot){(string id, string slot)
+			.show;
+			.setpos(<"anslot_"+slot>.getcx,<"anslot_"+slot>.getcy);
+			.vars2(A,"id", id, "slot", slot); 
+			<"anslot_"+slot>.obj_id = (.id);
+			.Button_isinvis;
+
+			 
+			.addmethod("butmoveon", func {
+				if (!clsave.bis("e1_mg12_studnia_won")	)
+						advmouse.set("take");
+					else
+						advmouse.setstd;
+			} );
+				
+			.addmethod("butmoveoff", func {
+				advmouse.setstd;
+			} );
+			
+			.addmethod("butclick", func {
+				if( !.advstdstate || .is_mg_finished()) return;
+				if (anslot_1.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("1");
+				}
+				else if (anslot_2.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("2");
+				} 
+				else if (anslot_3.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("3");
+				} 
+				else if (anslot_4.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("4");
+				}  
+				else if (anslot_5.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("5");
+				}  
+				else if (anslot_6.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("6");
+				} 
+				else if (anslot_7.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("7");
+				}
+				else if (anslot_8.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("8");
+				}
+				else if (anslot_9.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("9");
+				}
+				else if (anslot_10.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("10");
+				} 
+				else if (anslot_11.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("11");
+				}
+				else if (anslot_12.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("12");
+				}
+				else if (anslot_13.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("13");
+				}
+				else if (anslot_14.isin(mouse.getpos,0,0)  ){ 
+				 .click_slot("14");
+				}  
+				else if (.checktouchpad)
+					.backtobase(.id);
+			});
+			
+			if (.checktouchpad)
+			{
+				.addmethod("butrel", func {
+					.butclick;
+				});
+			}	 
+			butgame.add(this);
+		};   
+	} 
+	
+	backtobase(int id)
+	{
+		<"an"+id>.setpos(<"anslot_"+<"an"+id>.slot>.getcx,<"anslot_"+<"an"+id>.slot>.getcy);
+		<"an"+id>.setz(4);
+		@ slot = <"an"+id>.slot;
+		<"anslot_"+slot>.obj_id = (id);
+		act_id = "empty";
+		clsave.set("e1_mg12_studnia_slot_"+slot+"_obj_id",<"anslot_"+slot>.obj_id);
+	}
+  
+	mouse_move	{
+		if (act_id != "empty")
+		{
+			@x = mouse.getposx + offsetx;
+			@y = mouse.getposy + offsety;
+			<"an"+act_id>.setpos(x,y);
+		}
+	} 
+  
+  
+	save_slot{
+		return;
+	}
+	load_slot{
+		return;
+	}
+  
+	click_slot(string id)
+	{
+		if ( clsave.bis("e1_mg12_studnia_won"))
+			return;
+		
+		if (<"anslot_"+id>.obj_id == "good" )
+			if (act_id != "empty" && .checktouchpad)
+			{
+				.backtobase(act_id);
+				butgame.sort;	
+				return;
+			}
+			else
+				return;
+		
+		fxclick.play();
+		
+		if (<"anslot_"+id>.obj_id == "empty" && !.checktouchpad)
+		{
+			<"anslot_"+id>.obj_id = (act_id);
+			<"an"+(act_id)>.setpos(<"anslot_"+id>.getcx,<"anslot_"+id>.getcy);
+			<"an"+(act_id)>.setz(4); 
+			.check_good(id);
+			clsave.set("e1_mg12_studnia_slot_"+id+"_obj_id",<"anslot_"+id>.obj_id);
+			act_id = "empty"; 
+			 
+		}
+		else if( <"anslot_"+id>.obj_id != "empty" && act_id != "empty")  
+		{
+			if (.checktouchpad)
+			{
+				string act_obj_id = <"anslot_"+id>.obj_id;
+				
+				<"anslot_"+id>.obj_id = (act_id);
+				<"an"+(act_id)>.setpos(<"anslot_"+id>.getcx,<"anslot_"+id>.getcy);
+				<"an"+(act_id)>.setz(4); 
+				 
+				 
+				@slot = <"an"+act_id>.slot;
+				<"an"+act_obj_id>.slot = (slot); 
+				<"an"+act_id>.slot = (id);
+				<"anslot_"+slot>.obj_id = (act_obj_id);
+				<"an"+act_obj_id>.setz(4); 
+				<"an"+act_obj_id>.setpos(<"anslot_"+slot>.getcx,<"anslot_"+slot>.getcy);
+				 
+			 	.check_good(id);
+				.check_good(act_obj_id);
+				 
+				clsave.set("e1_mg12_studnia_slot_"+slot+"_obj_id",<"anslot_"+slot>.obj_id);
+				act_id = "empty";
+			}
+			else
+			{
+				string last_slot_obj_id = <"anslot_"+id>.obj_id;
+				<"anslot_"+id>.obj_id = (act_id);
+				<"an"+(act_id)>.setpos(<"anslot_"+id>.getcx,<"anslot_"+id>.getcy);
+				<"an"+(act_id)>.setz(4); 
+				act_id = last_slot_obj_id;
+				 
+				
+				<"an"+(act_id)>.setz(150); 
+				<"an"+(act_id)>.setpos(<"anslot_"+id>.getcx + offsetx,<"anslot_"+id>.getcy + offsety);
+				.check_good(id);
+			}	
+		}   
+		else  
+		{ 
+			act_id = <"anslot_"+id>.obj_id; 
+			if (!.checktouchpad)
+				<"anslot_"+id>.obj_id = ("empty");
+			<"an"+act_id>.setz(150);
+			<"an"+act_id>.setpos(mouse.getposx + offsetx, mouse.getposy + offsety);
+			butgame.sort; 
+		} 
+		butgame.sort;       
+		if (!.checktouchpad)
+			clsave.set("e1_mg12_studnia_act_id",act_id);
+		
+		clsave.set("e1_mg12_studnia_slot_"+id+"_obj_id",<"anslot_"+id>.obj_id);
+    
+	}
+  
+	check_good(string id)
+	{
+		if (<"anslot_"+id>.obj_id == id)
+		{ 
+		<"anslot_"+id>.obj_id = ("good");
+		<"anslot_"+id>.show(); 
+		<"an"+id>.hide(); 
+		butgame.removebut("an"+id);
+		clsave.bset("e1_mg12_studnia_"+id+"_good");
+		advmouse.setstd;
+		}
+		if (.check_won())
+		.set_won();  
+	}
+	
+	check_won()
+	{
+		for( int i=1; i<=14; i++)	{ 
+			if (<"anslot_"+i>.obj_id != ("good"))
+			  return false;
+		 } 
+		return true;  
+	}
+  
+	set_won()
+	{
+		fxwylewanie.play;
+		clsave.bset("e1_mg12_studnia_won");   
+		annakladka.hide;
+		anfinal.play(1);
+	}
+	
+	play_movie
+	{
+		filmb.play;
+	}
+  
+	anrune_5_TAKE {
+		.stackitem_topck("runa");
+		.set_mg_finished;   
+	}
+	anrune_5_INPCK {
+		.additemtostack("runa"); 
+		.timfinito;
+	}
+  
+	USE_rondel_z_woda	{
+		.advsetstdstate;
+		if( anwlew.isin(mouse.getpos,0,0) && clsave.bis("e1_mg12_studnia_won") && !clsave.bis("e1_mg12_studnia_napelniona"))	{
+			//.removefrompck("rondel_z_woda");
+			butgame.removebut("anwlew");
+			.item_gotopck;
+			clsave.bset("e1_mg12_studnia_napelniona");
+			advmouse.setstd;
+			.play_movie;
+		} else .item_gotopck;
+	} 
+	
+	SKIP_CLICK	{
+		if( .advstdstate )	{
+			.set_won();
+			anaskopis.anfadeout(500,null);	
+			guihint.switchtohint; 
+		}
+	}     
+  
+	mend	{
+		.stdexitdefadv("ad12_latajacecoszabrama", "gamead12_latajacecoszabrama0"); 
+	}
+  
+	HINT_CLICK {
+		if (!clsave.bis("e1_mg12_studnia_napelniona") && clsave.bis("taken_rondel_z_woda"))
+		{
+			.showhint("anwlew");
+			.showhintitem("rondel_z_woda"); 
+		}
+		else if(clsave.bis("e1_mg12_studnia_napelniona") && !clsave.bis("takenan_anrune_5"))
+				.showhint("anrune_5");
+		else
+			.showhint("anpopexit");   
+	} 
+}
+ 

@@ -1,0 +1,508 @@
+
+game Korytarzdolnypoklad : Kajuta	{
+	init	{
+		Kajuta::init("23korytarzdolnypoklad");
+		.setsndbase("korytarzdolnypoklad");
+		
+		.imgs = (A, /*"23korytarzdolnypoklad.jpg",*/"bkg.pyz", "tla.pyzG 5");
+		grtla.nplay(-1);
+		
+		//mus.playstr("titanic2.ogg -l -v 60");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian9", "Plan oficera pokazywa³ ¿e jedna ze skrytek jest w maszynowni", "stdret",
+			":lilian12", "Mamy niewiele czasu a brakuje mi jeszcze dwóch kluczy; Pomó¿ mi", func { .txtplay("prab12"); },
+			":prab12", "W kuchni znajdziesz pi±ty klucz; Szukaj dobrze byæ mo¿e wiele tajemnic odnajdzie swój fina³", "stdret",
+			":lilian13", "W maszynowni zawsze jest ciemno i g³o¶no, mo¿e tam prowadzi ten ciemny korytarz.", "stdret",
+			":lilian14", "Spróbujê pój¶æ w prawo.", "stdret",
+			":lilian5", "Muszê szybko odnale¼æ kajutê oficera.", "stdret"
+			);
+		
+		.sfxs = (A, "przeciag2N");
+		
+		.mexits;
+		
+		new int iwprawohint = 0;
+		if( clsave.is("epizod", "e2_1912") )	{
+			if( clsave.bis("e2_hokuchnia") )	{
+				.titblock(A, "29kuchnia", "24zejsciedomaszynowni");
+				.extohint("12schody");
+				ccs.enter( func { .txtplay("lilian5"); } );
+			} else if( clsave.bis("otwarte_drzwikotlownia") )	{
+				.blockexit("12schody");
+				.extohint("29kuchnia");
+				ccs.enter( func {
+					if( !clsave.bis("e2_zostaly2klucze") )	{
+						clsave.bset("e2_zostaly2klucze") ;
+						.rosie_go;
+						//.txtplay("lilian12");
+					} else igmstate=1;
+					} );
+			} else if( clsave.bis("e2_wnioskitajemnica") )	{
+				.blockexit("29kuchnia");
+				if( clsave.bis("item_klocek") )
+					.extohint("24zejsciedomaszynowni");
+				else
+					.extohint("12schody");
+				.mstdenter;
+			} else {
+				.titblock(A, "29kuchnia", "12schody");
+				.extohint("24zejsciedomaszynowni");
+				if( !clsave.bis("e2_kordolnypoklad_comment") )	{
+					clsave.bset("e2_kordolnypoklad_comment");
+					.txtplay("lilian9");
+				} else .mstdenter;
+			}
+		}
+		//.tohint(A, "grext");
+	}
+	rosie_help	{	.txtplay("lilian12");	}
+	click_24zejsciedomaszynowni	{
+		clsave.bset("e2_zeszladomaszynowni");
+		.mprzejdz("Zejsciedomaszynowni");
+	}
+	hint_click	{
+		if( !clsave.bis("e2_zeszladomaszynowni") )	{
+			igmstate = 0;
+			.txtplay("lilian13");
+			.playexhint("24zejsciedomaszynowni");
+		} else if( clsave.bis("e2_wnioskitajemnica") && !clsave.bis("e2_salabalowaenter") )	{
+			igmstate = 0;
+			.txtplay("lilian14");
+			.playexhint("12schody");
+		}
+	}
+	click_29kuchnia	{
+		if( !clsave.bis("e2_hokuchnia2") )	{
+			clsave.bset("e2_hokuchnia2");
+			.mprzejdz("HOKuchnia2");
+		} else
+			.mprzejdz("Kuchnia");
+	}
+	click_12schody	{
+		.mprzejdz("Schody");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Zejsciedomaszynowni : Kajuta	{
+	init	{
+		Kajuta::init("24zejsciedomaszynowni");
+		.setsndbase("zejsciedomaszynowni");
+		
+		.loadsnddb;
+		.sounds = (A, ":prab9", "Witaj Lilian! Dzielnie siê spisa³a¶; Masz ju¿ skompletowany ca³y medalion; Mo¿esz mnie teraz wezwaæ kiedy zechcesz", func { .txtplay("lilian10"); },
+			":lilian10", "Pozna³am mrocz± tajemnicê o której mówi³a¶; Chodzi o morderstwo w trzeciej klasie",
+				func { .txtplay("prab10"); },
+			":prab10", "Tak; Nigdy nie odnaleziono sprawcy; Nieszczêsna dziewczyna", func { .txtplay("lilian11"); },
+			":lilian11", "Nie mog³am otworzyæ skrytki w kot³owni; Brakuje jednego elementu", func { .txtplay("prab11"); },
+			":prab11", "Spróbuj mo¿e w recepcji to du¿a sala gdzie go¶cie oczekiwali na za³atwienie wszelkich formalno¶ci; Ci sami ludzie którzy budowali skrytkê w kot³owni wykañczali tak¿e boilery w kot³owni", func { tcr.ahide; igmstate=1; },
+			":lilian12", "Zamkniête drzwi, ¿adnej klamki. Mo¿e znajdê co¶ w tej stercie narzêdzi", "stdret",
+			":lilian13", "To ko³o powinno rozwi±zaæ problem zamkniêtych drzwi.", "stdret",
+			":lilian14", "Tutaj nie mam ju¿ nic do zrobienia.", "stdret",
+			":lilian15", "It's closed!", "stdret",
+			":lilian16","I need to return to the Engine Room to open the hatch!", "stdret"
+			);
+		
+		.sfxs = (A, "iskry 70");
+		.imgs = (A, "bg.pyz", "doors.pyz 5", "prund.pyzH 10", "rura.pyz 20");
+		.timplay("timprund", 5000, func { anprund.play(0); fxiskry.play; .play; } );
+		
+		mus.playstr("maszynownia.ogg -l -v 40");
+		.mexits;
+		
+		andoors.addmethod("onfinish", func {
+			clsave.bset("e2_odkrecilmaszynownia");
+			grext.mshow("do_25kotlypalacz");
+			igmstate=1;
+			} );
+		if( clsave.bis("e2_hozejsciedomaszynowni") )	{
+			.diblockexit("24ho_zejscie");
+			.hodone("24ho_zejscie");
+		} else .extohint("24ho_zejscie");
+		
+		if( !clsave.bis("e2_odkrecilmaszynownia") )	{
+			//.diblockexit("25kotlypalacz");
+			if( clsave.bis("item_kolo") )	{
+				new DelayMover cmov;
+				cmov.unlock;
+				.sfx = ("metaldoors");
+				//.antohint("anitemkolo");
+			}
+		} else andoors.setframe(2,0);
+		
+		ccs.enter( func {
+			if( clsave.is("epizod", "e2_1912") )	{
+				if( clsave.bis("ma_medalion2") && !clsave.bis("e2_wnioskitajemnica") )	{
+					clsave.bset("e2_wnioskitajemnica");
+					//.txtplay("prab9");
+					.rosie_go;
+				} else if ( clsave.bgo("e2_zejsciestertaklamka") )	{
+					.txtplay("lilian12");
+				} else if ( clsave.last == "HOZejscie" )	{
+					.txtplay("lilian13");
+				} else igmstate=1;
+			}
+			} );
+	}
+	rosie_help	{	.txtplay("prab9");	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( anitemkolo.isin(mouse.getpos,1,1) )	{
+			.mssetobj("anitemkolo");
+			igmstate=2;
+		}
+	}
+	cmov_PUT	{
+		.retobj;
+		if( andoors.isin(mouse.getpos,1,1) )	{
+			anitemkolo.hide;
+			clsave.set("item_kolo",0);
+			andoors.play(1);
+			fxmetaldoors.play;
+		} else igmstate=1;
+	}
+	click_24ho_zejscie	{
+		clsave.bset("e2_hozejsciedomaszynowni");
+		.mprzejdz("HOZejscie");
+	}
+	click_25kotlypalacz	{
+		if( !clsave.bis("e2_odkrecilmaszynownia") )	{
+			igmstate=0;
+			.txtplay("lilian15");
+		} else .mprzejdz("Kotlypalacz");
+	}
+	click_23korytarzdolnypoklad	{
+		.mprzejdz("Korytarzdolnypoklad");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	hint_click	{
+		if( !clsave.bis("e2_odkrecilmaszynownia") && clsave.bis("item_kolo") )	{
+			//.playexhint("25kotlypalacz");
+			.playhints("anitemkolo", grext.getsac("do_25kotlypalacz"));
+		} else if( clsave.bis("e2_hozejsciedomaszynowni") && clsave.bis("e2_odkrecilmaszynownia") )	{
+			if( clsave.bis("item_klocek") || !clsave.bis("ukonczone_drzwikotlownia") )	{
+				.playexhint("25kotlypalacz");
+				if( clsave.bis("item_klocek") )	{
+					igmstate = 0;
+					.txtplay("lilian16");
+				}
+			} else {
+				.playexhint("23korytarzdolnypoklad");
+				igmstate = 0;
+				.txtplay("lilian14");
+			}
+		}
+	}
+}
+
+game Kotlypalacz : Kajuta	{
+	init	{
+		Kajuta::init("25kotlypalacz");
+		.setsndbase("kotlypalacz");
+		
+		.loadsnddb;
+		.sounds = (A, ":palacz1","Co jest! Do stu tysiêcy diab³ów morskich! Karty same siê u³o¿y³y!! Duchy, czy mo¿e za du¿o rumu? Wezmê siê lepiej za robotê", func { tcr.ahide; 
+			clsave.bset("e2_do100tys");
+			.timplay("timp1",2000, func { .txtplay("palacz2"); }); 
+			},
+			":palacz2","Duchu mo¿e masz ochotê zagraæ w kó³ko i krzy¿yk? No chod¼ nie daj siê prosiæ",
+				func {
+					clsave.bset("e2_wygralakolkokrzyz");
+					tcr.ahide;
+					.timplay("timp2", 1000, func { .mprzejdz("Kolkokrzyz"); }); 
+				},
+			":palacz3","Duchu! Nie wiem gdzie jeste¶ bo ciê nie widzê ale za to ¿e wygra³e¶ masz tak± ma³± b³yskotkê któr± znalaz³em na stercie wêgla", func { <GAME> {
+				tcr.ahide;
+				new itemadder clb2;
+				.imgs = (A, "$scripts/items/brylant2get.pyz 750");
+				new anima angwiazdkif2;
+				angwiazdkif2.load("scripts/common/gwiazdkif.pyz");
+				angwiazdkif2.hide;
+				
+				clb2.showitem("anbrylant2get", func { .timplay("timbryl1",1000, func {
+				.medalion_open;
+				clb2.gotodestan("anbrylant2get", "anmedalion2", 15, func {
+					anbrylant2get.hide;
+					clsave.bset("ma_medalion2");
+					.medalion_open;
+					angwiazdkif2.setpos( anmedalion2.getcx, anmedalion2.getcy );
+					angwiazdkif2.setz( anmedalion2.getz+1);
+					angwiazdkif2.play(0);
+					.timplay("timbryl2", 1000, func { .txtplay("lilian2"); } );
+					} );
+				} );
+				} );
+				}; },
+			":lilian1", "W kot³ach napalone i chwila przerwy na ma³y pasjans?|Przy³acze siê do gry. Ciekawe jak± bêdzie mia³ minê palacz... Jestem w koñcu niewidzialna.", "stdret",
+			":lilian2", "Mam ju¿ drugi fragment medalionu prababci! Niesamowite, ¿e uda³o mi siê skompletowac ca³o¶æ. Pójdê dalej w g³±b kot³owni, mo¿e znajdê tam co¶ ciekawego.", "stdret"
+			);
+		
+		.imgs = (A, "25kotlypalacz.jpg", "palacz.pyz 3", "deska.pyz 1", "memo.pyz 2");
+		
+		mus.playstr("maszynownia.ogg -l -v 50");
+		.mexits;
+		
+		if( clsave.is("epizod", "e2_1912") )	{
+			if( !clsave.bis("e2_wygralamemo") )	{
+				.titblock(A, "26kotlownia", "24zejsciedomaszynowni");
+				anmemo {
+					.Button_std;
+					.addmethod("butclick", func {
+						if( igmstate!=1 ) return;
+						clsave.bset("e2_wygralamemo");
+						.mprzejdz("Memo");
+						} );
+					but1.add(this);
+				};
+				.antohint("anmemo");
+			} else {
+				anpalacz.setframe(1,0);
+				if( !clsave.bis("ukonczone_drzwikotlownia") )	{
+					.blockexit("24zejsciedomaszynowni");
+					.extohint("26kotlownia");
+				} else if( clsave.bis("item_klocek") )	{
+					.extohint("26kotlownia");
+				} else .extohint("24zejsciedomaszynowni");
+			}
+		}
+		
+		ccs.enter( func {
+			if( clsave.is("epizod", "e2_1912") )	{
+				if( clsave.bis("e2_wygralamemo") )	{
+					if( !clsave.bis("e2_do100tys") )	{
+						.txtplay("palacz1");
+					} else if (!clsave.bis("e2_wygralakolkokrzyz") )	{
+						.txtplay("palacz2");
+					} else if (!clsave.bis("ma_medalion2") )	{
+						.txtplay("palacz3");
+					} else igmstate=1;
+				} else if ( clsave.bgo("e2_enterpalaczkotlownia") )	{
+					.txtplay("lilian1");
+				} else igmstate=1;
+			}
+			} );
+	}
+	click_26kotlownia	{
+		.mprzejdz("Kotlownia");
+	}
+	click_24zejsciedomaszynowni	{
+		.mprzejdz("Zejsciedomaszynowni");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+
+game Kotlownia : Kajuta	{
+	init	{
+		Kajuta::init("26kotlownia");
+		.setsndbase("kotlownia");
+		
+		.imgs = (A, "26kotlownia.jpg", "drzwi.pyz 10");
+		
+		.titsounds = (A, ":lilian1", "Jakie te kot³y ogromne. Piêæ kot³ów w jednym rzêdzie. ¯eby Titanic móg³ p³yn±æ potrzebna by³a ogromna ilo¶æ pary.", "stdret",
+			":lilian2", "O.. jaki¶ dziwny w³az na jednym z kot³ów. Sprawdzê to.", "stdret",
+			":lilian3", "Muszê znale¼æ brakuj±ce elementy w innych pomieszczeniach.", "stdret",
+			":lilian4", "Wracam na górne pok³ady, tu ju¿ nie mam nic do zrobienia.", "stdret"
+			);
+		
+		mus.playstr("maszynownia.ogg -l");
+		.mexits;
+		
+		if( clsave.bis("otwarte_drzwikotlownia") )	{
+			.diblockexit("27ho_kotlownia");
+			.hodone("27ho_kotlownia");
+			andrzwi.setframe("open",0);
+			.extohint("25kotlypalacz");
+		} else if( clsave.bis("item_klocek") || !clsave.bis("ukonczone_drzwikotlownia") ) .extohint("27ho_kotlownia");
+		else .extohint("25kotlypalacz");
+		
+		ccs.enter( func {
+			if( clsave.bgo("e2_kotlowniaenter") )	.txtplay("lilian1");
+			else if ( clsave.bis("ukonczone_drzwikotlownia") && clsave.bgo("e2_ukonczonedrzwikotkoment") )
+				.txtplay("lilian3");
+			else if ( clsave.last == "HOKotlownia" )
+				.txtplay("lilian4");
+			else igmstate=1;
+			} );
+	}
+	hint_click	{
+		if( !clsave.bis("ukonczone_drzwikotlownia") )	{
+			igmstate=0;
+			.txtplay("lilian2");
+		}
+	}
+	click_27ho_kotlownia	{
+		if( clsave.bis("ukonczone_drzwikotlownia") )
+			.mprzejdz("DrzwikotlowniaB");
+		else .mprzejdz("Drzwikotlownia");
+	}
+	click_25kotlypalacz	{
+		.mprzejdz("Kotlypalacz");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Kuchnia : Kajuta	{
+	init	{
+		Kajuta::init("29kuchnia");
+		.setsndbase("kuchnia");
+		
+		.titsounds=(A, ":lilian1", "Przeszukam to pomieszczenie. Prababcia mówi³a, ¿e znajdê tutaj klucz.", "stdret"
+			);
+		
+		.imgs = (A, "29kuchnia.jpg");
+		
+		//mus.playstr("titanic2.ogg -l -v 60");
+		.sfxs = (A, "bgrsala2N");
+		.mexits;
+		
+		if( clsave.bis("e2_hokuchnia") )	{
+			.diblockexit("30ho_kuchnia");
+			.hodone("30ho_kuchnia");
+			.extohint("23korytarzdolnypoklad");
+		} else .extohint("30ho_kuchnia");
+		
+		ccs.enter( func {
+			if( clsave.bgo("e2_kuchniaenter") )	{
+				igmstate=0;
+				.txtplay("lilian1");
+			} else igmstate=1;
+			} );
+	}
+	click_30ho_kuchnia	{
+		clsave.bset("e2_hokuchnia");
+		.mprzejdz("HOKuchnia");
+	}
+	click_23korytarzdolnypoklad	{
+		.mprzejdz("Korytarzdolnypoklad");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Salabalowarecepcja : Kajuta	{
+	init	{
+		Kajuta::init("36salabalowarecepcja");
+		.setsndbase("salabalowarecepcja");
+		
+		.imgs = (A, "36salabalowarecepcja.jpg", "lustro.pyz 5", "szafa.pyz 5"/*, "maska.pyz 3", "morze.pyzP 1"*/);
+		
+		.titsounds = (A, ":lilian1", "Jakie piekne miejsce i tylu wytwornych pasa¿erów. Rozejrzê siê u poszukam miejsca gdzie mog± byæ brakuj±ce fragmenty herbu.", "stdret",
+			":lilian2", "W rogu stoi szafa, mo¿e tam co¶ znajdê.", "stdret",
+			":lilian3", "Poszukam sali ze zdjecia.", "stdret"
+			);
+		
+		//mus.playstr("gwarludzi.ogg -l -v 60");
+		.sfx=("gwarludziN 60");
+		.mexits;
+		
+		if( clsave.is("epizod", "e2_1912") )	{
+			.img = ("ludzie.pyzG 10");
+		}
+		if( clsave.bis("e2_recepcjalustro") )	{
+			anlustro.setframe(1,0);
+			.diblockexit("40ho_skrytkalustro");
+			.hodone("40ho_skrytkalustro");
+			.extohint("12schody");
+		} else if( clsave.bis("item_krysztal14") && clsave.bis("item_krysztal15") ) .antohint("anlustro");
+		else .extohint("12schody");
+		if( clsave.bis("e2_recepcjaszafa") )	{
+			anszafa.setframe(1,0);
+			.diblockexit("37ho_salabalowa");
+			.hodone("37ho_salabalowa");
+		} else .antohint("anszafa");
+		
+		ccs.enter( func {
+			if( clsave.bgo("e2_salabalowaenter") )	{
+				.txtplay("lilian1");
+			} else if ( clsave.last == "Zdjecie" )	{
+				.txtplay("lilian3");
+			} else igmstate=1;
+			} );
+	}
+	click_37ho_salabalowa	{
+		//.mprzejdz("HOSalabalowa");
+		clsave.bset("e2_recepcjaszafa");
+		.mprzejdz("Szafa");
+	}
+	click_40ho_skrytkalustro	{
+		//.mprzejdz("HOSkrytkalustro");
+		.mprzejdz("KrysztalyA");
+	}
+	click_12schody	{
+		if( clsave.bis("e2_recepcjalustro") && !clsave.bis("e2_hoschody") )	{
+			clsave.bset("e2_hoschody");
+			.mprzejdz("HOSchody");
+		} else
+			.mprzejdz("Schody");
+	}
+	hint_click	{
+		if( !clsave.bis("e2_recepcjaszafa") )	{
+			igmstate=0;
+			.txtplay("lilian2");
+			.playhint("anszafa");
+		}
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Salaturecka : Kajuta	{
+	init	{
+		Kajuta::init("38salaturecka");
+		.setsndbase("salaturecka");
+		
+		.imgs = (A, "38salaturecka.jpg");
+		
+		.titsounds = (A, ":lilian1", "To chyba ³aznia turecka. Budowniczowie Titanica zadbali o wszelkie wygody dla pasa¿erów.",
+			"stdret",
+			":lilian2", "Te szufladki na ¶cianie mog± kryæ jak±¶ zagadkê.", "stdret",
+			":lilian3", "Wrócê do sali z szaf±. Mo¿e tam dowiem siê co mogê zrobiæ z kryszta³ami." , "stdret"
+			);
+		
+		//mus.playstr("titanic2.ogg -l -v 60");
+		.mexits;
+		.sfxs = (A, "bgrsala2N");
+		if( clsave.bis("e2_hosalaturecka") )	{
+			.diblockexit("39ho_salaturecka");
+			.hodone("39ho_salaturecka");
+			.extohint("12schody");
+		}
+		
+		ccs.enter( func {
+			if( clsave.last == "HOSalaturecka" )	{
+				.txtplay("lilian3");
+			} else if( clsave.bgo("e2_salatureckaenter") )
+				.txtplay("lilian1");
+			else igmstate=1;
+			} );
+	}
+	hint_click	{
+		if( !clsave.bis("e2_hosalaturecka") )	{
+			igmstate=0;
+			.txtplay("lilian2");
+			.playexhint("39ho_salaturecka");
+		}
+	}
+	click_39ho_salaturecka	{
+		clsave.bset("e2_hosalaturecka");
+		.mprzejdz("Szuflady");
+	}
+	click_12schody	{
+		.mprzejdz("Schody");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}

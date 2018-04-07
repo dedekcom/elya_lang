@@ -1,0 +1,67 @@
+game Lodka : DziejeGame	{
+	init	{
+		DziejeGame::init("lodka");
+		.gamebg;
+		
+		.EgiptSave("statek");
+		.sfxs = (A, "getpuz 60", "putpuz 60");
+		.imgs = (A, "bkg.pyz", "szkielet.pyz 10");
+		new gmimgvec grels;
+		"grels" ..< "els.pyz";
+		grels.setz(20);
+		
+		new DelayMover cmov;
+		
+		new Rect rec(129,100,756,407);
+		rec.fitgrouprand("grels");
+		new int lastx;
+		new int lasty;
+		
+		.sounds = (A,
+			"snd1", "Zbudujê najpiêkniejsz± barkê jaka p³ywa³a po Nilu", "mstart",
+			"sndend", "Doskonale! Idê zebraæ za³ogê i w drogê!", func { ccs.close( func { BajkaNr=3; gameapi.play("Bajka"); } ); }
+			);
+		
+		ccs.enter( func { .cbplay("snd1"); } );
+	}
+	mstart	{
+		cmov.unlock;
+		igmstate = 1;
+	}
+	cmov_GET 	{
+		if( igmstate!=1 ) return;
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxgetpuz.play;
+			@s = grels.getsfound;
+			lastx = <s>.getpx;
+			lasty = <s>.getpy;
+			<s>.setz(30);
+			.mssetobj(s);
+			grels.remove(s);
+		}
+	}
+	cmov_PUT	{
+		if( igmstate!=1 ) return;
+		@s = .getfree;
+		fxputpuz.play;
+		if( <s>.aninlod(30) )	{
+			<s>.setpos(0,0);
+			<s>.setz(15);
+			if( grels.empty )	{
+				cmov.lock;
+				igmstate = 2;
+				.cbplay("sndend");
+			}
+		} else {
+			grels.add(s);
+			<s>.ansetbpos(lastx, lasty);
+			<s>.setz(20);
+		}
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}

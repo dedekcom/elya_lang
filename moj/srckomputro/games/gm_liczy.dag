@@ -1,0 +1,514 @@
+game Liczy : Komputro {
+	init	{
+		Komputro::init("liczy");
+		.path = ("liczy");
+		.bkg = ("bkg.pyz");
+		.loadlekcja;
+		.sfxs = (A, "mikrofala", "skok2", "type2 40", "brawo 40", "pik 60");
+		tdlekcja.move(0,-5);
+		new Buttons butst("strzalki.pyz");
+		butst {
+			<grbuts.get(0)>.addtogamevars("anst1");
+			<grbuts.get(1)>.addtogamevars("anst2");
+			<grbuts.get(2)>.addtogamevars("anexit");
+			<grbuts.get(3)>.addtogamevars("andown");
+			anst1.ansetbpos( 160, 600 - anst1.geth );
+			anst2.ansetbpos( anst1.getex + 10, anst1.getpy );
+			anexit.ansetbpos( 735, 24 );
+			andown.ansetbpos( anst2.getex + 10, anst1.getpy );
+			//andown.ansetbpos( 800 - andown.getw, 500 - andown.geth );
+			grbuts.setz(180);
+			.disable;
+		};
+		tdfunk.napisshow(652-tdfunk.getw/2, 270);
+		tdfunk.setz(50);
+		
+		//new @stdfont = .stdfont(10);
+		new @stdfont = .snewfont( "configs/fonts/normal.ttf", 12);
+		.monofont("fnmon10", 10);
+		new @stdfont14 = .snewfont( "configs/fonts/normal.ttf", 14);
+		new TextDb tdfn(stdfont, 12, "funkcje.db", 10,10,192, 550,315, 5,50, "left");
+		tdfn.hide;
+		tdfn.view(A,0,1,2,3,4,5);
+		
+		new @Stron = 0;
+		new @Strona = 0;
+		.newtextposz("txtpage", "", stdfont14, 4,4,64, anst1.getex - 10, 600-anst1.geth-16, 150);
+		//new TextDb tdopis(stdfont14, 12, "$var:dbpom", 4,4,64, 31,48, 5,150, "left");
+		txtpage.hide;
+		
+		.sounds = (A,
+			"sndintro", "W poprzedniej lekcji pozna³e¶ podstawy jêzyka asembler", func { .cbplay("snd1"); },
+			"snd1", "Chocia¿ mo¿na napisaæ w nim ka¿dy program na dany procesor asembler wymaga zdecydowanie za du¿o pracy i wiedzy by w nim programowaæ", func { .cbplay("snd2"); },
+			"snd2", "Do tworzenia programów u¿ywane s± jêzyki wysokiego poziomu zrozumia³e dla cz³owieka",
+				func { .cbplay("snd3"); },
+			"snd3", "W tej lekcji poznasz podstawy jêzyka C; jest to ju¿ wiekowy jêzyk i rzadziej u¿ywany jednak na jego przyk³adzie omówimy powi±zania jêzyków wysokiego poziomu z asemblerem",
+				func { .cbplay("snd4"); clp.showpob("tdhelp", "dd"); },
+			"snd4", "Wykonaj zadanie napisane tutaj", func { .cbplay("snd5"); .cshowbut("rd"); },
+			"snd5", "I kliknij tutaj aby sprawdziæ czy wykona³e¶ je poprawnie", 
+				func { .cbplay("snd6"); clp.showpob("txto1","rr"); },
+			"snd6", "Wynik programu zobaczysz na monitorze; Zaczynamy",
+				func { clp.stoph; igmstate = 1; ttk.enable;},
+			"sndok", "Dobrze; kliknij aby przej¶æ dalej", "mnext",
+			"sndnon", "Co¶ nie tak", "mret",
+			"sndfinito", "Doskonale! Ukoñczy³e¶ kurs podstaw jêzyka C! Kliknij aby przej¶æ do kolejnej lekcji",
+				func { igmstate = 6; }
+			);
+		
+		new classplacepointer2 clp;
+		new classsimplebutton cbok;
+		cbok.build("scripts/common/butok.pyz", "imglobcurs", 546,525, 100, 0);
+		new classsimplebutton cbhelp;
+		cbhelp.build("scripts/common/help.pyz", "imglobcurs", 650,527, 100, 0);
+		
+		new string Code;
+		Lexer::setas("Code");
+		new db dbcode;
+		Code.consts = (A,"int",";","(",")","float", "char","[","]","if","else", "while", "main","return","#include","<",".",">","{","}","=","/","*","+","-",",",":","&");
+		
+		//dbcode.dbaddstringrow(""," ");
+		
+		new @ifontsize = 10;
+		.monofont("fnkod", ifontsize);
+		new TextBoxTyper ttb("fnkod", ifontsize, 0.6*ifontsize, .black, "",
+			290,78, 212,294, 2);
+		new TextBoxTyper tth("fnkod", ifontsize, 0.6*ifontsize, .grey(64), "",
+			290,78, 212,294, 2);
+		ttb.setz(100);
+		tth.setz(100);
+		tth.hide;
+		new TextBoxTyper ttk("fnkod", ifontsize, 0.6*ifontsize, .black, "at0; ,[](){}-+_/=#<>*.\"\\!?%:&",
+			40,78, 212,294, 2);	//int x, int y, int w, int h, int dy)	{
+		ttk.setz(100);
+		new @HelpLevel = 0;
+		new @LekcjaLevel = 0;
+		
+		new vector veccheck;
+		new vector vecp1;
+		new db dblek;
+		new db dbasm;
+		new @idlekcja = 0;
+		
+		.monofont("fnmon",12);
+		//init(string sfont, int isize, int ir, int ig, int ib, string schars, int ilimit)	{
+		new ConTextTyper ttp("fnmon", 12, .white, "at0; ,[](){}-+_/=#<>*.\"\\!?%:$&", 19);
+		ttp.setpos(553, 60+ 1*14);
+		ttp.onenter(GAME, func {
+			txto2.txtset("Your name: " + ttp.get->strgetto(" ") );
+			.cbplay("sndok");
+			} );
+		ttp.disable;
+		new ConTextTyper ttp0("fnmon", 12, .white, "at0; ,[](){}-+_/=#<>*.\"\\!?%:$&", 19);
+		ttp0.setpos(553, 60);
+		ttp0.onenter(GAME, func {
+			real r = ttp0.get;
+			if( r<0 )	txto1.txtset("negative");
+			else if (r>0)	txto1.txtset("positive");
+			else 	txto1.txtset("zero");
+			.cbplay("sndok");
+			} );
+		ttp0.disable;
+		.newimgarray("grout", "text", "txto", 8);
+		grout.each( func { (@id)
+			.setfont("fnmon");
+			.createtxt(.white);
+			.setpos(553, 60+ id*14);
+			} );
+		
+		new gfxSquare gsq(20,20,760,580);
+		gsq.set(.grey(240), 240);
+		gsq.build;
+		gsq.setz(100);
+		gsq.hide;
+		
+		.nextzad;
+		ttk.disable;
+		igmstate = 2;
+		.cbplay("sndintro");
+	}
+	ttp0_ontype	{	fxtype2.play;	}
+	ttp_ontype	{	fxtype2.play;	}
+	mnext	{
+		igmstate = 5;
+	}
+	ttk_boxontype	{	fxtype2.playif;	}
+	showlekcja	{
+		idlekcja = 0;
+		dblek.load( .getgraphpath + "lekcja" + LekcjaLevel+".db" );
+		dbasm.load( .getgraphpath + "asm" + LekcjaLevel + ".db");
+		.deletegmobj("tdasm");
+		new TextDb tdasm("fnmon10", 10, "$var:dbasm", .grey(48), 400,20, 1,150, "left");
+		//tdasm.hide;
+		.viewlekcja(0);
+		butst.enable;
+		gsq.show;
+		
+		Stron = 0;
+		Strona = 0;
+		for( int i=0; i<dblek.getrowsno; i++)	{
+			if( dblek.get(i,0) =="---next---" )	Stron++;
+		}
+		txtpage.show;
+		txtpage.txtset("" + (Strona+1) + "/"+(Stron+1));
+	}
+	mret	{
+		igmstate = 1;
+		ttk.enable;
+	}
+	setcode(int ile)	{
+		ttb.settext(ile);
+		ttb.show;
+	}
+	cbhelp_MOVEON	{
+		sndakskermovon.play;
+		if( HelpLevel>1 && igmstate==1 )	{
+			ttb.hide;
+			tth.show;
+		}
+	}
+	cbhelp_MOVEOFF	{
+		ttb.show;
+		tth.hide;
+	}
+	cbok_CLICK	{
+		if( igmstate!=1) return;
+		igmstate = 2;
+		if( .checkcode ) {
+			ttk.disable;
+			match(HelpLevel)	{
+				1 => txto0.txtset("Hello World!");
+				2 => txto0.txtset("Result: " + (10*(9-2)/3+1));
+				3 => txto0.txtset("One hundred ten: 6e");
+				4 => {	txto0.txtset("Net: 15.950000");
+					txto1.txtset("After tax: 19.459000");
+				}
+				5 => {	txto0.txtset("Net: 15.95");
+					txto1.txtset("After tax: 19.46");
+				}
+				6 => {
+					txto0.txtset("Give name:");
+					ttp.enable;
+					return;
+				}
+				7 => { ttp0.enable; return; }
+				8 => {
+					for( int i=1; i<9; i++)	{
+						<"txto"+(i-1)>.txtset("" + i +" : " + (i*i*i));
+					}
+					fxbrawo.play;
+					.cbplay("sndfinito");
+					return;
+				}
+				? => ;
+			}
+			.cbplay("sndok");
+			fxmikrofala.play;
+		}	else	{
+			.cbplay("sndnon");
+			fxskok2.play;
+		}
+	}
+	bool checkcode	{
+		veccheck.free;
+		vecp1.free;
+		int id = 0;
+		while( id>=0 )	{
+			id = ttk.nonempty(id);
+			if( id >= 0 ) {veccheck.add(id); id++; }
+		}
+		if( veccheck.size==0 ) return false;	// brak kodu
+		string s="";
+		string s2;
+		for( int i=0; i<veccheck.size; i++)	{
+			s2 = ttk.getid( veccheck.get(i) );
+			s2.clear;
+			if( s2.getb(0,1)=="#" )	{
+				Code.start( s2 );
+				vecp1.add( Code.expectdb("dbcode", 1) );
+				s = "";
+			} else {
+				s += s2;
+			}
+		}
+		if( s.length>0 )	{
+			Code.start( s );
+			vecp1.add( Code.expectdb("dbcode", 1) );
+		}
+		if( vecp1.size != dbcode.getrowsno ) return false;
+		for( i=0; i<vecp1.size; i++)	{	if( vecp1.get(i) != i ) return false;	}
+		true;
+	}
+	viewhelp	{
+		.deletegmobj("tdhelp");
+		new TextDb tdhelp(stdfont, 12, "pomoc"+HelpLevel+".db", .blue, 36,412, 5,10, "left");
+		HelpLevel++;
+	}
+	viewlekcja(int id)	{
+		idlekcja += id;
+		if( idlekcja<0 ) { idlekcja = 0; return; }
+		new db dbpom;
+		
+		int page = 0, int row=0;
+		while( idlekcja!=page )	{
+			if( row < dblek.getrowsno )	{
+				if( dblek.get(row,0) == "---next---" ) page++;
+				row++;
+			} else {
+				page = idlekcja;
+				row = -1;
+			}
+		}
+		if( row==-1 ) {
+			//tdasm.show;
+			idlekcja-=id;
+			delete dbpom;
+			return;
+		}
+		Strona = page;
+		txtpage.txtset("" + (Strona+1) + "/"+(Stron+1) );
+		while( row< dblek.getrowsno && dblek.get(row,0) !="---next---" )	{
+			_ = dbpom.addrow;
+			dbpom.dbaddlast( dblek.get(row,0) );
+			row++;
+		}
+		.deletegmobj("tdopis");
+		new TextDb tdopis(stdfont14, 12, "$var:dbpom", 4,4,64, 31,48, 5,150, "left");
+		tdopis.show;
+		delete dbpom;
+		//init(string sfont, int isize, string sdbfile, int r, int g, int b, int x, int y, int dy, int z, string sdir)	{
+	}
+	butst_moveon	{	sndakskermovon.play; if( sobject=="down" )	tdasm.move(0,-130);	}
+	butst_moveoff	{	if( sobject=="down" )	tdasm.move(0,130);		}
+	butst_lclick	{
+		fxpik.play;
+		match( sobject )	{
+			"left"		=>	<GAME>.viewlekcja(-1);
+			"right"	=>	<GAME>.viewlekcja(1);
+			"exit"	=>	{ txtpage.hide; <GAME>.hidelekcja; }
+			? => ;
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug )	{
+			igmstate = 5;
+			.mouse_lclick;
+		}
+	}
+	nextzad	{
+		.viewhelp;
+		grout.txtreset;
+		ttp.txtset("");
+		ttp0.txtset("");
+		if( HelpLevel!=5 )	{
+			dbcode.free;
+			ttk.clear;
+			tth.clear;
+			ttb.clear;
+		} else {
+			dbcode.set(1, dbcode.dbfindinrow(1,"$literal")+1,
+				"Net: %.2f\\nAfter tax: %.2f");
+			ttb.setid(" printf(\"Net: ??\\nAfter tax: ??\",", 4);
+			tth.setid(" printf(\"Net: %.2f\\nAfter tax: %.2f\",", 4);
+		}
+		ttk.enable;
+		ttk.activate(0);
+		igmstate = 1;
+		match( HelpLevel )	{
+			1 => {
+				.setcode(	"#include <stdio.h>",
+					"int main() {",
+					"   printf(\"Hello World!\\n\");",
+					"   return 0;",
+					"}",
+					5);
+				dbcode.dbaddstringrow("#include < $alpha stdio . $alpha h >"," ");
+				dbcode.dbaddstringrow("int|main|(|)|{|$alpha|printf|(|$literal|Hello World!\\n|)|;|return|$int|0|;|}","|");
+			}
+			2 => {
+				.setcode("#include <??.h>",
+					"int ??() {",
+					" int result = ?? ;",
+					" ??f(\"Result: %d\\n\", result);",
+					" return 0;",
+					"}",
+					6);
+				tth.settext("#include <stdio.h>",
+					"int main() {",
+					" int result = 10*(9-2)/3+1;",
+					" printf(\"Result: %d\\n\", result);",
+					" return 0;",
+					"}",
+					6);
+				dbcode.dbaddstringrow("#include < $alpha stdio . $alpha h >"," ");
+				dbcode.dbaddstringrow("int|main|(|)|{|int|$alpha|result|=|$int|10|*|(|$int|9|-|$int|2|)|/|$int|3|+|$int|1|;|$alpha|printf|(|$literal|Result: %d\\n|,|$alpha|result|)|;|return|$int|0|;|}","|");
+			}
+			3 => {
+				.setcode("#?? <??.h>",
+					"int ?? ??",
+					" ??(\"One hundred ten: ??\\n\",??);",
+					" return 0;",
+					"??",
+					5);
+				tth.settext("#include <stdio.h>",
+					"int main() {",
+					" printf(\"One hundred ten: %x\\n\",",
+					"       110);",
+					" return 0;",
+					"}",
+					6);
+				dbcode.dbaddstringrow("#include < $alpha stdio . $alpha h >"," ");
+				dbcode.dbaddstringrow("int|main|(|)|{|$alpha|printf|(|$literal|One hundred ten: %x\\n|,|$int|110|)|;|return|$int|0|;|}","|");
+			}
+			4 => {
+				.setcode("#??",
+					"int ??",
+					" float net = 15.95;",
+					" float aftax = ?? * net;",
+					" printf(\"Net: %f\\nAfter tax: %f\",",
+					"       net, aftax);",
+					" return 0;",
+					"??",
+					8);
+				tth.settext("#include <stdio.h>",
+					"int main() {",
+					" float net = 15.95;",
+					" float aftax = 1.22 * net;",
+					" printf(\"Net: %f\\nAfter tax: %f\",",
+					"       net, aftax);",
+					" return 0;",
+					"}",
+					8);
+				dbcode.dbaddstringrow("#include < $alpha stdio . $alpha h >"," ");
+				dbcode.dbaddstringrow("int|main|(|)|{|float|$alpha|net|=|$real|15.95|;|float|$alpha|aftax|=|$real|1.22|*|$alpha|net|;|$alpha|printf|(|$literal|Net: %f\\nAfter tax: %f|,|$alpha|net|,|$alpha|aftax|)|;|return|$int|0|;|}","|");
+			}
+			6 => {
+				.setcode("#??",
+					"int ??",
+					"  char name[20];",
+					"  printf(\"Give name:\\n\");",
+					"  scanf(\"%s\", name);",
+					"  printf(\"Your name: %s\\n\", ??);",
+					"  return 0;",
+					"??",
+					8);
+				tth.settext("#include <stdio.h>",
+					"int main() {",
+					"  char name[20];",
+					"  printf(\"Give name:\\n\");",
+					"  scanf(\"%s\", name);",
+					"  printf(\"Your name: %s\\n\", name);",
+					"  return 0;",
+					"}",
+					8);
+				dbcode.dbaddstringrow("#include < $alpha stdio . $alpha h >"," ");
+				dbcode.dbaddstringrow("int|main|(|)|{|char|$alpha|name|[|$int|20|]|;|$alpha|printf|(|$literal|Give name:\\n|)|;|$alpha|scanf|(|$literal|%s|,|$alpha|name|)|;|$alpha|printf|(|$literal|Your name: %s\\n|,|$alpha|name|)|;|return|$int|0|;|}","|");
+			}
+			7 => {
+				tth.settext("#include <stdio.h>",
+					"int main() {",
+					"  float number;",
+					"  scanf(\"%f\", &number);",
+					"  if( number<0 ) {",
+					"    printf(\"negative\");",
+					"  } else if( number>0 ) {",
+					"    printf(\"positive\");",
+					"  } else {",
+					"    printf(\"zero\");",
+					"  }",
+					"  return 0;",
+					"}",
+					13);
+				.setcode("??",
+					"??",
+					"  float number;",
+					"  scanf(\"%f\", &??);",
+					"  if( ??<0 ) {",
+					"    printf(\"negative\");",
+					"  } else if( ?? ) {",
+					"    printf(\"positive\");",
+					"  } else {",
+					"    ??",
+					"  }",
+					"  return 0;",
+					"??",
+					13);
+				dbcode.dbaddstringrow("#include < $alpha stdio . $alpha h >"," ");
+				dbcode.dbaddstringrow("int|main|(|)|{|float|$alpha|number|;|$alpha|scanf|(|$literal|%f|,|&|$alpha|number|)|;|if|(|$alpha|number|<|$int|0|)|{|$alpha|printf|(|$literal|negative|)|;|}|else|if|(|$alpha|number|>|$int|0|)|{|$alpha|printf|(|$literal|positive|)|;|}|else|{|$alpha|printf|(|$literal|zero|)|;|}|return|$int|0|;|}","|");
+			}
+			8 => {
+				tth.settext("#include <stdio.h>",
+					"int pow3(int n) {",
+					"  return n*n*n;",
+					"}",
+					"int main() {",
+					"  int i = 1;",
+					"  while( i < 9 ) {",
+					"    printf(\"%d : %d\\n\", i, pow3(i));",
+					"    i = i + 1;",
+					"  }",
+					"  return 0;",
+					"}",
+					12);
+				.setcode("??",
+					"int pow3(int n) {",
+					"  return ??;",
+					"}",
+					"int main??",
+					"  int i = ??;",
+					"  while( ?? < ?? ) {",
+					"    printf(\"?? : ??\\n\", ??, ?? );",
+					"    i = ??;",
+					"  }",
+					"  return 0;",
+					"}",
+					12);
+				dbcode.dbaddstringrow("#include < $alpha stdio . $alpha h >"," ");
+				//dbcode.dbaddstringrow("int|$alpha|pow3|(|int|$alpha|n|)|{|return|$alpha|n|*|$alpha|n|*|$alpha|n|;|}|int|main|(|)|{|int|$alpha|i|=|$int|1|;|while|(|$alpha|i|<|$int|9|)|{|$alpha|printf|(|$literal|%d : %d\\n|,|$alpha|i|,|$alpha|pow3|(|$alpha|i|)|)|;|$alpha|i|=|$alpha|i|+|$int|1|;|}|return|$int|0|;|}","|");
+				dbcode.dbaddrow(A,
+					"int", "$alpha", "pow3", "(", "int", "$alpha", "n" , ")", "{",
+						"return", "$alpha", "n", "*", "$alpha", "n", "*", "$alpha", "n", ";",
+					"}",
+					"int", "main", "(", ")", "{",
+						"int", "$alpha", "i", "=", "$int", "1", ";",
+						"while", "(", "$alpha", "i", "<", "$int", "9", ")", "{",
+							"$alpha", "printf", "(", "$literal", "%d : %d\\n", ",", "$alpha", "i", ",",
+								"$alpha", "pow3", "(", "$alpha", "i", ")", ")",";",
+							"$alpha", "i", "=", "$alpha", "i", "+", "$int", "1", ";",
+						"}",
+						"return", "$int", "0", ";",
+					"}" );
+			}
+			? => ;
+		}
+	}
+	hidelekcja	{
+		.deletegmobj("tdopis");
+		.deletegmobj("tdasm");
+		butst.disable;
+		gsq.hide;
+		LekcjaLevel++;
+		match( LekcjaLevel )	{
+			1,2,3 => .nextzad;
+			? => ;
+		}
+	}
+	mouse_lclick	{
+		if( igmstate==5)	{
+			igmstate = 2;
+			match(HelpLevel)	{
+				1, 2, 6 => .showlekcja;
+				3, 4, 7 => .nextzad;
+				5 => { tdfn.show; .nextzad; }
+				? => ;
+			}
+			return;
+		} else if (igmstate==6)	{
+			.mfinito;
+			return;
+		}
+		.cactsndstop(true);
+	}
+	mfinito	{
+		gameapi.play("Robot");
+	}
+}

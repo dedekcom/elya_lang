@@ -1,0 +1,53 @@
+
+game mg41_armata : Banshee	{
+	init	{
+		Banshee::init("mg41_armata");
+		
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2","kwadrat_2.pyzH 3",
+			"popexit.pyz 45", "ramka.pyz 42");
+		.sfxs = (A,"bgrmorze3N 10"); 	
+		.butpopexit;
+		.butpopexitisinramka;
+		
+		if(!clsave.bis("takenan_ankwadrat_2"))
+		{
+			.setasitemtopck("ankwadrat_2"); 
+			.gui_toloupe("ankwadrat_2");  
+			 ankwadrat_2{
+				.addmethod("isbutin", func { (int x, int y)
+				.advstdstate && .isin(x,y,0,0) && .loupe_visible;
+				} );
+			 
+			 };         
+		} 
+		 
+		.stdstart;
+	}
+	
+	ankwadrat_2_TAKE {
+		.gui_removefromloupe("ankwadrat_2");
+		ankwadrat_2.show();
+		.stackitem_topck("kwadrat");
+		.set_mg_finished;   
+	}
+	ankwadrat_2_INPCK {
+		.additemtostack("kwadrat"); 
+		.timfinito;
+	} 
+
+	 
+	mend	{
+		.stdexitdefadv("ad41_statek", "gamead41_statek0");
+	}
+	HINT_CLICK	{
+		if(!clsave.bis("takenan_ankwadrat_2"))
+		{	
+			.showhint2v("ankwadrat_2");
+			.showhint2v("guiglass");  
+		}	
+		else
+			.showhint("anpopexit");
+	}
+	 
+}
+

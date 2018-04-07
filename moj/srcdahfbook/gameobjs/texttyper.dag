@@ -1,0 +1,391 @@
+
+public string allchars	{	"a0 t_!@#$%^&*()_+-=[]\\|}{;':\",./<>?`~"; }
+
+class TextTyper : classlocker, gfxObject {
+	init(string sfont, int isize, int ir, int ig, int ib, string schars, int ilimit)	{
+		classlocker::init();
+		sfont = .checkfont(sfont, isize);
+		new int iR = ir;
+		new int iG = ig;
+		new int iB = ib;
+		new string sChars = schars;
+		new int iLimit = ilimit;		// 0 - unlimited
+		
+		.vars2(A,"Sdir","left", "W", 0, "iFontSize", isize, "X", 0, "Y", 0);
+		
+		new text txt1;
+		txt1.setfont(sfont);
+		txt1.set("");
+		new text txt2;
+		txt2.setfont(sfont);
+		txt2.set("_");
+		txt2.createtxt(iR,iG,iB);
+		txt2.hide();
+		
+		new text txtpass;
+		txtpass.setfont(sfont);
+		txtpass.hide;
+		new bool bpass = false;
+		
+		new string _sob=null;
+		new string _sfun=null;
+		
+		this.cnewtimerfin("timcyk",300,1,"fintimcyk");
+		
+		gfxObject::init("txt1");
+	}
+	setaspasswd	{
+		bpass = true;
+		txt1.hide;
+		txtpass.setz( txt1.getz );
+		txtpass.show;
+		.copytopass;
+	}
+	copytopass	{
+		@id = txt1.get->length;
+		string s = "";
+		for( int i=0; i<id; i++)	s += "*";
+		txtpass.txtset(s);
+		txtpass.setpos( txt1.getpx, txt1.getpy );
+	}
+	setastext	{
+		bpass = false;
+		txt1.show;
+		txtpass.hide;
+	}
+	public isin(int x, int y, bool bv, bool ba)	{	txt1.isin(x,y,bv,ba);	}
+	getcol	{	return iR,iG,iB;	}
+	fintimcyk()	{
+		if( this.getlock() )	return;
+		this.updatecyk();
+		this.play();
+	}
+	updatecyk()	{
+		if( txt2.isvisible() )	{
+			txt2.hide();
+		} else {
+			txt2.setpos( txt1.getex(), txt1.getpy() );
+			txt2.show();
+		}
+	}
+	public enable()	{
+		this.unlock();
+		this.updatecyk();
+		timcyk.play();
+	}
+	public disable()	{
+		txt2.hide();
+		timcyk.stop(false);
+		this.lock();
+	}
+	public onenter(string sob, string sfun)	{	_sob=sob;	_sfun=sfun;	}
+	public setpos(int x, int y)	{
+		X = x;
+		Y = y;
+		//txt1.setpos(x,y);
+		.updatetxt(.get);
+	}
+	public move(int x, int y)	{	.setpos(X+x, Y+y); }
+	public setz(int z)	{	txt1.setz(z);txt2.setz(z);	}
+	public get()	{
+		string s = txt1.get();
+		( s.length()>0 ) ? s : "";
+	}
+	getpx	{	txt1.getpx;	}
+	getpy	{	txt1.getpy;	}
+	getcx	{	txt1.getcx;	}
+	getcy	{	txt1.getcy;	}
+	geth	{	txt1.geth;	}
+	getey	{	txt1.getpy + iFontSize;	}
+	clip(int x1, int y1, int x2, int y2)	{
+		txt1.clip(x1,y1,x2,y2);
+		txt2.clip(x1,y1,x2,y2);
+	}
+	public length	{	txt1.get->length;	}
+	public set(string s)	{	txt1.set(s);	}
+	public txtset(string s)	{	txt1.txtsetcol(s,.getcol);	}
+	public limit=(int il)	{	iLimit=il;	}
+	public onkeydown()	{
+		if( this.getlock() )	return;
+		.<this+"_ontype">;
+		if( keyboard.iskeydown("enter") )	{
+			this.disable();
+			this.callfun(_sob,_sfun);
+			.<this+"_onenter">;
+			return;
+		}
+		string s;
+		if( sChars.contains("t") && keyboard.iskey("tab") )	s = " ";
+		else s = keyboard.getkey();
+		string s2 = txt1.get();
+		if( ( (keyboard.isalpha && sChars.contains("a") ) || ( keyboard.isdigit && sChars.contains("0") )
+			|| sChars.contains(s) ) && (iLimit<=0 || iLimit>s2.length)  )	{
+			//txt1.set( s2+s );
+			//txt1.createtxt(iR,iG,iB);
+			.updatetxt(s2+s);
+			this.updatecyk();
+		} else if (keyboard.iskey("backspace") && s2.length()>0)	{
+			//txt1.set( s2.strsube(1) );
+			//txt1.createtxt(iR,iG,iB);
+			.updatetxt( s2.strsube(1) );
+			this.updatecyk();
+		}
+		.<this+"_ontyped">;
+	}
+	updatetxt(string s)	{
+		txt1.set(s);
+		txt1.createtxt(iR, iG, iB);
+		if( Sdir == "center" )	txt1.setpos( X+(W-txt1.getw)/2, Y );
+		else if (Sdir=="right")	txt1.setpos( X+W-txt1.getw, Y );
+		else txt1.setpos(X, Y);
+		if( bpass )	.copytopass;
+		.<this+"_onwrite">;
+	}
+}
+
+class ConTextTyper : TextTyper, ObjController	{
+	init()	{
+		TextTyper::init();
+		ObjController::init();
+	}
+}
+
+new string sTextBoxTyperSys = null;
+class TextBoxTyper : LObjController, ImagePos	{
+	init(string sfont, int ish, int isw, int ir, int ig, int ib, string schars, int x, int y, int w, int h, int dy)	{
+		LObjController::init;
+		ImagePos::init;
+		new @Font = .checkfont(sfont, ish);
+		.vars2(A,"Cols", w/isw, "Rows", h/(ish+dy), "X", x, "Y", y, "Row", 0, "enablemove", true, "W", w,
+			"insystem", false, "H", h, "isvisible", 1, "clipx1", x, "clipy1", y, "clipx2", 0, "clipy2", 0, "clipped", false );
+		new @Size = ish;
+		new @Dy = dy;
+		new @Z = 0;
+		string s;
+		new gmimgvec grtt;
+		new gmimgvec gren;
+		for( int i=0; i<Rows; i++)	{
+			s = "tt"+i;
+			new TextTyper <s>(Font,ish,ir,ig,ib,schars,Cols);
+			<s>.W = (w);
+			<s>.Sdir = ("left");
+			<s>.setpos( x, y+i*(ish+dy) );
+			grtt.add(s);
+		}
+	}
+	settyper(int id, string sfont, int ish, int isw, int ir, int ig, int ib, string schars, string sdir)	{
+		int x;
+		int y;
+		string s;
+		string stext = "";
+		if( id<0 ) {
+			x = <grtt.last>.X;
+			y  = <grtt.last>.getey+Dy;
+			id = grtt.size;
+			grtt.add("tt"+id);
+		} else {
+			s = grtt.get(id);
+			x = <s>.X;
+			y = <s>.getpy;
+			stext = <s>.get;
+			grtt.movefrom( s, 0, ish - <s>.iFontSize );
+			delete <s>;
+		}
+		s = "tt" + id;
+		new TextTyper <s>(sfont,ish,ir,ig,ib,schars,W/isw);
+		<s>.W = (W);
+		<s>.Sdir = (sdir);
+		<s>.updatetxt(stext);
+		<s>.setz(Z);
+		<s>.setpos( x, y );
+	}
+	move(int x, int y)	{	grtt.move(x,y); gren.move(x,y); X+=x; Y+=y;	}
+	size	{	grtt.size;	}
+	setz(int z)	{	Z = z; grtt.setz(z);	gren.setz(z); }
+	getz	{	Z;	}
+	show	{	isvisible=1; grtt.show;	}
+	hide		{	isvisible=0;	grtt.hide;		}
+	clip(int x1, int y1, int x2, int y2)	{
+		clipped = true;
+		clipx1=x1;	clipy1=y1;	clipx2=x2;	clipy2=y2;
+		for( int i=0; i<grtt.size; i++) <grtt.get(i)>.clip(x1,y1,x2,y2);
+	}
+	getw	{	W;	}
+	geth	{	H;	}
+	enumerate(int dx)	{
+		string s[2];
+		for( int i=0; i<grtt.size; i++)	{
+			s0 = "txte"+i;
+			new text <s0>;
+			gren.add(s0);
+			<s0>.setz(Z);
+			<s0>.setfont(Font);
+			<s0>.txtsetcol(""+(i+1)+".", tt0.getcol);
+			<s0>.setpos(X-<s0>.getw-dx,Y+i*(Size+Dy));
+		}
+	}
+	cut(int id)	{	Rows=id;	}
+	enable	{	.unlock;	.activateact;	}
+	disable	{	.lock; grtt.eval("disable");	}
+	actual	{	"tt"+Row;	}
+	activate(int id)	{
+		.unlock;
+		if( id>=0 && id<Rows )	{
+			if( insystem )	{
+				if( <GAME>.isgmobj(sTextBoxTyperSys) && sTextBoxTyperSys!=this )	<sTextBoxTyperSys>.deactivate;
+				sTextBoxTyperSys = this;
+			}
+			.deactivate;
+			Row = id;
+			<"tt"+ Row>.enable;
+			.<this+"_activate">;
+		}
+	}
+	activateact	{	.activate(Row);	}
+	deactivate	{	<"tt"+Row>.disable;	}
+	onkeydown	{
+		if(.getlock)	return;
+		.<this+"_boxontype">;
+		if( keyboard.iskeydown("enter") )		{
+			@s = .getid(Rows-1);
+			s.clear;
+			if( s.length==0 && enablemove )	{
+				for( @i=Rows-1; i>Row+1; i--)	.setid( .getid(i-1), i);
+				if( Row+1<Rows) .setid("", Row+1);
+			}
+			.activate(Row+1);
+		} else if (keyboard.iskey("up") && Row>0) .activate(Row-1);
+		else if (keyboard.iskey("down") && Row<Rows-1) .activate(Row+1);
+		else if (keyboard.iskey("pgdown"))	{
+			if(Row<Rows-10) .activate(Row+10);
+			else .activate(Rows-1);
+		} else if (keyboard.iskey("pgup"))	{
+			if(Row>9) .activate(Row-10);
+			else .activate(0);
+		} else if ((keyboard.iskey("backspace") || keyboard.iskey("delete")) && <.actual>.length==0 ) {
+			if( enablemove )	{
+				for( @i=Row; i<Rows-1; i++)	.setid( .getid(i+1), i);
+				.setid("",Rows-1);
+			}
+			if( keyboard.iskey("backspace") )
+				.activate(Row-1);
+		} else grtt.eval("onkeydown");
+	}
+	onmouselclick	{
+		if(.getlock)	return;
+		|int x, int y| = mouse.getpos;
+		//if(  )	{
+		if( (clipped && clsurf.isin(x,y,clipx1,clipy1,clipx2,clipy2)) || (!clipped && clsurf.isin2(x,y,X,Y,W,H)) )	{
+			.deactivate;
+			//.activate( ((y-Y)*Rows)/H );
+			for( int i=0; i<.size; i++)	{
+				if( <"tt"+i>.getey > y ) {
+					.activate(i);
+					return;
+				}
+			}
+		} else {
+			.<this+"_OUTSIDE">;
+		}
+	}
+	int isin(int x, int y, bool bv, bool ba)	{
+		if( bv && !isvisible ) return 0;
+		clsurf.isin2(x,y,X,Y,W,H);
+	}
+	string getid(int id)	{	<"tt"+id>.get;	}
+	string getact		{	<"tt"+Row>.get;	}
+	int idpx(int id)	{	<"tt"+id>.getpx;	}
+	int idpy(int id)	{	<"tt"+id>.getpy;	}
+	//int getpy	{	.idpy(0);	}
+	//int getpx	{	.idpx(0);	}
+	int getpx	{	X;	}
+	int getpy	{	Y;	}
+	string get	{	.getfrom(0);	}
+	string getfrom(int id)	{	.getlinesfrom(id,"");	}
+	string getlinesfrom(int id, string send)	{
+		string s = "";
+		for( int i=id; i<grtt.size; i++) s += <"tt"+i>.get + send;
+		s;
+	}
+	string getlines	{	.getlinesfrom(0," ");	}
+	int nonempty(int id)	{
+		string s;
+		for( ; id<grtt.size; id++)	{
+			s = <"tt"+id>.get;
+			s.clear;
+			if( s.length > 0 ) return id;
+		}
+		-1;
+	}
+	clear	{	grtt.txtreset;	}
+	setid(string s, int id)	{	if( grtt.size>=id )	<"tt"+id>.txtset(s);	}
+	settext(int ile)	{
+		while(ile>0)	{
+			ile--;
+			.setid(_,ile);
+		}
+	}
+	copytodb(string sdb)	{
+		<sdb>.free;
+		for( int i=0;i<grtt.size; i++)	{
+			<sdb>.add( <sdb>.addrow-1, <grtt.get(i)>.get);
+		}
+	}
+	copyfromdb(string sdb)	{	.copyfromdbii(sdb, 0, <sdb>.getrowsno);	}
+	copyfromdbss(string sdb, string s1, string s2)	{	.copyfromdbii(sdb, <sdb>.findbyrow(s1)+1, <sdb>.findbyrow(s2) );	}
+	copyfromdbii(string sdb, int row1, int row2)	{
+		if( row1==-1 || row2==-1 ) return;
+		.clear;
+		if( row2-row1 > .size ) row2 = row1+.size;
+		for( int i=row1; i<row2; i++)	{
+			if( <sdb>.getcolsno(i) )
+				.setid( <sdb>.get(i,0), i-row1 );
+		}
+	}
+	copyfromdbrow(string sdb, int row, int startcol)	{
+		int size = <sdb>.getcolsno(row);
+		if( size>.size ) size = .size;
+		for( int i=startcol; i<size; i++)
+			.setid( <sdb>.get(row,i), i-startcol );
+	}
+	save(string sfile)	{
+		new db __tmpdb;
+		.copytodb("__tmpdb");
+		__tmpdb.setseparator("|");
+		__tmpdb.save(sfile);
+		delete __tmpdb;
+	}
+	load(string sfile)	{
+		new db __tmpdb;
+		__tmpdb.load(sfile);
+		.copyfromdb("__tmpdb");
+		delete __tmpdb;
+	}
+	/*H	{
+		if( grtt.size )	<grtt.last>.getey-<grtt.first>.getpy;
+		else 0;
+	}*/
+}
+
+class GUITextBoxTyper : TextBoxTyper	{
+	init(string sfont, int ish, int isw, int ir, int ig, int ib, string schars, int x, int y, int w, int h, int dy)	{
+		TextBoxTyper::init(sfont,ish,isw,ir,ig,ib,schars,x,y,w,h,dy);
+		.vars2(A,"rewinder", null, "rewinderbg", null);
+	}
+	setrewinder(string s)	{
+		rewinder = s;
+		rewinderbg = s + "bg";
+	}
+	activate(int id)	{
+		TextBoxTyper::activate(id);
+		.updaterewactual;
+	}
+	updaterewactual	{	.updaterewpos(Row);	}
+	updaterewpos(int id)	{
+		if( rewinder!=null )	{
+			@s = "tt"+id;
+			if( <s>.getpy < <rewinderbg>.getpy )		<rewinder>.rewind( 0, <rewinderbg>.getpy - <s>.getpy );
+			else if (<s>.getey > <rewinderbg>.getey)		<rewinder>.rewind( 0, <rewinderbg>.getey - <s>.getey );
+		}
+	}
+}

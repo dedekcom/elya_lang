@@ -1,0 +1,173 @@
+/*
+	klasy obslugujace plany tla oraz kamere 
+*/
+
+class classbgplan : gmobjvec {
+	init() {
+		gmobjvec::init;
+		new real rpx;
+		new real rpy;
+		new real scalex;
+		new real scaley;
+		new int _ix;
+		new int _iy;
+	}
+	public setscale(real rsx, real rsy)	{	|scalex, scaley| = rsx, rsy;	}
+	public move(real x, real y)	{
+		rpx+=x;	rpy+=y;
+		int ix = rpx, int iy = rpy;
+		rpx-=ix;	rpy-=iy;
+		if( ix || iy )	{
+			_ix += ix;
+			_iy += iy;
+			gmobjvec::move(ix,iy);
+		}
+	}
+	public movebgr(real x, real y)	{	.move( scalex*x, scaley*y );	}
+	int getpx	{	_ix;	}
+	int getpy	{	_iy;	}
+}
+
+class classgrplans : gmobjvec	{
+	init()	{
+		gmobjvec::init();
+		new real _rxp;
+		new real _ryp;
+	}
+	public move(real x, real y)	{
+		_rxp += x;	_ryp += y;
+		this.eval2("movebgr",x,y);
+	}
+	public real getposx()	{	return _rxp;	}
+	public real getposy()	{	return _ryp;	}
+	public shift(int x, int y)	{
+		_rxp+=x;	_ryp+=y;
+		this.eval2("move",x,y);
+	}
+}
+
+class CameraPos	{
+	init(real x, real y)	{
+		new real _x;
+		new real _y;
+		.setpos(x,y);
+	}
+	setpos(real x, real y)	{ _x=x; _y=y;	}
+	getposx	{	_x;	}
+	getposy	{	_y;	}
+}
+
+class classadvcamera	{
+	init()	{
+		new classgrplans grbgrs;
+		new string sancamera=null;
+		new string smsmvfun = null;
+		|new real _rxmod, new real _rymod| = 0.05, 0.05;
+		|new real rleft, new real rtop, new real rright, new real rbottom| = 0.0, 0.0, iResX-1, iResY-1;
+		|new int icamx, new int icamy| = iResX/2, iResY/2;
+		|new real rborx, new real rbory| = iResX-1, iResY-1;
+		new real _lastx = 0;
+		new real _lasty = 0;
+		new string _sfunxedge = null;
+		new string _sfunyedge = null;
+		new CameraPos _campos(0,0);
+		
+		new timer timcamera;
+		timcamera.settick(1);
+		timcamera.setcycle(1);
+		timcamera.addmethod("onfinish","_camerafin");
+	}
+	_camerafin()	{
+		this.checkcamera();
+		this.play();
+	}
+	public setscreen(int x1, int y1, int x2, int y2)	{
+		rleft=x1;	rtop=y1;
+		rright=x2;	rbottom = y2;
+		rborx = x2;
+		rbory = y2;
+		_lastx = x1;
+		_lasty = y1;
+		icamx = (x1+x2)/2;
+		icamy = (y1+y2)/2;
+		//grbgrs.startpos(x1,y1);
+	}
+	public remove(string sob)	{	for( int i=0; i< grbgrs.size; i++)	<grbgrs.get(i)>.remove(sob);	}
+	public funxedge(string sfun)	{	_sfunxedge=sfun;	}
+	public funyedge(string sfun)	{	_sfunyedge=sfun;	}
+	public setcenter(int x, int y)	{	| icamx, icamy | = x, y;	}
+	public setborders(int x, int y){	|rright, rbottom| = x-1, y-1;	}
+	public countcenter	{	.setcenter( rleft+(rright-rleft)/2, rtop+(rbottom-rtop)/2 );	}
+	public real getposx()	{	return grbgrs.getposx();	}
+	public real getposy()	{	return grbgrs.getposy();	}
+	public setmetonmsmove(string s)	{	smsmvfun=s;	}
+	public start()	{	timcamera.play();	}
+	public stop()	{	timcamera.stop(false);	}
+	public setactor(string sactor)	{	sancamera=sactor;	}
+	public setcampos(int x, int y)	{
+		_campos.setpos(x,y);
+		.setactor("_campos");
+	}
+	public bool isactor(string sob)	{	return sob==sancamera;	}
+	public string getactor()	{	return sancamera;	}
+	public scalemodifiers(real rx, real ry)	{
+		| _rxmod, _rymod | = rx, ry;	
+	}
+	public newbgr(string sbgr, real rscalex, real rscaley)	{
+		new classbgplan <sbgr>;
+		this.addbgr(sbgr,rscalex,rscaley);
+	}
+	public addbgr(string sbgr, real rscalex, real rscaley)	{
+		<sbgr>.setscale(rscalex,rscaley);
+		grbgrs.add(sbgr);
+	}
+	public findinbgr(string sob)	{
+		for( int i=0; i< grbgrs.size; i++ )	{
+			if( <grbgrs.get(i)>.contains(sob) )
+				return grbgrs.get(i);
+		}
+		null;
+	}
+	public removefrombgr(string sob)	{
+		for( int i=0; i< grbgrs.size; i++ )	{
+			<grbgrs.get(i)>.remove(sob);
+		}
+	}
+	public addtobgr(string sbgr, string sob)	{	<sbgr>.add(sob);	}
+	public setscene()	{	this._setscene(1.0,1.0);	}
+	_setscene(real _rx, real _ry)	{
+		if( sancamera==null ) return;
+		real x = icamx - <sancamera>.getposx();
+		x*=_rx;
+		real y = icamy - <sancamera>.getposy();
+		y*=_ry;
+		real ix = this.getposx()+x;
+		real iy = this.getposy()+y;
+		if( ix >= rleft )	x = -this.getposx();
+		else if (ix+rright<=rborx)	x = rborx - (this.getposx()+rright);
+		
+		if( iy >= rtop )	y = -this.getposy();
+		else if (iy+rbottom<=rbory)	y = rbory - (this.getposy()+rbottom);
+		
+		if( x||y )	{
+			grbgrs.move(x,y);
+			if( smsmvfun!=null )	this.<smsmvfun>();
+		}
+		if( x==0 && _lastx!=0 && _sfunxedge!=null )	.<_sfunxedge>;
+		if( y==0 && _lasty!=0 && _sfunyedge!=null )	.<_sfunyedge>;
+		_lastx = x;
+		_lasty = y;
+	}
+	public checkcamera()	{
+		if( sancamera==null )	return;
+		this._setscene( _rxmod, _rymod );
+	}
+	public moveplans(int x, int y)	{
+		rleft+=x;	rright+=x;
+		rtop+=y;	rbottom+=y;
+		rborx+=x;
+		rbory+=y;
+		icamx+=x;	icamy+=y;
+		grbgrs.shift(x,y);
+	}
+}

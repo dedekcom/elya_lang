@@ -1,0 +1,596 @@
+
+game Intro : StdGame	{
+	init	{
+		StdGame::init("intro");
+		
+		.sfxs = (A, "logo 60", "logong 70", "ruchwody 70");
+		
+		new img imgpw3;
+		imgpw3.create( iResX, iResY, .white, 255 );
+		imgpw3.setz(4);
+		imgpw3.hide;
+		
+		new classfadeinout clfio;
+		
+		if( .mnofish )	{
+			.imgs = (A, "ng.png" , "pw.pngH 5");
+			fxlogong.play;
+		} else {
+			if( igamehouse )	.newimg("imbfg", "gh1024x768_white.jpg", 0);
+			else if (ibigfish)	.newimg("imbfg", "splash_1024x768.jpg", 0);
+			
+			fxlogong.play;
+			.timer = ("timbfg", 2000, func {
+				ccs.playfin( func { delete imbfg; .imgs = (A, "ng.png" , "pw.pngH 5"); fxlogong.play; },
+					func { tim1a.play; } );
+				} );
+		}
+		
+		.timer = ("tim1a", 500, func {
+			imgpw3.transparency(0);
+			imgpw3.show;
+			clfio.imgtransparency(1, 5, "imgpw3", func { <GAME> {
+				imgng.clone( "imgpw3" );
+				imgng.show;
+				imgpw3.load( .getgraphpath + "pw3.jpg" );
+				imgpw3.hide;
+				//.img = ("pw.pngH 5");
+				tim1.play;
+				}; } );
+			} );
+		
+		.timer = ("tim1", 500, func {
+			imgpw.transparency(0);
+			imgpw.show;
+			fxlogong.play;
+			clfio.imgtransparency(1, 5, "imgpw", func {
+				imgng.load( .getgraphpath + "pw2.jpg" );
+				tim2.play;
+				} );
+			} );
+		.timer = ("tim2", 500, func {
+			clfio.imgtransparency(1, -5, "imgpw", func {
+				imgpw.hide;
+				tim3.play;
+				} );
+			} );
+		.timer = ("tim3", 500, func { <GAME> {
+			delete imgpw;
+			new img imwater;
+			imwater.create( iResX, iResY, 3,14,33, 255 );
+			.imgs = (A, "wrak.pyz 10", "fale.pyz 10", "water.pyz 5");
+			anwrak.setpos( 0, iResY );
+			anfale.move( 0, iResY - anfale.getpy );
+			anfale.play(0);
+			anwater.setpos(0, anfale.getpy + 30);
+			imwater.setpos(0, iResY );
+			
+			imgpw3.show;
+			imgpw3.clip( 0, anwater.getpy, iResX, iResY );
+			imgpw3.setz( imgng.getz + 1 );
+			fxruchwody.play;
+			tim4a.play;
+			}; } );
+		
+		new int wodaspeed = -10;
+		
+		.cycle = ("tim4a", func {
+			anfale.move( 0, wodaspeed );
+			
+			if( anwater.getpy < 0 )	{
+				anwater.setpos(0, 0);
+				imgng.hide;
+				imgpw3.clip( 0, anwater.getpy, iResX, iResY );
+			} else	{
+				anwater.move( 0, wodaspeed );
+				imgpw3.clip( 0, anwater.getpy+30, iResX, iResY );
+			}
+			if( anfale.getey < 0 )	{
+				anfale.anhide;
+				tim4.play;
+			} else .play;
+			} );
+		.cycle = ("tim4", func {
+			anwater.move( 0, wodaspeed );
+			imwater.move( 0, wodaspeed );
+			imgng.move( 0, wodaspeed );
+			imgpw3.move( 0, wodaspeed );
+			if( imwater.getpy <= 0 )	{
+				imwater.setpos(0,0);
+				anwater.anhide;
+				imgng.create( iResX, iResY, 0,8,4, 255 );
+				imgng.setpos(0,0);
+				imgng.setz( imwater.getz - 1 );
+				imgng.show;
+				clfio.imgtransparency(1, -5, "imwater", func {
+					imwater.hide;
+					tim5.play;
+					} );
+			} else
+				.play;
+			} );
+		.cycle = ("tim5", func {
+			anwrak.move( 0, wodaspeed );
+			if( anwrak.getey < iResY )	{
+				anwrak.move( 0, iResY - anwrak.getey );
+				imwater.load( .getgraphpath + "t1.jpg" );
+				imwater.setz( anwrak.getz + 1 );
+				imwater.hide;
+				imwater.transparency(0);
+				
+				tim6.play;
+			} else .play;
+			} );
+		.timer = ("tim6", 1000, func {
+			imwater.show;
+			clfio.imgtransparency(1, 5, "imwater", func {
+				tim7.play;
+				anwrak.hide;
+				imgng.load( .getgraphpath + "t2.jpg" );
+				} );
+			} );
+		.timer = ("tim7", 200, func {
+			clfio.imgtransparency(1, -5, "imwater", func { <GAME>.mtytul; } );
+			} );
+		.timer = ("tim9", 2000, "mstart");
+		
+		mus.playstr("intro.ogg -v 80");
+		
+		ccs.enter( func {
+			if( .mnofish )	{
+				tim1a.setdelay(1000);
+				tim1a.play; 
+			} else {
+				timbfg.play;
+			}
+			} );
+		//tim1a.play;
+		//.mtytul;
+	}
+	mnofish	{	igmipad || (ibigfish == 0 && igamehouse==0 );	}
+	mtytul	{
+		.img = ("tytul.pyz 10");
+		new filter ftyt;
+		ftyt.link("antytul");
+		new real rstartzooom = 1.7;
+		ftyt.setzoom(rstartzooom);
+		new real iletyt = 30.0;
+		new real ityty = iResY - antytul.getpy;
+		new real isteptyt = ityty/iletyt;
+		new real rstep = 0.0;
+		antytul.move(0, ityty);
+		.cycle = ("tim8", func {
+			rstep += isteptyt;
+			int dt = rstep;
+			if( dt )	{
+				rstep -= dt;
+				antytul.move(0, -dt);
+			}
+			real r = 1.0 + (rstartzooom-1.0)*(ile/iletyt);
+			ftyt.setzoom(r);
+			ile--;
+			if( ile<0 )	{
+				ftyt.unlink;
+				//antytul.setpos(0,0);
+				tim9.play;
+			} else .play;
+			} );
+		tim8.var2("ile", iletyt);
+		tim8.play;
+		.timplay("timlogo", 900, func { fxlogo.play; } );
+	}
+	mtogame	{ gameapi.play("MainMenu"); }
+	mstart	{
+		if( igmstate==0 )	{
+			igmstate = 1;
+			/*if( ccs.isplaying ) .mtogame;
+			else {
+				mus.fadeout(900);
+				ccs.close( "mtogame" );
+			}*/
+			.mtogame;
+		}
+	}
+	mouse_lclick	{
+		.mstart;
+	}
+}
+
+
+game IntroG1 : StdGame	{
+	init	{
+		StdGame::init("introg");
+		
+		.imgsgr = (A, "bg.jpg", "fala.pyzP 5", "dym.pyzG 10",
+			"grall");
+		grdym.nplay(-1);
+		
+		.img = ("skipintro.pyz 100");
+		@size = 14;
+		if( LANG == "eng" ) size=24;
+		.newfont("fnt1", "configs/fonts/timesbd.ttf", size);
+		.newtext("txtskip", dblangcom.dbget("skipintro"), "fnt1", .black);
+		txtskip.setpos(anskipintro.getcx - txtskip.getw/2, anskipintro.getcy-txtskip.geth/2 );
+		txtskip.setz(anskipintro.getz);
+		anskipintro {
+			.Button_stdms;
+			.addmethod("butclick", func { gameapi.play("Cs1Pad"); } );
+			but1.add(this);
+		};
+		
+		.sfxs = (A, "statekN 50", "statekbum", "fx3 50");
+		
+		.sounds = (A, "snd1", "eRMS Titanic; Wspania³y wytwór ludzkiej my¶li technicznej pocz±tku 20 wieku Dla jednych luksusowy ¶rodek transportu, dla innych wehiku³ do nowego ¶wiata daj±cy nadziejê na lepsz± przysz³o¶æ",
+			func { tim2.play; tcr.ahide; },
+			"snd2", "W czasie swego dziewiczego rejsu by³ ¶wiadkiem wielu wydarzeñ i ludzkich historii których byæ mo¿e nigdy ju¿ nie poznamy; Wszystkie zosta³y bole¶nie przerwane tragicznej nocy z 14 na 15 kwietnia 1912 roku",
+			func { angora.play(0); tcr.ahide; }
+			);
+		
+		.timer = ("tim1", 500, func { .cbplay("snd1"); } );
+		.timer = ("tim2", 500, func {
+			//.mprzejdz("IntroG2"); 
+			ccs.close( "initG2" );
+			} );
+		
+		//init(string sfont, int isize, string sdbfile, int r, int g, int b, int x, int y, int dy, int z, string sdir)	{
+		new TextDb tdtxt(null, 16, "$lang:txt1_", .grey(20),
+			0.56*iResX,0.26*iResY, 5,250, "left");
+		
+		new tcramka tcr;
+		tcr.view("tdtxt");
+		tcr.hide;
+		
+		ccs.enter( func {
+			tim1.play;
+			tcr.ashow;
+			mus.playstr("mystery_war.ogg -l -v 60");
+			} );
+	}
+	initG2	{
+		grall.deleteinit;
+		delete grall;
+		
+		.path = ("introg2");
+		
+		.imgsgr = (A, "bg2.jpg", "tafla.pyzP 5", "odbicie.pyzP 10", "statek.pyzP 15",
+			"fala.pyzP 20", "gora.pyzH 25", "kra1.pyz 30", "kra2.pyz 35", "dym.pyzG 40",
+			"grall");
+		grdym.nplay(-1);
+		
+		ankra1.move( -ankra1.getex, 70 );
+		ankra2.move( -ankra2.getex-200, 170 );
+		new AnMover cskra1("ankra1", 2.2, -0.24);
+		new AnMover cskra2("ankra2", 3, -0.3);
+		cskra1.play;
+		cskra2.play;
+		grall.add("cskra1");
+		grall.add("cskra2");
+		
+		angora.addmethod("onendframe", func {
+			if( .framename=="bum" )	{
+				anstatek.play(1);
+				anfala.anhide;
+				fxstatekbum.play;
+			}
+			} );
+		anstatek.addmethod("onfinish", func {
+			if( .actionnr(-1) == 1 )
+				timend.play;
+			} );
+		
+		/*.cycle = ("timgora", func {
+			if( ankra2.getpx > 0.65*iResX )
+				angora.play(0);
+			else .play;
+			} );
+		timgora.play;*/
+		
+		new TextDb tdtxt2(null, 16, "$lang:txt2_", .grey(20),
+			0.56*iResX,0.26*iResY, 5,250, "left");
+		
+		//new tcramka tcr("tdtxt");
+		tcr.view("tdtxt2");
+		tcr.hide;
+		
+		.timer = ("timend", 2000, func {
+			ccs.close( "initG3" );
+			} );
+		
+		ccs.enter( func { tcr.ashow; .cbplay("snd2"); } );
+	}
+	initG3 {
+		fxstatek.stop(false);
+		fxstatekbum.stop(false);
+		
+		grall.deleteinit;
+		delete grall;
+		
+		.path = ("introg3");
+		
+		.imgsgr = (A, "bg3.jpg", "woda.pyzH 10", "woda2.pyzH 15", "woda3.pyzH 20",
+			"grall");
+			
+		.copyanima("anwoda", "anwodab");
+		grall.add("anwodab");
+		new filter ftw;
+		ftw.link("anwoda");
+		ftw.setopacity(128);
+		
+		new filter ftw2;
+		ftw2.link("anwodab");
+		anwodab.hide;
+		anwodab.setz(9);
+		
+		.sfxs = (A, "zalanakotlowniaP 70");
+		
+		anwoda.addmethod("onsetframe", func {
+			if( .framenr==1 ) anwodab.play(4);
+			match( .framenr%3 )	{
+				0 => ftw.setopacity(92);
+				1 => ftw.setopacity(164);
+				2 => ftw.setopacity(255);
+				? => ;
+			}
+			} );
+		anwodab.addmethod("onsetframe", func {
+			match( .framenr%3 )	{
+				0 => ftw2.setopacity(92);
+				1 => ftw2.setopacity(164);
+				2 => ftw2.setopacity(255);
+				? => ;
+			}
+			} );
+		anwoda.play(4);
+		ftw.setopacity(92);
+		anwodab.addmethod("onfinish", func {
+			anwoda.hide;
+			.hide;
+			anwoda2.show;
+			tim11.play;
+			} );
+		
+		.timer = ("tim11", 500, func {
+			anwoda2.hide;
+			anwoda3.show;
+			tim12.play;
+			} );
+		.timer = ("tim12", 500, func {
+			anwoda3.hide;
+			imgbg3.load(.getgraphpath+"bg3b.jpg");
+			tim13.play;
+			} );
+		.timer = ("tim13", 1500, func {
+			ccs.close( "initG4" );
+			} );
+	}
+	initG4	{
+		fxzalanakotlownia.stop(false);
+		delete fxstatek;
+		delete fxstatekbum;
+		
+		ftw.unlink;
+		ftw2.unlink;
+		delete ftw;
+		delete ftw2;
+		grall.deleteinit;
+		delete grall;
+		delete tim1;
+		delete tim2;
+		
+		.path = ("introg4");
+		.imgsgr = (A, "b40.jpg 5", "b41.jpg",
+			"grall");
+		
+		.sfxs = (A, "tlumwodaP");
+		
+		new classfadeinout clfio;
+		new int ifio = 15;
+		
+		.timer = ("tim1", 500, func {
+			clfio.imgtransparency(1, -ifio, "imgb40", func {
+				imgb40.setz(0);
+				imgb40.load( .getgraphpath + "b42.jpg" );
+				imgb41.setz(5);
+				tim2.play;
+				} );
+			} );
+		.timer = ("tim2", 500, func {
+			clfio.imgtransparency(1, -ifio, "imgb41", func {
+				imgb41.setz(0);
+				imgb41.load( .getgraphpath + "b43.jpg" );
+				imgb40.setz(5);
+				tim3.play;
+				} );
+			} );
+		.timer = ("tim3", 500, func {
+			clfio.imgtransparency(1, -ifio, "imgb40", func {
+				imgb40.setz(0);
+				imgb40.load( .getgraphpath + "b44.jpg" );
+				imgb41.setz(5);
+				tim4.play;
+				} );
+			} );
+		.timer = ("tim4", 500, func {
+			clfio.imgtransparency(1, -ifio, "imgb41", func {
+				imgb41.setz(0);
+				imgb41.load( .getgraphpath + "b45.jpg" );
+				imgb40.setz(5);
+				tim5.play;
+				} );
+			} );
+		.timer = ("tim5", 500, func {
+			clfio.imgtransparency(1, -ifio, "imgb40", func {
+				imgb40.setz(0);
+				//imgb40.load( .getgraphpath + "b44.jpg" );
+				imgb41.setz(5);
+				tim6.play;
+				} );
+			} );
+		.timer = ("tim6", 500, func {
+			ccs.close("initG5");
+			} );
+		ccs.enter( func { tim1.play; } );
+	}
+	initG5	{
+		fxtlumwoda.stop(false);
+		delete fxzalanakotlownia;
+		
+		grall.deleteinit;
+		delete grall;
+		
+		.path = ("introg5");
+		.imgsgr = (A, "bg5.jpg", "swiatlo.pyz 10", "batyskaf.pyz 15",
+			"grall");
+		
+		new AnMover csbat("anbatyskaf", -10, 0);
+		new int idx = iResX-anbatyskaf.getpx;
+		new int idx1 = 0.5*idx;
+		new int idx2 = 0.4*idx;
+		new int idx3 = 0.25*idx;
+		new int idx4 = 0.12*idx;
+		anbatyskaf.move(idx, 0);
+		
+		new bool bx1;
+		new bool bx2;
+		new bool bx3;
+		new bool bx4;
+		new real slower = 0.75;
+		
+		new filter fts;
+		fts.link("answiatlo");
+		fts.setopacity(0);
+		
+		.cycle = ("timbat", func {
+			csbat.move;
+			@x = anbatyskaf.getpx;
+			
+			@x2 = iResX/15;
+			real dx = iResX - x2 - x;
+			if( dx>0 && x > anbatyskaf.lodx )	{
+				real r = (dx/(iResX - x2 - anbatyskaf.lodx)->to_r)*255.0;
+				fts.setopacity ( r*r*r/(255.0*255.0) );
+			}
+			
+			if( x <= anbatyskaf.lodx )	{
+				fts.setopacity(255);
+				timend2.play;
+				return;
+			} else if( x < idx4 )	{
+				if( !bx4 )	{
+					csbat.rdx = ( slower*csbat.rdx );
+					//fts.setopacity(152);
+					bx4=1;
+				}
+			} else if( x < idx3 )	{
+				if( !bx3 )	{
+					csbat.rdx = ( slower*csbat.rdx );
+					//fts.setopacity(88);
+					bx3=1;
+				}
+			} else if( x < idx2 )	{
+				if( !bx2 )	{
+					csbat.rdx = ( slower*csbat.rdx );
+					//fts.setopacity(42);
+					bx2=1;
+				}
+			} else if( x < idx1 )	{
+				if( !bx1 )	{
+					csbat.rdx = ( slower*csbat.rdx );
+					//fts.setopacity(24);
+					bx1=1;
+				}
+			}
+			timbat.play;
+			} );
+		
+		.timer = ("timend2", 2000, func {
+			mus.fadeout(1000);
+			.mprzejdz("Cs1Pad");
+			} );
+		fxfx3.play;
+		ccs.enter( func { timbat.play; } );
+	}
+}
+
+game Outro : StdGame	{
+	init	{
+		StdGame::init("outro");
+		
+		mus.playstr("outroludzie.ogg -l -v 50");
+		
+		.loadsnddb;
+		.sounds = (A, ":dziadzio1", "We are forever grateful for your help. We wouldn't be here without You. But how did You do this? It was impossible to find all the keys!", func { tcr.ahide; /*anusta1.anhide;*/ .timplay("tim5", 1000, func { <GAME> {
+			//delete anusta1;
+			delete imgdziad1;
+			.imgs = (A, "prab1.jpg", "usta2.pyzH 10");
+			.timplay("tim6", 1000, func { .txtplay("rosie1"); /*anusta2.play(0);*/ });
+			}; } ); },
+			":rosie1", "You would never believe me if I told You. I think it has something to do with... my grand granddaughter...",
+			func { tcr.ahide; anusta2.play(1); .timplay("tim7", 3000, func { <GAME> {
+				delete imgprab1;
+				delete anusta2;
+				.imgs = (A, "siedza.jpg", "babcia2.pyz 5", "lilian.pyz 10");
+				new filter ftil;
+				ftil.link("anlilian");
+				ftil.setopacity(0);
+				clfio.setopacity(2, 10, "ftil", func { .timplay("tim8", 2000, "mend"); });
+				}; } ); }
+			);
+		
+		.mput(1);
+		.imgs = (A, "list.pyzH 20");
+		.copyanima("anlist", "anlist2");
+		anlist.addmethod("onfinish", func {
+			if( .actionnr(-1)==0 )	{
+				anlist2.play(1);
+			} else if (.actionnr(-1)==2)	{
+				.timplay("tim2", 200, func { <GAME> {
+					delete anlist2;
+					delete anlist;
+					.imgs = (A, "siedza.jpg 20");
+					imgsiedza.transparency(0);
+					clfio.imgtransparency(1, 5, "imgsiedza", func { <GAME> {
+						.mdel;
+						.img = ("babcia1.pyzH 30");
+						.timer = ("tim3", 3000, func { <GAME>.mscena2; });
+						anbabcia1.addmethod("onfinish", func {
+							if( .actionnr(-1)==0 )	tim3.play;
+							.play(1);
+							} );
+						anbabcia1.play(0);
+						}; } );
+					}; } );
+			}
+			} );
+		anlist2.addmethod("onfinish", func {
+			.hide;
+			anlist.play(2);
+			} );
+		new classfadeinout clfio;
+		
+		ccs.enter( func { .timplay("tim1", 3000, func { anlist.play(0); } ); } );
+	}
+	mput(int id)	{ <GAME> (id) { (@id)
+		.mdel;
+		.newgrimg("grels", "outro"+id, 10);
+		grels.eval( func { .play(-1); } );
+	}; }
+	mdel	{ <GAME> {
+		if( .hasvar("grels") )	{
+			grels.deleteloaded;
+			delete grels;
+		}
+	}; }
+	mscena2	{
+		delete anbabcia1;
+		delete imgsiedza;
+		.imgs = (A, "dziad1.jpg"/*, "usta1.pyzH 10"*/);
+		.timplay("tim4", 1000, func { .txtplay("dziadzio1"); /*anusta1.play(0);*/ });
+	}
+	/*********** finitos **********/
+	mend	{
+		clsmen.set("profil_"+clsmen.get("currentprofile")+"_started",0);
+		.mprzejdzclick("MainMenu");
+	}
+	//mouse_lclick	{	.mend;	}
+}

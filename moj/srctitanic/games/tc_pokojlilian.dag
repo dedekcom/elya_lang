@@ -1,0 +1,976 @@
+
+game Pokojlilian : Hidden	{
+	init	{
+		Hidden::init("01pokojlilian");
+		.setsndbase("pokojlilian");
+		
+		.imgs = (A, "pokojlilian.png", "lampa.pyzH 5", "lampamask.pyzH", // els
+			"szuflada.pyz", "maskamedalion.pyz", "maskaparasol.pyz"
+			//, "lilian.pyz 50"
+			);
+		
+		.sfxs = (A, "szufladaopen", "szufladaclose", "lampka 80");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1", "Zabiorê kilka drobiazgów i wyje¿d¿am jeszcze dzisiaj", //func { tcr.ahide; igmstate=5; },
+			func { .txtplay("lektor1"); },
+			":lilian2", "My great-great-grandmother Rosemarys medallion the only belonging of hers that survived from the catastrophe! After news of the ship's sinking, the medallion was returned to Rosemarys daughter, my great-grandmother, and it has been passed down through the family ever since. Unfortunately, it was damaged during that chaotic night on the ship. Its entire interior was left on the Titanic, broken in pieces.", func { tcr.ahide; igmstate=1; .hiddenobj_put;  },
+			":lilian3", "A zabra³e¶ medalion? Potem znowu bêdziesz pisa³, ¿e siê gra wywala!", "stdret"
+			);
+		/*":lektor1", "Zbierz wszystkie przedmioty wyszczególnione na li¶cie", func { tcr.ahide; igmstate=1; },*/
+		/*":lektor3", "W tym pomieszczeniu zosta³y wykonane wszystkie zadania", func { igmstate=15; }*/
+		.snd=("lektor1", "lektor1", func { tcr.ahide; igmstate=1; } );
+		.snd=("lektor3", "lektor3", func { igmstate=15; } );
+		/*anlilian	{
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( igmstate==5 )	{
+					igmstate = 6;
+					ccs.playfin( func { anlilian.hide; },
+						func { .txtplay("lektor1"); } );
+				}
+				} );
+			but1.add(this);
+		};*/
+		
+		anszuflada.mhider("titanic");
+		anszuflada.mhobj;
+		.hoverhint("anszuflada");
+		
+		anlampamask.mhobjmask;
+		.hoverhint("anlampamask");
+		
+		anmaskaparasol.mmask("parasol");
+		
+		anmaskamedalion.mmask("medalion");
+		
+		mus.playstr("wizards.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		//.mstdenter;
+		/*if( igmipad )	{
+			igmstate=5;
+		} else {
+			ccs.enter( func { igmstate=5; } );
+		}*/
+		
+		clsave.set("epizod", "e1_muzeum");
+		
+		ccs.enter( func { .txtplay("lilian1"); } );
+	}
+	anlampamask_click	{
+		fxlampka.play;
+		if( anlampa.isvisible )	{
+			anlampa.hide;
+		} else anlampa.show;
+	}
+	anszuflada_click	{
+		.mhiderclick;
+		if( anszuflada.actionnr(-1)!=0 )
+			fxszufladaopen.play;
+		else fxszufladaclose.play;
+	}
+	medalion_put	{
+		clsave.bset("ma_medalion");
+		.mshowmedalion;
+		igmstate=10;
+		.txtplay("lilian2");
+	}
+	hiddenobj_put	{
+		if( grtxt.empty && igmstate!=10 )	{
+			.txtplay("lektor3");
+		}
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+		if( igmstate==15 )
+			.mprzejdz("Platforma");
+	}
+	anbutnext_click	{
+		if( igmstate!=1 ) return;
+		if( clsave.bis("ma_medalion") )	{
+			grtxt.free;
+			.hiddenobj_put;
+		} else .txtplay("lilian3");
+	}
+}
+
+game Tablicepamiatki : Hidden	{
+	init	{
+		Hidden::init("06ho_tablicepamiatki");
+		.setsndbase("tablicepamiatki");
+		
+		.imgs = (A, "06ho_tablicepamiatki.png");
+		
+		.loadsnddb;
+		
+		.sounds = (A, ":lilian1", "Fragmen medalionu prababci. To niesamowite, ¿e uda³o mi siê go znale¼æ.",
+			func { tcr.ahide; .mprzejdz("Tablice"); },
+			":lilian2", "Ten album emanuje dziwn± energi±. Zabiorê go.", "stdret"
+			);
+		/*lektor1|0.3|0.3|Zbierz wszystkie przedmioty wyszczególnione na li¶cie.
+		lektor3|0.3|0.3|W tym pomieszczeniu zosta³y wykonane wszystkie zadania.
+		lektor8|0.3|0.3|Fragment medalionu prababci.
+		lektor9|0.3|0.3|Album na zdjêcia.*/
+		.snd=("lektor1", "lektor1", func { tcr.ahide; igmstate=1; } );
+		.snd=("lektor3", "lektor3", func { igmstate=15; } );
+		.snd=("lektor8", "lektor8", func { .txtplay("lilian1"); } );
+		.snd=("lektor9", "lektor9", func { igmstate=15; } );
+		
+		.mmasks;
+		
+		mus.playstr("tablice.ogg -l");
+		
+		if( igmdebug )	.mbutnext;
+		
+		ccs.enter( func {
+			.txtplay("lektor1");
+			} );
+	}
+	hiddenobj_put	{ <GAME> {
+		if( grtxt.empty && igmstate!=10 )	{
+			new itemadder clb1;
+			igmstate=2;
+			.img = ("$scripts/items/brylant1get.pyz 750");
+			clb1.showitem("anbrylant1get", func { .timplay("timbryl1",1000, func {
+				.medalion_open;
+				clb1.gotodestan("anbrylant1get", "anmedalion1", 15, func {
+					anbrylant1get.hide;
+					clsave.bset("ma_medalion1");
+					.medalion_open;
+					angwiazdkif.setpos( anmedalion1.getcx, anmedalion1.getcy );
+					angwiazdkif.setz( anmedalion1.getz+1);
+					angwiazdkif.play(0);
+					.timplay("timbryl2", 1000, func {
+						//.mprzejdz("Tablice"); 
+						.txtplay("lilian1");
+						} );
+					} );
+				} );
+				} );
+		}
+	}; }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	ho_album_put	{ <GAME> {
+		clsave.bset("ma_album");
+		.mshowalbum;
+		igmstate=2; .txtplay("lilian2");
+		/*
+		igmstate=10;
+		analbum.setframe(0,0);
+		analbum.hide;
+		new itemadder clalbum;
+		.timplay("timal2", 1000, func {
+			clalbum.showitem("analbum", func { .timplay("timal",1000, func {
+				clalbum.gotonextfr( "analbum", 15, func {
+					igmstate = 1;
+					clalbum.freeitem;
+					analbum.setframe(0,1);
+					analbum.show;
+					.hiddenobj_put;
+					} );
+				} ); } );
+			} );*/
+	}; }
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game HOTytan : Hidden	{
+	init	{
+		Hidden::init("08ho_tytan");
+		.setsndbase("hotytan");
+		
+		.imgs = (A, "hotytan.jpg");
+		
+		.loadsnddb;
+		.sounds = (A, ":lektor1", "Zobacz przedmioty wydobyte z wraku Titanica.", "stdret");
+		
+		.mmasks;
+		
+		mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		//.mstdenter;
+		ccs.enter( func { .txtplay("lektor1"); } );
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			.mprzejdz("Kasy");
+		}
+	}
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{
+		
+	}
+}
+
+game HOKajutalustro : Hidden	{
+	init	{
+		Hidden::init("11ho_kajutalustro");
+		.setsndbase("hokajutalustro");
+		
+		.titsounds=(A, "lilian1", "Jaki piêkny pierscionek zarêczynowy. Musia³ kosztowac fortunê.", "mend"
+			);
+		
+		.imgs = (A, "hokajutalustro.jpg", "$scripts/items/ringget.pyzH 700");
+		
+		.mmasks;
+		
+		mus.playstr("mystery_war.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		.mstdenter;
+	}
+	mend	{	.mprzejdz("Kajutalustro");	}
+	hiddenobj_put	{ <GAME> {
+		if( grtxt.empty )	{
+			new itemadder clb1;
+			clsave.bset("item_ring");
+			clb1.showitem("anringget", func { .timplay("timring",1000, func {
+				clb1.hideitem("anringget", func {
+					anringget.hide;
+					.txtplay("lilian1");
+					} );
+				} );
+				} );
+		}
+	}; }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{
+		
+	}
+	mouse_rclick	{
+		return;
+		if( igmdebug )	{
+			grtxt.free;
+			.hiddenobj_put;
+		}
+	}
+}
+
+game Skrytkaschody : Hidden	{
+	init	{
+		Hidden::init("13ho_skrytkaschody");
+		.setsndbase("hoskrytkaschody");
+		
+		.imgs = (A, "skrytkaschody.png");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1","Znalaz³am pierwszy klucz!", func { tcr.ahide; .klucz_to_kolo(1); },
+			":lilian2", "Wiedzia³am, ¿e ten zegar co¶ kryje! Muszê zebraæ wszystkie przedmioty ze skrytki.", "stdret"
+			);
+		
+		.mmasks;
+		
+		mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		ccs.enter( func { .txtplay("lilian2"); } );
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			.klucz_show(1);
+		}
+	}
+	klucz1_shown	{ .txtplay("lilian1");	}
+	klucz1_in_kolo	{ .mprzejdz("Schody");	}
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game HOAmbulatorium : Hidden	{
+	init	{
+		Hidden::init("17ho_ambulatorium");
+		.setsndbase("hoambulatorium");
+		
+		.imgs = (A, "17ho_ambulatorium.jpg");
+		
+		.titsounds = (A, ":lilian1", "I've found the second key!", func {
+				tcr.ahide;
+				.mprzejdz("Ambulatorium");
+				}
+			);
+		
+		.mmasks;
+		
+		mus.playstr("wizards.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		.mstdenter;
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			//.mprzejdz("Ambulatorium");
+			.klucz_show(2);
+		}
+	}
+	klucz2_shown	{ .timplay("timkey", 2000, func { .klucz_to_kolo(2); });	}
+	klucz2_in_kolo	{ .txtplay("lilian1");	}
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		return;
+		if( igmdebug )	{
+			grtxt.free;
+			.hiddenobj_put;
+		}
+	}
+}
+
+game Skrzynia : Hidden	{
+	init	{
+		Hidden::init("19skrzynia");
+		.setsndbase("skrzynia");
+		
+		.imgs = (A, "skrzynia.png");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1", "I cannot stop thinking about you. Please come to me, to my room. I love you more than anything and I can't stand the thought that you have a fiance now. If you don't come with me, I feel like I am going to do something that I will regret for the rest of my life.", func { .txtplay("lilian4"); },
+			":lilian4", "My dear! You will always be in my heart as someone very close to me. However, I love my fiance and I will spend the rest of my life with him. Please forgive me. Yours, Margaret."
+				, func { .mprzejdz("Kajutabos"); },
+			":lilian2", "To chyba nie pierwszy statek na którym ten oficer s³u¿y. Sporo rzeczy nazbiera³ podczas swoich rejsów.",
+				"stdret",
+			":lilian3", "I've found the third key!", func { .mprzejdz("Kajutabos"); }
+			);
+
+		
+		//.newanima("anskiplist", "$scripts/common/skip.pyz", 755);
+		new img anskiplist {
+			.copy("anskip");
+			.setz(755);
+			.hide;
+			.Button_stdms;
+			.addmethod("butclick", func { .mprzejdzclick("Kajutabos"); } );
+			but1.add(this);
+		};
+		
+		.mmasks;
+		
+		mus.playstr("wizards.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		ccs.enter( func {
+			if( clsave.bgo("e2_hoskrzyniaplay") )	{
+				.txtplay("lilian2");
+			} else igmstate=1;
+			} );
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			//.mprzejdz("Kajutabos");
+			if( clsave.bis("e2_hoskrzyniaagain") )	{
+				igmstate=23;
+				// list
+				.timplay("timend", 200, func { <GAME> {
+					.img = ("$scripts/common/kartka2.png 500");
+					imgkartka2.setpos( iResX/2 - imgkartka2.getw/2, iResY/2 - 0.7*imgkartka2.geth );
+					new TextDb tdlist( sgmfontitalic, 14, "$lang:list_", 50,20,195,
+						imgkartka2.getpx+0.07*imgkartka2.getw,
+							imgkartka2.getpy+0.15*imgkartka2.geth, 10,750, "center");
+					new TextDb tdlist2( sgmfontitalic, 14, "$lang:list2_", 120,10,15,
+						tdlist.getpx, tdlist.getey+30 , 8,750, "center");
+					new img imlist;
+					imlist.create( tdlist2.getw + 10, tdlist2.geth + 10, .transparent );
+					imlist.setpos( tdlist2.getpx - 5, tdlist2.getpy - 5 );
+					tdlist2.blitto("imlist");
+					tdlist2.hide;
+					new filter ftlist;
+					ftlist.link("imlist");
+					ftlist.setrotate(7);
+					imlist.setz(750);
+					//.txtplay("lilian1");
+					anskiplist.ansetbpos( imlist.getcx, imlist.getey );
+					anskiplist.show;
+				}; } );
+			} else
+				.klucz_show(3);
+		}
+	}
+	klucz3_shown	{ .timplay("timkey", 2000, func { .klucz_to_kolo(3); });	}
+	klucz3_in_kolo	{ .txtplay("lilian3");	}
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+		if( igmstate==23 )	{
+			//.cactsndstop(true);
+		}
+	}
+	mouse_rclick	{
+		return;
+		if( igmdebug )	{
+			grtxt.free;
+			.hiddenobj_put;
+		}
+	}
+}
+
+game HOKorytarzkrata : Hidden	{
+	init	{
+		Hidden::init("21ho_korytarzkrata");
+		.setsndbase("hokorytarzkrata");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1", "Kartka z dziwnymi napisami. Przeczytam j± pó¼niej, jak skoñczê przeszukiwaæ tê skrzyniê.",
+			func {
+				if( grtxt.empty ) .mend;
+				else .stdret;
+			});
+		
+		.imgs = (A, "hokorytarzkrata.jpg", "$scripts/items/szyfr.pyzH 500");
+		
+		.mmasks;
+		
+		mus.playstr("mystery_war.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		new itemadder clsrub;
+		
+		.mstdenter;
+	}
+	hiddenobj_put	{
+		if( igmstate!=20 && grtxt.empty )	{
+			.mend;
+		}
+	}
+	szyfr_shown	{
+		.timplay("timkey", 2000, func {
+			clsrub.hideitem("anszyfr", func {
+				//igmstate=1;
+				anszyfr.hide;
+				.hiddenobj_put;
+				.txtplay("lilian1");
+				} );
+			} );
+	}
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	HO_szyfr_put	{
+		anszyfr.setframe(1,0);
+		igmstate = 20;
+		clsrub.showitem("anszyfr", "szyfr_shown");
+	}
+	mouse_rclick	{
+		return;
+		if( igmdebug )	{
+			grtxt.free;
+			.hiddenobj_put;
+		}
+	}
+	mend	{	.mprzejdz("Korytarzkrata");	}
+}
+
+
+game HOKotlownia : Hidden	{
+	init	{
+		Hidden::init("27ho_kotlownia");
+		
+		.imgs = (A, "27ho_kotlownia.jpg");
+		
+		.mmasks;
+		
+		mus.playstr("mystery_war.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		.mstdenter;
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			.klucz_show(4);
+		}
+	}
+	klucz4_shown	{ .timplay("timkey", 2000, func { .klucz_to_kolo(4); });	}
+	klucz4_in_kolo	{
+		clsave.set("item_klocek", 0);
+		clsave.bset("ma_klucz4");
+		clsave.bset("otwarte_drzwikotlownia");
+		.mprzejdz("Kotlownia");
+	}
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		return;
+		if( igmdebug )	{
+			grtxt.free;
+			.hiddenobj_put;
+		}
+	}
+}
+
+game HOKuchnia : Hidden	{
+	init	{
+		Hidden::init("30ho_kuchnia");
+		.setsndbase("hokuchnia");
+		
+		.imgs = (A, "30ho_kuchnia.jpg");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1", "Tajemnica tragicznej  mi³o¶ci zamkniêta jest w skrzyni oficera", func { .txtplay("lilian13"); },
+			":lilian13","Skrzynia w  kajucie oficera; Mo¿e znajdê tam rozwi±zanie zagadki ¶mierci tej biednej dziewczyny",
+				func { .mprzejdz("Kuchnia"); }
+			);
+		
+		.mmasks;
+		
+		//.newanima("anskiplist", "$scripts/common/skip.pyz", 755);
+		new img anskiplist {
+			.copy("anskip");
+			.setz(755);
+			.hide;
+			.Button_stdms;
+			.addmethod("butclick", func { .mprzejdzclick("Kuchnia"); } );
+			but1.add(this);
+		};
+		
+		mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		.mstdenter;
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			igmstate = 3;
+			.klucz_show(5);
+		}
+	}
+	klucz5_shown	{ .timplay("timkey", 2000, func { .klucz_to_kolo(5); });	}
+	klucz5_in_kolo	{ <GAME> {
+		.img = ("$scripts/common/kartka.png 500");
+		imgkartka.setpos( iResX/2 - imgkartka.getw/2, iResY/2 - imgkartka.geth/2 );
+		new TextDb tdlist( sgmfontitalic, 18, "$lang:list_", 50,20,195,
+			imgkartka.getpx+0.15*imgkartka.getw, imgkartka.getpy+0.15*imgkartka.geth, 5,750, "center");
+		//.txtplay("lilian1");
+		anskiplist.setpos( imgkartka.getcx - anskiplist.getw/2, imgkartka.getey );
+		anskiplist.show;
+	}; }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game HOZejscie : Hidden	{
+	init	{
+		Hidden::init("24ho_zejscie");
+		
+		.imgs = (A, "24ho_zejscie.jpg", "$scripts/items/kolo.pyzH 507");
+		ankolo.setframe(1,0);
+		
+		.sounds = (A, ":lilian1","Look at this wheel I found! I should hold on to this, maybe I can use it later.", 
+			func { tcr.ahide; clb1.hideitem("ankolo", func {
+					ankolo.hide;
+					clsave.bset("item_kolo");
+					.mend;
+					} );
+				}
+			);
+		
+		.mmasks;
+		
+		mus.playstr("wizards.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		.mstdenter;
+	}
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	mend	{
+		.mprzejdz("Zejsciedomaszynowni");
+	}
+	hiddenobj_put	{ <GAME> {
+		if( grtxt.empty )	{
+			new itemadder clb1;
+			igmstate=0;
+			clb1.showitem("ankolo", func { .timplay("timkolo",100, func {
+					.txtplay("lilian1");
+					} );
+				} );
+		}
+	}; }
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game HOPokojadministracyjny : Hidden	{
+	init	{
+		Hidden::init("35ho_pokojadm");
+		
+		.imgs = (A, "35ho_pokojadm.jpg", "$scripts/items/batyskaf.pyzH 507"/*, "$scripts/items/haslo.pyzH 507"*/);
+		anbatyskaf.setframe(1,0);
+		
+		.mmasks;
+		
+		mus.playstr("wizards.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		new itemadder cldiam;
+		
+		.mstdenter;
+	}
+	hiddenobj_put	{
+		if( igmstate!=20 && grtxt.empty )	{
+			.mprzejdz("Pokojadministracyjny");
+		}
+	}
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	bat_shown	{
+		.timplay("timbat", 2000, func {
+			clsave.bset("item_batyskaf");
+			cldiam.hideitem("anbatyskaf", func {
+				igmstate=1;
+				anbatyskaf.hide;
+				.hiddenobj_put;
+				} );
+			} );
+	}
+	HO_batyskaf_put	{
+		igmstate = 20;
+		cldiam.showitem("anbatyskaf", "bat_shown");
+	}
+	/*haslo_shown	{
+		.timplay("timhaslo", 2000, func {
+			clsave.bset("item_haslo");
+			cldiam.hideitem("anhaslo", func {
+				igmstate=1;
+				anhaslo.hide;
+				.hiddenobj_put;
+				} );
+			} );
+	}
+	ho_gniot_put	{
+		igmstate = 20;
+		cldiam.showitem("anhaslo", "haslo_shown");
+	}*/
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game HODok : Hidden	{
+	init	{
+		Hidden::init("41ho_dok");
+		
+		.imgs = (A, "41ho_dok.jpg", "$scripts/41dok/haslofragment.pyzH 507", "$scripts/items/mapa.pyzH 507",
+			"$scripts/items/mapafull.pyzH 507");
+		anmapa.setframe(1,0);
+		
+		.mmasks;
+		
+		mus.playstr("wizards.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		.mstdenter;
+	}
+	/*hiddenobj_put	{
+		if( grtxt.empty )	{
+			.mprzejdz("Salabalowarecepcja");
+		}
+	}*/
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	hiddenobj_put	{ <GAME> {
+		if( grtxt.empty )	{
+			new itemadder clb1;
+			new itemadder clmap;
+			new int ilefragmov = 50;
+			anhaslofragment.move(ilefragmov,ilefragmov);
+			clb1.showitem("anhaslofragment", func { .timplay("timbryl1",1000, func {
+				clmap.showitem("anmapa", func {
+					.cycle=("timfrag", func {
+						@dt = -2;
+						anhaslofragment.move(dt,dt);
+						ilefragmov+=dt;
+						if( ilefragmov<=0 )	{
+							anhaslofragment.hide;
+							anmapa.hide;
+							anmapafull.show;
+							anmapafull.setframe(1,0);
+							.timplay("timdok1", 2000, func { 
+								clb1.hideitem("anmapafull", func {
+									anmapafull.hide;
+									clsave.set("item_mapa", 0);
+									clsave.bset("item_mapafull");
+									.mprzejdz("Dok");
+									} );
+								} );
+						} else .play;
+						} );
+					timfrag.play;
+					} );
+				} );
+			} );
+		}
+	}; }
+	mouse_rclick	{
+		return;
+		if( igmdebug )	{
+			grtxt.free;
+			.hiddenobj_put;
+		}
+	}
+}
+
+game HOSalabalowa : Hidden	{
+	init	{
+		Hidden::init("37ho_salabalowa");
+		.setsndbase("hosalabalowa");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1", "Podarta fotografia. Z³o¿ê j± po przeszukaniu szafy.", "stdret");
+		
+		.imgs = (A, "37ho_salabalowa.jpg", "krysztal15.pyzH 507", "zdjecie.pyzH 507");
+		
+		.mmasks;
+		
+		mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		new itemadder cldiam;
+		
+		.mstdenter;
+	}
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	hiddenobj_put	{
+		if( igmstate!=20 && grtxt.empty )	{
+			.mprzejdz("Zdjecie");
+		}
+	}
+	diament_shown	{
+		.timplay("timdiam15", 2000, func {
+			clsave.bset("item_krysztal15");
+			cldiam.hideitem("ankrysztal15", func {
+				igmstate=1;
+				ankrysztal15.hide;
+				.hiddenobj_put;
+				} );
+			} );
+	}
+	HO_diament_put	{
+		igmstate = 20;
+		cldiam.showitem("ankrysztal15", "diament_shown");
+	}
+	zdjecie_shown	{
+		.timplay("timzdjecie", 2000, func {
+			cldiam.hideitem("anzdjecie", func {
+				//igmstate=1;
+				anzdjecie.hide;
+				.hiddenobj_put;
+				.txtplay("lilian1");
+				} );
+			} );
+	}
+	HO_zdjecia_put	{
+		igmstate = 20;
+		cldiam.showitem("anzdjecie", "zdjecie_shown");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game HOSalaturecka : Hidden	{
+	init	{
+		Hidden::init("39ho_salaturecka");
+		
+		.imgs = (A, "39ho_salaturecka.jpg", "diament14.pyzH 507");
+		
+		.mmasks;
+		
+		mus.playstr("wizards.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		new itemadder cldiam;
+		
+		.mstdenter;
+	}
+	hiddenobj_put	{
+		if( igmstate!=20 && grtxt.empty )	{
+			.mprzejdz("Salaturecka");
+		}
+	}
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	diament_shown	{
+		.timplay("timdiam14", 2000, func {
+			clsave.bset("item_krysztal14");
+			cldiam.hideitem("andiament14", func {
+				igmstate=1;
+				andiament14.hide;
+				.hiddenobj_put;
+				} );
+			} );
+	}
+	HO_diament14_put	{
+		igmstate = 20;
+		cldiam.showitem("andiament14", "diament_shown");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		return;
+		if( igmdebug )	{
+			grtxt.free;
+			.hiddenobj_put;
+		}
+	}
+}
+
+game HOSkrytkalustro : Hidden	{
+	init	{
+		Hidden::init("40ho_skrytkalustro");
+		.setsndbase("hoskrytkalustro");
+		
+		.imgs = (A, "40ho_skrytkalustro.jpg", "klocek.pyzH 507", "klocekb.pyzH 507");
+		
+		.titsounds = (A, ":lilian1", "Znalaz³am brakuj±ce fragmenty herbu. Wracam do kot³owni", "mend");
+		
+		.mmasks;
+		
+		mus.playstr("wizards.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		.mstdenter;
+	}
+	/*hiddenobj_put	{
+		if( grtxt.empty )	{
+			.mprzejdz("Salabalowarecepcja");
+		}
+	}*/
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	mend	{ .mprzejdz("Salabalowarecepcja"); }
+	hiddenobj_put	{ <GAME> {
+		if( grtxt.empty )	{
+			new itemadder clb1;
+			new itemadder clb2;
+			clsave.bset("item_klocek");
+			clsave.bset("item_klocekb");
+			clb1.showitem("anklocek", func { .timplay("timbryl1",1000, func {
+				clb1.hideitem("anklocek", func {
+					anklocek.hide;
+					clb2.showitem("anklocekb", func { .timplay("timbryl2",1000, func {
+						clb2.hideitem("anklocekb", func {
+							anklocekb.hide;
+							.txtplay("lilian1");
+							} );
+							} );
+						} );
+					} );
+				} );
+			} );
+		}
+	}; }
+}
+
+game HOWrak : Hidden	{
+	init	{
+		Hidden::init("46ho_wrak");
+		.setsndbase("howrak");
+		
+		.titsounds=(A, ":lilian1", "Pewnie w tej stercie przedmitów ukryty jest ostatni klucz.", "stdret"
+			);
+		
+		.imgs = (A, "howrak.jpg", "box.pyzH 507");
+		
+		.mmasks;
+		
+		mus.playstr("wizards.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		ccs.enter( func { .txtplay("lilian1"); } );
+	}
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	hiddenobj_put	{ <GAME> {
+		if( grtxt.empty )	{
+			new itemadder clb1;
+			clb1.showitem("anbox", func { .timplay("timbryl1",1000, func {
+				clb1.hideitem("anbox", func {
+					anbox.hide;
+					clsave.set("item_mapafull",0);
+					.mprzejdz("BoxA");
+					} );
+				} );
+				} );
+		}
+	}; }
+}

@@ -1,0 +1,41 @@
+
+game mg43_skrzyneczka :Banshee {
+	init{
+		Banshee::init("mg43_skrzyneczka");
+		.imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2", "sztylet.pyzH 3", "ramka.pyz 7","popexit.pyz 8" );
+		.butpopexit;
+		.butpopexitisinramka; 
+		.sfxs = (A,"bgrsala2N 10", "skrzypienie_podlogiN 10" ) ; 
+		if (!clsave.bis("taken_sztylet") )
+		{
+			.setasitemtopck("ansztylet");
+			ansztylet.show();
+		} 	
+		 
+		.stdstart;  
+		 
+	}// koniec init 
+		
+	ansztylet_TAKE	{	
+		.set_mg_finished;
+		.popitem_gotocenter("sztylet");	
+	}
+	
+	ansztylet_INPCK {
+      .addtopck("sztylet");
+	  .timfinito;
+    } 
+	
+  
+	mend	{
+		.stdexitdefadv("ad43_pokoj", "gamead43_pokoj0"); 
+	}
+  
+	HINT_CLICK {
+		if (!clsave.bis("taken_sztylet"))
+			.showhint("ansztylet");
+		else
+			.showhint("anpopexit");   
+	}
+}
+ 

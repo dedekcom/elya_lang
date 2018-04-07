@@ -1,0 +1,310 @@
+game Tasma : Komputro {
+	init	{
+		Komputro::init("tasma");
+		.path = ("tasma");
+		.imgs = (A, "bkg.pyz 10", "czytacz.pyzL 20", "kod01.pyz 20", "kompi.pyz 20", "kodH.pyz 20",
+			"trawa.pyz 15", "machine.pyz 30", "zarowkaH.pyz 20", "strzH.pyz 50");
+		._loadguys("scripts/tasma/profesor", "scripts/tasma/jacek");
+		ankompi.addmethod("onfinish",
+			func { @s = .actionname;
+				if( s=="wait" ) .dali2;
+				else {
+					grtas.move(0,-26);
+					antas.move(0,-26);
+					.play("wait");
+				} } );
+		anjack.setz(12);
+		anprof.setz(12);
+		new gmimgvec grtas;
+		"grtas" ..< "tasma.pyz";
+		grtas.each( func { (@id) .setz(15); .clip(400,130, 500, 440 ); } );
+		grtas.removefirst;
+		antasma0_0.addtogamevars("antas");
+		grtas.hide;
+		.loadlekcja;
+		new classplacepointer2 clp;
+		new classsimplebutton cbok;
+		cbok.build("scripts/common/butok.pyz", "imglobcurs", 20, 515, 100, 0);
+		tdopis.napisshow(200, 30);
+		new @sfont = .stdfont(16);
+		new TextDb tdzad(null, 12, "zad.db", .green, 630,10, 5, 550, "left");
+		tdzad.stdshadow(1);
+		tdzad.hide;
+		new @Level = 1;
+		new gmimgvec grtxt;
+		grtxt.addlist(A, "tdlicz", "tddzies", "gsq");
+		new @ilezad = 6;
+		new @instr = 0;
+		.newimgarray("grzad", "text", "txtz", ilezad);
+		.newimgarray("grzadid", "text", "txtzid", ilezad);
+		new vector vecid { .type("string"); .beginadd("begin","000","001","010","011","100","101","110"); };
+		grzadid.each( func { (@id) .setz(50);
+			.set(vecid.get(id)+":" );
+			.setpos( 165, 190+id*25 );
+			.setfont(sfont);
+			.createtxt(.grey(40)); });
+		grzad.each( func { (@id) .setz(50);
+			.set("?");
+			.setfont(sfont);
+			//<s>.setbkg( 390, 90+y, <s>.getw+5, <s>.geth+5, 20,20,20,20);
+			.createtxt(.grey(40));
+			.setbkg( 230, 190+id*25, .getw+3, .geth+3, .grey(20),20 );
+			 });
+		.newimgarray("grzd2", "text", "txtz2", ilezad);
+		.newimgarray("grzid2", "text", "txtzid2", ilezad);
+		grzid2.each( func { (@id) .setz(50);
+			.set(""+id+" :" );
+			.setpos( 33, 85+id*25 );
+			.setfont(sfont);
+			.createtxt(.grey(40)); });
+		grzd2.each( func { (@id) .setz(50);
+			.set( "white" );
+			.setfont(sfont);
+			//.setpos( 70, 85+id*25 );
+			.createtxt(.grey(40));
+			.setbkg( 70, 85+id*25, .getw, .geth, .grey(220),2 );
+			 });
+		grzid2.hide;
+		grzd2.hide;
+		new TextDb tdrozk(null, 12, "rozkazy.db", 255,100,100, 15,264, 5, 550, "left");
+		tdrozk.stdshadow(1);
+		tdrozk.hide;
+		new @sfont13 = .stdfont(14);
+		.newtext("txtzad", "0", sfont13, 255,250,250);
+		.newdb("dbzad","zadania.db");
+		txtzad.anposz( 100, 550, 260);
+		.newtext("txtzad2", "0", sfont13, 255,250,250);
+		txtzad2.anposz( 100, 570, 260);
+		txtzad2.hide;
+		txtzad.hide;
+		.newtext("txtinstr", "0", sfont13, .grey(64));
+		txtinstr.anposz( 742, 92, 260);
+		txtinstr.hide;
+		.sounds = (A,
+			"sndintro", "W tej lekcji napiszesz swój pierwszy program", func { .cbplay("snd1"); },
+			"snd1", "Tworzenie maszyn których wszystkie zadania realizuj± uk³ady elektroniczne jest bardzo trudne i pracoch³onne",
+				func { .cbplay("snd2"); },
+			"snd2", "Dlatego wymy¶lono uk³ady czytaj±ce instrukcje z zewn±trz i na ich podstawie wykonuj±ce ró¿ne zadania",
+				func { .cbplay("snd3"); },
+			"snd3", "Nim zaczniemy oprogramowywaæ maszynê któr± widzisz przed sob± poznasz podstawowe pojêcia zwi±zane z liczbami",
+				func { <GAME> { .viewhelp; }; .cbplay("snd4"); },
+			"snd4", "Komputery s± zbudowane z uk³adów cyfrowych o których dowiedzia³e¶ siê trochê w poprzednich lekcjach",
+				func { .cbplay("snd5"); },
+			"snd5", "Uk³ady te dzia³aj± w oparciu o dwie liczby 0 i 1 co w rzeczywisto¶ci oznacza brak napiêcia i jego wyst±pienie na wej¶ciach i wyj¶ciach",
+				func { .cbplay("snd6"); tddzies.setz(510); tddzies.napisshow(300,200); },
+			"snd6", "Liczby którymi pos³ugujesz siê na codzieñ zapisujesz za pomoc± dziesiêciu cyfr od 0 do 9; Mówimy wtedy ¿e liczby zapisujemy w systemie dziesiêtnym",
+				func { .cbplay("snd7"); tdlicz.show; },
+			"snd7", "Ka¿d± z nich mo¿emy zapisaæ tak¿e w systemie dwójkowym czyli za pomoc± dwóch cyfr",
+				func { .cbplay("snd8"); },
+			"snd8", "Komputery przechowuj± liczby w komórkach o ró¿nej wielko¶ci",
+				func { .cbplay("snd9"); <GAME> {
+					tddzies.hide;
+					@w = 30;
+					@x = 550;
+					@dx = 7;
+					new gfxSquare gsbit(x,200,w,w);
+					gsbit.set(.grey(240),255);
+					gsbit.build;
+					gsbit.setz(510);
+					gsbit.border(1,1,.black,240);
+					.newtextposz("txtbit", w.rand(2), sfont, .grey(128), x+dx, 200+dx, 515);
+					string s;
+					for( int i=0; i<8; i++)	{
+						s = "gsb"+i;
+						new gfxSquare <s>(x-i*w,300,w,w);
+						<s>.set(.grey(240),255);
+						<s>.build;
+						<s>.setz(510);
+						<s>.border(1,1,.black,240);
+						grtxt.add(s);
+						.newtextposz("txtbajt"+i, w.rand(2), sfont, .grey(128), x-i*w+dx, 300+dx, 515);
+						grtxt.add("txtbajt"+i);
+					}
+					tdbit.napisshow( x - w, 205+w );
+					tdbit.setz(515);
+					tdbajt.napisshow( x - 6*w, 305+w );
+					tdbajt.setz(515);
+					grtxt.addlist(A,"gsbit","tdbit","tdbajt","txtbit");
+					clp.showob("gsbit", "ld");
+				}; },
+			"snd9", "Podstawow± komórk± jest bit który przechowuje 2 liczby 0 lub 1",
+				func {.cbplay("snd10"); clp.showob("gsb3","dd"); },
+			"snd10", "8 bitów sk³ada siê na bajt który pomie¶ci 256 liczb od 0 do 255",
+				func { grtxt.hide; clp.showpob("antas", "rr"); .cbplay("snd11"); },
+			"snd11", "Nasz komputer pobierze program z tej sze¶ciobitowej ta¶my",
+				func { clp.showob("ankod01", "lu"); .cbplay("snd12"); },
+			"snd12", "Tutaj bêdziesz pisa³ program", func { .cshowbut("dd"); .cbplay("snd13"); },
+			"snd13", "Tutaj w³±czysz maszynê", func { clp.showob("anzarowka", "rr"); .cbplay("snd14"); },
+			"snd14", "Maszyna posiada dwie instrukcje 1 oznacza zapalenie ¿arówki na czerwono 0 oznacza zapalenie na bia³o",
+				func { clp.stoph; .cbplay("snd15"); tdzad.show; },
+			"snd15", "Maszyna przetwarza jedn± instrukcjê na sekundê",
+				func { clp.showpob("txtzad", "dd"); .showzad; .cbplay("sndz1"); },
+			"sndz1", "Na dole widzisz tre¶æ zadania; Do dzie³a! ", func { clp.stoph; .startgame; },
+			"sndr0", "Zero", "dali",
+			"sndr1", "Jeden", "dali",
+			"sndrhm", "Z³a instrukcja; Kompilacja siê nie powiod³a; Popraw b³êdy i uruchom ponownie", 
+				"viewzad",
+			"sndok", "Dobrze; kolejne zadanie", "startgame",
+			"sndno", "Program zadzia³a³ niepoprawnie; popraw b³êdy i uruchom ponownie", "viewzad",
+			"sndgo1", "Teraz program bêdziesz pisa³ tutaj u¿ywaj±c rozkazów czytelnych dla cz³owieka; Kompilator przet³umaczy go na jêzyk zrozumia³y dla maszyny",
+				func { clp.stoph; .startgame; },
+			"sndend", "Wspaniale! Otrzymujesz tytu³ programisty maszyny jednobitowej",
+				func { .profstop; .jacksay("sndend2"); },
+			"sndend2", "Hip hip hurra; ju¿ siê nie mogê doczekaæ kolejnej lekcji", "finito"
+		);
+		.profsay("sndintro");
+		.cycle = ("timout", func {
+			antas.move(0,-10);
+			grtas.move(0,-10);
+			if( antas.getey > 155 ) .play;
+			else {
+				imachine=0;
+				timm.play;
+			}
+			} );
+		new @imachine = 0;
+		.timer = ("timm", 1000, func {
+			if( imachine==6 )	{
+				anzarowka.hide;
+				txtinstr.hide;
+				string s="";
+				int i;
+				if( Level<5)	for(i=0; i<ilezad; i++) s+=<"txtz"+i>.get;
+				else	for(i=0; i<ilezad; i++) s+= (<"txtz2"+i>.get=="red" ? 1 : 0);
+				bool b = false;
+				match(Level)	{
+					1 => b = s.contains("1");
+					2 => b = s=="000000";
+					3 => b = ( s.getb(0,4)=="1110" || s.contains("01110") );
+					4 => b = s=="010101";
+					5 => {
+						int ile=0;
+						for( i=0; i<ilezad; i++) if( s.getb(i,1)=="0" ) ile++;
+						b = ile==4;
+					}
+					6 => b = s=="001110";
+					7 => b = (s.getb(0,3)=="000" || s=="100000");
+					? => ;
+				}
+				if( b ) {
+					Level++;
+					if( Level==8 )	.profsay("sndend");
+					else if( Level==5 )	{
+						.profsay("sndgo1");
+						clp.showob("ankod","ll");
+						tdrozk.show;
+						ankod.show;
+						grzd2.show;
+						grzid2.show;
+					} else .profsay("sndok");
+				} else .profsay("sndno");
+			} else {
+				anzarowka.setframe(0,<"txtz"+imachine>.get);
+				anzarowka.show;
+				txtinstr.txtset( vecid.get(imachine) );
+				txtinstr.show;
+				imachine++;
+				.play;
+			}
+			} );
+	}
+	viewst(int id)	{
+		@s = ( Level<5 ? "txtzid" : "txtzid2" ) + id;
+		anstrz.setpos(<s>.getpx-anstrz.getw, <s>.getpy+3);
+		anstrz.show;
+	}
+	dali2	{
+		string s;
+		if( instr==6 )	{
+			timout.play;
+		} else {
+			anczytacz.play(0);
+			s = <"txtz"+instr>.get;
+			.viewst(instr);
+			if( s=="?" ) .cbplay("sndrhm");
+			else .cbplay("sndr"+s);
+		}
+	}
+	dali	{
+		anczytacz.stop(false);
+		anczytacz.setframe(0,0);
+		@s = <"txtz"+instr>.get;
+		ankompi.play( s );
+		if( s == "1" )	<grtas.get(instr)>.show;
+		instr++;
+	}
+	viewzad	{
+		.viewst(0);
+		anczytacz.stop(false);
+		anczytacz.setframe(0,0);
+		.profstop;
+		igmstate=1;
+		instr = 0;
+		grtas.hide;
+		antas.setpos(0,0);
+		grtas.setpos(0,0);
+		.showzad;
+	}
+	showzad	{
+		@id = Level-1;
+		txtzad.txtset( dbzad.get(id,0) );
+		txtzad.txtshadow(2,sfont13);
+		txtzad.show;
+		if( dbzad.getcolsno(id) > 1 )	{
+			txtzad2.txtset( dbzad.get(id,1) );
+			txtzad2.txtshadow(2,sfont13);
+			txtzad2.show;
+		} else txtzad2.txthides;
+	}
+	startgame	{
+		.profstop;
+		grzad.each( func { (@id) .txtset("?"); } );
+		.viewzad;
+	}
+	viewhelp	{
+		new gfxSquare gsq(200,100,400,300);
+		gsq.set(.grey(240), 255);
+		gsq.build;
+		gsq.setz(500);
+// 		gsq.border(1,1, .grey(192), 255);
+		gsq.border(1,1,.black,255);
+		gsq.shadow(2,2,128);
+		
+		new TextDb tdlicz(null, 12, "liczby.db", .grey(20), 210, 115, 5, 550, "left");
+		tdlicz.hide;
+	}
+	cbok_CLICK	{
+		if( igmstate!=1 )	return;
+		igmstate=2;
+		if( Level>4 )	{
+			for( int i=0; i<ilezad; i++)	{
+				<"txtz"+i>.txtset( (<"txtz2"+i>.get=="red" ? "1" : "0" ) );
+			}
+		}
+		.dali2;
+	}
+	mouse_lclick	{
+		.cactsndstop(true);
+		if( igmstate!=1 ) return;
+		if( Level<5 )	{
+			if( grzad.isin(mouse.getpos,1,0) )	{
+				string s = grzad.getsfound;
+				match(<s>.get)	{
+					"?" => "0";
+					"0" => "1";
+					"1" => "?";
+					? => ;
+				}
+				<s>.txtset;
+			}
+		} else {
+			if( grzd2.isin(mouse.getpos,1,0) )	{
+				string s = grzd2.getsfound;
+				<s>.txtset( (<s>.get=="red" ? "white" : "red") );
+			}
+		}
+	}
+	finito	{
+		gameapi.play( ( KomputroMode < 3 ? "AsmEasy" : "AsmHard") );
+	}
+}

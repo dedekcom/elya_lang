@@ -1,0 +1,416 @@
+game mg_ingame_menu : StdGame	{
+	init	{
+		StdGame::init("mg_ingame_menu"); 
+		
+		if (.checktouchpad) 
+		{
+			.imgs = (A, "bkg.jpg 1", "base_pad.pyz 2", "audio_pad.pyz 4",  "continue.pyz 6", "mainmenu.pyz 7", "difficulty_pad.pyz 8",
+				"askerbg.pyzH 100", "askerno.pyzH 105", "askerquit.pyzH 105", 
+				"difficulty_main.pyzH 106", "difficulty_ok.pyzH 107", "hardbtn.pyzH 108", "normalbtn.pyzH 108", "casualbtn.pyzH 109",  
+				"audio_base.pyzH 106", "audio_ok.pyzH 107", "volume.pyzH 108", "volume_zakres.pyzH 4", "music.pyzH 108", "music_zakres.pyzH 4" ,"voice.pyzH 108", "voice_zakres.pyzH 4"     
+				
+			); 
+		
+		}
+		else
+		{
+			.imgs = (A, "bkg.jpg 1", "base.pyz 2","fullscreen.pyz 4","audio.pyz 4","fullscreen_check.pyzH 5", "continue.pyz 6", "mainmenu.pyz 7", "difficulty.pyz 8",
+				"askerbg.pyzH 100", "askerno.pyzH 105", "askerquit.pyzH 105", 
+				"difficulty_main.pyzH 106", "difficulty_ok.pyzH 107", "hardbtn.pyzH 108", "normalbtn.pyzH 108", "casualbtn.pyzH 109",  
+				"audio_base.pyzH 106", "audio_ok.pyzH 107", "volume.pyzH 108", "volume_zakres.pyzH 4", "music.pyzH 108", "music_zakres.pyzH 4" ,"voice.pyzH 108", "voice_zakres.pyzH 4"     
+				
+			); 
+		}
+		 
+		mus.smixer = ("engine");
+		mus.playstr("ck1_loop.ogg -v 40 -l");
+		
+		new int iProfilId = 1;
+		new bool bFullScreen =  true; 
+		new int difficulty = 1;
+		if(clsmen.has("currentprofile") )
+		{
+			iProfilId = clsmen.get("currentprofile");
+			if (!.checktouchpad) 
+			{
+				bFullScreen =  clsmen.get("fullscreen");
+				if( bFullScreen ) 
+					anfullscreen_check.show;
+				else 
+					anfullscreen_check.hide; 
+			}	
+			if(clsmen.get("difficulty_"+iProfilId))
+				difficulty = clsmen.get("difficulty_"+iProfilId);
+		}
+		
+		clsmen.saveonset = (true);
+		
+		ancontinue.Button_isin;
+		ancontinue.Button_moveoff;
+		ancontinue.Button_moveon_std;
+		ancontinue.addmethod("butclick", func {
+			.continue_game;
+		} ); 
+		butgame.add("ancontinue");  
+		
+		if (.checktouchpad) 
+		{
+			andifficulty_pad.Button_isin;
+			andifficulty_pad.Button_moveoff;
+			andifficulty_pad.Button_moveon_std;
+			andifficulty_pad.addmethod("butclick", func {
+				.modes;
+			} ); 
+			butgame.add("andifficulty_pad");  
+			
+			anaudio_pad.Button_isin;
+			anaudio_pad.Button_moveoff;
+			anaudio_pad.Button_moveon_std;
+			anaudio_pad.addmethod("butclick", func {
+				.audio;
+			} ); 
+			butgame.add("anaudio_pad");  
+		}
+		else
+		{
+			andifficulty.Button_isin;
+			andifficulty.Button_moveoff;
+			andifficulty.Button_moveon_std;
+			andifficulty.addmethod("butclick", func {
+				.modes;
+			} ); 
+			butgame.add("andifficulty");  
+			
+			anaudio.Button_isin;
+			anaudio.Button_moveoff;
+			anaudio.Button_moveon_std;
+			anaudio.addmethod("butclick", func {
+				.audio;
+			} ); 
+			butgame.add("anaudio");  
+		}
+		 
+		 
+		
+		anmainmenu.Button_isin;
+		anmainmenu.Button_moveoff;
+		anmainmenu.Button_moveon_std;
+		anmainmenu.addmethod("butclick", func {
+			.askexit;
+		} ); 
+		butgame.add("anmainmenu");  
+		
+		if (!.checktouchpad) 
+		{
+			anfullscreen.Button_isin;
+			anfullscreen.Button_moveoff;
+			anfullscreen.Button_moveon_std;
+			anfullscreen.addmethod("butclick", "changefullscreen");
+				
+			butgame.add("anfullscreen");
+		}
+	 
+		anvolume{
+		 
+			@dx = 50;
+			@x = anvolume_zakres.getpx + dx;
+			@ex = anvolume_zakres.getex - dx;
+			.vars2(A, "ypos", anvolume_zakres.getcy, "xpos", x, "expos", ex);
+			.Button_isin;
+			.Button_moveoff;
+			.Button_moveon_std;
+			.addmethod("butmoving", func {
+				@x = mouse.getpx;
+				if( x <= xpos )	.ansetcpos(xpos, ypos);
+				else if (x>=expos) .ansetcpos( expos, ypos);
+				else .ansetcpos( x, ypos );
+				real r[2];
+				r0 = expos - .getcx;
+				r1 = expos - xpos;
+				clsmen.set("sound_volume", (1.0-(r0/r1))*100.0);
+				.wczytajglosnosc;
+				mus.updatevolume;
+				} );
+			 
+			.suwakpos( clsmen.get("sound_volume")->to_r/100.0 );
+			 
+			butgame.add(this);
+		}; 
+		
+		anmusic{
+		 
+			@dx = 50;
+			@x = anmusic_zakres.getpx + dx;
+			@ex = anmusic_zakres.getex - dx;
+			.vars2(A, "ypos", anmusic_zakres.getcy, "xpos", x, "expos", ex);
+			.Button_isin;
+			.Button_moveoff;
+			.Button_moveon_std;
+			.addmethod("butmoving", func {
+				@x = mouse.getpx;
+				if( x <= xpos )	.ansetcpos(xpos, ypos);
+				else if (x>=expos) .ansetcpos( expos, ypos);
+				else .ansetcpos( x, ypos );
+				real r[2];
+				r0 = expos - .getcx;
+				r1 = expos - xpos;
+				clsmen.set("music_volume", (1.0-(r0/r1))*100.0);
+				.wczytajglosnosc;
+				mus.updatevolume;
+				} );
+			 
+			.suwakpos( clsmen.get("music_volume")->to_r/100.0 );
+			 
+			butgame.add(this);
+		}; 
+		
+		anvoice{
+		 
+			@dx = 50;
+			@x = anvoice_zakres.getpx + dx;
+			@ex = anvoice_zakres.getex - dx;
+			.vars2(A, "ypos", anvoice_zakres.getcy, "xpos", x, "expos", ex);
+			.Button_isin;
+			.Button_moveoff;
+			.Button_moveon_std;
+			.addmethod("butmoving", func {
+				@x = mouse.getpx;
+				if( x <= xpos )	.ansetcpos(xpos, ypos);
+				else if (x>=expos) .ansetcpos( expos, ypos);
+				else .ansetcpos( x, ypos );
+				real r[2];
+				r0 = expos - .getcx;
+				r1 = expos - xpos;
+				clsmen.set("voice_volume", (1.0-(r0/r1))*100.0);
+				.wczytajglosnosc;
+				mus.updatevolume;
+				} );
+			 
+			.suwakpos( clsmen.get("voice_volume")->to_r/100.0 );
+			 
+			butgame.add(this);
+		}; 
+		 
+		
+		new img imgexit;
+		new img imgmodes;
+		new img imgaudio;
+		 
+		anaskerno.Button_isinalpha;
+		anaskerno.Button_moveon_std;
+		anaskerno.Button_moveoff;
+		anaskerno.addmethod("butclick", func {
+			if( sgmstate=="state_askexit" )	{
+				.buildimgexit;
+				.hideasker;
+				 
+				imgexit.anzoomfadeinout(200,-1,-1, func {
+					.advsetstdstate;
+					.hide;
+					 
+				} );
+			}
+		
+		});
+		butgame.add("anaskerno");
+		anaskerquit.Button_isinalpha;
+		anaskerquit.Button_moveoff;
+		anaskerquit.Button_moveon_std;
+		anaskerquit.addmethod("butclick", func {
+			if( sgmstate=="state_askexit" )	{
+				.tomainmenu;
+			}
+			} );
+		butgame.add("anaskerquit");
+		
+		new gmimgvec grbase;
+		if (.checktouchpad) 
+			grbase.addlist(A, "anbase_pad",   "ancontinue", "anmainmenu", "andifficulty_pad", "anaudio_pad");
+		else
+			grbase.addlist(A, "anbase",   "ancontinue", "anmainmenu", "anfullscreen", "andifficulty", "anaudio");	
+		
+		new gmimgvec grasker;
+		grasker.addlist(A, "anaskerbg",   "anaskerno", "anaskerquit");
+		
+		new gmimgvec grmodes;
+		grmodes.addlist(A, "andifficulty_main", "andifficulty_ok", "anhardbtn","annormalbtn", "ancasualbtn");
+		
+		new gmimgvec graudio;
+		graudio.addlist(A, "anaudio_base", "anaudio_ok", "anvolume", "anmusic", "anvoice");
+		
+		 
+		andifficulty_ok.Button_isinalpha;
+		andifficulty_ok.Button_moveoff;
+		andifficulty_ok.Button_moveon_std;
+		andifficulty_ok.addmethod("butclick", func {
+			if( sgmstate=="state_modes" )	{
+				.buildimgmodes;
+				.hidemodes;
+				clsmen.set("difficulty_"+iProfilId,difficulty);  
+				clsave.set("GAME_diflevel", difficulty);
+				imgmodes.anzoomfadeinout(200,-1,-1, func {
+					.advsetstdstate;
+					.hide;
+					 
+				} );
+			}
+			} );
+		butgame.add("andifficulty_ok");
+		
+		
+		anhardbtn.Button_isinalpha;
+		//anhardbtn.Button_moveoff;
+		//anhardbtn.Button_moveon_std;
+		anhardbtn.addmethod("butclick", func {
+			.clear_selection();
+			.setframe(-1,1);
+			difficulty = 3;			
+		} );
+			
+		butgame.add("anhardbtn");
+		
+		annormalbtn.Button_isinalpha;
+		//annormalbtn.Button_moveoff;
+		//annormalbtn.Button_moveon_std;
+		annormalbtn.addmethod("butclick", func {
+			.clear_selection();
+			.setframe(-1,1);
+			difficulty = 2;			
+		} );
+			
+		butgame.add("annormalbtn");
+		
+		ancasualbtn.Button_isinalpha;
+		//ancasualbtn.Button_moveoff;
+		//ancasualbtn.Button_moveon_std;
+		ancasualbtn.addmethod("butclick", func {
+			.clear_selection();
+			.setframe(-1,1);
+			difficulty = 1;			
+		} );
+			
+		butgame.add("ancasualbtn");
+		
+		
+		anaudio_ok.Button_isinalpha;
+		anaudio_ok.Button_moveoff;
+		anaudio_ok.Button_moveon_std;
+		anaudio_ok.addmethod("butclick", func {
+			if( sgmstate=="state_audio" )	{
+				.buildimgaudio;
+				.hideaudio;
+				 
+				imgaudio.anzoomfadeinout(200,-1,-1, func {
+					.advsetstdstate;
+					.hide;
+					 
+				} );
+			}
+			} );
+		butgame.add("anaudio_ok");
+		
+	}
+	
+	hideasker	{	grasker.hide;grbase.show;	}
+		buildimgexit	{
+			imgexit.imgbuildfromlist(A, "anaskerbg",  "anaskerno", "anaskerquit");
+		}
+		
+	askexit	{
+		.buildimgexit;
+		.hideasker;
+		 
+		imgexit.anzoomfadeinout(200,1,1, func {
+			sgmstate = "state_askexit";
+			.hide;
+			grbase.hide;
+			grasker.show;
+			} );
+	}
+	
+	hidemodes	{	grmodes.hide; grbase.show;	}
+	buildimgmodes	{
+			imgmodes.imgbuildfromlist(A, "andifficulty_main", "andifficulty_ok", "anhardbtn","annormalbtn", "ancasualbtn");
+			
+			if (difficulty == 1)
+				ancasualbtn.setframe(-1,1);
+			else if (difficulty == 2)
+				annormalbtn.setframe(-1,1);
+			else 
+				anhardbtn.setframe(-1,1);
+			
+			/*difficulty*/
+		}
+		
+	modes {
+		.buildimgmodes;
+		.hidemodes;
+		  
+		imgmodes.anzoomfadeinout(200,1,1, func {
+			sgmstate = "state_modes";
+			.hide;
+			grbase.hide;
+			grmodes.show;
+			} );
+	}
+	
+	hideaudio	{	graudio.hide; grbase.show;	}
+	buildimgaudio	{
+			imgaudio.imgbuildfromlist(A, "anaudio_base", "anaudio_ok", "anvolume", "anmusic", "anvoice");
+			 
+		}
+		
+	audio {
+		.buildimgaudio;
+		.hideaudio;
+		imgaudio.anzoomfadeinout(200,1,1, func {
+			sgmstate = "state_audio";
+			.hide;
+			grbase.hide;
+			graudio.show;
+		} );
+	}
+	
+	clear_selection()
+	{
+		anhardbtn.setframe(-1,0);
+		annormalbtn.setframe(-1,0);
+		ancasualbtn.setframe(-1,0);
+	}
+	
+	/*ccs.enter( func {
+		ccs.buildblack;
+		.advsetstdstate;
+		//mus.playstr("ck1_start.ogg -v 40 ck1_loop.ogg -v 40 -l");
+		mus.smixer = ("engine");
+		mus.playstr("ck1_loop.ogg -v 40 -l");
+	} );
+	*/ 
+	
+	suwakpos(real r)	{	.ansetcpos(xpos + r*(expos-xpos), ypos);	}
+	
+	tomainmenu	{
+		ccs.buildfromscreen;
+		ccs.close( func { 
+			gameapi.play("MainMenu"); 
+		} );
+		 
+	}	
+	
+	continue_game	{
+		sgmstate = "state_continuegame";
+		mus.fadeout(800);
+		ccs.close( func { 
+			PrzygodaMode = 1;
+		 	BanGui::_load_game(.getsavename);
+		} );
+	}
+	changefullscreen	{
+		classadv::changefullscreen;
+		bFullScreen = clsmen.get("fullscreen");
+		if( bFullScreen ) 
+			anfullscreen_check.show;
+		else 
+			anfullscreen_check.hide;
+	}
+}

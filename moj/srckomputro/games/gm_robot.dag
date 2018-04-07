@@ -1,0 +1,675 @@
+game Robot : Komputro {
+	init	{
+		Komputro::init("robot");
+		.path = ("robot");
+		.bkg = ("bkg.pyz");
+		.loadlekcja;
+		tdlekcja.move(0,-5);
+		
+		.sfxs = (A, "robocik", "goto 70", "bada 50", "pik", "komputer 50", "bum 30", "brawo 50" );
+		
+		.imgs = (A, "robo.pyz 10");
+		.copyanima("anrobo", "anl");
+		anl.setframe("left",0);
+		anl.anloopfin;
+		.copyanima("anrobo", "anr");
+		anr.setframe("right",0);
+		anr.anloopfin;
+		.copyanima("anrobo", "anczek");
+		anczek.setframe("left",0);
+		anczek.hide;
+		anczek.anhidefin;
+		new @itafle = 8;
+		int j, string s, int itaf=itafle-1;
+		for( int i=0; i<itafle; i++)	{
+			for( j=0; j<itafle; j++)	{
+				s = "imgt"+i+"_"+j;
+				new img <s>;
+				if( i==0 || j==0 || i==itaf || j==itaf)	<s>.create(53, 53, .mblue, 255);
+				else	<s>.create(53, 53, .white, 255);
+				<s>.setpos( 10 + j*56, 10 + i*56 );
+			}
+		}
+		anrobo.vars(A, "row", "col", "destr", "destc");
+		anrobo.destpos(3,1);
+		.robpos(3, 1);
+		
+		new classsimplebutton cbok;
+		cbok.build("scripts/common/butok.pyz", "imglobcurs", 546,525, 100, 0);
+		new classsimplebutton cbhelp;
+		cbhelp.build("scripts/common/help.pyz", "imglobcurs", 650,527, 100, 0);
+		
+		new gfxSquare gsq(50,30,700,500);
+		gsq.set(.grey(40), 240);
+		gsq.build;
+		gsq.setz(500);
+		gsq.hide;
+		
+		new db dbzad;
+		new db dbopis;
+		new vector veckod;
+		veckod.type("string");
+		new vector vec1;
+		vec1.type("string");
+		new vector vecid;
+		new vector vecid2;
+		new @idinstr = 0;
+		
+		new @Level = 0;
+		new @stdfont14 = .snewfont( "configs/fonts/normal.ttf", 14);
+		new @stdfont12 = .snewfont( "configs/fonts/normal.ttf", 12);
+		new @bzobacz=true;
+		new @ijumpto = -1;
+		new @bendhelp = false;
+		new @bisels = false;
+		new @bwlaczony = false;
+		new @snazwa = null;
+		new @swartosc = null;
+		
+		.sounds = (A,
+			"sndintro", "Przed nami kolejna lekcja: podstawy programowania obiektowego; opis który za chwilê zobaczysz bêdziesz móg³ przywróciæ klikaj±c przycisk Help",
+				func { <GAME>{ .buildopis; .viewopis; igmstate = 5; }; },
+			"sndwrong", "Nieprawid³owa konstrukcja", "mret",
+			"sndint", "Przerwane wykonanie programu", "mret2",
+			"sndbrzeg", "B³±d Robot wszed³ na brzeg pod³ogi", "mret2",
+			"sndklik", "Zaprogramuj zadanie jeszcze raz", "mret",
+			"sndbaddir", "Niepoprawnie podany kierunek do metody go", "mret2",
+			"sndok", "Zadanie wykonane poprawnie; kliknij aby przej¶æ dalej", "mnext",
+			"sndnon", "Niestety program zadzia³a³ niepoprawnie; popraw b³êdy i uruchom ponownie", "mret",
+			"sndred", "Alarm! Robot wszed³ na zabroniony teren" , "mret2",
+			"sndbad", "U¿yj konstrukcji wymaganej przez tre¶æ zadania", "mret2",
+			"sndbrak", "B³±d; Odwo³a³e¶ siê do nieistniej±cego obiektu", "mret2",
+			"sndzlazm", "Niepoprawna nazwa obiektu", "mret2",
+			"sndend", "Doskonale! Wszystkie zadania wykonane", "mend"
+		);
+		sndok.addmethod("onstart", func { fxkomputer.play; } );
+		
+		new @ifontsize = 10;
+		.monofont("fnkod", ifontsize);
+		new TextBoxTyper ttb("fnkod", ifontsize, 0.6*ifontsize, 20,20,120, "",
+			520,295, 262,222, 2);
+		new img imgerror {
+			.create(262,ifontsize,.red,128);
+			.setz(0);
+			.hide;
+		};
+		new img imggo {
+			.create(262,ifontsize, 250,250,10, 128);
+			.setz(0);
+			.hide;
+		};
+		new TextBoxTyper tth("fnkod", ifontsize, 0.6*ifontsize, .grey(64), "",
+			520,295, 262,222, 2);
+		ttb.setz(100);
+		tth.setz(100);
+		tth.hide;
+		new TextBoxTyper ttk("fnkod", ifontsize, 0.6*ifontsize, .black, "at0; ,[](){}-+_/=#<>*.\"\\!?%:&",
+			520,76, 262,222, 2);	//int x, int y, int w, int h, int dy)	{
+		ttk.setz(100);
+		
+		new string Code;
+		Lexer::setas("Code");
+		new db dbcode;
+		Code.consts = (A,"robot","(",")","if","else", "while","end", "<",".",">","==","!=", "/","*","+","-",",", "go", "check", "=", "seton", "control", "string", "null");
+		dbcode.dbaddstringrow("robot . go ( $literal )"," ");							// 0
+		
+		.timer = ("timrob", 1000, "finrob");
+		
+		.cbplay("sndintro");
+	}
+	mblue	{	return 120,160,255;	}
+	destpos(int r, int c)	{	destr=r; destc=c;	}
+	recreate	{
+		int j, string s, int itaf=itafle-1;
+		for( int i=0; i<itafle; i++)	{
+			for( j=0; j<itafle; j++)	{
+				s = "imgt"+i+"_"+j;
+				if( i==0 || j==0 || i==itaf || j==itaf)	<s>.create(53, 53, .mblue, 255);
+				else	<s>.create(53, 53, .white, 255);
+			}
+		}
+	}
+	msetcol(int i, int j, int r, int g, int b)	{
+		<"imgt"+i+"_"+j>.create(53, 53, r,g,b,255);
+	}
+	setcol(int i, int j, int r, int g, int b)	{
+		string s = "imgt"+i+"_"+j;
+		<s>.create(53, 53, r,g,b,255);
+		<s>.setpos( 10 + j*56, 10 + i*56 );
+	}
+	miscol(int i, int j, int r, int g, int b)	{
+		int r[3];
+		|r0,r1,r2,_| = <"imgt"+i+"_"+j>.angetcrgba;
+		r==r0 && g==r1 && b==r2;
+	}
+	setrobpos(int x, int y)	{
+		anrobo.ansetbpos(x,y);
+		anl.setpos( anrobo.getpos );
+		anr.setpos( anrobo.getpos );
+	}
+	robpos(int i, int j)	{
+		anrobo.row = (i);
+		anrobo.col = (j);
+		|i,j| = <"imgt"+i+"_"+j>.getpos;
+		.setrobpos( i + (53-anrobo.getw)/2, j+40-anrobo.geth );
+	}
+	buildopis	{
+		dbopis.load( .getgraphpath + "opis" + Level + ".db");
+		.deletegmobj("tdopis");
+		new TextDb tdopis(stdfont14, 10, "$var:dbopis", .grey(200), 65,35, 4, 550, "left");
+		tdopis.hide;
+	}
+	mretpos	{
+		@r = anrobo.destr;
+		if( r==-1 ) r = (itafle-1)->rand + 1;
+		@c = anrobo.destc;
+		if( c==-1 ) c = (itafle-1)->rand + 1;
+		.robpos( r, c );
+	}
+	mret	{
+		.mretpos;
+		imgerror.hide;
+		igmstate = 1;
+		ttk.enable;
+	}
+	mret2	{	igmstate = 3; .cbplay("sndklik");	}
+	mstart	{
+		ttk.clear;
+		tth.clear;
+		ttb.clear;
+		ttk.enable;
+		igmstate = 1;
+		match(Level)	{
+			0 => {tth.settext("robot.go(\"right\")",
+					"robot.go(\"right\")",
+					"robot.go(\"right\")",
+					"robot.go(\"right\")",
+					"robot.go(\"right\")",
+					5);
+				ttb.settext("robot.go(\"??\")",
+					"robot.go(\"??\")",
+					"robot.??",
+					"??",
+					"??",
+					5);
+			}
+			1 => {
+				anrobo.destpos(4,1);
+				.mretpos;
+				.msetcol(4,3,.red);
+				.msetcol(3,4, .red);
+			}
+			2 => {
+				anrobo.destpos(1,1);
+				.mretpos;
+				.msetcol(1,2,.red);
+				.msetcol(2,2,.red);
+				.msetcol(2,3,.red);
+				.msetcol(4,1,.red);
+				.msetcol(6,4,.red);
+				.msetcol(5,5,.red);
+				.msetcol(4,6,.red);
+			}
+			3 => {
+				dbcode.dbaddstringrow("while robot . control . check ( $literal ) != $literal", " ");		// 1
+				dbcode.dbaddstringrow("while robot . control . check ( $literal ) == $literal", " ");	// 2
+				dbcode.dbaddstringrow("end", " ");											// 3
+				dbcode.dbaddstringrow("robot . control . seton ( )"," ");							// 4
+				anrobo.destpos(1,3);
+				.mretpos;
+				.recreate;
+				tth.settext(
+					"robot.control.seton()",
+					"while robot.control.check(\"down\")!=\"blue\"",
+					"   robot.go(\"down\")",
+					"end",
+					"--------- or --------",
+					"robot.control.seton()",
+					"while robot.control.check(\"down\")==\"white\"",
+					"   robot.go(\"down\")",
+					"end",
+					9);
+				ttb.settext(
+					"robot.control.???",
+					"while robot.control.check(\"??\") ?? ??",
+					"   robot.go(\"down\")",
+					"end",
+					4);
+			}
+			4 => {
+				anrobo.destpos( itafle-2, itafle-2);
+				.mretpos;
+				tth.settext(
+					"robot.control.seton()",
+					"while robot.control.check(\"left\")==\"white\"",
+					"   robot.go(\"left\")",
+					"   robot.go(\"up\")",
+					"end",
+					"--------- or --------",
+					"robot.control.seton()",
+					"while robot.control.check(\"left\")!=\"blue\"",
+					"   robot.go(\"left\")",
+					"   robot.go(\"up\")",
+					"end",
+					11);
+				ttb.settext(
+					"robot.control.???",
+					"while ???",
+					"  ???",
+					"  ???",
+					"end",
+					5);
+			}
+			5 => {
+				dbcode.dbaddstringrow("if robot . control . check ( $literal ) != $literal", " ");		// 5
+				dbcode.dbaddstringrow("if robot . control . check ( $literal ) == $literal", " ");	// 6
+				dbcode.dbaddstringrow("else", " ");											// 7
+				anrobo.destpos( itafle-2, 3);
+				.mretpos;
+				.msetcol(4,3,.red);
+				.msetcol(2,2,.red);
+				.msetcol(2,4,.red);
+				tth.settext(
+					"robot.control.seton()",
+					"while robot.control.check(\"up\")!=\"blue\"",
+					"   if robot.control.check(\"up\")==\"red\"",
+					"      robot.go(\"right\")",
+					"   else",
+					"      robot.go(\"up\")",
+					"   end",
+					"end",
+					"--------- or --------",
+					"robot.control.seton()",
+					"while robot.control.check(\"up\")!=\"blue\"",
+					"   if robot.control.check(\"up\")!=\"red\"",
+					"      robot.go(\"up\")",
+					"   else",
+					"      robot.go(\"left\")",
+					"   end",
+					"end",
+					17);
+				ttb.settext(
+					"??",
+					"while ??",
+					"   if robot.control.check(??) ???",
+					"      robot.go(??)",
+					"   else",
+					"      robot.go(??)",
+					"   end",
+					"end",
+					8);
+			}
+			6 => {
+				dbcode.dbaddstringrow("while robot . control . check ( $alpha ) != $literal", " ");		// 8
+				dbcode.dbaddstringrow("while robot . control . check ( $alpha ) == $literal", " ");	// 9
+				dbcode.dbaddstringrow("robot . go ( $alpha )"," ");							// 10
+				dbcode.dbaddstringrow("string $alpha"," ");							// 11
+				dbcode.dbaddstringrow("$alpha = $literal"," ");							// 12
+				.recreate;
+				anrobo.destpos( 4, (2->rand ? 1 : itafle-2));
+				.mretpos;
+				tth.settext(
+					"robot.control.seton()",
+					"string dir",
+					"if robot.control.check(\"left\")==\"blue\"",
+					"  dir = \"right\"",
+					"else",
+					"  dir = \"left\"",
+					"end",
+					"while robot.control.check(dir)!=\"blue\"",
+					"  robot.go(dir)",
+					"end",
+					10 );
+				ttb.settext(
+					"robot.???",
+					"string ??",
+					"if robot.control.check(??) ???",
+					"  ?? = ??",
+					"else",
+					"  ?? = ??",
+					"end",
+					"while robot.control.check(??) ???",
+					"  ???",
+					"end",
+					10 );
+			}
+			? => ;
+		}
+	}
+	viewzad	{
+		dbzad.load( .getgraphpath + "zad" + Level + ".db");
+		.deletegmobj("tdzad");
+		new TextDb tdzad(stdfont12, 10, "$var:dbzad", .grey(20), 30,480, 4,150, "left");
+		if( Level==0 )	{
+			tduw1.napisshow(513, 446);
+			tduw2.napisshow(513, 461);
+			tduw3.napisshow(513, 476);
+		} else {
+			.with(A, "tduw1", "tduw2", "tduw3", "hide");
+		}
+	}
+	mnext	{
+		<GAME> {
+			Level++;
+			match(Level)	{
+				1,2,4 => bzobacz = false;
+				? => {
+					.buildopis;
+					.viewopis;
+					bzobacz = true;
+				}
+			}
+			igmstate = 5;
+		};
+	}
+	viewopis	{
+		gsq.show;
+		tdopis.show;
+	}
+	hideopis	{
+		gsq.hide;
+		tdopis.hide;
+	}
+	cbhelp_CLICK	{
+		if( igmstate==1 /*&& bzobacz*/)	{
+			igmstate = 10;
+			.viewopis;
+		}
+	}
+	cbhelp_MOVEON	{
+		sndakskermovon.play;
+		if( igmstate==1 )	{
+			ttb.hide;
+			tth.show;
+		}
+	}
+	cbhelp_MOVEOFF	{
+		ttb.show;
+		tth.hide;
+	}
+	wronginstr(int k)	{
+		imgerror.show;
+		imgerror.setpos( 520, 76+k*(ifontsize+2) );
+	}
+	cbok_CLICK	{
+		if( igmstate!=1 ) return;
+		igmstate = 2;
+		idinstr = 0;
+		ijumpto = -1;
+		bendhelp = false;
+		bisels = false;
+		bwlaczony = false;
+		snazwa = null;
+		swartosc = null;
+		string s, int j;
+		veckod.free;
+		vecid.free;
+		vecid2.free;
+		ttk.disable;
+		for( int i=0; i < ttk.Rows; i++)	{
+			s = ttk.getid(i);
+			s.clear;
+			if( s.length>0 )	{
+				veckod.add( s );
+				Code = s;
+				j = Code.expectdb("dbcode", 0);
+				vecid.add( j );
+				vecid2.add( i );
+				if( j<0 )	{
+					.wronginstr(i);
+					igmstate = 3;
+					.cbplay("sndwrong");
+					return;
+				}
+			}
+		}
+		if( vecid.empty )	{	.mret;	return; }
+		match( Level )	{
+			3 => {
+				if( !( vecid.veceq2(A,4,1,0,3) || vecid.veceq2(A,4,2,0,3) ) )	{
+					igmstate = 3;
+					.cbplay("sndbad");
+					return;
+				}
+			}
+			4 => {
+				if( !( vecid.veceq2(A,4,1,0,0,3) || vecid.veceq2(A,4,2,0,0,3) ) )	{
+					igmstate = 3;
+					.cbplay("sndbad");
+					return;
+				}
+			}
+			5 => {
+				if( !( vecid.veceq2(A,4,1,5,0,7,0,3,3) || vecid.veceq2(A,4,1,6,0,7,0,3,3) ) )	{
+					igmstate = 3;
+					.cbplay("sndbad");
+					return;
+				}
+			}
+			6 => {
+				if( ! ( vecid.veceq2(A,4, 11,6,12,7,12,3, 8,10,3) ||
+					vecid.veceq2(A,4, 11,5,12,7,12,3, 8,10,3) ||
+					vecid.veceq2(A,4, 11,6,12,7,12,3, 9,10,3) ||
+					vecid.veceq2(A,4, 11,5,12,7,12,3, 9,10,3) ) )	{
+					igmstate = 3;
+					.cbplay("sndbad");
+					return;
+				}
+			}
+			? => ;
+		}
+		fxrobocik.play;
+		timrob.play;
+	}
+	robgo(int ir, int ic)	{
+		fxgoto.play;
+		ir += anrobo.row;
+		ic += anrobo.col;
+		int itaf = itafle-1;
+		.robpos(ir, ic);
+		if( ir==0 || ir==itaf || ic==0 || ic==itaf )	{
+			igmstate = 3;
+			fxbum.play;
+			.cbplay("sndbrzeg");
+		} else if ( .miscol(ir, ic, .red) )	{
+			igmstate = 3;
+			fxbum.play;
+			.cbplay("sndred");
+		} else {
+			idinstr++;
+			timrob.play;
+		}
+	}
+	finrob	{
+		if( idinstr==vecid.size )	{
+			imggo.hide;
+			igmstate = 3;
+			match( Level )	{
+				0, 1, 2 => .cbplay( anrobo.col==itafle-2 ? "sndok" : "sndnon" );
+				3 => .cbplay( anrobo.row==itafle-2 ? "sndok" : "sndnon" );
+				4 => .cbplay( (anrobo.row==1&&anrobo.col==1) ? "sndok" : "sndnon" );
+				5 => .cbplay( anrobo.row==1 ? "sndok" : "sndnon" );
+				6 => {
+					if( (anrobo.destc==1 && anrobo.col==itafle-2) ||
+						(anrobo.destc==itafle-2 && anrobo.col==1) ) {
+							fxbrawo.play;
+							.cbplay("sndend");
+					} else .cbplay("sndnon");
+				}
+				? => ;
+			}
+			return;
+		}
+		Code = veckod.get( idinstr );
+		imggo.show;
+		imggo.setpos( 520, 76 + vecid2.get( idinstr ) * (ifontsize+2) );
+		fxpik.play;
+		Code.id = (0);
+		Code.gettoken( "vec1", 1 ) ;
+		string s;
+		match( vecid.get( idinstr ) )	{
+			0, 10 => {
+				if( vec1.get(4)=="$alpha" )	{
+					if( snazwa==vec1.get(5) )	{
+						s = swartosc;
+					} else {
+						igmstate = 3;
+						.cbplay("sndbrak");
+						return;
+					}
+				} else s = vec1.get(5);
+				match( s ) {
+					"up"		=>	.robgo(-1,0);
+					"right"	=>	.robgo(0,1);
+					"down"	=>	.robgo(1,0);
+					"left"		=>	.robgo(0,-1);
+					? => { igmstate=3; .cbplay("sndbaddir"); }
+				}
+			}
+			1, 2, 8, 9 => if( .misdir2( vec1.get(7), vec1.get(8) ) )	{
+					s = ( vec1.get(7)=="$alpha" ? swartosc : vec1.get(8) );
+					@b1 = .miscol2( s, vec1.get(12) );
+					@b2 = vecid.get( idinstr );
+					if( ((b2==1||b2==8)&&!b1) || ((b2==2||b2==9)&&b1) )	{
+						ijumpto = idinstr;
+						idinstr++;
+						timrob.play;
+					} else {
+						ijumpto=-1;
+						.mtoend;
+						timrob.play;
+					}
+				}
+			3 =>	{
+				if( bendhelp ) { idinstr++; bendhelp=false; }
+				else if (ijumpto!=-1) idinstr=ijumpto;	// end while
+				else idinstr++;
+				timrob.play;
+				}
+			4 => { idinstr++; bwlaczony=true; timrob.play;	}
+			5, 6 => if( .misdir( vec1.get(8) ) )	{
+					@b1 = .miscol2( vec1.get(8), vec1.get(12) );
+					@b2 = vecid.get( idinstr );
+					bendhelp = true;
+					if( (b2==5&&!b1) || (b2==6&&b1) )	{
+						idinstr++;
+						bisels = false;
+						timrob.play;
+					} else {
+						.mtoelse;
+						bisels = true;
+						timrob.play;
+					}
+				} else {
+					igmstate = 3;
+					.cbplay("sndbaddir");
+				}
+			7 => { if( bisels ) idinstr++; else .mtoend; timrob.play; }
+			11 => {
+				Code = vec1.get(2);
+				Code.id = (0);
+				if( Code.isident ) {	snazwa = Code; idinstr++; timrob.play; }
+				else {	igmstate = 3;	.cbplay("sndzlazm");	}
+			}
+			12 => {
+				Code = vec1.get(1);
+				Code.id = (0);
+				if( Code.isident ) {
+					if( snazwa==Code ) {
+						swartosc = vec1.get(4);
+						idinstr++;
+						timrob.play;
+					} else {
+						igmstate = 3;
+						.cbplay("sndbrak");
+					}
+				} else	{	igmstate = 3;	.cbplay("sndzlazm");	}
+			}
+			? => ;
+		}
+	}
+	miscol3(int r, int c, string scol)	{
+		int x[2];
+		|x0,x1| = <"imgt"+r+"_"+c>.angetcpos;
+		anczek.ansetbpos( x0-anczek.getw/2, x1-anczek.geth/2 );
+		fxbada.play;
+		anczek.play(-1);
+		match(scol)	{
+			"white"	=> .miscol(r,c,.white);
+			"blue"	=> .miscol(r,c,.mblue);
+			"red"		=> .miscol(r,c,.red);
+			?		=> false;
+		}
+	}
+	miscol2(string sdir, string scol)	{
+		@r = anrobo.row;
+		@c = anrobo.col;
+		match( sdir ) {
+			"up"		=>	.miscol3( r-1, c, scol);
+			"right"	=>	.miscol3( r, c+1, scol);
+			"down"	=>	.miscol3( r+1, c, scol);
+			"left"		=>	.miscol3( r, c-1, scol);
+			? => ;
+		}
+	}
+	mtoend	{
+		@id = vecid.get(idinstr)==7 ? 1 : 0;
+		@b = true;
+		while( b ) {
+			match ( vecid.get(idinstr) )	{
+				3 => { id--; if( id==0 ) return; else idinstr++; }
+				1,2,5,6,8,9 => { id++; idinstr++; }
+				? => idinstr++;
+			}
+		}
+	}
+	mtoelse	{	.mtoid(7);	}
+	mtoid(int id)	{
+		while( vecid.get(idinstr) != id ) idinstr++;
+	}
+	misdir(string s)	{	s.in(A, "up", "right", "down", "left");	}
+	mplaybaddir	{	igmstate = 3;	.cbplay("sndbaddir");	}
+	bool misdir2(string s1, string s2)	{
+		if( s1=="$alpha" )	{
+			if( snazwa==s2 )	{
+				if( .misdir(swartosc) ) return true;
+				.mplaybaddir;
+				return false;
+			} else {
+				igmstate = 3;
+				.cbplay("sndbrak");
+				return false;
+			}
+		} else {
+			if( .misdir(s2) ) return true;
+			.mplaybaddir;
+			return false;
+		}
+	}
+	mend	{
+		Level++;
+		igmstate = 20;
+		.buildopis;
+		.viewopis;
+		bzobacz = true;
+	}
+	mouse_rclick	{
+		if( igmdebug && igmstate==1 )	{
+			igmstate = 3;
+			.cbplay("sndok");
+		}
+	}
+	mouse_lclick	{
+		match( igmstate )	{
+			5 => {
+				.hideopis;
+				.viewzad;
+				.mstart;
+				}
+			2 => { timrob.stop(false); imggo.hide; igmstate = 3; .cbplay("sndint"); }
+			10 => { igmstate = 1; .hideopis; }
+			20 => gameapi.play("Grafika");
+			? => .cactsndstop(true);
+		}
+	}
+}

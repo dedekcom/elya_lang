@@ -1,0 +1,98 @@
+class muzHero	{
+	init(string sgr)	{
+		new string shero = sgr;
+		new string sfirst = <sgr>.first;
+		.stand;
+	}
+	play(string s)	{
+		string s[2];
+		for( int i=0; i < <shero>.size; i++)	{
+			s0 = <shero>.get(i);
+			s1 = <s0>.actionname;
+			if( s.streq(s1) )	{
+				<s0>.play(-1);
+			} else if( s1!="bg" ) {
+				<s0>.stop(false);
+				<s0>.hide;
+			}
+		}
+	}
+	stand	{	.play("stand");	}
+	go		{	.play("go");	}
+}
+
+game Muza : Bill {
+	init	{
+		Bill::init("muza");
+		.debug = (2);
+		.imgs = (A, "bg.pyz", "pies1.pyz 40", "krolik1.pyz 63", "krolik2.pyz 73", "koziol2.pyz 93", "koszyk.pyz 100");
+		.newgrimg("grgrzeda", "grzeda", 10);
+		.newmuzhero("krowa", 20);
+		.newmuzhero("dzwonek", 20);
+		.newmuzhero("kogut", 30);
+		.newmuzhero("kot", 50);
+		.newgrimg("grplot", "plot", 60);
+		.newmuzhero("kaczor", 70);
+		.newgrimg("grbudka", "budka", 80);
+		.newmuzhero("koziol", 90);
+		.newgrimg("grmyszki", "myszki", 110);
+		
+		new db dbmuz;
+		
+		dbmuz.loadscript( .getgraphpath + "muz1.db" );
+		string s[4];
+		new map2 mvol("real");
+		
+		for( int i=1; i<dbmuz.getrowsno; i++)	{
+			for( int j=0; j<dbmuz.getcolsno(i); j++)	{
+				s0 = dbmuz.get(i,j);
+				if( s0!="x" )	{
+					s1 = "fx" + i + "_" + j;
+					/*if( mfx.contains(s0) )	{
+						<mfx.get(s0)>.addtogamevars(s1);
+					} else {*/
+						int ivol = 100;
+						if( s0.contains("(") )	{
+							s2=s0.strgetto("(");
+							ivol = s0.strgetfrom("(");
+						} else s2 = s0;
+						.newsfx( s1, s2 + ".wav" );
+						<s1>.setvol(ivol);
+						mvol.add(s1, ivol);
+						
+					//	mfx.add(s0, s1);
+					//}
+				}
+			}
+		}
+		new int idcyc = 1;
+		.cycle = ("timmuz", func {
+			string s[2];
+			real r[2];
+			for( int i=0; i< dbmuz.getcolsno(idcyc); i++)	{
+				s0 = dbmuz.get(idcyc, i);
+				s1 = "fx"+idcyc+"_"+i;
+				if( s0!="x" )	{
+					match( dbmuz.get(0, i) )	{
+						"p" => <s1>.play;
+						"-" => ;
+						? => {
+							r1 = dbmuz.get(0, i);
+							<s1>.setvol( r1 * mvol.get(s1) );
+							<s1>.play;
+						}
+					}
+				}
+			}
+			idcyc++;
+			if( idcyc==dbmuz.getrowsno )	idcyc=1;
+			.play;
+			} );
+		timmuz.play;
+	}
+	newmuzhero(string shero, int z)	{
+		string s= "gr"+shero;
+		.newgrimg(s, shero, z);
+		new muzHero <"m"+shero>(s);
+	}
+}

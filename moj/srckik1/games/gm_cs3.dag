@@ -1,0 +1,67 @@
+
+game Cs3Stajnia : StdGame	{
+	init	{
+		StdGame::init("cs3stajnia");
+		
+		//hodon.pyz  kun.pyz        bgzoom.pyz       wozpolski.pyz  bkg.pyz
+		//typek.pyz  kwiatzoom.pyz  wozzachodni.pyz  kwiaty.pyz
+		.imgs = (A, "bkg.pyz", "kwiaty.pyz 100", "wozpolski.pyz 10", "wozzachodni.pyz 20");
+		.copyanima("ankwiaty", "ankwiaty2");
+		ankwiaty2.setframe(1,0);
+		
+		.sounds = (A, "sndnar", "Tymczasem", "mstart",
+			":hodon1", "Widzia³e¶ tê furê? To w ogóle je¼dzi?", func { .mplay2("typek1"); .hstop; },
+			":typek1", "Ale ¶redniowiecze", func { .cbplay("sndsmiechy"); anhodon.play("smile"); antypek.play("smile"); },
+			"sndsmiechy", "buhahaha ha ha ha ha", func {
+				.mstop; .hplay("hodon2");  },
+			":hodon2", "Dobra zostawiamy tu mój wóz; Pilnuj go dok³adnie ¿eby mi nie ukradli", func {
+				.hstop; .mplay2("typek2"); },
+			":typek2", "Ee tam szefie; Nikt takiej fury jak twoja nie ma w okolicy od razu by¶my j± znale¼li",
+				func {.mstop; .hplay("hodon3"); },
+			":hodon3", "Nie znasz siê; Wyd³ubi± nowe numery podwozia w jakiej¶ stodole i sprzedadz± dalej na wschód",
+				func {.hstop; .mplay2("typek3");  },
+			":typek3", "A co jest w tym kuferku z ty³u? Mo¿e przechowaæ go u Mirmi³a?", func { .mstop; .hplay("hodon4"); },
+			":hodon4", "To jest moja niespodzianka dla ciekawskich m±drali he he; Czar odczarowuj±cy! Lepiej za du¿o nie my¶l tylko miej oko na wóz", func {
+				.hstop; ccs.close( func {
+					.gotoadv("adgrod", "gameadgrod0");
+					} );
+				}
+			);
+		ccs.show;
+		
+		.sfxs = (A, "bgrout2N 30", "konparsk2", "kolowrot 40", "galop1", "galop2");
+		
+		.cbplay("sndnar");
+	}
+	mstart	{
+		ccs.enter( func {
+			anwozzachodni.play(0);
+			fxkolowrot.playloop;
+			anwozzachodni.addmethod("onendframe", func {
+				if( .framename=="hamuje" )	{
+					fxkolowrot.stop(false);
+					fxkonparsk2.play;
+				}
+				} );
+			anwozzachodni.addmethod("onfinish", func {
+				ccs.playfin( func {
+					anwozzachodni.hide;
+					delete anbkg;
+					delete ankwiaty2;
+					delete ankwiaty;
+					delete anwozpolski;
+					.imgs = (A, "bgzoom.pyz", "kun.pyzP 10", "typek.pyzP 20", "hodon.pyzP 30");
+					}, func {
+					.hplay("hodon1");
+					} );
+				} );
+			} );
+	}
+	hplay(string s)	{	anhodon.play("talk"); .cbplay(s);	}
+	hstop	{	anhodon.play("stand");	}
+	mplay2(string s)	{	antypek.play("talk"); .cbplay(s);	}
+	mstop	{ antypek.play("stand");	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

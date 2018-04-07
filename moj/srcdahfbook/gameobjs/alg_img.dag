@@ -1,0 +1,121 @@
+/*************************************************************************/
+
+class AlgImg	{
+	init	{}
+	public makehistogram(string sdest, int w, int h, string ssrc)	{
+		new vector vhis;
+		vhis.resize(256, 0);
+		int i, int j, int id;
+		int r, int g, int b;
+		@x = <ssrc>.getpx;
+		@y = <ssrc>.getpy;
+		@w2 = <ssrc>.getw;
+		@h2 = <ssrc>.geth;
+		<ssrc>.move(-x,-y);
+		for( i=0; i<h2; i++)	{
+			for( j=0; j<w2; j++)	{
+				|r,g,b| = <ssrc>.getrgb(j,i);
+				id = 0.3*r + 0.59*g + 0.11*b;
+				vhis.set( id, vhis.get(id)+1 );
+			}
+		}
+		<ssrc>.move(x,y);
+		j = 1;
+		for( i=0; i<256; i++)	{
+			if( vhis.get(i)>j ) j=vhis.get(i);
+		}
+		real r = h.to_r/j.to_r;
+		<sdest>.create( w, h, .white, 255 );
+		<sdest>.setpos(0,0);
+		x = (<sdest>.getw-256)/2;
+		y = <sdest>.getey-1;
+		for( i=0; i<256; i++)	{
+			id = r*vhis.get(i);
+			for( j=0; j<id; j++)	{
+				<sdest>.putrgb(x+i, y-j, .black);
+			}
+		}
+		delete vhis;
+	}
+	public makegreypallete(string sdest, int dw, int h)	{
+		<sdest>.create(dw*256, h, .white, 255);
+		@s = ._newim1;
+		for( int i=0; i<256; i++)	{
+			im1.create(dw,h,.grey(i),255);
+			im1.setpos(i*dw,0);
+			<sdest>.blit(s);
+		}
+		._delim1;
+	}
+	public linexy(string sdest, int x1, int y1, int x2, int y2, int r, int g, int b, int a)	{
+		@dx = (x1-x2)->abs+1;
+		@dy = (y1-y2)->abs+1;
+		@s = ._newim1;
+		<sdest>.create(dx, dy, .transparent);
+		<sdest>.setpos( .min(x1,x2), .min(y1,y2) );
+		im1.create(1,1,r,g,b,a);
+		_ = <sdest>.imgdrawline(s, x1, y1, x2, y2, 1, 0);
+		._delim1;
+	}
+	public blittxt(string sdest, string stxt, int x, int y, int x2, string stxtdir)	{
+		@xd = <sdest>.getpx;
+		@yd = <sdest>.getpy;
+		match(stxtdir)	{
+			"right" => <stxt>.setpos( xd + x2 - <stxt>.getw, yd + y);
+			"center" => <stxt>.setpos( xd + (x+x2-<stxt>.getw)/2, yd + y);
+			? => <stxt>.setpos(x,y);
+		}
+		<sdest>.blit(stxt);
+	}
+	public textbox(string sdest, int x, int y, string stxt, string stext, int ilimit, int fontsize, int fontw, int dy, string stxtdir)	{
+		if( ilimit<=0 ) return;
+		new vector v1;
+		v1.type("string");
+		v1.vecbuildfromstring( stext, " " );
+		string s = "";
+		string s2;
+		@w = ilimit*fontw;
+		for( int i=0; i<v1.size; i++)	{
+			s2 = s + " " + v1.get(i);
+			if( s2.length <= ilimit ) s = s2;
+			else {
+				<stxt>.txtset(s);
+				.blittxt(sdest, stxt, x, y, x+w, stxtdir);
+				y += fontsize+dy;
+				s = v1.get(i);
+			}
+		}
+		<stxt>.txtset(s);
+		.blittxt(sdest, stxt, x, y, x+w, stxtdir);
+		delete v1;
+	}
+	public int counttextrows(string stext, int ilimit)	{
+		if( ilimit<=0 ) return 0;
+		int h = 1;
+		new vector v1;
+		v1.type("string");
+		v1.vecbuildfromstring( stext, " " );
+		string s = "";
+		string s2;
+		for( int i=0; i<v1.size; i++)	{
+			s2 = s + " " + v1.get(i);
+			if( s2.length <= ilimit ) s = s2;
+			else {
+				h++;
+				s = v1.get(i);
+			}
+		}
+		delete v1;
+		h;
+	}
+	/****************************************************/
+	string _newim1	{
+		new img im1;
+		im1.buildfullname;
+		im1.getfullname;
+	}
+	_delim1	{
+		<GAME>.vardel(im1.getfullname);
+		delete im1;
+	}
+}

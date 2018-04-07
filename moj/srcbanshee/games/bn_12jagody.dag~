@@ -1,0 +1,230 @@
+
+game mg12_jagody :Banshee {
+	init{
+    Banshee::init("mg12_jagody");
+    .imgs = (A,"bkg.jpg 1", "pop_bkg.pyz 6", "kielich_brzeg.pyz 16","jagoda_ok.pyz 17","jagoda_bad.pyz 18", "jagoda_bad2.pyz 19","jagoda_bad3.pyz 20",
+"maska_9.pyz 12", "maska_8.pyz 23","maska_7.pyz 14","maska_6.pyz 25","maska_5.pyz 26","maska_4.pyz 27","maska_3.pyz 28","maska_2.pyz 29","maska_1.pyz 10","kielich_move.pyz 33", "pasek_postepu.pyz 40","jagoda_1.pyzH 41","jagoda_2.pyzH 41","jagoda_3.pyzH 41", "jagoda_4.pyzH 41","jagoda_5.pyzH 41", "jagoda_6.pyzH 41","jagoda_7.pyzH 41","jagoda_8.pyzH 41","jagoda_9.pyzH 41","jagoda_10.pyzH 41","jagoda_11.pyzH 41","jagoda_12.pyzH 41", "winogrona.pyzH 46" ,
+"ramka.pyz 56","popexit.pyz 57");
+    new int start_pos = anpop_bkg.getpy;
+    new int minx =  anpop_bkg.getpx +30;
+    new int maxx = anpop_bkg.getpx + anpop_bkg.getw -50;
+    new int zakres = maxx - minx;
+    new int rand_x =  zakres->rand + minx ;
+    new int good_speed = 4;
+    new int score = 0;
+    new int lastscore = -1;
+    new bool won = false;
+   .butpopexit;
+   .stdstart; 
+   if (!clsave.bis("taken_kielich") && !clsave.bis("e1_mg12_jagody_kielich_used"))
+   {
+      ankielich_move.hide;
+      .newsnd("sndstart", "mg12_jagody_1");
+      sndstart.addmethod("onfinish", "advsetstdstate");   
+      .cbplay("sndstart"); 
+   }
+   else
+   { 
+    if (!clsave.bis("e1_mg12_jagody_kielich_used"))
+    {
+        .removefrompck("kielich"); 
+        clsave.bset("e1_mg12_jagody_kielich_used");
+    }
+     
+   
+    new ImgRect koszyk {
+      .Button_isin;
+      .setrect( 0, 0, 100, 20 );
+      .setz(300); 
+       butgame.add(this);
+ 
+    };  
+    
+    
+   
+  .setasitemtopck("anwinogrona");      
+   
+   
+  
+  ankielich_move.setpos(maxx, anpop_bkg.getcy +100);
+  ankielich_brzeg.setpos(maxx, anpop_bkg.getcy +100);
+  koszyk.setpos(maxx-60, anpop_bkg.getcy +30);
+  
+  anjagoda_ok.ansetbpos( rand_x ,start_pos);
+  rand_x =  zakres->rand + minx ;
+  anjagoda_bad.ansetbpos( rand_x ,start_pos);
+  rand_x =  zakres->rand + minx ;
+  anjagoda_bad2.ansetbpos( rand_x ,start_pos);
+  rand_x =  zakres->rand + minx ;
+  anjagoda_bad3.ansetbpos( rand_x ,start_pos);
+  .cycle = ("timjagoda", func {
+			anjagoda_ok.move(0,good_speed);
+			@final = igmapph/2 + 140;
+       
+      if( anjagoda_ok.getpy > final || koszyk.isin(anjagoda_ok.getpx,anjagoda_ok.getpy,1,1))	{
+			   if ( anjagoda_ok.getpy > final)
+            .update_score(0);
+          else
+            .update_score(1);  
+         if (!won)
+        {
+           good_speed = 5->rand + 4;
+           rand_x =  zakres->rand + minx ;
+           anjagoda_ok.ansetbpos(rand_x,start_pos);
+           timjagoda.play; 	
+        } 
+			} 
+      else 
+      {
+       if (!won)
+        .play;
+      }
+			} );    
+  timjagoda.play; 
+  
+  .cycle = ("timjagoda_bad", func {
+			anjagoda_bad.move(0,7);
+			@final = igmapph/2 + 140;
+       
+      if( anjagoda_bad.getpy > final || koszyk.isin(anjagoda_bad.getpx,anjagoda_bad.getpy,1,1))	{
+			   if ( anjagoda_bad.getpy > final)
+            .update_score(0);
+          else
+            .update_score(-1);  
+        if (!won)
+        { 
+          rand_x =  zakres->rand + minx ;
+          anjagoda_bad.ansetbpos(rand_x,start_pos);
+          timjagoda_bad.play;
+        }
+          
+      }
+      else 
+      { 
+      if (!won)
+        .play;
+      }
+			} );    
+  timjagoda_bad.play; 
+  
+  
+   .cycle = ("timjagoda_bad2", func {
+			anjagoda_bad2.move(0,8);
+			@final = igmapph/2 + 140;
+       
+      if( anjagoda_bad2.getpy > final || koszyk.isin(anjagoda_bad2.getpx,anjagoda_bad2.getpy,1,1))	{
+			   if ( anjagoda_bad2.getpy > final)
+            .update_score(0);
+          else
+            .update_score(-1);  
+        if (!won)
+        { 
+          rand_x =  zakres->rand + minx ;
+          anjagoda_bad2.ansetbpos(rand_x,start_pos);
+          timjagoda_bad2.play;
+        }
+          
+      }
+      else 
+      { 
+      if (!won)
+        .play;
+      }
+			} ); 
+  .timplay("timejagoda2", 500, func{timjagoda_bad2.play;});           
+  
+  
+    .cycle = ("timjagoda_bad3", func {
+			anjagoda_bad3.move(0,9);
+			@final = igmapph/2 + 140;
+       
+      if( anjagoda_bad3.getpy > final || koszyk.isin(anjagoda_bad3.getpx,anjagoda_bad3.getpy,1,1))	{
+			   if ( anjagoda_bad3.getpy > final)
+            .update_score(0);
+          else
+            .update_score(-1);  
+        if (!won)
+        { 
+          rand_x =  zakres->rand + minx ;
+          anjagoda_bad3.ansetbpos(rand_x,start_pos);
+          timjagoda_bad3.play;
+        }
+          
+      }
+      else 
+      { 
+      if (!won)
+        .play;
+      }
+			} ); 
+    .timplay("timejagoda3", 900, func{timjagoda_bad3.play;});      
+   }
+      
+  }// koniec init 
+  mouse_move	{
+	  if (!clsave.bis("e1_mg12_jagody_kielich_used"))
+      return;
+    if (!won && anpop_bkg.isin(mouse.getpos,0,0))
+    { 
+      int x=  mouse.getposx;
+      if (x< minx)
+        x = minx;
+      if (x>maxx)
+        x = maxx;
+      <"ankielich_move">.setpos(x, anpop_bkg.getcy +100);
+      <"ankielich_brzeg">.setpos(x, anpop_bkg.getcy +100);
+      koszyk.setpos(x-60, anpop_bkg.getcy +30);
+    }
+	}  
+  
+  mend	{
+    .stdexitdefadv("ad12_latajacecosna", "gamead12_latajacecosna0"); 
+  }
+  
+  update_score(int count)
+  {
+    
+    score += count;
+    if (score <1)
+    {
+      score  = 0;
+    }else if (score >11)
+    {
+      score  = 12;  
+    }
+    
+  	for( int i=1; i<13; i++)	{
+      if (i <= score)
+          if (i == score && score != lastscore)
+           <"anjagoda_"+i>.anfadein(200,null); 
+          else
+            <"anjagoda_"+i>.show;
+        else
+          <"anjagoda_"+i>.hide;
+      }
+    lastscore =  score;
+    if (score >= 12)
+     { 
+      won = true;
+      anjagoda_ok.anfadeout(600,null); 
+      anjagoda_bad.anfadeout(600,null);
+      anjagoda_bad2.anfadeout(600,null);
+      anjagoda_bad3.anfadeout(600,null);
+      .timplay("timejagoda2", 600, func{.popitem_gotocenterobj("winogrona", "anwinogrona"); ankielich_move.hide;
+      ankielich_brzeg.hide;});   
+     } 
+    
+  }
+  
+  anwinogrona_INPCK {
+    .set_mg_finished; 
+    .addtopck("winogrona");
+    .timfinito;
+  }  
+  
+  HINT_CLICK {
+    .showhint("anpopexit");   
+  } 
+ 
+}
+ 

@@ -1,0 +1,285 @@
+
+game Mlyn : StdGame	{
+	init	{
+		StdGame::init("mlyn");
+		
+		.imgs = (A, "bkg.pyz", "mlynhelp.pyz 2",
+			"wieza.pyz 5", "bajzel.pyz 10", "start.pyzH 10", "els.pyzGH 20", "odwaznik.pyzH 20");
+		
+		.sfxs = (A, "muruje1", "stepl1", "founditem2 50");
+		mus.playstr("tajemnica.ogg -l");
+		
+		.sounds = (A, ":kokosz1", "Widzê ¿e ten piorun nie¼le przy³o¿y³!", func { .cbplay("kajko1"); },
+			":kajko1", "Musimy naprawiæ wiatrak; Pomó¿ mi powyci±gaæ czê¶ci mechanizmu", func { ccs.playfin( "mprepare" ,
+				func { .cbplay("kajko2"); } ); },
+			":kajko2", "Teraz przenie¶my je na swoje miejsce", "mgame",
+			":kokosz2", "Ten odwa¿nik nie jest potrzebny do mechanizmu wiatraka; Wezmê go", func {
+				anodwaznik.hide;
+				if( grels.empty )
+					.mend;
+				else
+					.mgame;
+				}
+			);
+		new Rect rec(625,36,402,620);
+		new Rect rec2(120,15,1012-120,760-15);
+		
+		rec.fitgrouprand("grels");
+		
+		new DelayMover cmov;
+		
+		//.mprepare;
+		//.mgame;
+		ccs.enter( func { .cbplay("kokosz1"); } );
+	}
+	mprepare	{
+		anbajzel.hide;
+		anstart.show;
+		grels.show;
+		anodwaznik.show;
+		grels.hash;
+		.restorels;
+	}
+	mgame	{
+		igmstate = 1;
+		cmov.unlock;
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( anodwaznik.isin(mouse.getpos,1,1) )	{
+			igmstate = 2;
+			fxmuruje1.play;
+			.cbplay("kokosz2");
+		} else if( grels.isin(mouse.getpos,1,1) )	{
+			fxmuruje1.play;
+			@s = grels.getsfound;
+			grels.remove(s);
+			<s>.setz(200);
+			.mssetobj( s );
+		}
+	}
+	cmov_PUT	{
+		string s = .getfree;
+		if( <s>.aninlod(30) )	{
+			fxfounditem2.play;
+			<s>.setz(11);
+			<s>.setpos(0,0);
+			if( grels.empty && !anodwaznik.isvisible )	{
+				.mend;
+			} else {
+				
+			}
+		} else {
+			grels.add(s);
+			.restorels;
+			rec2.fit(s);
+			fxmuruje1.play;
+		}
+	}
+	restorels	{	grels.sortz(20);	}
+	mend	{
+		igmstate = 2;
+		ccs.close( func { 
+			.gotoadv2("admlyn", "gameadmlyn2");
+			} );
+	}
+	mouse_rclick	{
+		if( igmdebug ) {
+			//.mend;
+			.cactsndstop(1);
+		}
+	}
+}
+
+game Ratusz : StdGame	{
+	init	{
+		StdGame::init("ratusz");
+		
+		.imgs = (A, "bkg.pyz", "help.pyzH 5", "rama.pyz 15");
+		new gmimgvec grels;
+		"grels" ..< "els.pyz";
+		grels.hash;
+		.restorels;
+		
+		.sfxs = (A, "muruje1", "wstawiaszklo", "putszklo");
+		mus.playstr("tajemnica.ogg -l");
+		
+		new Rect rec(20,20,350,620);
+		new Rect rec2(20,15,1012-20,760-15);
+		rec.fitgrouprand("grels");
+		
+		.sounds = (A, ":kokosz1", "Na Tryg³awa; Tyle czasu uk³adali¶my ten witra¿ ¿eby poogl±daæ sobie drzewo ksiê¿yc jab³ko motyla i koguta?",
+			func { .cbplay("kajko1"); },
+			":kajko1", "Sam tego chcia³e¶", func { .cbplay("kokosz2"); },
+			":kokosz2", "My¶la³em ¿e z³o¿ymy jak±¶ piêkn± syrenê albo nimfê wodn±", "mend"
+			);
+		
+		new DelayMover cmov;
+		
+		.mgame;
+	}
+	mgame	{
+		igmstate = 1;
+		cmov.unlock;
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxmuruje1.play;
+			@s = grels.getsfound;
+			grels.remove(s);
+			<s>.setz(200);
+			.mssetobj( s );
+		}
+	}
+	cmov_PUT	{
+		string s = .getfree;
+		if( <s>.aninlod(30) )	{
+			<s>.setz(11);
+			<s>.setpos(0,0);
+			fxwstawiaszklo.play;
+			if( grels.empty )	{
+				igmstate = 2;
+				mus.playstr("founditem1.ogg -v 50");
+				.cbplay("kokosz1");
+			} else {
+				
+			}
+		} else {
+			fxputszklo.play;
+			grels.add(s);
+			.restorels;
+			rec2.fit(s);
+		}
+	}
+	restorels	{	grels.sortz(20);	}
+	mend	{
+		igmstate = 2;
+		ccs.close( func { 
+			.gotoadv("adratusz", "gameadratusz2");
+			} );
+	}
+	mouse_rclick	{
+		if( igmdebug )	{
+			igmstate = 2;
+			.cbplay("kokosz1");
+		}
+	}
+}
+
+game Sejf : StdGame	{
+	init	{
+		StdGame::init("sejf");
+		
+		.imgs = (A, "bkg.pyz", "beczka.pyz 15", "els.pyzG 10", "$scripts/common/powrot.pyz 50", "klapki.pyz 12");
+		.copyanima("anbeczka", "anbeczkaopen");
+		anbeczkaopen.hide;
+		anbeczkaopen.setframe(1,0);
+		.copyanima("anklapki", "anklapkidown");
+		anklapkidown.setframe("downdown",0);
+		anklapki.addmethod("onfinish", func {
+			if( .actionname=="upup" )	{
+				.mgame;
+			} else if (.actionname=="updown")	{
+				ccs.close( func {
+						for( int i=0; i<grels.size; i++)	{
+							clsave.set("e32_saved_sejf"+i, <grels.get(i)>.framenr );
+						}
+						.gotoadv("adbiuro", "gameadbiuro2");
+						} );
+			}
+			} );
+		
+		if( !clsave.bis("e32_szyfr_wylosowany") )	{
+			//while(.mlosuj)	{}
+			clsave.bset("e32_szyfr_wylosowany");
+		} else {
+			for( int i=0; i<grels.size; i++)	{
+				<grels.get(i)>.setframe(-1, clsave.get("e32_saved_sejf"+i) );
+			}
+		}
+		
+		.sfxs = (A, "wciska1", "odklucza2", "klamka");
+		mus.playstr("logiczne.ogg -l");
+		
+		new Button but1;
+		
+		anpowrot	{
+			.Button_stdms;
+			.addmethod("butclick", func {
+				if( igmstate==1 )	{
+					fxwciska1.play;
+					anklapki.play("updown");
+					anklapkidown.play("downup");
+					igmstate = 2;
+				}
+				} );
+			but1.add(this);
+		};
+		grels.eval( func {
+			.Button_stdms;
+			.addmethod("butclick", func {
+				if( igmstate==1 )	{
+					.ansetnextfr;
+					fxodklucza2.play;
+					if( .mok )	{
+						igmstate = 3;
+						anpowrot.hide;
+						timok1.play;
+						fxklamka.play;
+					}
+				}
+				} );
+			but1.add(this);
+			} );
+		
+		.timer = ("timok1", 500, func {
+				grels.hide;
+				anbeczkaopen.play(1);
+				.cbplay("kajko1");
+				});
+		.timer = ("timok2", 2000, func {
+			ccs.close( func {
+				clsave.bset("e32_sejf_otwarty");
+				clsave.set("epizod", "e33Finito");
+				.gotoadv("adbiuro", "gameadbiuro2");
+				} );
+			} );
+		
+		.sounds = (A, ":kajko1", "Uda³o siê; To s± te same obrazki co na witra¿u w domu z dzwonem", func { .cbplay("kokosz1"); },
+			":kokosz1", "A widzisz? Dobrze ¿e go z³o¿y³em", func { .cbplay("kajko2"); },
+			":kajko2", "Zak³adaj opaskê na oczy i wyci±gamy kryszta³", func { timok2.play; }
+			);
+		
+		ccs.enter( func {
+			fxwciska1.play;
+			anklapki.play("upup");
+			anklapkidown.play("downdown");
+			} );
+	}
+	mlosuj	{
+		string s;
+		bool b = true;
+		for( int i=0; i<grels.size; i++)	{
+			s = grels.get(i);
+			<s>.setframe( -1, <s>.nofframes(-1)->rand );
+			if( !<s>.framename->contains("ok") )
+				b=false;
+		}
+		b;
+	}
+	mok	{
+		for( int i=0; i<grels.size; i++)	{
+			if( !<grels.get(i)>.framename->contains("ok") )
+				return false;
+		}
+		true;
+	}
+	mgame	{
+		igmstate = 1;
+	}
+	mouse_rclick	{
+		if( igmdebug )
+			timok2.stop(true);
+	}
+}

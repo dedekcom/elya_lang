@@ -1,0 +1,447 @@
+
+class gmimgvecpuz : gmimgvec	{
+	init()	{
+		gmimgvec::init();
+	}
+	setpos(int x, int y)	{	.imsetpos(x,y);	}
+	imsetpos(int x, int y)	{
+		_ix = x;
+		_iy = y;
+		.eval2("imsetpos", x, y);
+	}
+	ilodx	{ 0; }
+	ilody	{ 0; }
+}
+
+class TPuzzle2	{
+	init	{}
+	tinit(string sbkg, string sels, int row, int col, int dx, int dy)	{
+		new int iCols = col;
+		new int iRows = row;
+		.newimg("imgbkg", sbkg, 0);
+		
+		if( sels.contains(".pyz") )	{
+			new gmimgvec grel;
+			"grel" ..< sels;
+		} else if( sels != "grel" )	{
+			<sels>.addtogamevars("grel");
+		}
+		new gmimgvec grend;
+		grel.hash;
+		grel.each( func { (@id) .setz(10+id); } );
+		new string spuztyp = <grel.first>.gettype;
+		
+		new int ibadajl = 25;
+		new string sactpuz;
+		new int iblitopacity = 255;
+		new int PuzzleState = 0;
+		
+		new DelayMover cmov;
+		new SimpleCounter cnt(200);
+		
+		new int iX = dx;
+		new int iY = dy;
+		grel.move( iX, iY );
+	}
+	setpuzstate(int istate)	{
+		PuzzleState=istate;
+		if( PuzzleState==1)	{
+			new gmimgvec grblit;
+			@s = _;
+			"grblit" ..< s;
+			grblit.hide;
+		}
+	}
+	cmov_GET	{
+		if( grel.isincut( mouse.getpos, true, true ) )	{
+			string s = grel.getsfound;
+			<s>.setz(900);
+			.mssetobj( s );
+			.tpuzzle_get;
+		}
+	}
+	bool cwithin(string s)	{
+		int i;
+		if( .gettype!=spuztyp )	{
+			for( i=0; i < .size; i++)	{if( <.get(i)>.cwithin( s ) )	return true;}
+			return false;
+		} else {
+			if( <s>.gettype==spuztyp )	{
+				int id = .framenr;
+				int im = id%iCols;
+				A;
+				if( im>0 )			id-1;
+				if( im<iCols-1 )	id+1;
+				im = id/iCols;
+				if( im>0 )			id-iCols;
+				if( im<iRows-1)	id+iCols;
+				return <s>.framenr->in;
+			} else {
+				for( i=0; i< <s>.size; i++)		{if( .cwithin( <s>.get(i) ) )	return true;}
+				return false;
+			}
+		}
+	}
+	cposlen(string s1, string s2)	{
+		int ilx = (<s1>.getposx-<s1>.ilodx) - (<s2>.getposx-<s2>.ilodx);
+		int ily = (<s1>.getposy-<s1>.ilody) - (<s2>.getposy-<s2>.ilody);
+		ilx.length( ilx, ily );
+	}
+	cblit(string s)	{
+		if( <s>.gettype==spuztyp )	{
+			if( PuzzleState==1 )	{
+				<s>.imsetpos(iX, iY);
+				<s>.hide;
+				s = grblit.get(<s>.framenr);
+			}
+			<s> {
+				.setz(1);
+				.show;
+				
+				.imsetpos(iX, iY);
+				imgbkg.blit( this );
+				.hide;
+				/*int x = .getpx;
+				int y = .getpy;
+				.anaddfilter;
+				.setopacity(iblitopacity);
+				.setpos(x,y);
+				imgbkg.blit( this );
+				.unlink;
+				.setpos(iX,iY);
+				.hide;*/
+			};
+		} else	for( int i=0; i< <s>.size; i++ )		.cblit( <s>.get(i) );
+	}
+	cmov_PUT	{	<GAME>.cput;	}
+	cput	{
+		.tpuzzle_put;
+		string s = cmov.getmover;
+		<s>.setz(100+cnt.next);
+		cmov.free;
+		grel {
+			.sortimgs;
+			.each( func { (int i) .setz(10+i); } );
+		};
+		string s1 = s, string s2;
+		sactpuz = s;
+		while(<s>.gettype != spuztyp)	s=<s>.get(0);
+		if( ibadajl.length( <s>.ilodx+iX-<s>.getpx, <s>.ilody+iY-<s>.getpy ) < ibadajl )	{
+			sactpuz = null;
+			.cblit(s1);
+			grel.remove(s1);
+			grend.add(s1);
+			.tpuzzle_blit;
+			if( grel.empty )	{
+				grend.show;
+				.tpuzzle_end;
+			}
+		} else {
+			grel.remove(s1);
+			for( int i=0; i<grel.size; i++)	{
+				s = grel.get(i);
+				if( .cposlen(s,s1)<ibadajl && <s1>.cwithin(s) )	{
+					int x, int y;
+					if( <s>.gettype==spuztyp)	{
+						x = <s>.getposx - <s>.ilodx;
+						y = <s>.getposy - <s>.ilody;
+					} else {
+						|x,y| = <s>.getpos;
+					}
+					if( <s>.gettype==spuztyp)	{
+						.mwyjmij(s);
+						if( <s1>.gettype==spuztyp )	{
+							s2 = "gr" + s;
+							new gmimgvecpuz <s2>;
+							<s2>.add(s);
+							<s2>.add(s1);
+						} else {
+							<s1>.add(s);
+							s2 = s1;
+						}
+						grel.remove(s);
+						grel.add(s2);
+					} else {
+						if( <s1>.gettype==spuztyp )	{
+							<s>.add(s1);
+						} else {
+							<s>.addgr(s1);
+						}
+						s2 = s;
+					}
+					<s2>.imsetpos(x,y);
+					<s2>.setz( <s1>.getz );
+					grel.sortimgs;
+					sactpuz = s2;
+					return;
+				}
+			}
+			grel.add(s1);
+		}
+	}
+	virtual tpuzzle_end {}
+	virtual tpuzzle_get {}
+	virtual tpuzzle_blit {}
+	virtual tpuzzle_put {}
+}
+
+public przygotuj_matryce(string smatryca, string smaska, string simgpuz, string sgr, int ishadow)	{
+	
+	new gmimgvec grmat;
+	"grmat" ..< (smatryca+".pyz");
+	new gmimgvec grmask;
+	if( smaska!=null && engine.fileexist( .getgraphpath + smaska + ".pyz")  )	{
+		"grmask" ..< (smaska+".pyz");
+	}
+	
+	new gmimgvec <sgr>;
+	
+	.newimg("impuz", simgpuz, 0);
+	
+	impuz.setpos( <grmat.first>.getpx, <grmat.first>.getpy );
+	
+	new filter ft2;
+	
+	for( int i=0; i<grmat.size; i++)	{
+		string s1 = "im" + sgr + "_" + i;
+		new img <s1>;
+		<s1>.var2("framenr", i);
+		<s1>.addmethod("imsetpos", func { (int x, int y)
+			.setpos(x+ilodx, y+ilody);
+			} );
+		string s = grmat.get(i);
+		
+		<s1>.create( <s>.getw + ishadow, <s>.geth + ishadow, .transparent );
+		<s1>.setpos( <s>.getpx, <s>.getpy );
+		<s1>.vars2(A, "ilodx", <s1>.getpx, "ilody", <s1>.getpy);
+		
+		if( ishadow > 0 )	{
+			<s>.move(ishadow,ishadow);
+			ft2.link(s);
+			ft2.setmaskalpha(1);
+			ft2.setopacity(92);
+			<s1>.blit(s);
+			ft2.unlink;
+			<s>.move(-ishadow,-ishadow);
+		}
+		
+		<s1>.blitmask( "impuz", s );
+		
+		if( i<grmask.size )	{
+			<s1>.blit( grmask.get(i) );
+		}
+		
+		<sgr>.add(s1);
+	}
+	
+	delete ft2;
+	grmat.deleteallgm;
+	delete grmat;
+	
+	impuz.setz(1);
+	impuz.hide;
+}
+
+
+game PuzzleB : StdGame, TPuzzle2	{
+	init	{
+		StdGame::init("puzzle");
+		
+		.sfxs = (A, "getpuz 60", "putpuz 60", "ok 60");
+		
+		.przygotuj_matryce("matryca_"+iPuzRow+"_"+iPuzCol, "maska_"+iPuzRow+"_"+iPuzCol,
+			"$scripts/"+sgmversion+"/obrazki/p_" + sPuzzle + ".jpg", "grel", 0);
+		
+		if( sgmversion=="d" )	{
+			.tinit("bgpuzzle.png", "grel", iPuzRow, iPuzCol, 1, 0);
+		} else {
+			.tinit("bgpuzzle.png", "grel", iPuzRow, iPuzCol, 0, 0);
+		}
+		
+		.imgs = (A, "left.pyz 200", "right.pyz 200");
+		
+		anleft.Button_std;
+		anright.Button_std;
+		but1.add("anleft");
+		but1.add("anright");
+		new int strzalkax = 5;
+		
+		new int rewindspeed = 20;
+		.cycle = ("timleft", func {
+			if( igmstate==1 && grpes.size )	{
+				grpes.move( rewindspeed, 0 );
+				@s = grpes.first;
+				if( <s>.getpx > anleft.getex + strzalkax )
+					grpes.move( (anleft.getex+strzalkax)-<s>.getpx, 0 );
+				.play;
+			}
+			} );
+		.cycle = ("timright", func {
+			if( igmstate==1 && grpes.size )	{
+				grpes.move( -rewindspeed, 0 );
+				@s = grpes.last;
+				if( <s>.getex < anright.getpx - strzalkax )
+					grpes.move( (anright.getpx-strzalkax)-<s>.getex, 0 );
+				.play;
+			}
+			} );
+		@dx = 6;
+		new Rect rec2(dx,54,iResX-dx, anleft.getcy);
+		rec2 { vecgr.add("gmimgvecpuz"); };
+		new gmimgvec grpes;
+		new int ipuzheight = <grel.first>.geth/2;
+		for( int i=0; i<grel.size; i++ )
+			.mwstaw(grel.get(i));
+		
+		.cbutexit;
+		if( .cwideversion && sgmversion!="grecjamac" )
+			anbutexit.move(-15,-15);
+		
+		.cbutmusic;
+		
+		if( bPlayMusic )	{
+			.play_music;
+		}
+		
+		.cutscene;
+		ccs.enter( func {
+			.unlockall;
+			igmstate = 1;
+			} );
+	}
+	play_music	{	mus.playstr( sgmversion + "_puzzle.ogg -v 50 -l");	}
+	stop_music	{	mus.fadeout(1000);	}
+	mwstaw(string s)	{
+		int dy = 5;
+		int xpos;
+		if( grpes.size )	{
+			xpos = <grpes.last>.getex;
+		} else {
+			xpos = anleft.getex;
+		}
+		//<s>.ansetbpos( xpos + strzalkax, iResY-dy - <s>.geth );
+		@y = anleft.getcy - <s>.geth/2;
+		if( y+<s>.geth > iResY - dy )
+			y = iResY-dy - <s>.geth;
+		<s>.ansetbpos( xpos + strzalkax, y );
+		<s>.clip( anleft.getex + strzalkax, 0, anright.getpx-strzalkax, iResY );
+		grpes.add(s);
+	}
+	mwyjmij(string s)	{
+		int id = grpes.find(s);
+		if( id<0 ) return;
+		<s>.clip(0,0,iResX,iResY);
+		grpes.remove(s);
+		for( int i=id; i < grpes.size; i++ )	{
+			<grpes.get(i)>.move( -<s>.getw-strzalkax, 0 );
+		}
+	}
+	clbuts_help_butmoveon	{
+		//if( igmstate!=2)
+			//anpodpo.show;
+	}
+	clbuts_help_butmoveoff	{
+		//if( igmstate!=2)
+			//anpodpo.hide;
+	}
+	tpuzzle_get	{
+		fxgetpuz.play;
+		.mwyjmij(grel.getsfound);
+	}
+	tpuzzle_put	{	fxputpuz.play;	}
+	tpuzzle_end	{
+		fxok.play;
+		grend.hide;
+		igmstate=2;
+		
+		sMenuMode = sPuzzle;
+		
+		impuz.show;
+		mus.playstr("zwyciestwo.ogg -v 60");
+	}
+	cmov_PUT	{
+		<GAME>.cput;
+		if( sactpuz!=null )	{
+			if( <sactpuz>.gettype==spuztyp && <sactpuz>.getcy > anleft.getpy )	{
+				.mwstaw(sactpuz);
+			} else {
+				rec2.fit(sactpuz);
+			}
+		}
+		
+	}
+	mouse_lclick	{
+		if( igmstate==2) igmstate=3;
+		else if (igmstate==3)	{
+			.mtomenu;
+		}
+		
+		|int x, int y| = mouse.getpos;
+		if( igmstate==1 )	{
+			if( anleft.isin(x,y,1,1) ) timleft.play;
+			else if (anright.isin(x,y,1,1) ) timright.play;
+		}
+	}
+	mouse_lrel	{
+		if( igmstate==1 )	{
+			if( timleft.isplaying ) timleft.stop(false);
+			if( timright.isplaying ) timright.stop(false);
+		}
+	}
+	mtomenu	{
+		if( igmstate==4 )
+			return;
+		/*if( igmmac )	{
+			.askfor("MenuPuzzle");
+		} else {*/
+			igmstate = 4;
+			ccs.close( func {
+				gameapi.play("MenuPuzzle");
+				} );
+		//}
+	}
+	mouse_rclick	{
+		//if( igmdebug ) .tpuzzle_end;
+		if( igmdebug ) grpes.print;
+	}
+	anbutexit_lclick	{
+		sMenuMode = "exit";
+		.mtomenu;
+	}
+}
+
+game OutroA : StdGame	{
+	init	{
+		StdGame::init("outroa");
+		.path = ( sgmversion + "/outroa");
+		
+		.imgs = (A, "bkg.pyz", "tytul.pyzP 5", "kredki.pyz 10", "girl.pyzP 20", "strzalka.pyzP 25");
+		
+		angirl.addmethod("onfinish", "mgo");
+		
+		.cutscene;
+		ccs.enter( null );
+	}
+	mgo	{
+		if( igmstate==0 )	{
+			igmstate=1;
+			ccs.close( func { gameapi.play("OutroPuz"); } );
+		}
+	}
+	mouse_lclick	{
+		.mgo;
+	}
+}
+
+/* obrazki puzzle chest1:
+
+PIERWSZY PROGRAM
+-dzieci bawi± siê na placu zabaw ( tam gdzie piasek widaæ 
+i jest karuzela)
+- dzieci bawi± siê na ¶niegu
+
+DRUGI PROGRAM
+-ilustracja z piracikiem
+-ilustracja z jaskiniowcami co siedzi go¶ciu z dzid± 
+na triceratopsie
+*/

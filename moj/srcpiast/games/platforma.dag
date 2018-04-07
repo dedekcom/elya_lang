@@ -1,0 +1,383 @@
+game gamepart1platforma : classadvpiast {
+	init()	{
+		classadvpiast::init();
+		igmstate=0;
+		new int MASKZ	= 10;
+		new int TRAMPZ	= 5;
+		new int STWORZ	= 20;
+		new int PIASTZ	= 30;
+		
+		string s;
+		
+		this.setgraphpath("scripts/part1/platforma/");
+		this.cstdbkg();
+		this.newimg("imgm", "maska.png", MASKZ);
+		imgm.move(0,1);
+		imgm.hide();
+		
+		new gmobjvec grall;
+		grall.add("imgbkg");
+		grall.add("imgm");
+		
+		new classlives clliv;
+		clliv.set(40,5, 20,5,5, 245,43,45,255, 45,212,45,255, 2, "left");
+		
+		this.newanima("antramp", "trampoliny.pyz", TRAMPZ );
+		antramp.setdelay(2);
+		int itrampy = this.newanactions("antramp", "antr");
+		antramp.hide();
+		for(int i=0; i<itrampy; i++)	{
+			s = "antr"+i;
+			<s>.addmethod("onfinish","mfintramp");
+			grall.add(s);
+			<s>.mbuildtramp();
+			<s>.addmethod("onsetframe","mframetramp");
+		}
+		
+		this.newanima("anpiast", "piast.pyz", PIASTZ );
+		anpiast.setdelay(2);
+		anpiast.setpos(0, 400);
+		
+		anpiast.addmethod("onendframe", "mpiastframe");
+		anpiast.addmethod("onfinish", "mpiastfin");
+		anpiast.addmethod("piastmov", "mpiastmove");
+		anpiast.play("standr");
+		anpiast.mbuildpiast();
+		clanpack.resizemethods("anpiast");
+		
+		this.newanima("anlokacja", "stwory.pyz", STWORZ);
+		anlokacja.setdelay(3);
+		anlokacja.setz(0);		// zeby nie brac do rozwazan
+		anlokacja.hide();
+		anlokacja.setframe("lokacje",0);
+		int ilestworow = anlokacja.nofframes(-1);
+		this.copyanimas("anlokacja", "anpt", 0, ilestworow);
+
+		for(i=0; i<ilestworow; i++)	{
+			s = "anpt"+i;
+			<s>.addmethod("onfinish","mstworfin");
+			<s>.mbuild(i);
+			grall.add(s);
+		}
+		grall.add("anpiast");
+		this.cnewtimerfin("timmov", 50, 1, "mfintimmov");
+		this.cnewtimerfin("timkoment", 15000, 1, "mfintimcom");
+		//timmov.play();
+		new classsndbank csjmp;
+		new classsndbank csau;
+		new classsndbank cscom;
+		csjmp.load("plpiast", 2, 7, 0, 0);
+		csau.load("plpiast", 12, 16, 0, 0);
+		cscom.load("plpiast", 8, 10, 0, 0);
+		
+		this.cplayintrofun("plpiast1.wav", "msndstartfin");
+		this.newsnd("sndkoniec", "plpiast17.wav");
+		this.newsnd("sndrestart", "plnar1.wav");
+		this.newsnd("sfxwylot", "sfx/wylatuje.wav");
+		
+		anpiast.mrownaj();
+		
+		new classsndbank csskok;
+		csskok.load("sfx/skok", 1, 3, 0, 0);
+	}
+	mfintimcom()	{
+		this.crplay("cscom");
+		this.play();
+	}
+	msndstartfin()	{
+		igmstate = 1;
+		timkoment.play();
+	}
+	mbuild(int ifr)	{
+		anlokacja.setframe(-1, ifr);
+		string s = anlokacja.framename();
+		string s2 = s.gete(0,1);
+		s = s.getb(0, 3);
+		this.setframe( s + "l", 0 );
+		new int il = this.actionnr(-1);
+		this.setframe( s + "p", 0 );
+		new int ip = this.actionnr(-1);
+		this.setpos( anlokacja.getpx(), anlokacja.getpy() );
+		if( s=="mch" || s=="hel")	{
+			this.addmethod("onendframe", "mfinstwor");
+		} else {
+			this.addmethod("onendframe", "mfinstwor2");
+			this.addmethod("mfinstwor", "mfinstwor");
+			this.addmethod("mrownaj", "mrownaj");
+		}
+		if(s2=="l")	{
+			this.play( il );
+		} else {
+			this.play( ip );
+		}
+	}
+	mbuildtramp()	{
+		new int _bbylskok=false;
+	}
+	int mokgo( int x, int y)	{
+		if( imgm.isin( x, y, false, true)==false  && x>imgbkg.getpx() && x<imgbkg.getex() )	{
+			return true;
+		}
+		return false;
+	}
+	mrownaj()	{
+		int x = this.getcx();
+		while( imgm.isin( x, this.getey(), false, true)==false )	{
+			this.move( 0, 1 );
+		}
+		while( imgm.isin( x, this.getey(), false, true)==true )	{
+			this.move( 0, -1 );
+		}
+	}
+	mdie()	{
+		this.play("stand"+sside);
+		sside = "r";
+		this.mrownaj();
+	}
+	mdamage()	{
+		if( igmstate!=1 )	{	return;	}
+		clliv.damage(1);
+		this.crplay("csau");
+		if( clliv.destroyed()==true )	{
+			igmstate = 4;
+			this.cbplaywithfin("sndrestart", "mfinrestart" );
+			anpiast.mdie();
+		}
+	}
+	mfinrestart()	{
+		// tu imgi na 0, 0
+		grall.move( -imgbkg.getpx(), 0 );
+		imgbkg.setpos(0, 0);
+		imgm.setpos(0, 0);
+		anpiast.setpos(0, 500);
+		anpiast.play("standr");
+		anpiast.mrownaj();
+		igmstate = 0;
+		this.cbplay("sndintro");
+		clliv.reset();
+	}
+	mstworfin()	{
+		this.play(-1);
+		if( cllen.ilen3( this.getname(), "anpiast" )<=60 )	{
+			this.mdamage();
+		}
+	}
+	mfinstwor2()	{
+		this.mfinstwor();
+		this.mrownaj();
+	}
+	mfinstwor()	{
+		if( this.actionnr(-1)==il )	{
+			if ( this.mokgo( this.getpx() + 5, this.getey() - 10 ) == true )	{
+				this.move( -5, 0 );
+			} else {
+				this.play( ip );
+			}
+		} else {
+			if ( this.mokgo( this.getex() - 5, this.getey() - 10 ) == true )	{
+				this.move( 5, 0 );
+			} else {
+				this.play( il );
+			}
+		}
+	}
+	mprzesun(int x)	{
+		this.cmovxbkg(x, 300, 500, 8, "grall");
+	}
+	mfintimmov()	{
+		this.mprzesun( mouse.getpx() );
+		this.play();	
+	}
+	mbuildpiast()	{		// buduje zmienne piasta
+		new int ist = 0;		// stan	0-stoi/idzie 1-spada 2-leci 3-trampolina
+		new vector vjmp;		// skok
+		vjmp.beginadd("begin", -7, -9, -9, -8, -7, -7, -6, -5, -4, -2, -1, 0, 1, 3, 5);
+		new int idvj = 0;		// id jmp
+		new string sside = "r";		// strona l - lewa, p - prawa
+		new int iwsp = 0;		// wspolczynnik dla trampolin
+		new string stramp;	// trampolina, ktora go wybija
+	}
+	mozna(int x, int y)	{
+		if ( imgm.isin( x,y, false, true)==false)	{
+			return true;
+		}
+		return false;
+	}
+	mvxp2(int x, int dx)	{
+		if(this.mozna(x, this.getpy()+8)==true && this.mozna(x, this.getcy())==true 
+		&& this.mozna(x, this.getey()-8)==true )	{
+			this.move(dx, 0);
+			if( ist==0)	{
+				//this.rplay("go"+sside);
+				this.setframe("go"+sside, this.framenr());
+			} else if (ist==1)	{
+				//this.rplay("down"+sside);
+				this.setframe("down"+sside, this.framenr());
+			} else {
+				//this.rplay("jmp"+sside);
+				this.setframe("jmp"+sside, this.framenr());
+			}
+		}
+	}
+	mpiastmove(int dx)	{
+		int x1 = this.getpx() + dx;
+		int x2 = this.getex() + dx;
+		if( x1 >= imgbkg.getpx() && x2<=imgbkg.getex() )	{	
+			if( sside=="r" ){
+				this.mvxp2(x2, dx);
+			} else {
+				this.mvxp2(x1, dx);
+			}
+		}
+	}
+	int mspada()	{
+		int i=0;
+		int x = this.getcx();
+		while( imgm.isin( x, this.getey()+i, false, true)==false && i<8)	{
+			i++;
+		}
+		if( i>=8 )	{
+			return true;
+		}
+		return false;
+	}
+	mspadaj()	{
+		ist = 1;
+		this.move( 0, 8 );
+		this.rplay("down"+sside);
+	}
+	psjump(int ikey)	{
+		ist = 2;
+		idvj = 0;
+		this.crplay("csjmp");
+		csskok.play();
+		this.rplay("jmp"+sside);
+		this.jmpmove(ikey);
+	}
+	int mvy2(int x, int y)	{
+		if( this.mozna( x-8, y )==true && this.mozna(x,y)==true && this.mozna(x+8, y)==true)	{
+			return true;
+		} else {
+			return false;
+		}
+	}
+	jmpmove(int ikey)	{
+		int x = this.getcx();
+		int dy = vjmp.get( idvj ) - iwsp;
+		if( this.mvy2(x, this.getpy()+dy) == true )	{
+			this.move( 0, dy );
+			if(iwsp>0)	{
+				iwsp--;
+			}
+			idvj++;
+		} else {
+			idvj = vjmp.size();
+		}
+		if( this.mvy2(x, this.getey()+dy) == false || idvj>=vjmp.size() )	{
+			this.mpiaststd();
+		}
+	}
+	mpiastfin()	{
+		this.play(-1);
+		if( cllen.ilen2( "anpiast", imgbkg.getex(), imgbkg.getey() ) <= 70	&& igmstate==1)	{
+			igmstate = 2;
+			anpiast.play("standr");
+			anpiast.mrownaj();
+			this.cbplaywithfin("sndkoniec", "mfinkoniec");
+		}
+	}
+	mfinkoniec()	{
+		if( igmdemo == false )	{
+			gameapi.play("gamepart2miasto");
+		} else {
+			gameapi.play("gamemenu");
+		}
+	}
+	mwstan(int ikey)	{
+		ist = 0;
+		this.mrownaj();
+		if(ikey==0)	{
+			this.rplay("stand"+sside);
+		} 	
+	}
+	mpiastframe()	{
+		if( ist==3 || igmstate!=1)	{
+			return;
+		}
+		int ikey = 0;
+		if( keyboard.iskeydown("right")==true )	{
+			sside="r";
+			ikey = 8;
+			this.piastmov(8);
+			timkoment.stop(false);
+			timkoment.play();
+		}else if( keyboard.iskeydown("left")==true )	{
+			sside="l";
+			ikey = -8;
+			this.piastmov(-8);
+			timkoment.stop(false);
+			timkoment.play();
+		}
+		if( keyboard.iskeydown("up")==true && ist==0)	{
+			this.psjump(ikey);
+			timkoment.stop(false);
+			timkoment.play();
+		} else {
+			if( ist==2 )	{
+				this.jmpmove(ikey);
+			} else {
+				if( this.mspada()==true )	{
+					this.mspadaj();
+				} else {
+					this.mwstan(ikey);
+				}
+			}
+		}
+		int x = this.getcx();
+		this.mprzesun( x );
+		stramp = engine.getimg( x, this.getey(), true, true, TRAMPZ, TRAMPZ);
+		if( stramp!=null)	{
+			if( <stramp>.mniemoze()==false )	{
+				ist=3;
+				<stramp>.play(-1);
+			}
+		}
+	}
+	mniemoze()	{	return _bbylskok;	}
+	mwyskocz()	{
+		if( ist==3)	{
+			ist=0;
+			iwsp = 15;
+			this.psjump(0);
+		}
+	}
+	mpiaststd()	{
+		ist=1;		// oznacz teraz jako : spada
+		this.rplay("down"+sside);
+	}
+	mpiaststate(int istate)	{	ist=istate; }
+	mfintramp()	{	_bbylskok=false; }
+	mframetramp()	{
+		if( _bbylskok==false)	{
+			int ypom = this.cfindy( this.getname(), anpiast.getcx() );
+			if( ypom != this.getey() )	{
+				anpiast.setpos( anpiast.getpx()-anpiast.lodx(), ypom-anpiast.geth() );
+			} else {
+				anpiast.mpiaststd();
+			}
+		}
+		if( this.framename()=="jump")	{
+			anpiast.mwyskocz();
+			_bbylskok=true;
+			sfxwylot.play();
+		}
+	}
+	mouselclick()	{
+		//anpiast.setpos(mouse.getpx(), mouse.getpy());
+		if(igmdebug==true)	{
+			this.cactsndstop(true);
+		}
+	}
+}
+
+

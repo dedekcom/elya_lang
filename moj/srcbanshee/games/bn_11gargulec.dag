@@ -1,0 +1,50 @@
+
+game mg11_gargulec :Banshee {
+	init{
+    Banshee::init("mg11_gargulec");
+    .imgs = (A,"bkg.jpg 1", "popup_bkg.pyz 2","oczy.pyz 3","piorun.pyz 6","swiatlo.pyz 7", "ramka.pyz 8","liscie.pyz 9", "popexit.pyz 10");
+    
+    .sfxs = (A, "prund 10", "noc2N 30", "quickcrumple");
+   answiatlo.setdrawmode(1);
+   anpiorun.play(0); 
+   .setasitemtopck("anoczy");   
+   imgbkg {
+  		.addmethod("isbutin", func { (@x, @y)
+  			!anpopup_bkg.isin(x,y,0,0);
+  			} );
+  		.addmethod("butclick", func {
+  			if( !.advstdstate ) return;
+  			 .mend;
+  			} );
+    		butgame.add(this);
+  	 };   
+    
+    .butpopexit;
+    
+    .stdstart;
+ }  
+  mend	{ 
+    .stdexitdefadv("ad11_altana", "gamead11_altana0");
+	}
+  anoczy_TAKE {
+	fxquickcrumple.play;
+    answiatlo.anfadeout(800,null); 
+    anpiorun.stop(false);    
+    anpiorun.anfadeout(800,null); 
+    .popitem_gotocenter("oczy");
+    clsave.bset("e1_mg11_pioruny_wylaczone");
+    .set_mg_finished;  
+  } 
+   
+	anoczy_INPCK	{
+		.addtopck("oczy");
+		.timfinito; 
+  }
+  HINT_CLICK {
+    if (!clsave.bis("taken_oczy"))
+      .showhint("anoczy");    
+    else
+    .showhint("anpopexit");   
+  }
+}
+ 

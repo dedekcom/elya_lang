@@ -1,0 +1,53 @@
+game Tclassmenu	{
+	init()	{
+		new db _dbl;
+		new gmobjvec gr1;
+		gr1.add("bkg");
+	}
+	public tload(string spath, string sbuts, string sdbfile)	{
+		this.setgraphpath(spath);
+		if( sdbfile!=null )	{
+			_dbl.loadscript(this.getgraphpath()+sdbfile);
+			for(int i=0; i<_dbl.getrowsno();i++)	{
+				this.newsnd("snd"+_dbl.get(i,0), _dbl.get(i,1)+".wav");
+			}
+		}
+		new classbutton _clb;
+		_clb.build2( this.getgraphpath() + sbuts, 10, "imglobcurs", "gr1" );
+		_clb.clickfunc("_gmbutclick");
+		_clb.movonfunc("_gmbutmove");
+		if(engine.varexist("sndintro"))	this.cbplay("sndintro");
+	}
+	mouselclick()	{
+		this.cactsndstop(true);
+	}
+	_gmbutmove(string s)	{
+		sndaskermovon.play();
+		if( engine.varexist("sndintro") && sndintro.isplaying() )	return;
+		if( engine.varexist("snd"+s) )	this.crselfplay("snd"+s);
+	}
+	_gmbutclick(string s)	{
+		this.<s+"_BUTCLICK">();
+	}
+}
+
+class TMenu 	{
+	init()	{}
+	tinit(string sbuts)	{
+		new Buttons but1(sbuts);
+	}
+	mousel_click()	{
+		.cactsndstop(true);
+	}
+	but1_moveon	{
+		string s = but1.sobject;
+		sndaskermovon.play;
+		if( !(engine.varexist("sndintro") && sndintro.isplaying) )
+			if( engine.varexist("snd"+s) )	this.cbselfplay("snd"+s);
+		.<s+"_MOVEON">;
+	}
+	but1_moveoff	{	.<but1.sobject + "_MOVEOFF">;	}
+	but1_lclick()	{
+		this.<but1.sobject+"_BUTCLICK">();
+	}
+}

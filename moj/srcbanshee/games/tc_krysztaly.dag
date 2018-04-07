@@ -1,0 +1,527 @@
+
+game KrysztalyA : Kajuta	{
+	init	{
+		Kajuta::init("krysztalya");
+		.path = ("krysztaly");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1", "Czego¶ tu brakuje", func { tcr.ahide; .timplay("timend", 1000, func {
+			.mprzejdz("Salabalowarecepcja"); } ); }
+			);
+		
+		.sfxs = (A, "putdiament");
+		//mus.playstr("gwarludzi.ogg -l -v 40");
+		.sfx=("gwarludziN 40");
+		
+		.imgs = (A, "bg.pyz", "lustro.pyz 5", "sciana.pyz 10", "krys1.pyz 20", "m14.pyzH",
+			"m15.pyzH", "od14.pyz 20", "od15.pyz 20");
+		if( !clsave.bis("e2_wlozylkrys14") )
+			anod14.hide;
+		if( !clsave.bis("e2_wlozylkrys15") )
+			anod15.hide;
+		
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		ccs.enter( func {
+			if( !clsave.bis("item_krysztal14") || !clsave.bis("item_krysztal15") )
+				.txtplay("lilian1");
+			else igmstate = 1;
+			} );
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( anitemkrysztal14.isin(mouse.getpos,1,1) )	{
+			.mssetobj("anitemkrysztal14");
+			igmstate=2;
+		} else if( anitemkrysztal15.isin(mouse.getpos,1,1) )	{
+			.mssetobj("anitemkrysztal15");
+			igmstate=2;
+		}
+	}
+	hint_click	{
+		if( clsave.bis("item_krysztal14") )	{
+			.playhints("anitemkrysztal14", "anm14");
+		} else if ( clsave.bis("item_krysztal15") )	{
+			.playhints("anitemkrysztal15", "anm15");
+		}
+	}
+	cmov_PUT	{
+		.mcheck(.getfree);
+	}
+	mcheck(string s)	{
+		@s2 = s.gete(0,2);
+		if( <"anm"+s2>.isin(mouse.getpos,0,0) )	{
+			fxputdiament.play;
+			<s>.hide;
+			<"anod"+s2>.show;
+			clsave.set("item_krysztal"+s2, 0);
+			if( anod14.isvisible && anod15.isvisible )	{
+				.timplay("timend", 1000, func { .mprzejdz("Krysztaly"); } );
+			} else igmstate=1;
+		} else {
+			<s>.itemonpos;
+			igmstate=1;
+		}
+	}
+}
+
+game Krysztaly : Kajuta	{
+	init	{
+		Kajuta::init("krysztaly");
+		
+		.titsounds=(A, "lektor1", "Ka¿dy kryszta³ rzuca odpowiedni blask który jest fragmentem obrazu. Zamieniaj miejscami kryszta³y a¿ w lustrze poka¿e siê obraz przedstawiaj±cy flagê White Star.", "stdret");
+		
+		.imgsgr = (A, "bg.pyz", "lustro.pyz 5", "sciana.pyz 10", "kr.pyzG 20", "$scripts/common/obw.pyzH 25", "nahint.pyzH 30",
+			"animlustro.pyzH 35",
+			"grall");
+		.copyanima("anobw", "anobw2");
+		grall.add("anobw2");
+		
+		new gmimgvec grall2;
+		
+		//mus.playstr("gwarludzi.ogg -l -v 40");
+		.sfx=("gwarludziN 40");
+		
+		.sfxs = (A, "lustroopen", "diamenty 50");
+		
+		new vector vkr;
+		new string set1 = null;
+		new string set2 = null;
+		grkr.eval( func {
+			.vars2(A, "myid", .actionnr(-1), "mypos", .actionnr(-1) );
+			vkr.add(myid);
+			.addmethod("isbutin", func { (@x,@y)
+				.setframe(-1,1);
+				0->length( x-.getcx, y-.getcy ) < 20;
+				.setframe(-1,0);
+				} );
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				if( set1==null )	{
+					set1 = this;
+					.tsetset("anobw");
+				} else {
+					set2 = this;
+					.tsetset("anobw2");
+					igmstate = 5;
+					tim1.play;
+				}
+				} );
+			but1.add(this);
+			} );
+		vkr.hash;
+		for( int i=0; i<vkr.size; i++)	{
+			.zmien( <grkr.get(i)>.myid, vkr.get(i) );
+		}
+		
+		.timer = ("tim1", 500, func {
+			anobw.anhide;
+			anobw2.anhide;
+			.zmien( <set1>.myid, <set2>.myid );
+			but1.onmousemove;
+			set1 = null;
+			set2 = null;
+			bool b = true;
+			for( int i=0; i<grkr.size; i++)
+				if( <grkr.get(i)>.myid != <grkr.get(i)>.mypos )
+					b=false;
+			if( b )	{
+				.mend;
+			} else {
+				igmstate=1;
+			}
+			} );
+		.timer = ("tim2", 1009, func {
+			anobw.anhide;
+			anobw2.anhide;
+			igmstate=1;
+			} );
+		.cycle = ("tim3", func {
+			anlustro.move(3,0);
+			if( anlustro.getpx > anbg.getex )	{
+				if( AdventureMode )	{
+					clsave.bset("e2_recepcjalustro");
+					.mprzejdz("HOSkrytkalustro");
+				} else .mprzejdz("MainMenu");
+			} else .play;
+			} );
+		
+		if( AdventureMode ) {	// usuniecie gry z przygody 23.07.2012
+			igmstate=5;
+			grkr.hide;
+			ananimlustro.show;
+			
+			ccs.enter(func { fxlustroopen.play;
+			tim3.play; });
+		} else {
+			if( igmdebug )	.mbutnext;
+			.match3but;
+			
+			ccs.enter( func { .txtplay("lektor1"); } );
+		}
+	}
+	m3init	{
+		Kajuta::m3init;
+		new img imgbg2;
+		imgbg2.create(iResX, iResY, .transparent);
+		grall.sortimgs;
+		for( int i=0; i<grall.size; i++)	{
+			@s = grall.get(i);
+			if( <s>.gettype=="gmimgvec" )	{
+				for( int j=0; j< <s>.size; j++)	{
+					< <s>.get(j)>.m3bgblit;
+				}
+			} else <s>.m3bgblit;
+		}
+	}
+	m3bgblit	{
+		if( .isvisible )	{
+			grall2.add(this);
+			imgbg2.blit(this);
+			.hide;
+		}
+	}
+	m3exit	{
+		Kajuta::m3exit;
+		grall2.show;
+		grall2.free;
+		delete imgbg2;
+	}
+	mend	{
+		igmstate=5;
+		grkr.hide;
+		ananimlustro.show;
+		fxlustroopen.play;
+		tim3.play;
+	}
+	match3_won	{	.mend;	}
+	skip_minigame	{	.mend;	}
+	tsetset(string s)	{
+		.setframe(-1,1);
+		<s>.setpos( .getpx, .getpy );
+		.setframe(-1,0);
+		<s>.play(1);
+	}
+	zmien(int id1, int id2)	{
+		@s1 = grkr.get(id1);
+		@s2 = grkr.get(id2);
+		<s1>.setframe(id1, 1);
+		<s2>.setframe(id2, 1);
+		@dx = <s2>.getpx - <s1>.getpx;
+		@dy = <s2>.getpy - <s1>.getpy;
+		<s1>.setframe(id1, 0);
+		<s2>.setframe(id2, 0);
+		<s1>.move( dx, dy );
+		<s2>.move( -dx, -dy );
+		@pos1 = <s1>.mypos;
+		<s1>.mypos = (<s2>.mypos);
+		<s2>.mypos = (pos1);
+		fxdiamenty.play;
+	}
+	kajuta_hint_click	{
+		if( igmstate==1 )	{
+			annahint.play(0);
+			igmstate=5;
+			string s;
+			for( int i=0; i<grkr.size; i++)	{
+				s = grkr.get(i);
+				if( <s>.myid != <s>.mypos )	{
+					i=grkr.size;
+				}
+			}
+			<s>.tsetset("anobw");
+			for( i=0; i<grkr.size; i++)
+				if( <grkr.get(i)>.mypos == <s>.myid )
+					<grkr.get(i)>.tsetset("anobw2");
+			tim2.play;
+		}
+	}
+	anbutnext_click	{
+		.mend;
+	}
+}
+
+game Szafa : Kajuta	{
+	init	{
+		Kajuta::init("szafagra");
+		
+		.imgs = (A, "bg.jpg", "sruba1.pyz 25", "sruba2.pyz 25", "klodka.pyz 3", "srubo.pyz 30", "zoom.pyzH 20");
+		
+		.titsounds = (A, ":lilian1", "Jasny gwint! Drzwi zamkniête na k³ódkê.", "stdret",
+			":lilian2", "Zamek solidnie przykrêcony ¶rubkami.", "stdret"
+			);
+		
+		new DelayMover cmov;
+		cmov.unlock;
+		new string ssruba;
+		new bool bsruba1 = 0;
+		new bool bsruba2 = 0;
+		
+		.sfxs = (A, "srubka", "srubaout");
+		//mus.playstr("gwarludzi.ogg -l -v 40");
+		.sfx=("gwarludziN 40");
+		
+		ansrubo.addmethod("onendframe", func {
+			if( .framename=="go" )	{
+				<ssruba>.hide;
+				fxsrubka.play;
+			}
+			} );
+		ansrubo.addmethod("onfinish", func {
+			.mretzoom;
+			if( bsruba1 && bsruba2 )	{
+				anzoom.hide;
+				ansruba1.setframe(0,0);
+				ansruba2.setframe(0,0);
+				ansruba1.show;
+				ansruba2.show;
+				timsrub.play;
+			} else {
+				igmstate = 1;
+			}
+			} );
+		
+		.timer = ("timsrub", 1500, func {
+			ansruba1.anplayfin(0, func {
+				.hide;
+				ansruba2.anplayfin(0, func {
+					anklodka.anplayfin(0, func {
+						.mprzejdz("HOSalabalowa");
+						} );
+					} );
+				} );
+			} );
+		
+		ccs.enter( func { .txtplay("lilian1"); } );
+	}
+	hint_click	{
+		igmstate=0;
+		.txtplay("lilian2");
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( ansrubo.isin(mouse.getpos,1,1) )	{
+			ansrubo.setframe(1,0);
+			.setcobj("ansrubo");
+			.msmove;
+			anzoom.show;
+			if( !bsruba1 )
+				ansruba1.setframe(1,0);
+			if( !bsruba2 )
+				ansruba2.setframe(1,0);
+			igmstate=2;
+		}
+	}
+	cmov_PUT	{
+		.free;
+		
+		|int x, int y| = classansearcher::_findnotr("ansrubo",ansrubo.getpx, ansrubo.getpy, 0, 1);
+		
+		if( !bsruba1 && ansruba1.isin(x,y,0,0) )	{
+			.mwypad(x,y,1);
+		} else if( !bsruba2 && ansruba2.isin(x,y,0,0) )	{
+			.mwypad(x,y,2);
+		} else {
+			.mretzoom;
+			igmstate=1;
+			//.msruby;
+		}
+	}
+	msruby	{
+		if( bsruba1 )
+			ansruba1.setframe(0,0);
+		if( bsruba2 )
+			ansruba2.setframe(0,0);
+	}
+	mwypad(int x, int y, string s)	{
+		<"bsruba"+s>.set(1);
+		ssruba="ansruba"+s;
+		ansrubo.move( <ssruba>.getcx-x, <ssruba>.getcy-y );
+		ansrubo.play(1);
+	}
+	mretzoom	{
+		//anzoom.hide;
+		ansrubo.setframe(0,0);
+		ansrubo.setpos(0,0);
+	}
+}
+
+game Roznice : Kajuta	{
+	init	{
+		Kajuta::init("roznice");
+		
+		.sounds = (A, ":lilian1", "This scene looks similar to the photo I just found. But something is off...", "stdret");
+		
+		.imgs = (A, "bkg.pyz", "open.pyzH 10", "op.pyzG 20", "roz.pyzG 30", "$scripts/common/obw.pyzH 35");
+		new int idopas = 0;
+		grroz.eval( func {
+			.Button_isin;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				fxrozniceklik.play;
+				.hide;
+				grroz.remove(this);
+				but1.onmousemove;
+				<grop.get(idopas)>.hide;
+				idopas++;
+				if( grroz.empty )	{
+					igmstate=5;
+					anopen.show;
+					tim1.play;
+				}
+				} );
+			but1.add(this);
+			} );
+		.timer = ("tim1", 1500, "mend" );
+		
+		.sfxs = (A, "rozniceklik");
+		
+		if( igmdebug )	.mbutnext;
+		.mskipminigame;
+		.match3but;
+		
+		if( AdventureMode==0 )	{
+			.img = ("$scripts/items/batyskaf.pyz 600");
+			anbatyskaf {
+				.Button_stdms;
+				.addmethod("butclick", func {
+					if( igmstate==1 )	{
+						.setframe(1,0);
+						.setpos(0,0);
+						igmstate=101;
+					} else if (igmstate==101)	{
+						.setframe(0,0);
+						.setbatpos;
+						igmstate=1;
+					}
+					} );
+				but1.add(this);
+				.setbatpos;
+			};
+		}
+		
+		ccs.enter( func { .txtplay("lilian1"); } );
+	}
+	setbatpos	{
+		@s = grpan2.get(3);
+		anbatyskaf.setpos( <s>.getcx, <s>.getcy );
+	}
+	kajuta_hint_click	{
+		if( igmstate==1 )	{
+			@s = grroz.first;
+			anobw.setpos( <s>.getcx, <s>.getcy );
+			anobw.play(0);
+		}
+	}
+	anbutnext_click	{
+		tim1.play;
+	}
+	mend	{
+		if( AdventureMode )	{
+			clsave.set("item_batyskaf", 0);
+			.mprzejdz("Pokojadministracyjny");
+		} else .mprzejdz("MainMenu");
+	}
+	match3_won	{	.mend;	}
+	skip_minigame	{	.mend;	}
+}
+
+game Zdjecie : Kajuta	{
+	init	{
+		Kajuta::init("zdjecie");
+		.sfxs = (A, "foto1", "foto2");
+		
+		new int iidfoto = 1;
+		if( clsave.is("epizod", "e4_end") )	{
+			iidfoto = 2;
+			.imgs = (A,"$scripts/05tablice/05tablice2.jpg", "ramka2.pyz");
+			new img imblak;
+			imblak.create( iResX, iResY, .black, 128);
+			img05tablice2.blit("imblak");
+			img05tablice2.blit("anramka2");
+			delete anramka2;
+			delete imblak;
+			.imgs = (A, "tablica.pyzH 20", "nazwiska.pyzGH 25");
+			.timer = ("timnaz", 400, func {
+				<grnazwiska.get(idnaz)>.hide;
+				idnaz++;
+				if( idnaz>=grnazwiska.size )
+					.mprzejdz("Outro");
+				else .play;
+				} );
+			timnaz.var2("idnaz",0);
+			.newgrimg("grels", "els2", 0);
+			mus.playstr("tablice.ogg -l -v 40");
+		} else {
+			.imgs = (A, "bg.jpg", "els.pyzG", "ramka.pyz 5");
+			//mus.playstr("gwarludzi.ogg -l -v 40");
+			.sfx=("gwarludziN 40");
+		}
+		grels.sortz(10);
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1", "Podarte zdjêcie; Z³o¿ê je", "stdret",
+			":lilian2", "Znam to miejsce; Jest niedaleko st±d", func { .mprzejdz("Salabalowarecepcja"); },
+			":lilian25","To jednak ciebie te¿ uratowa³am; Tak siê cieszê ¿e mog³y¶my siê spotkaæ",
+				func {
+					tcr.ahide;
+					clsave.set("epizod", "e5_outro");
+					grels.hide;
+					antablica.show;
+					grnazwiska.show;
+					timnaz.play;
+				}
+			);
+		
+		new Rect rec2(0.1*iResX,0.1*iResY,0.9*iResX, <grpan.first>.getpy);
+		rec2.fitgrouprand("grels");
+		
+		if( igmdebug )	.mbutnext;
+		
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		ccs.enter( func {
+			if( clsave.is("epizod", "e4_end") )
+				igmstate=1;
+			else .txtplay("lilian1"); 
+			} );
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( grels.isin(mouse.getpos,1,0) )	{
+			@s = grels.getsfound;
+			.mssetobj(s);
+			<s>.setz(130);
+			grels.remove(s);
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		if( <s>.aninlod(25) )	{
+			<s>.setpos(0,0);
+			<s>.setz(1);
+			<"fxfoto"+iidfoto>.play;
+			if( grels.empty )	{
+				igmstate = 2;
+				.timplay("timend", 1000, "mend" );
+			} else igmstate = 1;
+		} else {
+			grels.add(s);
+			grels.sortz(10);
+			igmstate = 1;
+		}
+	}
+	mend	{
+		if( clsave.is("epizod", "e4_end") ) .txtplay("lilian25");
+		else .txtplay("lilian2"); 
+	}
+	anbutnext_click	{
+		.mend;
+	}
+}

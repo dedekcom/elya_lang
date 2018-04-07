@@ -1,0 +1,859 @@
+new string sPrehArg1;
+class MenuGry : Dzieje	{
+	init	{
+		Dzieje::init(sSubMenu);
+		if( igmdemo ) anpieczatka.setframe(1,0);
+		.imgs=(A,"bkg.pyz", "tytul"+LANG+".pyz 5", "glowa.pyz 100");
+		.sfxs=(A,"getpuz","putpuz", "ok 60", "step");
+		if( GAME=="PrehMenuGry" && sSubMenuGame==null )
+			.img = ("initimg.pyz");
+		anglowa	{
+			.play("std");
+			.addmethod("onfinish", func {
+				match(.actionname)	{
+					"std" => ;
+					"talk" => .play(-1);
+					? => .play("std");
+				}
+				} );
+		};
+		.sounds=(A,
+			"sndmenukolo", "Kolorowanie", "cstop",
+			"sndmenukons", "Konstruowanie", "cstop",
+			"sndmenupuzz", "Puzzle wszelakie", "cstop",
+			"sndmenurozn", "Ro¿nicowanie", "cstop",
+			"sndmenumoda", "Prehistoryczna moda", "cstop"
+			);
+		new Button but1;
+		but1.loadfrom("grprzyc", "scripts/plansza/", "przyciski.pyz", "_but_func" );
+		but1.load("grgry", sSubEpoka+".pyz", func {	(@id)
+			.setz(10);
+			.Button_isin;
+			.addmethod("butmoveon", func {
+				if( <GAME>.hasvar("cmov") && cmov.moving ) return;
+				fxpop.play;
+				@s = .actionname->getb(0,4);
+				.cglowa2("sndmenu"+s);
+				advmouse.setbut;
+				if( s!=sSubMenuGame )
+					if( .nofframes(-1)>1 ) .setframe(-1,1);
+				} );
+			.addmethod("butmoveoff", func {
+				advmouse.setstd;
+				if( .actionname->getb(0,4)!=sSubMenuGame )
+					.setframe(-1,0);
+				} );
+			.addmethod("butclick", func {
+				if( <GAME>.hasvar("cmov") && cmov.moving ) return;
+				fxpik1.play;
+				if( GAME!="PrehMenuGry" )	{
+					sSubMenuGame = <but1.sobject>.actionname->getb(0,4);
+					gameapi.play("PrehMenuGry");
+					return;
+				} else {
+					but1 {
+						grbuts.setframe(-1,0);
+					};
+					.setframe(-1,1);
+					if( sSubMenuGame==null )
+						aninitimg.hide;
+				}
+				sSubMenuGame = .actionname->getb(0,4);
+				<GAME>.removesubmenu;
+				but1.load("grgry2", "gm"+<but1.sobject>.actionname+".pyz", func { (@id)
+					//.Button_std;
+					.Button_isin;
+					.addmethod("butmoveon", func {
+						sndakskermovon.play;
+						advmouse.setbut;
+						if( .nofframes(-1)>1 ) .setframe(-1,1);
+						@s = but1.sobject;
+						if( <s>.actionname->contains("demo") )
+							.inpiecz(<s>.getcx, <s>.getcy);
+						} );
+					.addmethod("butmoveoff", func {
+						advmouse.setstd;
+						.outpiecz;
+						.setframe(-1,0);
+						} );
+					.addmethod("butclick", func {
+						@id2 = <but1.sobject>.actionnr(-1);
+						@s = but1.sobject->getb(4,4);
+						if( <but1.sobject>.actionname->contains("demo") ) return;
+						match( s )	{
+							"kolo" => gameapi.play("MenuKol"+(id2+1));
+							"rozn" => {
+								sSubObraz = <but1.sobject>.actionname;
+								gameapi.play("Roznice");
+								}
+							"kons" => gameapi.play("MenuKons"+(id2+1));
+							"puzz" => { sPrehArg1=id2;
+									if ( id2)	gameapi.play("MenuPuzzle");
+									else		gameapi.play("MenuWstaw");
+									}
+							"moda" => {
+								sSubObraz = <but1.sobject>.actionname;
+								if( sSubObraz=="babka")	gameapi.play("Moda");
+								else						gameapi.play("Moda2");
+								}
+							? => ;
+						}
+						} );
+					} );
+				} );
+				if( .actionname->getb(0,4)==sSubMenuGame )	{
+					.setframe(-1,1);
+					if( GAME=="PrehMenuGry" )	{
+						but1.sobject = (this);
+						.butclick;
+					}
+				}
+			} );
+	}
+	_but_func(@id)	{
+		.setz(100);
+		.Button_isin;
+		.addmethod("butclick", func {
+			match( <but1.sobject>.actionname )	{
+				"exit" => 	.exit_click;
+				"help" => .help_click;
+				"restart" => .restart_click;
+				? => ;
+			}
+			} );
+		.addmethod("butmoveon", func {
+			fxstep.play;
+			advmouse.setbut;
+			.< <but1.sobject>.actionname + "_moveon" >;
+			} );
+		.addmethod("butmoveoff", func {
+			advmouse.setstd;
+			.< <but1.sobject>.actionname + "_moveoff" >;
+			} );
+	}
+	addbutrestart	{
+		but1.loadfrom("grprzycrestart", "scripts/plansza/", "prestart.pyz", "_but_func");
+	}
+	cexit	 { .cstop; igmstate=111; }
+	cquit(@s)	{	if( igmstate==111) gameapi.play(s);	}
+	ohno	{	anglowa.play("nie");	}
+	ohyeah	{	anglowa.play("tak");	}
+	removehelp	{
+		but1 {
+			@id = grbuts.findsac("help");
+			if( id>=0 )	<grbuts.get(id)>.hide;
+		};
+	}
+	removesubmenu	{
+		if(.hasvar("grgry2"))	{
+			but1.remove("grgry2");
+			delete < grgry2.get(0)->strsube(1) >;
+			grgry2.deleteallgm;
+			delete grgry2;
+		}
+	}
+	cglowa(@s)	{	.cbplay2(s); anglowa.play("talk");	}
+	cglowa2(@s)	{
+		if(_csplay!=null && <_csplay>.isplaying() &&
+			!_csplay.in(A,"sndmenukolo","sndmenukons", "sndmenupuzz", "sndmenurozn","sndmenumoda") )	return;
+		if( _csplay==s ) return;
+		.cactsndstop(false);
+		anglowa.play("talk");
+		.cbplay(s);
+	}
+	cglowa3(@s)	{
+		if( !<_csplay>.isplaying() )	{
+			anglowa.play("talk");
+			.crplay(s);
+		}
+	}
+	cstop	{	anglowa.play("std");	}
+	cunstop	{	.gmunlockall; .cstop;	}
+}
+
+new string sSubMenu = "grypreh";
+new string sSubMenuGame = null;
+new string sSubEpoka = "prehistoria";
+new string sSubObraz = "mamuty";
+new bool bPrehMenuGry;
+game PrehMenuGry : MenuGry	{
+	init	{
+		MenuGry::init;
+		.setsndbase("prehmenugry");
+		.sounds = (A,
+			"sndintro", "Wybierz grê", "cstop"
+			);
+		if( bPrehMenuGry )	{
+			bPrehMenuGry = false;
+			.cglowa("sndintro");
+		}
+		.removehelp;
+	}
+	exit_click	{	gameapi.play("MenuPreh");	}
+}
+
+class SubMenuGame : MenuGry	{
+	init {}
+	tinit(string sfile, string sfunc)	{
+		MenuGry::init;
+		new string sFuncClick = sfunc;
+		but1.load("grgry2", sfile+".pyz", func { (@id)
+			/*if( GAME=="MenuKons1" )	{
+				.Button_isin;
+				.addmethod("butmoveon", func {
+					advmouse.setbut;
+					sndakskermovon.play;
+					if( .actionnr(-1)>0 ) .inpiecz( .getcx, .getcy );
+					.setframe(-1,1);
+					} );
+				.addmethod("butmoveoff", func {
+					advmouse.setstd;
+					.outpiecz;
+					.setframe(-1,0);
+					} );
+			} else*/
+			GAME.in(A, "MenuKons1") ? .Button_stdalpha : .Button_std;
+			.addmethod("butmoveon", func {
+				sndakskermovon.play;
+				advmouse.setbut;
+				if( .nofframes(-1)>1 ) .setframe(-1,1);
+				@s = "sndmenu"+.actionnr(-1);
+				if( <GAME>.hasvar(s) )	.cbplay(s);
+				if( .actionname->contains("demo") )	{
+					.inpiecz(.getcx, .getcy);
+				}
+			} );
+			.addmethod("butmvoeoff", func { .outpiecz; } );
+			.addmethod("butclick", func { if( !.actionname->contains("demo")) .<sFuncClick>; } );
+			} );
+	}
+}
+
+game MenuKol3 : SubMenuGame	{
+	init	{
+		.tinit("gmkol3", func {	gameapi.play(<but1.sobject>.actionnr(-1),"Kolorowanka2");	} );
+		.removehelp;
+	}
+	exit_click	{	gameapi.play("PrehMenuGry");	}
+}
+
+game MenuKol1 : SubMenuGame	{
+	init	{
+		.tinit("gmkol1", func {
+			sSubObraz = <but1.sobject>.actionname;
+			gameapi.play(1,"Kolorowanka1");
+			} );
+		.removehelp;
+	}
+	exit_click	{	gameapi.play("PrehMenuGry");	}
+}
+
+game MenuKol2 : SubMenuGame	{
+	init	{
+		.tinit("gmkol2", func {
+			sSubObraz = <but1.sobject>.actionname;
+			gameapi.play(2,"Kolorowanka1");
+			} );
+		.removehelp;
+	}
+	exit_click	{	gameapi.play("PrehMenuGry");	}
+}
+
+game MenuSzkielety : SubMenuGame	{
+	init	{
+		if( save.bis("zaliczony40") )
+			.tinit("gmszkielety", "mplay" );
+		else .tinit("gmszkielety2", "mplay" );
+		.setsndbase("menuskel");
+		.sounds = (A,
+			"sndmenu0", "mamut", null,
+			"sndmenu3", "bawó³", null,
+			"sndmenu4", "nosoro¿ec",null,
+			"sndmenu1", "pies", null,
+			"sndmenu2", "koñ", null,
+			"sndbrak", "¯eby z³o¿yæ szkielet nosoro¿ca musisz najpierw zaliczyæ najtrudniejszy quiz", "cstop"
+			);
+		.removehelp;
+	}
+	mplay	{
+		sSubObraz = <but1.sobject>.actionname;
+		if( sSubObraz=="nosor" && !save.bis("zaliczony40") )	.cglowa("sndbrak");
+		else gameapi.play("Szkielety");
+	}
+	exit_click	{	gameapi.play("MenuKons4");	}
+}
+
+game MenuKons4 : SubMenuGame	{
+	init	{
+		.tinit("gmkonekstra", func {
+			match( <but1.sobject>.actionnr(-1) ) {
+				0 => {gameapi.play("MenuSzkielety");}
+				1 => {sSubObraz="rampa"; gameapi.play("Konstruktor3_1");}
+				2 => {sSubObraz="stone"; gameapi.play("Konstruktor2_2");}
+				? => ;
+			}
+			} );
+		.setsndbase("menukons4");
+		.sounds=(A,
+			"sndmenu0", "Zostañ archeologiem", null,
+			"sndmenu1", "Zbuduj rampê w Stonehenge", null,
+			"sndmenu2", "Zbuduj nasyp w Stonehenge", null
+			);
+		.removehelp;
+	}
+	exit_click	{	gameapi.play("PrehMenuGry");	}
+}
+
+game MenuKons3 : SubMenuGame	{
+	init	{
+		if( save.bis("zaliczony20") )
+			.tinit("gmbiskupin", "mplay" );
+		else .tinit("gmbiskupin2", "mplay" );
+		.setsndbase("menubiskup");
+		.sounds=(A,
+			"sndbrak", "¯eby rozegraæ t± grê musisz zaliczyæ ¶redni poziom quizu", "cstop"
+			);
+		.removehelp;
+	}
+	mplay	{
+		match( <but1.sobject>.actionnr(-1) ) {
+			0 => {sSubObraz="bis1"; gameapi.play("Konstruktor3_1");}
+			1 => if( save.bis("zaliczony20") ){
+					sSubObraz="bis2";	gameapi.play("Konstruktor3_1");
+				} else
+					.cglowa("sndbrak");
+			2 => {sSubObraz="bis3"; gameapi.play("Konstruktor3_1");}
+			? => ;
+		}
+	}
+	exit_click	{	gameapi.play("PrehMenuGry");	}
+}
+
+game MenuKons2 : SubMenuGame	{
+	init	{
+		.tinit("gmkons2", func {
+			match( <but1.sobject>.actionnr(-1) ) {
+				0 => {gameapi.play("Konstruktor2_1"); }
+				1 => { sSubObraz="dom2"; gameapi.play("Konstruktor2_2");}
+				2 => gameapi.play("Konstruktor2_3");
+				? => ;
+			}
+			} );
+		.removehelp;
+	}
+	exit_click	{	gameapi.play("PrehMenuGry");	}
+}
+
+game MenuKons1 : SubMenuGame	{
+	init	{
+		.tinit("gmkon1", func {
+			match( <but1.sobject>.actionnr(-1) ) {
+				0 => {sSubObraz = "lodka";
+					gameapi.play("Konstruktor1"); }
+				1 => {KolejneLevel=0;	gameapi.play("Konstruktor2");}
+				2 => gameapi.play("MenuKons1_3");
+				? => ;
+			}
+			} );
+		.removehelp;
+	}
+	exit_click	{	gameapi.play("PrehMenuGry");	}
+}
+
+game MenuKons1_3 : SubMenuGame	{
+	init	{
+		.tinit("gmkon1_3", func {
+			sSubObraz = "lod" + (<but1.sobject>.actionnr(-1) ? 16 : 8);
+			gameapi.play("Konstruktor3");
+			} );
+		.removehelp;
+	}
+	exit_click	{	gameapi.play("MenuKons1");	}
+}
+
+game MenuPuzzle : SubMenuGame	{
+	init	{
+		if( !save.bis("zaliczony10") && sPrehArg1==2 )
+			.tinit("gmpuz2_2", "mplay" );
+		else .tinit("gmpuz"+sPrehArg1, "mplay" );
+		.setsndbase("menupuzle");
+		.sounds = (A,
+			"sndblok", "Te puzzle bêdziesz móg³ u³o¿yæ je¶li zaliczysz najprostszy quiz", "cstop"
+			);
+		.removehelp;
+	}
+	mplay	{
+		int i[2];
+		if( sPrehArg1==1 )
+			match( <but1.sobject>.actionnr(-1) ) {
+				0 => { i0=2; i1=2; sSubObraz = "stone"; }
+				1 => { i0=3; i1=3; sSubObraz = "renifer"; }
+				2 => { i0=4; i1=4; sSubObraz = "biskupin"; }
+				? => ;
+			}
+		else
+			match( <but1.sobject>.actionnr(-1) ) {
+				0 => { i0=5; i1=5; sSubObraz = "mamuty"; }
+				1 => { i0=6; i1=6; sSubObraz = "statki"; }
+				2 => if( save.bis("zaliczony10") )	{
+						i0=7; i1=7; sSubObraz = "osada";
+					} else {
+						.cglowa("sndblok");
+						return;
+					}
+				? => ;
+			}
+		gameapi.play(i0, i1, "Puzzle");
+	}
+	exit_click	{	gameapi.play("PrehMenuGry");	}
+}
+
+game MenuWstaw : SubMenuGame	{
+	init	{
+		.tinit("gmpuz"+sPrehArg1, func {
+			sSubObraz = <but1.sobject>.actionname;
+			gameapi.play("Wstaw");
+			} );
+		.removehelp;
+	}
+	exit_click	{	gameapi.play("PrehMenuGry");	}
+}
+
+game Kolorowanka2 : MenuGry, TPainter	{
+	init(int id)	{
+		new int ikolololevel = id;
+		MenuGry::init;
+		TPainter::init;
+		.tinit(null, "scripts/kolo2/", null, "pedzel.pyz", "draw"+id+".pyz", "farby.pyz", "ld");
+		.addbutrestart;
+		.setsndbase("ko2lo");
+		.sounds = (A,
+			"sndhelp", "Aby wyczy¶ciæ obrazek kliknij przycisk restart", null
+			);
+		.sfxs=(A,"pedzel", "pedzel2");
+		grpaleta.hide;
+		new db dbkolory;
+		@s = "scripts/kolo2/img"+ikolololevel+".db";
+		if( engine.fileexist(s) )	{
+			dbkolory.load(s);
+			grdraw.each( func { (@id)
+				.paint( dbkolory.get(id,0), dbkolory.get(id,1), dbkolory.get(id,2), 255, 0);
+				} );
+		} else {
+			grdraw.each( func { (@id)
+				.paint(.white,255,0);
+				dbkolory.dbaddstringrow("255 255 255"," ");
+				} );
+			.savekols;
+		}
+		anbkg.load( .getgraphpath + "bgkol.pyz");
+	}
+	help_click	{	.crplay("sndhelp");	}
+	savekols	{
+		if( !<GAME>.hasvar("dbkolory") ) return;
+		grdraw.each( func { (@id)
+			int c[4];
+			//|c0, c1| = .anfirstnontr;
+			int ex = .getex , int ey = .getey;
+			int x = .getpx, int y=.getpy;
+			while( x!=ex && y!=ey )	{
+				if( .isin(x,y,false,true) ) { c0=x; c1=y; x=ex; }
+				else x++;
+			}
+			|c0,c1,c2,_| = .getrgba(c0,c1);
+			dbkolory.set(id,0,c0);
+			dbkolory.set(id,1,c1);
+			dbkolory.set(id,2,c2);
+			} );
+		dbkolory.save( "scripts/kolo2/img"+ikolololevel+".db" );
+	}
+	onpaint	{	fxpedzel.play;	}
+	onsetbrush	{	fxpedzel2.play;	}
+	but1_lclick	{	if( sobject!=null ) .savekols;	}
+	exit_click	{
+		.savekols;
+		.askfor("MenuKol3");
+	}
+	restart_click	{
+		fxpedzel.play;
+		grdraw.each( func { (@id)
+			.paint(.white,255,0);
+			dbkolory.set(id,0,255);
+			dbkolory.set(id,1,255);
+			dbkolory.set(id,2,255);
+		} );
+		.savekols;
+	}
+	claskexit_ask	{	mouse.show;	}
+	claskexit_no	{	mouse.hide;	}
+}
+
+game Kolorowanka1 : MenuGry, TPainter	{
+	init(int imod)	{
+		new int imode = imod;
+		MenuGry::init;
+		TPainter::init;
+		.tinit(null, "scripts/kolo1/", null, "pedzel.pyz", sSubObraz+".pyz", sSubObraz+"kredki.pyz", "ld");
+		.sfxs=(A,"pedzel", "pedzel2");
+		anbkg.load( .getgraphpath + sSubObraz+ "bgkol.pyz");
+		.path=(sSubMenu);
+		if( imode==1) grdraw.each( func { (@id) .paint(.white,255,0); } );
+		else grdraw.each( func { (@id) .paint(.grey(232),255,0); } );
+		anbrush2.paint( .white, 255, 0 );
+		new string sbrush = null;
+		
+		grdraw.each( func { (@id)
+			.var2("kolor", "white");
+			} );
+		.setsndbase("kolo1");
+		
+		grpaleta.hide;
+		
+		.importbank("sndtak", "myes", "ckolstop");
+		.importbank("sndnie", "mno", "ckolstop");
+		.sounds = (A,
+			"sndgokol", "Dokoñcz kolorowanie obrazka", "cstop",
+			"sndsuper", "Brawo! Wszystko idealnie pokolorowane", "cexit",
+			"sndgomod2", "Pokoloruj wed³ug wskazówek obrazek", "cplaym2",
+			"sndloski1", "Zamaluj rogi ³osia na pomarañczowo", "cmod2",
+			"sndloski2", "Zamaluj sier¶c ³osia na br±zowo", "cmod2",
+			"sndloski3", "Zamaluj racice ³osia", "cmod2",
+			"sndloski4", "Zamaluj ma³ego ³osia na br±zowo", "cmod2",
+			"sndloski5", "Zamaluj ogon taty ³osia", "cmod2",
+			"sndloski6", "Zamaluj brodê taty ³osia", "cmod2",
+			"sndloski7", "Zamaluj pozosta³e nogi ³osia", "cmod2",
+			"sndloski8", "Wspaniale pomalowa³e¶ oba ³osie", "cexit",
+			"sndpanna1", "Pomaluj nos modelki", "cmod2",
+			"sndpanna2", "Pomaluj usta modelki na czerwono", "cmod2",
+			"sndpanna3", "Pomaluj zêby modelki na bia³o", "cmod2",
+			"sndpanna4", "Pomaluj ucho modelki", "cmod2",
+			"sndpanna5", "Pomaluj makija¿ na twarzy na czerwono", "cmod2",
+			"sndpanna6", "Pomaluj kolczyk z muszli na niebiesko", "cmod2",
+			"sndpanna7", "Pomaluj w³osy modelki", "cmod2",
+			"sndpanna8", "Pomaluj muszelki w opasce na g³owie na niebiesko", "cmod2",
+			"sndpanna9", "Pomaluj szyjê modelki", "cmod2",
+			"sndpanna10", "Pomaluj wisiorek z k³ów", "cmod2",
+			"sndpanna11", "I nasza panna pomalowana!", "cexit",
+			"snddom1", "Pomaluj dach na czerwono", "cmod2",
+			"snddom2", "Pomaluj komin na bia³o", "cmod2",
+			"snddom3", "Pomaluj szybê w okr±g³ym oknie na jasny niebieski", "cmod2",
+			"snddom4", "Pomaluj p³ot za domem na pomarañczowo", "cmod2",
+			"snddom5", "Pomaluj niebo na ciemny niebieski", "cmod2",
+			"snddom6", "Pomaluj pozosta³e okna", "cmod2",
+			"snddom7", "Pomaluj psa na br±zowo", "cmod2",
+			"snddom8", "Pomaluj choinke na taki sam kolor jak krzew przed domem", "cmod2",
+			"snddom9", "Pomaluj rynny na br±zowo", "cmod2",
+			"snddom10", "Pomaluj dym na szaro", "cmod2",
+			"snddom11", "Pomaluj drzwi do gara¿u na ten sam k¶lor co rynny", "cmod2",
+			"snddom12", "Pomaluj chmurkê na ten sam kolor co snieg", "cmod2",
+			"snddom13", "¦wietnie! domek pokolorowany!", "cexit",
+			"sndbadel", "wybra³e¶ z³y element", "cplaym2",
+			"sndbadkol", "pomalowa³e¶ prawid³owy element ale z³ym kolorem", "cplaym2",
+			"sndhelp2", "Pokoloruj wed³ug wskazówek obrazek", "cstop"
+			);
+		if( imode==2 ) {
+			new int ilevel = 1;
+			.cglowa("sndgomod2");
+		} else .cglowa("sndgokol");
+	}
+	ckolstop	{
+		if( imode==1 ) .cstop;
+		else if (imode==2)	{
+			.cplaym2;
+		}
+	}
+	cmod2	{	.cunstop;	}
+	cplaym2	{	.lock;	.cglowa("snd" + sSubObraz + ilevel);	}
+	mouse_lclick	{
+		.cquit("MenuKol"+imode);
+		if( !.getlock )	{
+			|int x, int y| = mouse.getpos;
+			if( grdraw.isin(x,y,true,true) )	{
+				.onpaint;
+			} else if ( grpaleta.isin(x,y,false,true) )	{
+				|@c[4]| = <grpaleta.getsfound()>.getrgba(x,y);
+				c3 = 255;
+				anbrush2.paint( c0, c1, c2, c3, 0 );
+				.onsetbrush;
+			}
+		}
+	}
+	cdraw	{
+		<grdraw.getsfound>.paint( anbrush2.getrgba(anbrush2.getpx+_ibrx,anbrush2.getpy+_ibry), 0 );
+	}
+	onpaint	{
+		@s = grdraw.getsfound;
+		if( imode==1 ) {
+			.cdraw;
+			<s>.kolor = (sbrush);
+			if( grdraw.ineach( func { (@id) .framename->contains(kolor); } ) )	{
+				.lock;
+				.cglowa("sndsuper");
+			} else {
+				if( <s>.framename->contains( sbrush ) )	{
+					.ohyeah;
+					.cbplay2("sndtak");
+				}	else	{
+					.ohno;
+					.cbplay2("sndnie");
+				}
+			}
+			fxpedzel.play;
+		} else if (imode==2)	{
+			if( <s>.framenr==ilevel-1 )	{
+				<s>.kolor = (sbrush);
+				.cdraw;
+				fxpedzel.play;
+				if( <s>.framename->contains(sbrush) )	{
+					ilevel++;
+					.cplaym2;
+				} else .cglowa("sndbadkol");
+			} else { .cglowa("sndbadel");	}
+		}
+	}
+	onsetbrush	{
+		sbrush = <grpaleta.getsfound>.framename;
+		fxpedzel2.play;
+	}
+	exit_click	{	.askfor("MenuKol"+imode);	}
+	help_click	{
+		.crplay( imode==1 ? "sndgokol" : "sndhelp2" );
+	}
+	claskexit_ask	{	mouse.show;	}
+	claskexit_no	{	mouse.hide;	}
+}
+
+game Moda2 : MenuGry	{
+	init	{
+		MenuGry::init;
+		.path = ("moda");
+		.setsndbase("moda2");
+		new gmimgvec grface	{
+			this ..< (sSubObraz+"face.pyz");
+			.setmodaz;
+		};
+		.newanima("anfc2", sSubObraz+"fcmask.pyz", 0);
+		anfc2.hide;
+		new gmimgvec grlezy	{
+			this ..< (sSubObraz+".pyz");
+			.setmodaz;
+			.hide;
+			.sortimgs;
+		};
+		new gmimgvec grszafa;
+		"grszafa" ..< (sSubObraz+"szafa.pyz");
+		new gmimgvec grmov;
+		"grmov" ..< (sSubObraz+"mov.pyz");
+		grmov.hide;
+		new DelayMover cmov;
+		new vector vecstroj;
+		vecstroj.type("string");
+		grszafa.each( func { (@id)
+			vecstroj.add( .framename->strsube(1) );
+			vecstroj.add(0);
+			} );
+		.sounds = (A,
+			"sndgopanna", "Przed tob± stoi przepiêkna jaskiniowa ksiê¿niczka; Dzi¶ wybiera siê na bal jaskiniowców; Pomó¿ dobraæ jej wieczorn± kreacjê" ,"modago",
+			"sndgowoj", "Oto Ukki wojownik z gór; W³a¶nie przygotowuje siê do polowania; Ubierz go nale¿ycie","modago",
+			"snddzida", "pasuje do ubioru ta dzida", "cstop",
+			"sndkaptur", "z kapturem nie zmoknie", "cstop",
+			"sndkozaki", "¶wietne kozaki", "cstop"
+			);
+		.exportbank(A, "niez³e sam bym siê tak ubra³", "he he he", "ciekawy strój", "no w czym¶ takim to nawet na wesele mo¿na i¶æ", "w tym to do obiadu raczej",
+			"modaok");
+		.importbank("sndtak", "modaok", "cstop");
+		sndtak.startrand;
+		.cglowa("sndgo"+sSubObraz);
+	}
+	modago	{	.cunstop; cmov.unlock;	}
+	setmodaz	{	.each( func { (@id) .setz(10 + .framename->strgetfrom("_") ); } );	}
+	cmov_GET	{
+		|int x, int y| = mouse.getpos;
+		@s, @s2, bool b = 0;
+		if( grlezy.isin( x, y, 1, 1 ) )	{
+			s = grlezy.getsfound;
+			s2 = <s>.actionname;
+			grlezy.eval1( func { (@sact)	if( .isvisible && .actionname==sact ) .hide; }, s2 );
+			s2 = grmov.get(grmov.findsfr(s2));
+			b=1;
+		} else if ( grszafa.isin( x,y,1,1) )	{
+			@id = grszafa.getfound;
+			s = grszafa.getsfound;
+			<s>.hide;
+			s2 = grmov.get(id);
+			b=1;
+		}
+		if( b) {
+			<s2>.show;
+			<s2>.ansetbpos( <s>.getpx-(<s2>.getw-<s>.getw)/2, <s>.getpy-(<s2>.geth-<s>.geth)/2 );
+			<s2>.setz(900);
+			.mssetobj(s2);
+			fxgetpuz.play;
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		<s>.hide;
+		|int x, int y| = mouse.getpos;
+		@s2 = <s>.framename;
+		anfc2.ansetsframe(0, s2.strsube(1));
+		if( anfc2.isin(x,y,0,1) )	{
+			grlezy.eval2( func { (@sset, @sact)
+				@s = .actionname;
+				if( .isvisible && s.strsube(1)==sset )	{
+					.hide;
+					<grszafa.get( .actionnr(-1) )>.show;
+				} else if( s==sact )	{
+					.show;
+				}
+				}, s2.strsube(1), s2 );
+			if( !(5->rand) )	{
+				bool b=0;
+				if( 2->rand )	{
+					if( sSubObraz=="woj" )	{
+						if( !<grszafa.get( grszafa.findsfr("kurtka3") )>.isvisible )	.cglowa("sndkaptur");
+						else if( !<grszafa.get( grszafa.findsfr("gunlewa1") )>.isvisible )	.cglowa("snddzida");
+						else b=1;
+					} else {
+						if( !<grszafa.get( grszafa.findsfr("kurtka1") )>.isvisible )	.cglowa("sndkaptur");
+						else if( !<grszafa.get( grszafa.findsfr("buty2") )>.isvisible )	.cglowa("sndkozaki");
+						else b=1;
+					}
+				} else b=1;
+				if (b) .cglowa("sndtak");
+			}
+		} else {
+			<grszafa.get(<s>.framenr)>.show;
+		}
+		fxputpuz.play;
+	}
+	help_click	{	.cglowa("sndgo"+sSubObraz);	}
+	exit_click	{	.askfor("PrehMenuGry");	}
+}
+
+game Moda : MenuGry	{
+	init	{
+		MenuGry::init;
+		.path = ("moda");
+		.setsndbase("moda");
+		.newanima("anface", sSubObraz+"face.pyz", 0);
+		.copyanima("anface", "anfc2");
+		anfc2.hide;
+		new gmimgvec grubrana;
+		"grubrana" ..< (sSubObraz+".pyz");
+		grubrana.hide;
+		new gmimgvec grstroj;
+		"grstroj" ..< (sSubObraz+"kol.pyz");
+		new DelayMover cmov;
+		@s = grstroj.get(0);
+		new vector vecac;
+		vecac.type("string");
+		for( int i=0; i< <s>.nofactions; i++)	{
+			vecac.add( <s>.nameofaction(i) );
+			vecac.add(0);
+			vecac.add(0);
+		}
+		new int idfound;
+		.sounds = (A,
+			"sndgomoda", "Oto piêkna prehistoryczna modelka; Pomó¿ stworzyæ jej wiosenn± kolekcjê mody!",
+				"cunstop"
+			);
+		//.addbank(A, "ho ho jaki ³adny efekt", "ciekawe", "no proszê", "dobre po³±czenie", "sndwow", "cstop");
+		.importbank("sndtak", "myes", "cstop");
+		sndtak.startrand;
+		.cglowa("sndgomoda");
+	}
+	cmov_GET	{
+		if( grstroj.isin(mouse.getpos,1,1) )	{
+			@s = grstroj.getsfound;
+			idfound = grstroj.getfound;
+			<s>.setz(900);
+			.mssetobj(s);
+			fxgetpuz.play;
+		} else if (grubrana.isin(mouse.getpos,1,1))	{
+			idfound = grubrana.getfound;
+			@s = grstroj.get(idfound);
+			@s2 = grubrana.getsfound;
+			<s>.ansetbpos( <s2>.getpx, <s2>.getpy );
+			@id = .cpodnies( s );
+			<s>.setz(900);
+			.mssetobj(s);
+			fxgetpuz.play;
+		}
+	}
+	int cpodnies(string s)	{
+		@id = vecac.find(<s>.actionname);
+		if( vecac.get(id+1)=="1" )	{
+			int id2 = vecac.get(id+2);
+			<grstroj.get(id2)>.show;
+			<grubrana.get(id2)>.hide;
+		}
+		id;
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		<s>.setpos(0,0);
+		<s>.setz(0);
+		anfc2.ansetsframe(1,<s>.actionname);
+		if( anfc2.isin(mouse.getpos,0,1) )	{
+			@id = .cpodnies(s);
+			vecac.set(id+1,"1");
+			vecac.set(id+2,idfound);
+			<s>.hide;
+			<grubrana.get(idfound)>.show;
+			if( !(5->rand) )	.cglowa("sndtak");
+		}
+		fxputpuz.play;
+	}
+	exit_click	{	.askfor("PrehMenuGry");	}
+	help_click	{	.cglowa("sndgomoda");	}
+}
+
+game Roznice : MenuGry, TRoznice	{
+	init	{
+		MenuGry::init;
+		.sfxs=(A,"pik");
+		.tinit("scripts/roznice/", null, sSubObraz+".pyz", sSubObraz+"kol.pyz");
+		gral.move(0,190);
+		new string sfont = .stdfont(36);
+		/*.newtext("txtzostalo", .remained, sfont, 100,100,255);
+		txtzostalo.setz(20);
+		txtzostalo.setpos((iResX-txtzostalo.getw)/2,280);
+		txtzostalo.txtshadow(2,sfont);*/
+		.img = ("cyferki.pyz 20");
+		.copyanima("ancyferki", "ancyf2");
+		.cputpoint;
+		.setsndbase("roznice");
+		.sounds = (A,
+			"sndgoroz", "Choæ obrazki wygl±daj± na pierwszy rzut oka tak samo s± miêdzy nimi ró¿nice; Znajd¼ je wszystkie", "cunstop",
+			"sndok", "Doskonale; Wszystkie ró¿nice odnalezione", "cexit"
+			);
+		.importbank("sndtak", "myes", "cstop");
+		.cglowa("sndgoroz");
+	}
+	cputpoint	{
+		@ile = .remained;
+		if( ile<10 )	{
+			ancyferki.setpos(0,0);
+			ancyferki.setframe(0,ile);
+			ancyf2.hide;
+		} else {
+			ancyferki.setpos(-20,0);
+			ancyf2.setpos(ancyferki.getw-15,0);
+			ancyferki.setframe(0,ile/10);
+			ancyf2.setframe(0,ile%10);
+			ancyf2.show;
+		}
+	}
+	tpoint	{
+		fxpik.play;
+		//txtzostalo.txtset(.remained);
+		//txtzostalo.txtshadow(2,sfont);
+		.cputpoint;
+		if( 3->rand==0 ) .cglowa("sndtak");
+	}
+	tfinish	{	.tpoint; fxpik.stop(0); fxok.play;	.cglowa("sndok");	}
+	tclick	{	.cquit("PrehMenuGry");	/*.cstopsnds(A,"sndgoroz", true);*/		}
+	exit_click	{	.askfor("PrehMenuGry");	}
+	help_click	{	.cglowa3("sndgoroz");	}
+}

@@ -1,0 +1,65 @@
+game gameksiezyc : classadvcontroller	{
+	init()	{
+		//engine.setdebugstate(true);
+		classadvcontroller::init();
+		
+		new text tekst1;
+		tekst1.setz(6000);
+
+		pcanswinka.additem( "akt" );
+		pcanswinka.additem( "eliksir" );
+		pcanswinka.additem( "grzyb" );
+		pcanswinka.additem( "herbatka" );
+		pcanswinka.additem( "karta" );
+		pcanswinka.additem( "klocek" );
+		pcanswinka.additem( "kluczczerwony" );
+		pcanswinka.additem( "kluczdziwny" );
+		pcanswinka.additem( "kluczszary" );
+		pcanswinka.additem( "kosc" );
+		pcanswinka.additem( "miotla" );
+		pcanswinka.additem( "pergamin" );
+		pcanswinka.additem( "piecset" );
+		pcanswinka.additem( "tysiac" );
+
+		this.playbeh( "behwst_FROM_"+sgmlastscene );
+
+	}
+	keydown()	{
+		if(keyboard.iskey("1")==true)	{
+			clcamera.setactor("answinka","ptanswinka");
+		} else if(keyboard.iskey("2")==true)	{
+			clcamera.setactor("anchudy","ptanchudy");
+		} 
+		if(keyboard.iskey("z")==true)	{
+			tekst1.set(" " + (answinka.getposx()-clcamera.getposx()) + "," + (answinka.getposy()-clcamera.getposy()) );
+			tekst1.set( tekst1.get() );
+		}
+		
+	}
+	mouserclick()	{
+		// pokaz co jest pod mycha
+		int x = mouse.getpx();
+		int y = mouse.getpy();
+		int id = grbuts.isin(x,y,true,true);
+		if( id!=false )	{
+			string s = grbuts.get(id-1);
+			s.print();
+		} 
+		//engine.print( engine.getimg(x,y,true,true,-1000,1000));
+		tekst1.set( engine.getimg(x,y,true,true,-1000,1000));
+
+		pcanswinka.useitem();
+	}
+	answinka_ENDFRAME()	{
+		if( ptanswinka.getidanpath()==1 )	{
+			this.setz( this.getz()-600 );
+		}
+	}
+	// WYJSCIA
+	answinka_OPERATE_opiekacz()	{
+		this.playbehfin( "behwst_TO_gameopiekacz", "behgameopiekacz" );
+	}
+	behgameopiekacz(){
+		this.playnewgame("opiekacz");
+	}
+}

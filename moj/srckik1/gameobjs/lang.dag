@@ -1,0 +1,12 @@
+
+class Localize	{
+	init	{}
+	_lang_db(string sname, string sfile, string sfunload)	{
+		new db <sname>;
+		<sname>.<"load"+sfunload>( .lang_path(sfile) + ".db");
+	}
+	lang_db(string sname, string sfile)	{ ._lang_db(sname,sfile,"");	}
+	lang_dbscript(string sname, string sfile)	{ ._lang_db(sname,sfile,"script");	}
+	lang_dbbeh(string sname, string sfile)	{ ._lang_db(sname,sfile,"beh");	}
+	lang_path(string sfile)	{ "lang/" + gameapi.getgamename + "_" + sfile + LANG; }
+}

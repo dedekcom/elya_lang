@@ -1,0 +1,131 @@
+
+game mg06_huby :Banshee {
+	init{
+    Banshee::init("mg06_huby");
+	
+	.img = ("popexit.pyz 7");
+	if( clsave.bis("e1_mg06_krople_adv") )	{
+		.img = ("bkg.jpg 1");
+	} else {
+		new img imgbkg;
+		ccs.cloneto("imgbkg");
+		imgbkg.setz(1);
+		imgbkg.transparency(255);
+		imgbkg.show;
+	}
+  
+	imgbkg {
+		.addmethod("isbutin", func { (@x, @y)
+			!anramka.isin(x,y,0,0);
+			} );
+		.addmethod("butclick", func {
+			if( !.advstdstate ) return;
+			 .mend;
+			} );
+  		butgame.add(this);
+	 };        
+
+	.sfxs = (A, "wylaniasie", "bgrwiatrN 40", "bgrlas2N 25");
+	mus.fadeout(1000);
+	
+    .butpopexit; 
+       
+       .load_mg(null);
+    .setasitemtopck("ansekator");   
+	ansekator.addmethod("butmoveon", func {
+		advmouse.set("take");
+	} );
+    
+    anwypalanie.addmethod("onfinish", func {
+      clsave.bset("e1_huby_wypalone");
+      .hide();
+      anwypalone.show();
+      ansekator.show();
+      .advsetstdstate;
+          if( ansekator.isbutin(mouse.getpos) )
+		advmouse.set("take");
+    });    
+	
+	 
+	.newsndfree("snd_cant_take", "kinnat_c1d1_13");
+    snd_cant_take.addmethod("onfinish", "advsetstdstate");  
+    .stdstart;
+  } // koniec init 
+	load_mg(string simg)	{
+	.switch_path("scripts/mg06_huby/");
+	.imgs = (A, "przed_wypaleniem.pyz 2",  "wypalanie.pyzH 3","wypalone.pyzH 4", "sekator.pyzH 5", "ramka.pyz 6");
+	if( simg!=null)	{
+		<gameapi.getgamename>.varnew("img", simg);
+		<simg>.clone("anprzed_wypaleniem");
+		anprzed_wypaleniem.hide;
+		anramka.hide;
+	}
+	
+    if (clsave.bis("taken_sekator"))
+    {
+      //ansekator.hide();
+      
+    } else {
+		ansekator.show;
+		if( simg!=null ) {
+			<simg>.blit("ansekator");
+			ansekator.hide;
+		}
+	}
+    if (clsave.bis("e1_krople_rozwiazane") && !clsave.bis("e1_huby_wypalone")) 
+    {
+        anprzed_wypaleniem.hide();
+        if( simg!=null ) {
+			<simg>.blit("anwypalanie");
+        } else {
+			.advsetstate("state_wypalanie");
+			anwypalanie.play("wypalanie");
+			//clsave.bset("e1_huby_wypalone");
+		}
+    }  
+    else 
+		if (clsave.bis("e1_huby_wypalone"))
+		{
+			anprzed_wypaleniem.hide();
+			anwypalanie.hide();
+		if( simg!=null ) <simg>.blit("anwypalone");
+		else anwypalone.show();
+		}
+      if( simg!=null ) {
+		<simg>.blit("anramka");
+		anramka.hide;
+		<simg>.hide;
+		}
+      .restore_path;
+	}
+	
+  ansekator_TAKE	{
+    if (!clsave.bis("e1_huby_wypalone"))
+    {
+        .cbplay("snd_cant_take");
+		return;
+    } 
+    butgame.onmousemove;
+    .popitem_gotocenter("sekator");
+    .set_mg_finished;     
+  }
+  
+  ansekator_INPCK	{
+    .addtopck("sekator"); 
+    .timfinito;    
+	}    
+   
+  mend	{
+     .stdexitdefadv("ad06_posagmamy", "gamead06_posagmamy0");  
+  } 
+  
+  HINT_CLICK {
+    if (!clsave.bis("taken_sekator") && clsave.bis("e1_krople_rozwiazane") )
+    {   
+        .showhint("ansekator");
+        return; 
+    }
+    .showhint("anpopexit"); 
+  }      
+}
+ 

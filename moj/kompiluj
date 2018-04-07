@@ -1,0 +1,8 @@
+# dominik dagiel 4.X.2005
+FILEPRJ=$1
+FILESRC=`./ddmakeall $FILEPRJ`
+if [ $# == 1 ]; then
+	./ddcomp $FILEPRJ < $FILESRC
+else
+	./ddcomp $FILEPRJ -O $2 < $FILESRC
+fi

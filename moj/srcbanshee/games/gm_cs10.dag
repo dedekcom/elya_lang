@@ -1,0 +1,32 @@
+
+game Cs10Chapter2 : StdGame	{
+	init	{
+		StdGame::init("cs10epizod2");
+		
+		modadvglob.delheros;
+		clsave.free;
+		
+		clsave.set("epizod", "e10Warownia");
+		.gotoadv("adinwarownia", "gameadinwarownia1");
+	}
+}
+
+game Cs10Panorama : StdGame	{
+	init	{
+		StdGame::init("cs10panorama");
+		.path = ("cs1panorama");
+		
+		.imgs = (A, "panorama.pyz", "znak.pyz 5", "drzewa.pyz 10", "ptak.pyzP 7", "ptak2.pyzP 6");
+		anptak2.move(0, -30);
+		
+		.sounds=(A,"sndnar1", "Tymczasem w Mirmi³owie", func { ccs.close( func { gameapi.play("Cs1Domek"); } ); } );
+		
+		.sfxs = (A, "bgrout2N");
+		
+		ccs.enter( func { .cbplay("sndnar1"); } );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+

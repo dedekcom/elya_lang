@@ -1,0 +1,51 @@
+path:
+	srcegipt/
+
+src:
+	libs/system.dag
+	libs/collections.dag
+	libs/music.dag
+	libs/vars.dag
+	libs/mouse.dag
+	libs/length.dag
+	libs/packs.dag
+	libs/containers.dag
+	libs/sounds.dag
+	libs/game.dag
+	libs/buttons.dag
+	libs/masks.dag
+	libs/basetypes.dag
+	libs/gametools.dag
+	libs/gamecontroller.dag
+	libs/adv.dag
+	libs/saves.dag
+	gameobjs/painter.dag
+	gameobjs/asker.dag
+	gameobjs/placepointer.dag
+	gameobjs/counter.dag
+	gameobjs/gfxobjects.dag
+	gameobjs/fadeinout.dag
+	gameobjs/texttyper.dag
+	gameobjs/delaytaker.dag
+	gameobjs/imgmover.dag
+	gameobjs/rewinder.dag
+	gameobjs/buttons.dag
+	gameobjs/textbox.dag
+	gameobjs/lexer.dag
+	gameobjs/anfx.dag
+	gameobjs/lang.dag
+	advlibs/camera.dag
+	templates/tmenu.dag
+	templates/tpainter.dag
+	games/advmouse.dag
+	games/advkomputro.dag
+	games/main.dag
+	games/gm_sred.dag
+	games/gm_cutsceny.dag
+	games/gm_pole.dag
+
+all:
+	dd1.dag
+
+out:
+	srcegipt/egipt.odd

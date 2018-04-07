@@ -1,0 +1,182 @@
+new classgamepause clpause;
+new classgamemusic clmusic;
+clmusic.sndbgrpath("sounds/bgr/");
+clmusic.musicpath("sounds/music/");
+clmusic.load("sounds/music.db");
+
+new snd sndakskermovon;
+sndakskermovon.load("sounds/sfx/butmovon.wav");
+sndakskermovon.setvol(40);
+
+class classasker2 : classasker	{
+	init()	{
+		classasker::init();
+		
+		new snd sndaskexit;		sndaskexit.setstartstopflag(false,true);
+		new snd sndaskexitgame;	sndaskexitgame.setstartstopflag(false,true);
+		new snd sndyes;			sndyes.setstartstopflag(false,true);
+		new snd sndno;			sndno.setstartstopflag(false,true);
+		new snd sndaskrestart;	sndaskrestart.setstartstopflag(false,true);
+		new snd sndaskrestart2;	sndaskrestart2.setstartstopflag(false,true);
+
+		.reload;
+		this.load( "scripts/common/asker.pyz", 12000 );
+		this.fxonmovon("sndakskermovon");
+	}
+	reload	{
+		this.setwavpath(SNDPATH);
+		@s = .getsndpath;
+		sndaskexit.load( s + "narexit.wav");
+		sndaskexitgame.load( s + "narexitgame.wav");
+		sndyes.load( s + "naryes.wav");
+		sndno.load( s + "narno.wav");
+		sndaskrestart.load( s + "narrestart.wav");
+// 		sndaskrestart2.load( s + "nar14.wav");
+	}
+	askexittomenu()	{
+		this.ask( "sndaskexit", "sndyes", "sndno", "myestomenu", "mnotomenu");
+	}
+	askexitgame	{	.ask( "sndaskexitgame", "sndyes", "sndno", "myestomenu", "mnotomenu");	}
+	askrestart()	{
+		this.ask( "sndaskrestart", "sndyes", "sndno", "myesrestart", "mnorestart");
+	}
+	askrestart2()	{
+		this.ask( "sndaskrestart2", "sndyes", "sndno", "myesrestart", "mnorestart");
+	}
+	mnotomenu()	{}
+	myestomenu()	{
+		modadvglob.delheros;
+		clsave.free;
+		match( gameapi.getgamename() )	{
+			"Menu" => "Outro";
+			? => "Menu";
+		}
+		gameapi.play;
+	}
+	mnorestart()	{
+		match(gameapi.getgamename)	{
+			"Memo" => "gamemenu";
+			? => "Menu";
+		}
+		gameapi.play;
+	}
+	myesrestart()	{	this.crestart();	}
+	/*****************************************************************/
+	ask( string sask, string syes, string sno, string sf1, string sf2 )	{
+		if( !ccs.isplaying )	classasker::ask( sask, syes, sno, sf1, sf2 );
+	}
+}
+
+new classasker2 claskexit;
+
+public LANG=(@s)	{
+	LANG = s;
+	SNDPATH = "sounds/";
+	if( LANG=="pl" ) LANG="";
+	else SNDPATH += LANG + "/";
+	
+	claskexit.reload;
+}
+
+module clbuts	{
+	init()	{}
+	load()	{
+		new classbutton buts;
+		buts.build("scripts/common/buttons.pyz", 14000, "imglobcurs");
+		buts.transclickfunc( engine.actclassname(), "butclick");
+		buts.transmovonfunc( engine.actclassname(), "butmovon");
+		buts.transmovofffunc( engine.actclassname(), "butmovoff");
+		buts.disableall();
+		new db dbb;
+		dbb.load("scripts/common/buts.db");
+		new snd sndfxglobon;
+		sndfxglobon.load("sounds/sfx/globbutmovon.wav");
+		sndfxglobon.setvol(50);
+		new @bvisible = true;
+	}
+	reset()	{
+		buts.disableall();	
+		@sgame = gameapi.getgamename;
+		int pos = dbb.findbyrow( sgame );
+		if( pos>=0 )	{
+			int ile = dbb.getcolsno( pos );
+			for( int i=1; i<ile; i++)	{
+				buts.enable( dbb.get( pos, i ) );
+			}
+		}
+	}
+	enable(string sbu)	{
+		buts.enable( sbu );
+	}
+	/*****************************************/
+	butmovon(string sc)	{
+		sndfxglobon.play();
+		bvisible = mouse.isvisible;
+		mouse.show;
+		match(sc)	{
+			"ok"		=> .cbok_MOVEON;
+			"help", "help2"	=> .cbhelp_MOVEON;
+			? => ;
+		}
+	}
+	butmovoff(string sc)	{
+		if( !bvisible ) mouse.hide;
+		match(sc)	{
+			"ok"		=> .cbok_MOVEOFF;
+			"help", "help2"	=> .cbhelp_MOVEOFF;
+			? => ;
+		}
+	}
+	butclick(string sc)	{
+		match(sc)	{
+			"pause"	=> clpause.pause;
+			"exit"		=> claskexit.askexittomenu;
+			"restart"	=> claskexit.askrestart;
+			"ok"		=> .cbok_CLICK;
+			"help", "help2"	=> .cbhelp_CLICK;
+			? => ;
+		}
+	}
+}
+
+class classplacepointer2 : classplacepointer    {
+	init()  {
+		classplacepointer::init();
+		this.load("scripts/common/strzalka.pyz");
+	}
+}
+
+/***************************************************/
+// new classnextgame clnextgm;
+igmstate = 0;
+|igmdebug, igmeasy, igmdemo, igmbegin| = false, false, false, true;
+
+bsms.setstd;
+
+//clnextgm.load("scripts/common/games.db");
+clbuts.load;
+
+new classfullsave save("scripts/common/save.txt");
+save.stdload;
+
+// ADV
+advmouse.load("scripts/common/cursors.pyz");
+modadv.load("scripts/common/defaults.adv");
+modadv.loadsounds("scripts/common/sounds.db");
+modadv.settalktype("snd");
+modadv.loadscript("scripts/common/initscript.dsc");
+clsave.load("saves/global.txt");
+sgmlastscene = null;
+_fxtakeitem.load("sounds/sfx/getitem.wav");
+_fxtakeitem.setvol(50);
+
+gameapi.play("main");
+
+game main	{
+	init	{
+// 		engine.setdebugstate(1);
+		gameapi.play(modadv.get("startgame:",1) );
+	}
+}
+
+

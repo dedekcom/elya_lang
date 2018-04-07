@@ -1,0 +1,119 @@
+
+game mg46_murena : Banshee	{
+	init	{
+		Banshee::init("mg46_murena");
+		// .addtopck("siec");
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2", "drabinka.pyzH 3", "murena_anim.pyz 4", "bable.pyz 5","bable2.pyz 6","siec.pyzH 7", 
+			"popexit.pyz 45", "ramka.pyz 42");
+		.butpopexit;
+		.butpopexitisinramka;
+		.sfxs = (A,"bgrpodwodaN 30" , "murena 20", "zamach1 10") ;  
+		if (clsave.bis("e1_mg46_murena_murena_w_sieci"))
+		{
+			ansiec.show;
+		}
+		else
+			anmurena_anim.play(0);
+			
+		anbable.play(0);
+		anbable2.play(0);
+		
+		.newsndfree("snd_murena", "kinnat_c4d4_45");
+		snd_murena.addmethod("onfinish", "advsetstdstate"); 
+		
+		.newsndfree("snd_siec", "kinnat_c4d4_45a");
+		snd_siec.addmethod("onfinish", "advsetstdstate"); 
+		
+		 
+		
+		if (!clsave.bis("taken_drabinka"))
+		{
+			.setasitemtopck("andrabinka");
+			andrabinka.show();
+			andrabinka.addmethod("isbutin", func { (@x, @y)
+				.isin(x,y,0,0) && !anmurena_anim.isin(x,y,1,1);
+			} ); 
+			
+		} 
+ 
+		
+		anmurena_anim {
+  			.Button_isinvis;
+  			.addmethod("butmoveon", func {
+  				 
+  				  if(!clsave.bis("e1_mg46_murena_murena_w_sieci"))
+					advmouse.set("use");					
+			} );
+  			.addmethod("butmoveoff", func {
+  				 
+  				  advmouse.setstd;
+  				} ); 
+  			.addmethod("butclick", func {
+  		 	    if( !.advstdstate ) return;
+					if (!clsave.bis("e1_mg46_murena_murena_w_sieci"))
+					{
+						fxmurena.play;
+						.cbplay("snd_murena"); 
+					}
+					 
+				} );
+			butgame.add(this);
+		}; 
+		
+		
+		.stdstart;
+	}
+	
+	andrabinka_TAKE	{	
+		if(clsave.bis("e1_mg46_murena_murena_w_sieci"))
+		{
+			.set_mg_finished;
+			.popitem_gotocenter("drabinka");
+		}
+		else
+			.cbplay("snd_murena"); 
+	}
+	
+	andrabinka_INPCK {
+      .addtopck("drabinka");
+	  .timfinito;
+    } 
+
+	USE_siec	{
+		.advsetstdstate; 
+		if(anmurena_anim.isin(mouse.getpos,0,0) ){
+			.removefrompck("siec");
+			clsave.bset("e1_mg46_murena_murena_w_sieci");
+			fxzamach1.play; 
+			anmurena_anim.stop(false);
+			advmouse.setstd;
+			ansiec.anfadein(500,null); 
+			butgame.removebut("anmurena_anim"); 
+			.cbplay("snd_siec");
+		} 
+		else {
+		  .item_gotopck;
+		}
+	}   
+	
+	 
+	mend	{
+		.stdexitdefadv("ad46_podwodna", "gamead46_podwodna0");
+	}
+	HINT_CLICK	{
+		if (clsave.bis("ma_siec"))
+		{
+			.showhint("anmurena_anim"); 
+			.showhintitem("siec");
+			 
+		} 
+		else if(clsave.bis("e1_mg46_murena_murena_w_sieci"))
+		{
+			.showhint("andrabinka");
+		}
+		else 
+			.showhint("anpopexit");
+	}
+	 
+}
+

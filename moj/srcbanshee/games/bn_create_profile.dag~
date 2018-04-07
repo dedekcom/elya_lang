@@ -1,0 +1,95 @@
+game mgCreateProfile : StdGame	{
+	init	{
+		StdGame::init("mg_createprofile"); 
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2","ok_button.pyz 3","cancel_button.pyz 3"  ); 
+		
+		 .butpopexit;  
+		
+		 
+		new font fntprnom;
+		fntprnom.load( dbconf.dbget("bookfont:"), 40);  
+ 
+		clsmen.saveonset = (true);
+		
+		new int iProfilId = 1;  
+		 
+		new ConTextTyper input("fntprnom", 40, 255,255,255, "a0 ", 15);
+		input.setpos( 530, 220 );
+		input.setz(30);
+		//input.Sdir = ("center");
+		 
+		input.txtset(dbgame.dbget("newplayer")+" " +iProfilId);
+		input.show;
+		input.enable;
+		 
+		anok_button {
+			.addmethod("isbutin", func { (@x, @y)
+				.isin(x,y,1,1);
+			} );
+			.addmethod("butmoveon", func {
+				.setframe(-1,1); 
+				advmouse.setstd;
+				 
+			} );
+			.addmethod("butmoveoff", func {
+				.setframe(-1,0); 
+				advmouse.setstd; 
+				} );
+			.addmethod("butclick", func {
+				clsmen.set("currentprofile",iProfilId);
+				clsmen.set("profilename_"+iProfilId, input.get());
+				.setstdprofile; 
+				.mend;	
+				} );
+			butgame.add(this);
+		};
+		
+		ancancel_button {
+			.addmethod("isbutin", func { (@x, @y)
+				 
+				.isin(x,y,1,1);
+				 
+				} );
+			.addmethod("butmoveon", func {
+				.setframe(-1,1);  
+				advmouse.setstd;
+				 
+				} );
+			.addmethod("butmoveoff", func {
+				.setframe(-1,0);  
+				advmouse.setstd;
+				 
+				} );
+			.addmethod("butclick", func {
+				//if (new_profil)
+				{
+					clsmen.set("currentprofile",iProfilId);
+					clsmen.set("profilename_"+iProfilId, dbgame.dbget("newplayer")+" " + iProfilId);
+					.setstdprofile; 
+				}
+				
+				.mend;	
+				} );
+			butgame.add(this);
+		};
+		
+		mus.smixer = ("engine");
+		mus.playstr("intro.ogg -v 80 -l");
+		
+		ccs.buildblack;
+		ccs.enter( "advsetstdstate" ); 
+	}
+	
+	setstdprofile	{
+		clsmen.set("difficulty_"+iProfilId,1);
+		clsmen.set("fullscreen",1);
+	 	clsmen.set("sound_volume", 50);
+	//	clsmen.set("sfx_volume"+iProfilId, .stdsndvol);
+	}
+	
+	mend	{
+		mus.fadeout(300);
+		ccs.buildfromscreen;
+		gameapi.play("MainMenu"); 
+	}	
+}

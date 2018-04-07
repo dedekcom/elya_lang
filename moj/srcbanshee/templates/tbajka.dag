@@ -1,0 +1,181 @@
+/*
+	templaty do bajek 17.II.2006
+	
+*/
+
+class Tclassopowiesc	{
+	init()	{}
+	/******************** wewnetrzne ***********************/	
+	public tinit(string spath, string sbimg, string sbsnd, int z, int ibazaimg, int iendimg,  int ibazasnd)	{
+		int ilescen = iendimg - ibazaimg + 1;
+		new int iinstate = 1;		// stan programu
+		new img img1;
+		new img img2;
+		new int iwidok = 1;		// aktualnie odgrywana scena
+		new int iilescen = ilescen;		// ilosc scenek do odegrania
+		new bool bprzewijana = false;	//  czy sa strzalki przewijania
+		new int irodzajp;		//  rodzaj przechodzenia miedzy scenami
+		new string simg1 = "img1";
+		new string simg2 = "img2";
+		new int ibajkaz = z;
+		new int iclipw = 800;
+		new int icliph = 600;
+		new int ibasesnd = ibazasnd-1;
+		new int ibaseimg = ibazaimg-1;
+		
+		new int ileft = 0;
+		new int iup = 0;
+		
+		new string sbaseimg = spath + sbimg;
+		new string sbasesnd = sbsnd;
+		
+		new snd sndpop;
+		sndpop.addmethod("onfinish", "mfinpop");
+		this.mloadsnd();
+		
+		this.setgraphpath( spath );
+		img1.load( sbaseimg + (iwidok+ibaseimg) + ".png" );
+		img1.setz( ibajkaz );
+		this.tmodenormal();
+	}
+	public tmodenormal()	{
+		irodzajp=0;
+	}
+	public tmodeopacity(int ic, int idop)	{
+		irodzajp=1;
+		new classfadeinout clfio;
+		new int iopacityc = ic;
+		new int iopacityd = idop;
+	}
+	public tmoderewind(int step)	{
+		irodzajp=2;
+		new string sside;
+		new gmobjvec grimgs;
+		grimgs.add("img1");
+		grimgs.add("img2");
+		new int istep = step;
+		new int imovy = -istep;
+		this.cnewtimercyclefin("timrew", 1, 1, "mfintimrew");
+		timrew.addmethod("onstart", "mrewstart");
+	}
+	public tmodezoom(real skala)	{
+		irodzajp=3;
+		new real rskala = 1;
+		new real rstepskala = skala;
+		new filter ftimg;
+	}
+	public tsetpos(int x, int y, int x2, int y2)	{
+		ileft=x;
+		iup=y;
+		iclipw = x2;
+		icliph = y2;
+		<simg1>.setpos( ileft, iup );
+	}
+	public tloadbuttons(string sfile, string scurs, string sfuncmove)	{
+		bprzewijana = true;
+		this.newclbut("clb", sfile, 100, scurs);
+		clb.clickfunc("mbutclick");
+		clb.movonfunc( sfuncmove );
+	}
+	public tstart()	{
+		this.msndplay();
+	}
+	public tfinish()		{}
+	/******************/
+	mrewstart()	{
+		//sndrew.play();
+	}
+	mrewtick()	{
+		grimgs.move( imovy, 0 );
+		this.play();
+	}
+	mfintimrew()	{
+		if( imovy < 0 )	{
+			if( <simg1>.getpx() + imovy > ileft )	{
+				this.mrewtick();
+			} else {
+				<simg1>.setpos( ileft, iup );
+				<simg2>.hide();
+				this.msndplay();
+			}
+		} else {
+			if( <simg1>.getpx() + imovy < ileft )	{
+				this.mrewtick();
+			} else {
+				<simg1>.setpos( ileft, iup );
+				<simg2>.hide();
+				this.msndplay();
+			}
+		}
+	}
+	mfinclfio()	{
+		this.msndplay();
+// 		<simg2>.transparency(255);
+// 		<simg1>.transparency(255);
+		<simg2>.hide();
+		<simg2>.setz( ibajkaz );
+	}
+	msndplay()	{
+		iinstate = 0;
+		this.cbplay("sndpop");
+	}
+	mloadsnd()	{
+		sndpop.load(this.getsndpath()+sbasesnd + (iwidok+ibasesnd)+".wav");
+	}
+	//mbutmovon(string s)	{}
+	mbutclick(string s)	{
+		if( iinstate != 0 )	{	return; 	}
+		if(s=="next")	{
+			this.mnext(1);
+		} else if (s=="prev")	{
+			this.mnext(-1);
+		} else if (s=="play")	{
+			clpause.pause();
+		} 
+	}
+	mnext(int idir)	{
+		int id = iwidok + idir;
+		if( id > 0 && id <= iilescen )	{
+			iwidok = id;
+			iinstate=1;
+			this.mloadsnd();
+			<simg2>.load( sbaseimg+(iwidok+ibaseimg)+".png" );
+			<simg2>.clip( ileft, iup, iclipw, icliph );
+			<simg2>.setz( ibajkaz );
+			if( irodzajp == 0 )	{
+				<simg2>.setpos( ileft, iup );
+				<simg1>.hide();
+				this.msndplay();
+			} else if( irodzajp == 1 )	{
+				<simg2>.setpos( ileft, iup );
+				<simg2>.setz( ibajkaz-1 );
+				<simg1>.setz( ibajkaz );
+				clfio.imgtransparency( iopacityc, iopacityd, simg1, "mfinclfio");
+			} else if( irodzajp == 3 )	{		// na razie brak
+				<simg2>.setpos( ileft, iup );
+			} else if( irodzajp==2 )	{
+				<simg1>.show();
+				<simg2>.show();
+				if( idir<0 )	{
+					<simg2>.setpos( <simg1>.getpx() - <simg2>.getw(), iup );
+					imovy = istep;
+				} else if (idir>0) {
+					<simg2>.setpos( <simg1>.getex(), iup );
+					imovy = -istep;
+				}
+				timrew.play();
+			}
+			string s = simg1;
+			simg1 = simg2;
+			simg2 = s;
+		}
+	}
+	mfinpop()	{
+		if( iwidok<iilescen )	{
+			this.mnext(1);
+		} else if (iwidok==iilescen)	{
+			this.tfinish();
+		}
+	}
+}
+

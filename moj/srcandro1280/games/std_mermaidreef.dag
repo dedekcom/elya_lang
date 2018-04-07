@@ -1,0 +1,339 @@
+
+new bool bMusic = true;
+new string sgmpuzpref = sgmproject.to_l;
+new string sgmtype = sgmproject.strgetto("_");
+new string sgmname = sgmproject.strgetfrom("_");
+
+new bool bPlayMusic = true;
+
+if( igmandroid )
+	ccs.delay(30);
+
+new int igmmusicvol = 100;
+new string sgmmainmusic;
+
+new string sMenuButOk = "MenuTrybPuzzle";
+new string sMenuButExit = "OutroStd";
+new string sMenuImgPref = "mg_puzzle/imgs/p_puz";
+new real rMenuZoom = 516.0/736.0;
+new string sIntroGame = "IntroStd";
+new string sIntroStdGame = null;
+new string sMenuImgStd = "MenuImgStd";
+new string sPuzBajImgPref = "";
+new string sMainMenuMemo = "OutroStd";
+new string sMemoSize = "lms";
+bHorizon = true;
+
+ccs.benableloading=(true);
+
+match( sgmproject )	{
+	"Kololo_Nela1" => {
+		sgmmainmusic = "nela1";
+		igmmusicvol = 50;
+		bHorizon = false;
+		
+		sMenuButOk = "KoloPion";
+		sMenuImgPref = "menu_wybor/imgsmenu/kol";
+	}
+	"AnimalPuzCol_Asia1" => {
+		sIntroGame = "IntroAsia1";
+	}
+	"Puzzle_Nelapuz" => {
+		sgmmainmusic = "nela1";
+		igmmusicvol = 50;
+	}
+	"Artist_Nelaart" => {
+		sgmmainmusic = "nela1";
+		igmmusicvol = 50;
+		igmenablesave = false;
+		
+		sMenuButOk = "ColoKolo";
+		sMenuImgPref = "kolo/imgscol/colcol_";
+		rMenuZoom = 516.0/912.0;
+	}
+	"Artist_VehArt" => {
+		sgmmainmusic = "vehicles";
+		igmmusicvol = 50;
+		igmenablesave = false;
+		
+		sMenuButOk = "ColoKolo";
+		sMenuImgPref = "kolo/imgscol/colcol_";
+		rMenuZoom = 516.0/912.0;
+	}
+	"Puzzle_CartoonPuz" => {
+		sgmmainmusic = "cartoon";
+		igmmusicvol = 50;
+	}
+	"Artist_Nelaart2", "Artist_Nelaart3" => {
+		igmenablesave = false;
+		
+		sMenuButOk = "ColoKolo";
+		sMenuImgPref = "kolo/imgscol/colcol_";
+		rMenuZoom = 516.0/912.0;
+	}
+	"Puzzle_ForestPuz" => {
+		sgmmainmusic = "bgrlas1";
+		igmmusicvol = 50;
+		
+		ccs.loadloading("scripts/" + sgmpuzpref + "/common/loading.png");
+	}
+	"Puzzle_MountPuz", "Puzzle_FlowersPuz" => {
+		ccs.loadloading("scripts/" + sgmpuzpref + "/common/loading.png");
+	}
+	"Arcade_NelaShip" => {
+		sIntroGame = "IntroNelaShip";
+		sgmmainmusic = "bgrspace";
+		igmmusicvol = 20;
+	}
+	"Bajka_Baj3Swinki", "Bajka_BajCalineczka", "Bajka_Baj7Kozlakow" => {
+		ccs.benableloading=(false);
+		sIntroGame = "IntroBaj3Swinki";
+		sgmmainmusic = "bgrlas1";
+		igmmusicvol = 30;
+	}
+	"Arcade_NelaZoo" => {
+		sIntroGame = "IntroNelaZoo";
+	}
+	"App_CarIns" => {
+		ccs.benableloading=(false);
+	}
+	"Arcade_NelaSnow" => {
+		sMenuImgStd = "MainMenuNelaSnow";
+		sgmmainmusic = "cartoon";
+		igmmusicvol = 40;
+	}
+	/*"Puzzle_KapturekPuz", "Puzzle_3SwinkiPuz", "Puzzle_HalloweenPuz", "Puzzle_NelaSafariPuz",
+	"Puzzle_CarnivalPuz", "Puzzle_NelaFarmPuz", "Puzzle_GrecjaPuz", "Puzzle_XmasPuz" => {
+	}*/
+	"Puzzle_7KozlakowPuz" => {
+		sMenuImgPref = "mg_puzzle/imgs/koz";
+	}
+	"Moda_NelaBal", "Moda_NelaPiknik", "Moda_NelaPlac", "Moda_NelaTurystka" => {
+		sMenuImgStd = "MainMenuModa";
+	}
+	"PuzBaj_CatMouse" => {
+		sIntroStdGame = "MainMenuPuzBaj";
+	}
+	"Memo_Animals" => {
+		sIntroStdGame = "MainMenuMemo";
+	}
+	"PuzBaj_Kroliki" => {
+		sIntroStdGame = "MenuPuzBaj";
+		sMenuImgPref = "mg_puzzle/imgs/";
+		ccs.loadloading("scripts/" + sgmpuzpref + "/common/loading.png");
+	}
+	? => ;
+}
+
+public playmainmusic	{
+	music.smixer = ("engine");
+	if( sgmmainmusic != null )
+		music.playstr( sgmmainmusic + " -l -v " + igmmusicvol );
+}
+
+new int iImgId = 1;
+new int iIleImgs = .readcfg("iIleImgs"+sgmproject+":",iImgId);
+
+SNDPATH = "sounds/" + LANG + "/" + sgmpuzpref + "/";
+
+class MermaidStd : StdGame	{
+	init(string s)	{
+		StdGame::init(s);
+		.setpath2(s);
+	}
+	cfontpath	{	"configs/fonts/seren1.ttf";	}
+	newsfx(string sname, string sfile)	{
+		if( sfile.contains(".") )	{
+			sfile = sfile.strgetto(".");
+		}
+		string s2 = SFXPATH + sgmpuzpref + "/";
+		if( engine.fileexist(s2 + sfile+".wav") ) ._newsnd(sname,s2+sfile+".wav",false);
+		else if( engine.fileexist(s2 + sfile+".ogg") ) ._newsnd(sname,s2+sfile+".ogg",false);
+		else ._newsnd(sname, SFXPATH + sfile, false);	
+	}
+	issfx(string s)	{	engine.fileexist(SFXPATH+sgmpuzpref+"/"+s+".ogg") || engine.fileexist(SFXPATH+sgmpuzpref+"/"+s+".wav") || engine.fileexist(SFXPATH+s+".ogg") || engine.fileexist(SFXPATH+s+".wav"); }
+	setpath2(string s)	{	.path = (sgmpuzpref + "/" + s);	}
+	getgamepath	{	"scripts/" + sgmpuzpref + "/";	}
+	int calcfiles(string spath, string spref, string styp)	{
+		int ile = 0;
+		while( engine.fileexist( spath + spref + (ile+1) + styp ) )	{
+			ile++;
+		}
+		ile;
+	}
+	int calcgmfiles(string spref, string styp)	{	.calcfiles(.getpath(""),spref,styp);	}
+	cwideversion	{	true;	}
+	getcommon(string s)	{
+		@s2 = .getgamepath + "common/" + s;
+		engine.fileexist(s2) ? s2 : "scripts/common/"+ s;
+	}
+	getcommon2(string s)	{	"$" + .getcommon(s);	}
+	loadasker	{
+		if( bHorizon )
+			._loadasker(.getcommon2("asker.pyz"));
+		else
+			._loadasker(.getcommon2("asker_pion.pyz"));
+	}
+	cbutexit	{
+		if( !bHorizon )	{
+			.newanima("anbutexit", .getcommon2("butexit_pion.pyz"), 300);
+			anbutexit.ansetbpos( .getxoffset + 5->igetsc, igmapph - 2*anbutexit.geth );
+		} else {
+			.newanima("anbutexit", .getcommon2("butexit.pyz"), 300);
+			if( igmandroid )	{
+				anbutexit.ansetbpos( .getxoffset + 5->igetsc, igmoffsety );
+			} else
+				anbutexit.ansetbpos( igmoffsetx + iResX - 20->igetsc - anbutexit.getw, igmoffsety );
+		}
+		anbutexit.Button_addstdstate;
+	}
+	cbutexitoverlay	{
+		.cbutexit;
+		.cblinkbutexit;
+	}
+	cblinkbutexit	{
+		if( !igmandroid )
+			anbutexit.imgbuildoverlay(.yellow,64,1200);
+	}
+	cbuthelp	{
+		.newanima("anbuthelp", .getcommon2("help.pyz"), 300);
+		//anbuthelp.ansetbpos( igmoffsetx +iResX - anbuthelp.getw - 20->igetsc, igmoffsety );
+		if( igmandroid )
+			anbuthelp.ansetbpos( anbutexit.getex + 5->igetsc, igmoffsety );
+		else
+			anbuthelp.ansetbpos( anbutexit.getpx - anbuthelp.getw - 5->igetsc, igmoffsety );
+		anbuthelp.Button_addstdstate;
+	}
+	cbutmusicif	{	if( sgmmainmusic != null ) .cbutmuz;	}
+	cbutmusic	{	.cbutmuz;	}
+	cbutmuz		{
+		@s = "anbutexit";
+		if( engine.varexist("anbuthelp") ) s = "anbuthelp";
+		
+		if( !bHorizon )	{
+			.newanima("anbutmuz", .getcommon2("butmuz_pion.pyz"), 300);
+			anbutmuz.ansetbpos( .getxoffset+5->igetsc, <s>.getpy - 5->igetsc - anbutmuz.geth );
+		} else {
+			.newanima("anbutmuz", .getcommon2("butmuz.pyz"), 300);
+			if( igmandroid )
+				anbutmuz.ansetbpos( <s>.getex + 5->igetsc, igmoffsety );
+			else
+				anbutmuz.ansetbpos( <s>.getpx - anbutmuz.getw - 5->igetsc, igmoffsety );
+		}
+		anbutmuz.Button_addstdstate;
+		anbutmuz.setframe( bMusic ? "on" : "off", 0 );
+	}
+	butclick_anbutmuz	{
+		if( bMusic )	{
+			bMusic = false;
+			music.fadeout(500);
+			anbutmuz.setframe("off",0);
+		} else {
+			bMusic = true;
+			anbutmuz.setframe("on",0);
+			.butmuz_playmusic;
+		}
+	}
+	butmuz_playmusic	{	.playmainmusic;	}
+	cloadboki(int z)	{
+		.newanima("an1366bokl", "$scripts/common/boki.pyz", z);
+		.copyanima("an1366bokl", "an1366bokr");
+		an1366bokr.setframe(1,0);
+	}
+	caddymek	{
+		<GAME>.copyanima(this, this+"2");
+		for( int i=0; i < .nofactions-2; i++ )	{
+			@saniko = this+"iko"+i;
+			<GAME>.copyanima(this, saniko);
+			<saniko>.hide;
+			<saniko>.setz( .getz + 1 );
+			<saniko>.setframe(i+2,0);
+			.var2("saniko"+i, saniko);
+		}
+		.vars2(A, "ilesaniko", i, "sancopy", this + "2");
+		<sancopy>.hide;
+		.addmethod("isbutin", func { (int x, int y)
+			<sancopy>.isin(x,y,0,0);
+			} );
+		.addmethod("butmoveon", func {
+			if( .advstdstate )	{
+				advmouse.setact;
+				.play(1);
+				for( int i=0; i<ilesaniko; i++ )	{
+					< ["saniko"+i] >.anzoomin((10.0+i)/10.0*idymekdelay,null);
+				}
+				.Button_butmoveon;
+			}
+			} );
+		.addmethod("butmoveoff", func {
+			if( .advstdstate )	{
+				advmouse.setstd;
+				.play(0);
+				for( int i=0; i<ilesaniko; i++ )	{
+					< ["saniko"+i] >.anzoomout((10.0+i)/10.0*idymekdelay,null);
+				}
+			}
+			} );
+		.addmethod("butclick", func {
+			if( .advstdstate )
+				.Button_butclick;
+			} );
+		butgame.add(this);
+		.play(0);
+	}
+	cbuildbzyczek(string san)	{	<GAME>.cbzyczek(san, <san>.getpx, <san>.getpy);	}
+	cplaybzyczek(string san)	{	.cbuildbzyczek(san); <san>.play(-1);	}
+	anplaybzyczek	{	.cplaybzyczek(this);	}
+	cbzyczek(string san, int xstart, int ystart)	{
+		<san>.ansetbpos( xstart, ystart );
+		@s = "ftbzyk"+san;
+		new filter <s>;
+		<s>.link(san);
+		<san>.var2("iliczbzyk",0);
+		<san>.addmethod("onendframe", func {
+			iliczbzyk++;
+			if( iliczbzyk==1 )	{
+				@s = "ftbzyk"+this;
+				iliczbzyk=0;
+				real kat = 12-21->rand;
+				real dt = 5;
+				real kat2 = <s>.getangle;
+				real x = kat2->sin * dt;
+				real y = kat2->cos * dt;
+				<s>.rotate(kat);
+				.move(-x,-y);
+			}
+			} );
+	}
+	cloadrecord(string sfile, string sname)	{
+		new classfullsave csave(sfile);
+		csave.stdload;
+		csave.saveonset=(true);
+		new bool bisrekord = false;
+		if( csave.has(sname) )	{
+			bisrekord = csave.get(sname);
+			new string sprintrecord = clstrdigit::gettime(bisrekord, "ms");
+		}
+		new int ifontrecordsize = 40->igetsc;
+		.newfont("fntsecrecord", .cfontpath, ifontrecordsize);
+		new int icurtime = 0;
+		.newtext("txtime", "", "fntsecrecord", .red);
+		txtime.setz(100);
+		.cprintcurtime(icurtime);
+		.timer = ("timsecrecord", 1000, func {
+			.csettime(1);
+			.play;
+			} );
+	}
+	cprintcurtime(int itime)	{
+		if( bisrekord )
+			txtime.txtset("Record: " + sprintrecord + " , " + clstrdigit::gettime(itime, "ms"));
+		else
+			txtime.txtset(clstrdigit::gettime(itime, "ms"));
+	}
+	csettime(int id)	{
+		icurtime+=id;
+		.cprintcurtime(icurtime);
+	}
+}
+

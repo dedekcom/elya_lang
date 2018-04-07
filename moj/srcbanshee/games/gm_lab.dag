@@ -1,0 +1,1126 @@
+
+new int iLabLevel = 1;
+new bool bLabiryntRepeat = false;
+game Labirynt : StdGame	{
+	init	{
+		StdGame::init("labirynt");
+		
+		.sfxs = (A, "bgrlochyN 50", "skok2", "skok3", "founditem2 50", "kolowrot 20",
+			"klamka", "odklucza2", "otwierabrame3", "przekreca1", "uderzwstol", "spadaniedesek2",
+			"zamykaloch", "glaz", "glaz2", "putpuz", "padlglaz", "kropla1", "pik", "wpadlwblachy",
+			"klamka2");
+			
+		mus.playstr("logiczne.ogg -l");
+		.newsfx("fxstepka1", "step2.wav");
+		.newsfx("fxstepka2", "step2.wav");
+		.newsfx("fxstepko1", "step2.wav");
+		.newsfx("fxstepko2", "step2.wav");
+		
+		new string smainhero;
+		new string secondhero;
+		new string sbkg;
+		new string sherodir = "d";
+		new bool bherolot = false;
+		new bool bspada = false;
+		new int HEROZ = 30;
+		new vector vjump;
+		vjump.beginadd("begin", 0,0,0,0, 20,10,5,-10, -15,-10,0,0);
+		for( int i=0; i<vjump.size; i++)
+			vjump.set(i, 1.5 * vjump.get(i) );
+		new string sprzejdzdir;
+		new string sdestdoor;
+		new string sandoor;
+		
+		new gmimgvec grwalk;
+		new gmimgvec grwall;
+		new gmimgvec grob;
+		new gmimgvec grob2;
+		
+		.imgs = (A,"hand.pyzH 100", "glowki.pyzH 215", "wyborankokosz.pyz 220", "klawisze.pyzG 220");
+		anhand.var2("pokaz", null);
+		.copyanima("anwyborankokosz", "anwyborankajko");
+		anwyborankajko.setframe("kajko",0);
+		new Button butkk;
+		@sf = func {
+			.Button_stdms;
+			.addmethod("butclick", "msetnexthero");
+			butkk.add(this);
+			};
+		anwyborankajko.<sf>;
+		anwyborankokosz.<sf>;
+		
+		.newgrimg("gritem", "items", 210);
+		gritem.hide;
+		new gmimgvec grit;
+		new gmimgvec grgl;
+		grgl.ancopies("anglowki", gritem.size);
+		
+		.imgs = (A, "pasek.pyz 200", "kajko.pyz "+HEROZ, "kokosz.pyz "+HEROZ);
+		anpasek.setpos(0, iResY-anpasek.geth);
+		
+		if( iLabLevel==1 )	{
+			.imgsgr = (A, "l1tyl1.pyz", "l1tyl2.pyz", "l1door1.pyz 5", "l1bg.pyz 7",
+				"l1tarcza1.pyz 8", "l1maczuga.pyz 9", "l1podpochodnia.pyzP 30",
+				"l1pochodnia.pyzP 31", "l1ogien.pyzP 32", "l1halabarda.pyz 15",
+				"l1klucz.pyz 15", "l1pal.pyz 15", "l1kamlot.pyz 15",
+				"l1porecz.pyz 15", "l1doors2.pyz 15", "l1woda.pyzP 35",
+				"l1wajha.pyz 15", "l1spider.pyz 40", "l1maska.pyz 50",
+				"l1wlktrap.pyz 40", "l1walker.pyzH 100", "l1blokada1.pyzH",
+				"grels");
+			grels.add("ankajko");
+			grels.add("ankokosz");
+			"grob" .* "l1obiekty.pyz";
+			grob.hide;
+			
+			.cycle = ("timpal", func {
+				if( igmstate==1 ) {
+					anl1pal.move(dirx,0);
+					if( (dirx>0 && anl1pal.getpx >= anl1bg.getex) || 
+						(dirx<0 && anl1pal.getpx <= (anl1pal.lodx+grob.getpx) ) )	{
+						dirx = -dirx;
+					}
+					@x = anl1pal.getpx+5;
+					if( ankajko.isin(x, anl1pal.getpy,1,1) || ankajko.isin(x,anl1pal.getcy,1,1) ||
+						ankajko.isin(x,anl1pal.getey,1,1) ||
+						ankokosz.isin(x, anl1pal.getpy,1,1) || ankokosz.isin(x,anl1pal.getcy,1,1) ||
+						ankokosz.isin(x,anl1pal.getey,1,1) )	{
+						bLabiryntRepeat=true;
+						.mrestart;
+					}
+				}
+				.play;
+				} );
+			timpal.var2("dirx", 3);
+			
+			new bool bexit1 = false;
+			
+			anl1wajha.addmethod("onfinish", func {
+				igmstate = 1;
+				anl1door1.anplayfin("open", func {
+					fxzamykaloch.play;
+					} );
+				//fxotwierabrame3.play;
+				timpal.play;
+				fxkolowrot.playloop;
+				} );
+			
+			.cycle = ("timklamlot1", func {
+				bool b=true;
+				for( int i=0; i<3; i++)	{
+					if( grwalk.isin(anl1wlktrap.getcx, anl1wlktrap.getey,0,1) ) {
+						b=false;
+					} else {
+						anl1wlktrap.move(0,5);
+					}
+				}
+				if( b )	{
+					.play;
+				} else {
+					fxuderzwstol.play;
+					grwalk.add("anl1wlktrap");
+					grwall.add("anl1wlktrap");
+				}
+				} );
+			
+			ankajko.setpos(940,720);
+			ankokosz.setpos(970, 720);
+			
+			ankajko.msethero;
+			sbkg = "anl1bg";
+			grwalk.addlist(A,"anl1kamlot", "anl1walker", "anl1wlktrap");
+			grwall.addlist(A,"anl1kamlot", "anl1walker", "anl1blokada1");
+		} else if (iLabLevel==2 )	{
+			.imgs = (A, "l2sky.pyz");
+			.imgsgr = (A, "l2bg.pyz", "l2toporki.pyz 5", "l2snake.pyzP 10", "l2tarcared.pyz 10",
+				"l2tarczazolta.pyz 10", "l2pochodniatyl.pyzP 5", "l2drabina.pyz 15",
+				"l2wajha.pyz 10", "l2zasuw.pyz 15", "l2nakwajha.pyz 17", "l2butkamien.pyz 10",
+				"l2spizarnia.pyz 35", "l2doors1.pyz 15", "l2beczka.pyz 40", "l2klucz.pyzH 42",
+				"l2klapa.pyz 20", "l2mlot.pyz 20", "l2pochodnia.pyz 31", "l2ogien.pyzP 32",
+				"l2skrzynia1.pyz 25", "l2skrzynia2.pyz 25", "l2skrzynia3.pyz 25",
+				"l2siec.pyz 45", "l2maska.pyz 50", "l2lina.pyz 55", "l2wiadro.pyz 57",
+				"l2walker.pyzH", "l2snakemask.pyzH", "l2podrabinie.pyzH", "l2stopdoors.pyzH",
+				"l2krople.pyzG 25",
+				"grels");
+			grels.add("ankajko");
+			grels.add("ankokosz");
+			.mloadobjs("l2obiekty");
+			
+			ankajko.vars2(A, "beztarczy", true);
+			ankokosz.vars2(A, "beztarczy", true);
+			anl2klapa.var2("otwarta", false);
+			anl2drabina.var2("kladka", false);
+			
+			anl2wajha.addmethod("onfinish", func {
+				timwajha2.play;
+				} );
+			.cycle=("timwajha2", func {
+				@dx = 10;
+				if( anl2bg.getex > iResX+dx+5 )	{
+					grels.move(-dx, 0);
+					.play;
+				} else {
+					anl2klapa.play("open");
+					fxkolowrot.setvol(60);
+					fxkolowrot.play;
+				}
+				} );
+			anl2klapa.addmethod("onfinish", func {
+				.mretsnd;
+				otwarta = true;
+				fxzamykaloch.play;
+				fxkolowrot.stop(false);
+				} );
+			
+			.withlist(A, "skrzyniamala", "drabina2", "wajha", "kamien", "drabina3", "drabina4",
+				"mdeactivate");
+			
+			.newsfx("fxkrop1", "kropla2.wav"); fxkrop1.setvol(20);
+			.newsfx("fxkrop2", "kropla2.wav"); fxkrop2.setvol(20);
+			.newsfx("fxkrop3", "kropla2.wav"); fxkrop3.setvol(20);
+			grl2krople.each( func { (@id)
+				.var2("skropla", ("fxkrop"+(id+1)) );
+				.addmethod("onendframe", func {
+					if( .framename=="bum" )
+						<skropla>.playif;
+					if( ankajko.isin(.getcx,.getcy,1,1) )	{
+						if(ankajko.actionname!="tarczal") {
+							.mrestart;
+							<skropla>.playif;
+						} else .play(-1);
+					}
+					if (ankokosz.isin(.getcx,.getcy,1,1) )	{
+						if( ankokosz.actionname!="tarczal") {
+							.mrestart;
+							<skropla>.playif;
+						} else .play(-1);
+					}
+					} );
+				.play(-1);
+				.setframe(-1, .nofframes(-1)->rand);
+				} );
+			
+			ankajko.setpos(940,740);
+			ankokosz.setpos(970, 740);
+			
+			ankokosz.msethero;
+			sbkg = "anl2bg";
+			grwalk.addlist(A,"anl2skrzynia2", "anl2skrzynia1", "anl2skrzynia3", "anl2walker");
+			grwall.addlist(A,"anl2skrzynia2", "anl2skrzynia1", "anl2skrzynia3", "anl2walker", "anl2stopdoors",
+				"anl2snakemask");
+		} else if (iLabLevel==3 )	{
+			.imgsgr = (A, "l3bg.pyz", "l3zjedz.pyz 40", "l3wor1.pyz 10",
+				"l3d6.pyz 5", "l3d6mask.pyz 10", "l3d5.pyz 5", "l3d8.pyz 5",
+				"l3d8mask.pyz 10", "l3d4.pyz 5", "l3d3.pyz 5", "l3d3mask.pyz 10",
+				"l3d1.pyz 5", "l3d1mask.pyz 10", "l3d7.pyz 5", "l3d7mask.pyz 10",
+				"l3porecz.pyz 10",
+				"l3mur.pyz 45", "l3cegla.pyz 47", "l3klucz.pyz 48",
+				"l3drabina.pyz 20", "l3lancuch.pyz 20", "l3zapadnia.pyz 20",
+				"l3skrzynia.pyz 20", "l3worek.pyz 20", "l3maska.pyz 50",
+				"l3walker.pyzH", "l3trap.pyzH", "l3spider.pyz 49",
+				"kajkorynna.pyzH 38",
+				"grels");
+			grels.add("ankajko");
+			grels.add("ankokosz");
+			.mloadobjs("l3obiekty");
+			
+			ankajko.vars2(A, "beztarczy", true);
+			ankokosz.vars2(A, "beztarczy", true);
+			
+			.withlist(A, "worek2", 
+				"mdeactivate");
+			
+			ankajko.setpos(940,740);
+			ankokosz.setpos(970, 740);
+			
+			ankajkorynna.addmethod("onendframe", func {
+				if( .framename=="bum" )
+					fxpadlglaz.play;
+				} );
+			ankajkorynna.addmethod("onfinish", func {
+				ccs.playfin( func {
+					ankajkorynna.hide;
+					if( ankajkorynna.actionnr(-1)==0 )	{
+						ankajko.setpos( ankajkorynna.getcx, ankajkorynna.getey );
+						ankajko.mstand;
+					} else {
+						ankokosz.setpos( ankajkorynna.getcx, ankajkorynna.getey );
+						ankokosz.mstand;
+					}
+					}, "mretsnd" );
+				} );
+			
+			.cycle = ("timzapadnia", func {
+				if( !grwalk.contains("anl3trap") )	{
+					if( anl3trap.isin(<smainhero>.getposx, <smainhero>.getposy,0,1)
+						&& anl3zapadnia.isplaying(0)==false )	{
+						fxklamka.play;
+						anl3zapadnia.play(0);
+					}
+				}
+				.play;
+				} );
+			timzapadnia.play;
+			
+			ankajko.msethero;
+			sbkg = "anl3bg";
+			grwalk.addlist(A, "anl3walker");
+			grwall.addlist(A, "anl3skrzynia", "anl3walker", "anl3mur");
+		}
+		
+		@s3koment1 = func { fxglaz2.play; anl3cegla.hide; .mretsnd; };
+		@skoment2 = func { ccs.playfin( func {
+				delete anl4kajko;
+				delete anl4kokosz;
+				delete anl4bg;
+				delete grel4;
+				sherodir="d";
+				<smainhero>.play("standd");
+				}, func {
+					.mretsnd;
+				} );
+				};
+		@skoment3 = func { ccs.playfin( func {
+					delete anl5bg; delete anl5neti; delete anl5sztur;
+					delete anl5maska; delete anl5kajko; delete anl5kokosz;
+					sherodir="d";
+					<smainhero>.play("standd");
+				}, func {
+					.mretsnd;
+				} );
+				};
+		
+		new classplacepointer2 clp;
+		.sounds = (A, ":kajko1", "Wieko jest chyba przybite do beczki", "mretsnd",
+			":kokosz1", "Nie mogê tego ruszyæ", "mretsnd",
+			":kajko2", "Nie mogê wyci±gn±æ tego m³ota; Mo¿e ty spróbujesz?", "mretsnd",
+			":kajko_klapa", "Klapa u góry jest opuszczona", "mretsnd",
+			":kokosz_klapa", "Trzeba jako¶ usun±æ klapê u góry", "mretsnd",
+			":kokosz3", "Ceg³a w tym miejscu jest lu¼na; Wyci±gnê j±", s3koment1,
+			":kajko3", "Ceg³a w tym miejscu jest lu¼na; Wyci±gnê j±", s3koment1,
+			":kajko4", "Podziemne jezioro; Pewnie sam Hodon nie wie nawet o jego istnieniu; Zawracam", skoment2,
+			":kokosz4", "Podziemne jezioro; Pewnie sam Hodon nie wie nawet o jego istnieniu; Zawracam", skoment2,
+			":kajko5", "Przej¶cie zawalone; Musi byæ od dawna nieu¿ywane; Wracam", skoment3,
+			":kokosz5", "Przej¶cie zawalone; Musi byæ od dawna nieu¿ywane; Wracam", skoment3,
+			"sndnar1", "Kajko i Kokosz znajduj± siê we wnêtrzu ska³y na której stoi zamek Hodona",
+				func { .cbplay("sndnar2"); clp.showob("anwyborankajko","lu"); },
+			"sndnar2", "Kursorem myszy wybierz bohatera którym chcesz sterowaæ",
+				func { .cbplay("sndnar3a"); .mkey("switch"); },
+			"sndnar3a", "Mo¿esz tak¿e prze³±czaæ siê miêdzy Kajkiem i Kokoszem naciskaj±c klawisz Tab",
+				func { .cbplay("sndnar3"); .mkey("go"); },
+			"sndnar3", "U¿yj strza³ek na klawiaturze by chodziæ",
+				func { .cbplay("sndnar4a"); .mkey("jump"); },
+			"sndnar4a", "i skakaæ", func { .cbplay("sndnar4"); .mkey("use"); },
+			"sndnar4", "Gdy obok bohatera pojawi siê r±czka wci¶nij spacjê",
+				func { .mretsnd; clp.stoph; }
+			);
+		
+		grels.add("grob");
+		grels.add("grob2");
+		grels.move(0, -anpasek.geth);
+		grels.add("anhand");
+		
+		sherodir = "d";
+		ankajko.mpreparehero;
+		ankokosz.mpreparehero;
+		
+		.cycle = ("timgame", func {
+			if( igmstate==5 )	{
+				.play;
+				return;
+			}
+			int dx = iResX/2 - <smainhero>.getposx;
+			int dt = 4;
+			int movx = 0;
+			int movy = 0;
+			if( dx>20 )	{
+				@x = <sbkg>.getpx;
+				if( x < 0 )
+					movx = (dt < -x ? dt : -x);
+			} else if( dx<-20) {
+				@x = <sbkg>.getex - iResX;
+				if( x > 0 )
+					movx = (x > dt ? -dt : -x);
+			}
+			
+			int dy = iResY/2 - <smainhero>.getposy;
+			dt = 4;
+			if( dy>20 )	{
+				@y = <sbkg>.getpy;
+				if( y < 0 )
+					movy = (dt < -y ? dt : -y);
+			} else if( dy<-20) {
+				@y = <sbkg>.getey - anpasek.getpy;
+				if( y > 0 )
+					movy = (y > dt ? -dt : -y);
+			}
+			if( (movx||movy) )
+				grels.move(movx,movy);
+			.play;
+			} );
+		timgame.play;
+		
+		.timer = ("timwait", 200, "mretsnd");
+		
+		if( iLabLevel==1 )	{
+			if( bLabiryntRepeat )	{
+				bLabiryntRepeat=false;
+				.mretsnd;
+			} else {
+				.cbplay("sndnar1");
+			}
+		} else
+			.mretsnd;
+	}
+	mkey(string s)	{
+		clp.showob( grklawisze.getsac(s), "rd" );
+	}
+	mwait	{
+		igmstate = 2;
+		timwait.play;
+	}
+	mloadobjs(string s)	{
+		"grob" .* (s+".pyz");
+		grob.hide;
+		grob.eval( func {
+			.vars2(A, "bactive", true);
+			.setz(20);
+			} );
+	}
+	mrestart	{
+		if( igmstate==3 ) return;
+		igmstate = 3;
+		ccs.close( func { gameapi.play(GAME); } );
+	}
+	mpreparehero	{
+		.mustaw;
+		.vars2(A, "heroh", ankajko.geth, "herow2", ankajko.getw/2, "bwyszedl", false);
+		
+		.addmethod("onfinish", "mherofinish"  );
+		.addmethod("onendframe", "mheroframe" );
+		.play("standd");
+	}
+	mherofinish	{
+		@s =  .actionname;
+		if( s=="jumpl" || s=="jumpr" )	{
+			bherolot=false;
+			.mustaw;
+		} else if (s=="takel" || s=="taker")	{
+			if( igmstate==5 )	{
+			} else if( iLabLevel==2 && igmstate == 6 )	{	// level 2 tarcza
+				.play("tarczal");
+				return;
+			} else igmstate = 1;
+		} else if (iLabLevel==2 && s=="mlotl")	{
+			sherodir="l";
+			igmstate = 1;
+			anl2beczka.anplayfin(1, func {
+				fxuderzwstol.play;
+				fxspadaniedesek2.play;
+				.var("rozbita");
+				anl2klucz.show;
+				} );
+		} else if (iLabLevel==2 && s=="pchar" )	{
+			.play(-1);
+			return;
+		} else if (iLabLevel==2 && s=="tarczal") {
+			.play(-1);
+			return;
+		}
+		if( bspada && .mbok )	{
+			.play("spada"+sherodir);
+		} else {
+			.mstand;
+		}
+	}
+	mnexthero	{
+		if( <secondhero>.bwyszedl ) return;
+		if( <smainhero>.actionname->getb(0,5)=="stand" )	{
+			if( smainhero=="ankajko" )
+				ankokosz.msethero;
+			else ankajko.msethero;
+			fxpik.play;
+		}
+	}
+	msethero	{
+		if( this=="ankajko")	{
+			ankokosz.setz(HEROZ);
+			secondhero = "ankokosz";
+		} else {
+			ankajko.setz(HEROZ);
+			secondhero = "ankajko";
+		}
+		.setz(HEROZ+1);
+		smainhero = this;
+		
+		<"anwybor"+smainhero>.setframe(-1,1);
+		<"anwybor"+secondhero>.setframe(-1,0);
+		
+		sherodir = .mgetdir;
+		.mstand;
+	}
+	mgetdir	{	.actionname->gete(0,1);	}
+	mdelact(string s)	{	grob.remove(s);	}
+	mdeactivate(string s)	{
+		@s2 = grob.getsac(s);
+		<s2>.bactive = (false);
+		grob.remove(s2);
+		grob2.add(s2);
+	}
+	mactivate(string s)	{
+		@s2 = grob2.getsac(s);
+		grob2.remove(s2);
+		grob.add(s2);
+		<s2>.bactive = (true);
+	}
+	mheroframe	{
+		@dx = 10;
+		if( iLabLevel==2 && .actionname=="pchar" )	{
+			.move(dx,0);
+			if( .hasvar("wypchnal1") )	{
+				anl2skrzynia1.move(dx,0);
+				if( anl2skrzynia1.getex>=anl2skrzynia2.getpx )	{
+					igmstate=1;
+					.mactivate("drabina2");
+					.mstand;
+				}
+			} else {
+				anl2skrzynia2.move(dx,0);
+				if( anl2skrzynia2.getex>=720+grels.getpx )	{
+					.var("wypchnal1");
+					igmstate = 1;
+					.mstand;
+				}
+			}
+			return;
+		} else if (iLabLevel==2 && .actionname=="tarczal" )	{
+			.move(-dx,0);
+			if( .getex < 240 )	{
+				igmstate=1;
+				.mstand;
+			}
+			return;
+		}
+		
+		if( igmstate==1 && this==smainhero )	{
+			@bkey = false;
+			if( keyboard.iskeydown("left") )	{
+				sherodir = "l";
+				.mgo(-dx);
+				bkey = true;
+			} else if( keyboard.iskeydown("right") )	{
+				sherodir = "r";
+				.mgo(dx);
+				bkey = true;
+			}
+			if( keyboard.iskeydown("up") )	{
+				if( sherodir=="u" )	{
+					.play("standu");
+					bkey = true;
+				} else if (!bherolot && !bspada && .mbok)	{
+					bherolot=true;
+					.mplay("jump"+sherodir);
+					bkey = true;
+				}
+			}
+			if( !bkey && !bspada) {
+				.mstand;
+			}
+			if( bherolot )	{
+				if( grwall.isin(.getcx, .getpy,0,1) )	{
+					
+				} else {
+					.move(0, -vjump.get(.framenr));
+					while( grwalk.isin(.getposx, .getposy, 0, 1) || .getposy > anpasek.getpy-3 )	{
+						.move(0,-1);
+					}
+				}
+			}
+			
+			if( grob.isin(.getposx, .getposy, 0,1) )	{
+				@s = grob.getsfound;
+				.mshowob(s);
+				if( keyboard.iskeydown("space") && !bherolot && !bspada )	{
+					fxfounditem2.play;
+					match(iLabLevel)	{
+						1 => {
+							match(<s>.actionname)	{
+								"l1" => .mprzejdz("l2", "r");
+								"l2" => .mprzejdz("l1", "r");
+								"r1" => .mprzejdz("u1", "d");
+								"u1" => {
+									sherodir = "u";
+									<smainhero>.play("standu");
+									.mprzejdz("r1", "l");
+								}
+								"u2" => {
+									if( !bexit1 )	{
+										if( .hasvar("klucz_nr1") )	{
+											bexit1 = true;
+											.moutpck("klucz_nr1");
+											igmstate = 2;
+											fxodklucza2.play;
+											fxotwierabrame3.play;
+											anl1doors2.anplayfin("open", "mwznow");
+										}
+									} else {
+										if(!.mwyjdz) {
+											sherodir="u";
+											.mstand;
+											.mnexthero;
+										}
+									}
+								}
+								"kluczl" => {
+									.mtake("anl1klucz", "r", "klucz_nr1");
+									.mdelact(s);
+									.mdelact(grob.getsac("kluczr"));
+								}
+								"kluczr" => {
+									.mtake("anl1klucz", "l", "klucz_nr1");
+									.mdelact(s);
+									.mdelact(grob.getsac("kluczl"));
+								}
+								"wajha" => {
+									igmstate = 2;
+									
+									.mdelact(s);
+									anl1wajha.play(0);
+									sherodir = "r";
+									grwall.remove("anl1blokada1");
+									.play("taker");
+									
+									fxprzekreca1.play;
+								}
+								"halabarda" => {
+									.mtake("anl1halabarda", "r", "halabarda");
+									.mdelact(s);
+								}
+								"beczka" => ;
+								? => ;
+							}
+						}
+						2 => {
+							match(<s>.actionname)	{
+								"skrzyniamala" => {
+									if( smainhero=="ankokosz" )	{
+										igmstate = 2;
+										.mdelact(s);
+										.mactivate("kamien");
+										ankokosz.play("pchar");
+										fxglaz.play;
+									}
+								}
+								"drabina1" => {
+									.mtake("anl2drabina", "l", "drabina_nr1");
+									.mdelact(s);
+								}
+								"drabina2" => {
+									if( .hasvar("drabina_nr1") )	{
+										fxputpuz.play;
+										.moutpck("drabina_nr1");
+										anl2drabina.kladka = (true);
+										anl2drabina.setframe(1,0);
+										anl2drabina.show;
+										grwalk.add("anl2podrabinie");
+										grwall.add("anl2podrabinie");
+										.mactivate("drabina3");
+										.mactivate("drabina4");
+										.mdelact(s);
+									}
+								}
+								"drabina3" => {
+									if( anl2drabina.kladka )	{
+										fxputpuz.play;
+										anl2drabina.setframe(2,0);
+										anl2drabina.kladka = (false);
+										grwalk.remove("anl2podrabinie");
+										grwall.remove("anl2podrabinie");
+										.mwait;
+									} else {
+										fxputpuz.play;
+										if( anl2klapa.otwarta )	{
+											.mprzejdz("gora", "l");
+										} else {
+											.mcomment(smainhero->strsubbs("an")+"_klapa");
+										}
+									}
+								}
+								"drabina4" => {
+									if( anl2drabina.kladka == false )	{
+										fxputpuz.play;
+										anl2drabina.kladka = (true);
+										anl2drabina.setframe(1,0);
+										grwalk.add("anl2podrabinie");
+										grwall.add("anl2podrabinie");
+									}
+								}
+								"in2l" => {
+									.mprzejdz("in1l", "r");
+								}
+								"in1l" => {
+									.mprzejdz("in2l", "r");
+								}
+								"door1" => {
+									if( .hasvar("bmaklucz") )	{
+										.mdelact(s);
+										fxodklucza2.play;
+										fxprzekreca1.play;
+										anl2doors1.anplayfin(0, func {
+											grwall.remove("anl2stopdoors");
+											} );
+									}
+								}
+								"gora" => {
+									if( anl2klapa.otwarta && !anl2drabina.kladka )	{
+										.mprzejdz("drabina3", "l");
+									}
+								}
+								"tarcza" => {
+									if( beztarczy )	{
+										if( this=="ankokosz" )	{
+											.mtake("anl2tarcared", "l", "czerwona");
+										} else {
+											.mtake("anl2tarczazolta", "r", "zolta");
+										}
+										beztarczy = false;
+										igmstate = 6;
+									}
+									if( ankokosz.hasvar("czerwona") && ankajko.hasvar("zolta") )
+										.mdelact(s);
+								}
+								"exit" => {
+									if(!.mwyjdz) {
+										sherodir="u";
+										.mstand;
+										.mnexthero;
+									}
+								}
+								"skrzynia2" => {
+									if( smainhero=="ankokosz" )	{
+										igmstate = 2;
+										.mdelact(s);
+										.mactivate("skrzyniamala");
+										ankokosz.play("pchar");
+										fxglaz.play;
+									}
+								}
+								"kamien" => {
+									anl2butkamien.play(0);
+									anl2zasuw.anplayfin( 0, "mretsnd" );
+									igmstate = 2;
+									.mactivate("wajha");
+									.mdelact(s);
+									sherodir = "r";
+									.play("taker");
+									fxprzekreca1.play;
+									fxglaz.play;
+								}
+								"wajha" => {
+									igmstate = 5;
+									anl2wajha.play(1);
+									.mdelact(s);
+									sherodir = "r";
+									.play("taker");
+									fxklamka.play;
+								}
+								"mlot" => {
+									if( smainhero=="ankajko" ) .mcomment("kajko2");
+									else {
+										.var("bmlot");
+										.mtake("anl2mlot", "l", "mlot");
+										.mdelact(s);
+									}
+								}
+								"beczka" => {
+									if( !<s>.hasvar("rozbita") )	{
+										if (.hasvar("bmlot"))	{
+											igmstate = 2;
+											<s>.var("rozbita");
+											.play("mlotl");
+										} else {
+											if( smainhero=="ankajko" )
+												.mcomment("kajko1");
+											else .mcomment("kokosz1");
+										}
+									} else {
+										.mtake("anl2klucz", "l", "klucz_nr2");
+										.var("bmaklucz");
+										.mdelact(s);
+									}
+								}
+								? => ;
+							}
+						}
+						3 => {
+							match(<s>.actionname)	{
+								"worek2" => {
+									if( .hasvar("worek") )	{
+										anl3worek.setframe(1,0);
+										anl3worek.show;
+										grwalk.add("anl3worek");
+										grwall.add("anl3worek");
+										.mdelact(s);
+										fxpadlglaz.play;
+									}
+								}
+								"rynna" => {
+									igmstate = 2;
+									.mgou;
+									ccs.playfin( func {
+											<smainhero>.stop(false);
+											<smainhero>.setpos(2000,2000);
+										}, func {
+											if( smainhero=="ankajko" )
+												ankajkorynna.play(0);
+											else ankajkorynna.play(1);
+											fxwpadlwblachy.play;
+										} );
+								}
+								"worek1" => {
+									.mtake("anl3worek", "r", "worek");
+									.mdelact(s);
+									.mactivate("worek2");
+								}
+								"to5" => {
+									.mgou;
+									if( anl3d1.hasvar("otwarte") )	{
+										.mprzejdzopen("to1", "d", "anl3d5");
+									} else {
+										igmstate = 2;
+										anl3d1.var("otwarte");
+										anl3d1.anplayfin( 0 , "mretsnd" );
+										fxotwierabrame3.play;
+									}
+								}
+								"tol4" => {
+									.mgou;
+									igmstate = 2;
+									ccs.playfin( func {
+										.imgsgr = (A, "l4bg.pyz 90",
+											"l4kajko.pyz 95", "l4kokosz.pyz 95",
+											"grel4");
+										grel4.move(0, -anpasek.geth);
+										if( smainhero=="ankajko" )
+											anl4kokosz.hide;
+										else anl4kajko.hide;
+										} , func { .cbplay( smainhero.strsubbs("an")+"4" ); } );
+								}
+								"tol5" => {
+									.mgou;
+									if( anl3d6.hasvar("podniesiona") )	{
+										igmstate = 2;
+										ccs.playfin( func {
+											.imgs = (A, "l5bg.pyz 90", "l5neti.pyzP 91",
+												"l5sztur.pyzP 91", "l5maska.pyz 99",
+												"l5kajko.pyz 95", "l5kokosz.pyz 95");
+											if( smainhero=="ankajko" )
+												anl5kokosz.hide;
+											else anl5kajko.hide;
+											} , func {
+												.cbplay( smainhero.strsubbs("an")+"5" );
+												} );
+									}
+								}
+								"to4" => {
+									.mgou;
+									if( anl3d3.hasvar("otwarte") )	{
+										.mprzejdzopen("to3", "d", "anl3d4");
+									} else {
+										igmstate = 2;
+										anl3d3.var("otwarte");
+										anl3d3.anplayfin( 0 , "mretsnd" );
+										fxotwierabrame3.play;
+									}
+								}
+								"to3" => {
+									.mgou;
+									.mprzejdz("to4", "d");
+								}
+								"klucz_nr3" => {
+									if( anl3cegla.isvisible )	{
+										.mcomment( smainhero->strsubbs("an") + "3" );
+									} else {
+										.mtake("anl3klucz", "l", "klucz_nr3");
+										.mdelact(s);
+									}
+								}
+								"to1" => {
+									.mgou;
+									if( anl3d5.hasvar("otwarte") )	{
+										.mprzejdzopen("to5", "d", "anl3d1");
+									} else {
+										igmstate = 2;
+										anl3d5.var("otwarte");
+										anl3d5.anplayfin( 0 , "mretsnd" );
+										fxotwierabrame3.play;
+									}
+								}
+								"drabina" => {
+									.mtake("anl3drabina", "l", "drabina_nr2");
+									.mdelact(s);
+								}
+								"drabina2" => {
+									if( .hasvar("drabina_nr2") )	{
+										anl3drabina.setframe(1,0);
+										anl3drabina.show;
+										grwalk.add("anl3trap");
+									}
+								}
+								"lancuch" => {
+									igmstate = 2;
+									anl3lancuch.setframe(1,0);
+									anl3d6.var("podniesiona");
+									anl3d6.anplayfin(0, "mretsnd");
+									.mdelact(s);
+									fxprzekreca1.play;
+								}
+								"to8" => {
+									.mgou;
+									if( anl3d7.hasvar("otwarte") )	{
+										.mprzejdzopen("to7", "d", "anl3d8");
+									} else  if( .hasvar("klucz_nr3") )	{
+										igmstate = 2;
+										anl3d7.var("otwarte");
+										anl3d7.anplayfin( 0 , "mretsnd" );
+										fxotwierabrame3.play;
+										fxodklucza2.play;
+									} else {
+										fxklamka2.play;
+									}
+								}
+								"to7" => {
+									.mgou;
+									if( anl3d8.hasvar("otwarte") )	{
+										.mprzejdzopen("to8", "d", "anl3d7");
+									} else  {
+										igmstate = 2;
+										anl3d8.var("otwarte");
+										anl3d8.anplayfin( 0 , "mretsnd" );
+										fxotwierabrame3.play;
+									}
+								}
+								"exit" => {
+									if(!.mwyjdz) {
+										sherodir="u";
+										.mstand;
+										.mnexthero;
+									}
+								}
+								? => ;
+							}
+						}
+						? => ;
+					}
+				}
+			} else
+				.mhideob;
+		}
+		.mustaw;
+	}
+	mgou	{
+		sherodir="u";
+		<smainhero>.play("standu");
+		.mhideob;
+	}
+	mcomment(string s)	{
+		igmstate = 2;
+		.cbplay(s);
+	}
+	mretsnd	{	igmstate = 1;	}
+	mwyjdz	{
+		bwyszedl = true;
+		if( <secondhero>.bwyszedl )	{
+			.mnextlevel;
+			true;
+		} else false;
+	}
+	mtake(string san, string sdir, string sitem)	{
+		.var2(sitem,1);
+		igmstate = 2;
+		sherodir = sdir;
+		<smainhero>.play("take"+sdir);
+		<san>.hide;
+		.mtopck(sitem);
+	}
+	mtopck(string sitem)	{
+		@s = gritem.getsac(sitem);
+		grit.add(s);
+		<s>.show;
+		@s2 = grgl.get(grit.size-1);
+		<s2>.setframe(smainhero, 0);
+		<s2>.show;
+		.mpckorder;
+	}
+	moutpck(string sitem)	{
+		@id = grit.findsac(sitem);
+		grit.removeat( id );
+		grgl.removeat( id );
+		.mpckorder;
+	}
+	mpckorder	{
+		if( grit.size )	{
+			@s = grit.first;
+			string s2;
+			for( int i=0; i<grit.size; i++)	{
+				s2 = grit.get(i);
+				<s2>.setpos( 40 + i*(<s>.getw+5), anpasek.getcy - <s>.geth/2 );
+				<grgl.get(i)>.setpos( <s2>.getcx, <s2>.getpy );
+			}
+		}
+	}
+	mhideob	{
+		if( anhand.isplaying(-1) )	{
+			anhand.anhide;
+			anhand.pokaz = (null);
+		}
+	}
+	mshowob(string s)	{
+		if( anhand.isplaying(0)==false || (anhand.isplaying(0) && anhand.pokaz!=s) )	{
+			anhand.pokaz=(s);
+			anhand.setpos(<s>.getcx, <s>.getcy);
+			anhand.play(0);
+		}
+	}
+	mprzejdz(string sgdzie, string sdir)	{
+		sdestdoor = sgdzie;
+		sprzejdzdir = sdir;
+		igmstate = 2;
+		ccs.playfin( func {
+			@s = grob.getsac( sdestdoor );
+			sherodir = sprzejdzdir;
+			<smainhero>.setpos( <s>.getcx, <s>.getey );
+			<smainhero>.mstand;
+			<smainhero>.mustaw;
+			.mhideob;
+			}, "mwznow" );
+	}
+	mprzejdzopen(string sgdzie, string sdir, string sdoors)	{
+		sdestdoor = sgdzie;
+		sandoor = sdoors;
+		sprzejdzdir = sdir;
+		igmstate = 2;
+		ccs.playfin( func {
+				@s = grob.getsac( sdestdoor );
+				sherodir = sprzejdzdir;
+				<smainhero>.setpos( <s>.getcx, <s>.getey );
+				<smainhero>.mstand;
+				<smainhero>.mustaw;
+				<smainhero>.setz(4);
+				.mhideob;
+			}, func {
+				if( <sandoor>.hasvar("otwarte") )	{
+					<smainhero>.setz(HEROZ+1);
+					.mwznow;
+				} else {
+					<sandoor>.anplayfin(0, func {
+						.var("otwarte");
+						<smainhero>.setz(HEROZ+1);
+						.mwznow;
+						} );
+				}
+			} );
+	}
+	mwznow	{
+		igmstate = 1;
+	}
+	mstand	{
+		if( bherolot==false )	{
+			if( this==smainhero )
+				.mplay("stand"+sherodir);
+			else .mplay("stand"+.mgetdir);
+		}
+	}
+	mustaw	{
+		for( int i=0; i<3; i++)	{
+			if( !bherolot && grwalk.isin(.getposx, .getposy, 0, 1)==0 && .getposy<1000 )	{
+				.move(0,5);
+				bspada = true;
+			}
+			if( bspada==false ) i=3;
+		}
+		while( grwalk.isin(.getposx, .getposy, 0, 1) )	{
+			.mnadep(grwalk.getsfound);
+			.move(0,-1);
+			bspada = false;
+		}
+		if( bspada )	{
+			if( .mbok )	{
+				.mplay("spada"+sherodir);
+			}
+		}
+	}
+	mnadep(string s)	{
+		if( iLabLevel==1 && s=="anl1wlktrap" && !<s>.hasvar("btrapok") )	{
+			<s>.var2("btrapok", true);
+			grwalk.remove(s);
+			timklamlot1.play;
+		}
+	}
+	mbok	{	sherodir=="l" || sherodir=="r";	}
+	mplay(string s)	{
+		if( .isplaying(s) == false )
+			.play(s);
+	}
+	mgo(int dx)	{
+		if( bherolot )	{
+			if( .between(3,.framenr,10) )
+				.mmove(dx);
+		} else if ( bspada )	{
+			.mmove(dx);
+		} else {
+			.mplay("go"+sherodir);
+			.mmove(dx);
+		}
+	}
+	mmove(int dx)	{
+		int x;
+		if( dx>0 ) x = .getposx + .herow2 + dx;
+		else 	x = .getposx - .herow2 + dx;
+		int y = .getpy;
+		int h = .geth;
+		//int h = .heroh;
+		if(	grwall.isin(x, 0.2*h + y,0,1)==false &&
+			grwall.isin(x, 0.5*h + y,0,1)==false && 
+			grwall.isin(x, 0.8*h + y,0,1)==false )	{
+			.move(dx, 0);
+		} else .mbumw(grwall.getsfound);
+	}
+	mbumw(string s)	{
+		if( iLabLevel==2 && s=="anl2snakemask" )
+			.mrestart;
+	}
+	msetnexthero	{
+		if( igmstate==1 )
+			<GAME>.mnexthero;
+	}
+	key_down	{
+		if( igmstate==1 )	{
+			if( keyboard.iskey("tab") )	{
+				.msetnexthero;
+			}
+		}
+	}
+	mnextlevel	{
+		ccs.close( func {
+			iLabLevel++;
+			if( iLabLevel==4 )	{
+				.gotoadv("adkor", "gameadkor2");
+			} else {
+				gameapi.play(GAME);
+			}
+			} );
+	}
+	mouse_rclick	{
+		if( igmdebug )	{
+			<smainhero>.setpos(mouse.getpos);
+			engine.getimg(mouse.getpos,1,1,-1000,1000)->print;
+			""->print;
+		}
+	}
+	mouse_lclick	{
+		if( igmdebug && igmstate==0 )	{
+			.cactsndstop(true);
+		}
+	}
+}
+

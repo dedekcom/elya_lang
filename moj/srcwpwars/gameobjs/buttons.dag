@@ -1,0 +1,52 @@
+class Buttons : LObjController	{
+	init(string sfile)	{
+		LObjController::init;
+		.unlock;
+		new gmimgvec grbuts;
+		new string sanbut = "anbut";
+		.newanima(sanbut, sfile, 10);
+		_ = .newanactionsgr(sanbut, sanbut, "grbuts");
+		anbut.hide;
+		grbuts.setz(10);
+		grbuts.removeif( func {
+			if( .actionname=="bkg" ) { if(!engine.varexist("anbutbkg")) .addtogamevars("anbutbkg");
+				.setz( .getz-1); true; }
+			else false; } );
+		new string slastb = null;
+		.var2("sobject", null);
+	}
+	_release()	{
+		<slastb>.setframe(-1,0);
+		.copyobj;
+		.<this + "_moveoff">();
+		slastb = null;
+	}
+	onmousemove()	{
+		if( .getlock ) return;
+		grbuts.isetframe(-1,0);
+		def id =  grbuts.isin(mouse.getpos,true,true);
+		if( slastb!=null ) <slastb>.setframe(-1, 1);
+		if( id ) {
+			string s = grbuts.getsfound;
+			if( s!=slastb )	{
+				if( slastb!=null )	._release;
+				slastb = s;
+				<s>.setframe(-1,1);
+				.copyobj;
+				.<this + "_moveon">();
+			}
+		} else if( slastb!=null )	{
+			._release;
+		}
+		slastb==null ? bsms.setstd : bsms.setact;
+	}
+	busy	{	slastb!=null;	}
+	copyobj()	{	sobject = <slastb>.actionname;	}
+	onmouselclick()	{
+		if( .getlock ) return;
+		if( slastb!=null )	{
+			.copyobj;
+			.<this + "_lclick">;
+		}
+	}
+}

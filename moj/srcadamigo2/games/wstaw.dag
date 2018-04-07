@@ -1,0 +1,195 @@
+/*******************************************************/
+new string sgamewstaw;
+new int igmwstawtype;
+new bool bgmwstaw;
+game gamemenuwstaw : classadvadamigo2 , Tclassmenu	{
+	init()	{
+		classadvadamigo2::init();
+		Tclassmenu::init();
+		this.tload("scripts/wstawianki/","menubuts.pyz","menubuts.db");
+		bgmwstaw=true;
+	}
+	startgame(string sg)	{
+		sgamewstaw = sg;
+		gameapi.play("gamesubmenuwstaw");
+	}
+	wiosna_BUTCLICK()	{	this.startgame("wiosna");	}
+	lato_BUTCLICK()	{	this.startgame("lato");	}
+	jesien_BUTCLICK()	{	this.startgame("jesien");	}
+	zima_BUTCLICK()	{	this.startgame("zima");	}
+}
+
+game gamesubmenuwstaw : classadvadamigo2 , Tclassmenu	{
+	init()	{
+		classadvadamigo2::init();
+		Tclassmenu::init();
+		this.tload("scripts/wstawianki/","submenu.pyz","submenu.db");
+		bgmwstaw=true;
+	}
+	tryb1_BUTCLICK()	{
+		igmwstawtype = 1;
+		gameapi.play("gamewstawianka");
+	}
+	tryb2_BUTCLICK()	{
+		igmwstawtype = 2;
+		gameapi.play("gamewstawianka");
+	}
+	tryb3_BUTCLICK()	{
+		igmwstawtype = 3;
+		gameapi.play("gamewstawiankazgadanka");
+	}
+}
+
+game gamewstawianka : classadvadamigo2	{
+	init()	{
+		classadvadamigo2::init();
+		.path = ("wstawianki");
+		.bkg = ("bkgame.pyz");
+		
+		new int ilejest;
+		int ile;
+		string s, string s1;
+		int i1;
+		new gmimgvec gral;
+		
+		if( igmwstawtype==1 ){
+			this.newanima("anbg",sgamewstaw+".pyz",1);
+			this.newanima("anel","elementy.pyz",10);
+			ilejest = anel.nofframes(sgamewstaw);
+			ile = ilejest*2;
+		}else if( igmwstawtype==2 )	{
+			this.newanima("anbg",sgamewstaw+"2.pyz",1);
+			this.copyanima("anbg","anel");
+			anel.setz(10);
+			anel.setframe(1,0);
+			ilejest = anel.nofframes(1);
+			ile=ilejest;
+		}
+		
+		for( int i=0; i<ile; i++)	{
+			s = "anel"+i;
+			this.copyanima("anel",s);
+			if( i<ilejest )	{
+				if( igmwstawtype==1 )	<s>.setframe( sgamewstaw, i );
+				else if( igmwstawtype==2 )	<s>.setframe( 1, i );
+			} else {
+				i1 = i1.rand( <s>.nofactions() );
+				while(i1==anel.actionnr(sgamewstaw))	{
+					i1 = i1.rand( <s>.nofactions() );
+				}
+				<s>.setframe( i1, i1.rand( <s>.nofframes(i1) ) );
+			}
+			gral.add(s);
+			/*s1 = "butel"+i;
+			this.newbutan(s1, s, null, null, "imglobcurs");
+			<s1>.addmethod("onclick", "butclick");
+			<s1>.addmethod("onrel", "butrel");*/
+		}
+		new int imovy = 290-anbg.geth()/2;
+// 		anbg.move(0,imovy);
+		
+		gral.hash();
+		gral.sortimgs;
+		new Rewinder clrew;
+		clrew.build("scripts/wstawianki/strzalki.pyz",5,"imglobcurs","left",10,"gral");
+		clrew.setfxrew("sfx/przesun.wav");
+// 		gral.move(-100,0);
+// 		clrew.movearrows(-100,0);
+		anel.hide();
+		
+		new string smoved=null;
+		new int imovx= 769-anbg.getw;
+		new int idxmov = 15;
+		anbg.move(imovx, imovy);
+		
+		new DelayTaker cldt;
+		
+		this.newsnd("sfxmov","sfx/step.wav");
+		this.newsnd("sfxclick","sfx/getitem.wav");
+		this.newsnd("sfxrel","sfx/putpuz.wav");
+		
+		new vector vecgry;
+		vecgry.type("string");
+		vecgry.beginadd("begin", "wiosna", "lato", "jesien", "zima");
+		this.newsnd("sndend1", "wstaw"+( vecgry.find( sgamewstaw ) + 10 ) + ".wav" );
+		sndend1.addmethod("onfinish", "sndend1fin");
+		
+		this.cloadwavs("dbwav", "wavs.db");
+		igmstate=0;
+		if( bgmwstaw )	{
+			bgmwstaw=false;
+			this.cbplay("sndintro");
+		} else {
+			this.mintrofin();
+		}
+	}
+	mintrofin()	{
+		igmstate=1;
+		clrew.unlock();
+	}
+	mousemove	{	clrew.moveitem;	}
+	mouselrel	{	.butrel;	}
+	mouselclick	{
+		.butclick;
+	}
+	butclick()	{
+		this.mfinish();
+		if( igmstate!=1 )	return;
+		if( cldt.isonclick )	.mwstaw;
+		else if ( smoved==null )	{
+			int x = mouse.getpx();
+			int y = mouse.getpy();
+			string s = engine.getimg(x,y, true, true, 10 , 10 );
+			
+			if( s!=null && <s>.withincut(x,y) )	{
+				sfxclick.play;
+				clrew.getitem(s,x,y);
+				<s>.setz(20);
+				smoved = s;
+				cldt.take;
+			}
+		}
+	}
+	/*clrew_up_CLICK		{ "gora"->print;	}
+	clrew_down_CLICK	{ "gora"->print;	}*/
+	mwstaw()	{
+		cldt.ret();
+		sfxrel.play();
+		anel.setframe( <smoved>.actionname(), <smoved>.framenr() );
+		anel.setpos(imovx,imovy);
+		int i1 = cllen.ilen3("anel",smoved);
+		if( i1 < 30 && (igmwstawtype==2 || <smoved>.actionname()==sgamewstaw) )	{
+			clrew.freeitem();
+			<smoved>.setz(5);
+			<smoved>.setpos(imovx,imovy);
+			ilejest--;
+			if( ilejest<=0 )	{
+				this.mkoniec();
+			} else {	this.cbplay("cpok");	}
+		} else {
+			<smoved>.setz(11);
+			clrew.retitem();
+			this.cbplay("cpnon");
+		}
+		smoved=null;
+	}
+	butrel	{
+		if( igmstate!=1 )	return;
+		if( cldt.isonrel )	.mwstaw;
+	}
+	mkoniec	{
+		igmstate=0;
+		.cbplay("cpok");
+	}
+	_cpokfin()	{	if( ilejest<=0 )	.cbplay("sndend1");	}
+	sndend1fin()	{	this.cbplay("sndend");	}
+	mfinish()	{
+		if( igmstate!=2 )	return;
+		sgamewstaw = vecgry.get( (vecgry.find(sgamewstaw)+1)%vecgry.size );
+		gameapi.play("gamewstawianka");
+	}
+	mendfin()	{	igmstate=2;	}
+	clrew_up_MOVEON	{	sfxmov.play;	}
+	clrew_down_MOVEON	{	sfxmov.play;	}
+}
+

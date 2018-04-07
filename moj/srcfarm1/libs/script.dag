@@ -1,0 +1,292 @@
+
+class StringChecker	{
+	init()	{}
+	/*bool isdigit(string s)	{	s.to_i == s;	}
+	int getint(string s)	{	return s.to_i();	}
+	real getreal(string s)	{	return s.to_r();	}	
+	bool isreal(string s)	{	return this.isdigit(s)&&s.contains(".");	}
+	bool isstring(string s) {	return s.getb(0,1)=="\"";	}
+	string getstring(string s)	{	return s.strsubb(1);	}*/
+	bool isdigit(string s)		{	s.to_i()!=0 || s.getb(0,1)=="0";	}
+	int getint(string s)		{	s.to_i();	}
+	real getreal(string s)		{	s.to_r();	}	
+	bool isreal(string s)		{	this.isdigit(s) && s.contains(".");	}
+	bool isstring(string s) 	{	s.getb(0,1)=="\"";	}
+	string getstring(string s)	{	s.strsubb(1);	}
+}
+
+class Script	{
+	init(string sfile)	{
+		new db __dbcode;
+		new string __sdb;
+		new int __irow;
+		new int __icol;
+		new string __sreads;
+		
+		new vector __vec;
+		__vec.type("string");
+		
+		new string __sarg;
+		new int __iarg;
+		new real __rarg;
+		
+		new StringChecker __csc;
+		new map2 __mp("int");		// odnosniki do funkcji
+		for( int i=0; i<10; i++)	new string <"ARG"+i>;
+		
+		this.load(sfile);
+	}
+	public ARG=(int id, string s)	{ <"ARG"+id> = s; }
+	public ARG(int id)	{ ["ARG"+id]; }
+	public load(string sfile)	{
+		if( sfile==null )	return;
+		if( sfile.contains(".") )	{		// znaczy sie plik jest
+			__sdb = "__dbcode";
+			__dbcode.loadbeh(sfile);
+		} else {
+			__sdb = sfile;		// odwolanie przez inna baze
+		}
+		__mp.free();
+		for( int i=0; i < <__sdb>.getrowsno(); i++)	{
+			if( <__sdb>.get(i,0)=="func" )
+				__mp.add( <__sdb>.get(i,1), i );
+		}
+		this.call("init");
+	}
+	public def get(string svar)	{	[svar];	}
+	bool isvar(string s)		{	s.getb(0,1)=="$";	}
+	string getvar(string s)	{
+		s = s.strsubb(1);
+		if( !engine.varexist(s) )
+			new def <s>;
+		s;
+	}
+	bool isfunc(string s)	{	(s.contains(".") && !__csc.isreal(s)) || (s.contains("::"));	}
+	getfunc(string sfun)	{
+		__vec.free();
+		if( sfun.contains(".") )	{
+			__vec.add( sfun.strgetto(".") );
+			__vec.add( sfun.strgetfrom(".") );
+		} else {
+			__vec.add( sfun.strgetto("::") );
+			__vec.add( sfun.strgetfrom("::") );
+		}
+	}
+	string _get()	{
+		__icol++;
+		<__sdb>.get(__irow,__icol-1);
+	}
+	bool isnext()	{
+		if( __icol < <__sdb>.getcolsno(__irow) )	{
+			__sreads=<__sdb>.get(__irow,__icol);
+			true;
+		} else
+			false;
+	}
+	perror(bool expr, string sout)	{
+		if( expr )
+			engine.print("error: " + sout);
+	}
+	interpcall(string scal)	{
+		this.getfunc(scal);
+		string sob = __vec.get(0);
+		if( sob.getb(0,1)=="*" ) sob=[sob.strsubb(1)];
+		string sfun = __vec.get(1);
+		if( sfun.getb(0,1)=="*" ) sob=[sfun.strsubb(1)];
+		__vec.free();
+		__icol++;	// omin '('
+		string s = this._get();
+		while( s!=")" )	{
+			this.getexpr(s);	// odloz na stos argumenty
+			s = this._get();
+		}
+		if( scal.contains("::") )	{
+			<sob>::<sfun>;
+		} else {
+			if( sob=="this" ) sob=null;
+			this.callfun(sob,sfun);
+		}
+	}
+	string getvname(string s)	{
+		if( this.isvar(s) )	{
+			s=this.getvar(s);
+		} else if(__csc.isreal(s))	{
+			__rarg = s.to_r();
+			s = "__rarg";
+		} else if( __csc.isdigit(s) ) {
+			__iarg = s;
+			s = "__iarg";
+		} else if( __csc.isstring(s) ) {
+			__sarg = __csc.getstring(s);
+			s = "__sarg";
+		}
+		s;
+	}
+	bool isscriptfun(string s)	{	s.contains("->");	}
+	string getscriptfun(string s)	{	s.strsubb(2);	}
+	getexpr(string sexpr)	{
+		if( __csc.isstring(sexpr) )	{
+			<this.getvname(sexpr)>.get();
+		} else if( this.isfunc(sexpr) )	{
+			this.interpcall(sexpr);
+		} else if(this.isscriptfun(sexpr))	{
+			int r = __irow;
+			int c = __icol;
+			this.call( this.getscriptfun(sexpr) );
+			__irow = r;
+			__icol = c;
+		} else {
+			<this.getvname(sexpr)>.get();
+		}
+	}
+	bool cmp()	{
+		bool bodp=false;
+		def d0 = this.getexpr(this._get());
+		string s2 = this._get();		// typ porownania
+		def d1 = this.getexpr( this._get() );
+		match(s2)	{
+			"==" =>	{	bodp = d0 == d1;	}
+			"!=" =>	{	bodp = d0 != d1;	}
+			"<" =>	{	bodp = d0 < d1;		}
+			">" =>	{	bodp = d0 > d1;		}
+			"<=" =>	{	bodp = d0 <= d1;	}
+			">=" =>	{	bodp = d0 >= d1;	}
+			? => ;
+		}
+		s2 = this._get();
+		if( s2=="||" )	
+			bodp || this.cmp();
+		else if (s2=="&&")
+			bodp && this.cmp();
+		else	bodp;
+	}
+	public containsfun(string sfun)	{	__mp.contains(sfun);	}
+	public addscript(string sob, string smethod, string sfunscript)	{
+		<sob>.vars2(A, "_script_eval", this, "_smetscript_"+smethod, sfunscript);
+		<sob>.addmethod( smethod, func {
+			<_script_eval>.call( ["_smetscript_"+.methodname] );
+			} );
+	}
+	public call(string sfun)	{
+		if( !__mp.contains(sfun) )	return;
+		
+		__irow = __mp.get( sfun );
+		__irow++;
+		__icol=0;
+		
+		bool bgo = true;
+		bool bif = false, bool bifexp, bool bwhile=false;
+		bool belif=false;
+		int iwhilerow;
+		string s[3], int i[3];
+		while( bgo )	{
+			__icol=0;
+			s0 = this._get();
+			match(s0)	{
+				"new"=>{
+					s0 = this._get();
+					s1 = this._get();
+					s1 = s1.strsubb(1);	// pozbadz sie $
+					if( this.isnext() )	{
+						if( __sreads=="[" )	{
+							__icol++;
+							i0 = this._get();
+							for(i1=0; i1<i0; i1++)	{
+								new <s0> <s1+i1>;
+							}
+						} else {		// powinien byc "(" dla konstruktora
+							__icol++;
+							while( this.isnext() && __sreads!=")" )	this.getexpr( this._get() );
+							new <s0> <s1>;
+						}
+					} else {
+						new <s0> <s1>;
+					}
+					__irow++;
+				}
+				"delete" =>	{	delete <this.getvar(this._get())>;	__irow++;	}
+				(s0=="if" || belif || bwhile)?s0:"" => {
+	// 				belif ? this.perror(!bif,"else without if") : this.perror(bif,"if within if");
+					__icol++;		// '('
+					bifexp = this.cmp();
+					if(s0=="if") bif=true;
+					belif=false;
+					bwhile = false;
+					__irow++;
+					if( !bifexp )	{
+						i1=1;
+						while(i1)	{
+							s0 = <__sdb>.get(__irow,0);
+							if( s0=="else"||s0=="elif"||s0=="fi"||s0=="done") i1=0;
+							else	__irow++;
+						}
+					}
+				}"else" => { 	this.perror(!bif,"else without if");
+					__irow++;
+					if( bifexp )	{
+						while(<__sdb>.get(__irow,0)!="fi")
+							__irow++;
+					}
+				} "fi" =>	{	this.perror(!bif,"fi without if");
+					bif=false;
+					bifexp = false;
+					belif=false;
+					__irow++;
+				} "elif"=>	{
+					if( bifexp )	{
+						__irow++;
+						while(<__sdb>.get(__irow,0)!="fi")
+							__irow++;
+					} else {
+						belif = true;
+					}
+				} "end" =>	bgo=false;
+				"while" =>	{
+					iwhilerow = __irow;
+					bwhile = true;
+				}"done" =>	{
+					if( bifexp )	{
+						__irow = iwhilerow;
+					} else {
+						__irow++;
+					}
+				}"print" =>	{
+					s0 = "";
+					while( this.isnext() )
+						s0 += this.getexpr( this._get() ); 
+					engine.print( s0 );
+					__irow++;
+				}"return" => 	{
+					if( this.isnext() )	{
+						this.getexpr( __sreads );
+					}
+					return;
+				} ? => { 
+					if (s0.getb(0,1)=="$")	{
+						s0 = this.getvar( s0 );
+						__icol++;		// olej <<
+						<s0> = this.getexpr(this._get());
+						while( this.isnext() )	{
+							__icol++;		// omin znak dzialania
+							def d2 = this.getexpr( this._get() );
+							match(__sreads)	{
+								"+"	=>	<s0> += d2;
+								"-"	=> 	<s0> -= d2;
+								"*"	=>	<s0> *= d2;
+								"/"	=>	<s0> /= d2;
+								"%"	=>	<s0> %= d2;
+								?	=>	;
+							}
+						}
+					} else
+						this.getexpr( s0 );
+					__irow++; 
+				}
+			}
+			if( __irow >= <__sdb>.getrowsno() )	{
+				this.perror(1,"function "+sfun+" not finished!");
+				bgo=false;
+			}
+		}
+	}
+}

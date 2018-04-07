@@ -1,0 +1,254 @@
+
+game mg19_kapliczka :Banshee {
+	init{
+		Banshee::init("mg19_kapliczka");
+		.imgs = (A,"bkg.jpg 1", "popup_bkg.pyz 2", "ramka.pyz 3","oczy.pyzH 4","szczeka_open.pyzH 5", "rubin_1.pyzH 6","rubin_2.pyzH 7",  "klucz_czaszka.pyzH 8", "pnacze.pyz 9", "popexit.pyz 32");
+	   .setasitemtopck("anklucz_czaszka"); 
+	   .butpopexit;
+		.sfxs =(A,"bgrlas2N 10", "bgrwiatrN 10", "swist1" ,"blink", "szczeka"); 
+		imgbkg {
+			.addmethod("isbutin", func { (@x, @y)
+				!anpopup_bkg.isin(x,y,0,0);
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+				 .mend;
+				} );
+			butgame.add(this);
+  	}; 
+
+   
+  //.addtopck("rubin_1"); //do testow  
+  // .addtopck("rubin_2"); //do testow
+  //  .addtopck("rekawica"); //do testow  
+  //   clsave.bset("taken_rubin_1"); 
+  //  clsave.bset("taken_rubin_2"); 
+     
+   
+	 
+	//if (!clsave.bis(save_prefix+"intro_spoken"))
+   // { 
+		.newsndfree("snd_intro", "kinnat_c2d2_10b");
+		snd_intro.addmethod("onfinish", "advsetstdstate");     
+	//	.cbplay("snd_intro"); 
+	//	clsave.bset(save_prefix+"intro_spoken"); 
+   // } 
+	
+	.newsndfree("snd_intro2", "kinnat_c2d2_10d");
+	snd_intro2.addmethod("onfinish", "advsetstdstate"); 
+	
+	 
+   
+    new int cut_phase = 0;
+     
+    if (!clsave.bis("e1_mg19_kapliczka_rubin_1_inserted")&& !clsave.bis("e1_mg19_kapliczka_rubin_2_inserted"))
+    {
+		anoczy{
+			.addmethod("isbutin", func { (int x, int y)
+				 .isin(x,y,0,0) && clsave.bis("e1_mg19_kapliczka_pnacza_out")  ;
+  			} ); 
+  			.addmethod("butmoveon", func {
+  		 	     if (!clsave.bis("e1_mg19_kapliczka_rubin_1_inserted") || !clsave.bis("e1_mg19_kapliczka_rubin_2_inserted"))
+					advmouse.set("use"); 
+  			 } );
+  			.addmethod("butmoveoff", func {
+  			   advmouse.setstd;
+  				 
+  			 } );
+			.addmethod("butclick", func {
+					if(!.advstdstate || sgmstate=="getitem") return;
+						.cbplay("snd_intro2");
+ 			} ); 
+  			 
+  			butgame.add(this);
+		};
+    
+    } 
+  
+	if (!clsave.bis("e1_mg19_kapliczka_pnacza_out"))
+	{
+		if (clsave.get("e1_mg19_kapliczka_cut_phase"))
+			cut_phase = clsave.get("e1_mg19_kapliczka_cut_phase");
+		else
+			cut_phase = 0;
+      
+		anpnacze{
+			.Button_isinvis;  
+  			.addmethod("butmoveon", func {
+  		 	     if (!clsave.bis("e1_mg19_kapliczka_pnacza_out") )
+					advmouse.set("use"); 
+  			 } );
+  			.addmethod("butmoveoff", func {
+				advmouse.setstd;
+  				 
+  			 } );
+			 
+			.addmethod("butclick", func {
+				if (!clsave.bis("e1_mg19_kapliczka_pnacza_out") )
+					 .cbplay("snd_intro");
+ 			} );  
+  			 
+  			butgame.add(this);
+       };
+       anpnacze.play(cut_phase);
+  }
+  else
+  {
+    anpnacze.hide;
+  }
+   
+   
+	imgbkg {
+  		.addmethod("isbutin", func { (@x, @y)
+  			!anpopup_bkg.isin(x,y,1,1);
+  			} );
+  		.addmethod("butclick", func {
+  			if( !.advstdstate ) return;
+  			 .mend;
+  			} );
+    	butgame.add(this);
+  	}; 
+	 
+	if (clsave.bis("e1_mg19_kapliczka_rubin_1_inserted"))
+		anrubin_1.show; 
+	if (clsave.bis("e1_mg19_kapliczka_rubin_2_inserted"))
+		anrubin_2.show; 
+      
+	if (clsave.bis("e1_mg19_kapliczka_czaszka_open"))
+	{
+		anszczeka_open.show();
+		if (!clsave.bis("taken_klucz_czaszka"))
+			anklucz_czaszka.show;
+	}    
+  
+	  .stdstart;
+	} // koniec init
+  
+	anklucz_czaszka_TAKE	{
+		.set_mg_finished();
+		.popitem_gotocenter("klucz_czaszka");	
+	}
+	
+	anklucz_czaszka_INPCK {
+		.addtopck("klucz_czaszka");
+		.timfinito();
+	} 
+
+	USE_rubin_1	{
+		.advsetstdstate();
+		if(anoczy.isin(mouse.getpos,0,1) && clsave.bis("e1_mg19_kapliczka_pnacza_out") )	{
+			.removefrompck("rubin_1");
+			anrubin_1.anfadein(800,null);  
+			clsave.bset("e1_mg19_kapliczka_rubin_1_inserted");
+			fxblink.play;
+			if (.check_all_done())
+			{ 
+				clsave.bset("e1_mg19_kapliczka_czaszka_open");
+				advmouse.setstd;
+				butgame.removebut("anoczy");
+				.timplay("timend", 800, "open_skull");  
+			}
+		} else {
+			.item_gotopck;
+		}
+     
+	}
+	USE_rubin_2	{
+		.advsetstdstate();
+		if(anoczy.isin(mouse.getpos,0,1)&& clsave.bis("e1_mg19_kapliczka_pnacza_out") )	{
+			.removefrompck("rubin_2");
+			anrubin_2.anfadein(800,null);  
+			clsave.bset("e1_mg19_kapliczka_rubin_2_inserted");
+			fxblink.play;
+			if (.check_all_done())
+			{ 
+				clsave.bset("e1_mg19_kapliczka_czaszka_open");
+				advmouse.setstd;
+				butgame.removebut("anoczy");
+				.timplay("timopen", 800, "open_skull");  
+			}
+		} else {
+			 .item_gotopck;
+		}
+    }
+  
+  USE_rekawica	{
+        .advsetstdstate;   
+        if( anpnacze.isin(mouse.getpos,1,0) )	{
+            if (cut_phase < 2)
+            { 
+				cut_phase = cut_phase +1;
+				clsave.set("e1_mg19_kapliczka_cut_phase", cut_phase);
+				.copyanima("anpnacze","fake_anpnacze"+cut_phase);
+				<"fake_anpnacze"+cut_phase>.anfadeout(300,null);
+
+				anpnacze.play(cut_phase);
+				anitem_rekawica.play("cut");
+				if (!.checktouchpad)
+				{
+					guimov.setmoved("anitem_rekawica");
+				}
+				else
+					.item_gotopck; 
+				fxswist1.play;
+             }
+             else
+             {  
+                .copyanima("anitem_rekawica","fake_anitem_rekawica");
+                fake_anitem_rekawica.play("cut");
+                fake_anitem_rekawica.anfadeout(300,null);
+                
+                anpnacze.hide();
+				butgame.removebut("anpnacze");	
+                .removefrompck("rekawica");
+                clsave.bset("e1_mg19_kapliczka_pnacza_out"); 
+				fxswist1.play;
+             } 
+        }
+        else
+        {
+			.item_gotopck; 
+        }    
+      } 
+  
+	check_all_done{
+		if (clsave.bis("e1_mg19_kapliczka_rubin_1_inserted") && clsave.bis("e1_mg19_kapliczka_rubin_2_inserted"))  
+			return true;
+		else
+			return false;
+	}
+	open_skull{
+		fxszczeka.play();
+		anszczeka_open.anfadein(200,null);
+		.timplay("timshow", 300, func{anklucz_czaszka.anfadein(500,null);});  
+    }    
+  
+	mend	{ 
+		.stdexitdefadv("ad19_szopa", "gamead19_szopa0");
+	}
+  
+	HINT_CLICK {
+		if (clsave.bis("taken_rekawica") && !clsave.bis("e1_mg19_kapliczka_pnacza_out"))
+		{
+			.showhint("anpnacze");
+			.showhintitem("rekawica");  
+		}
+		else if (clsave.bis("taken_rubin_1") && !clsave.bis("e1_mg19_kapliczka_rubin_1_inserted"))
+		{
+			.showhint("anrubin_1");
+			.showhintitem("rubin_1"); 
+		}
+		else if (clsave.bis("taken_rubin_2") && !clsave.bis("e1_mg19_kapliczka_rubin_2_inserted"))
+		{
+			.showhint("anrubin_2");
+			.showhintitem("rubin_2"); 
+		}
+		else if (clsave.bis("e1_mg19_kapliczka_czaszka_open") && !clsave.bis("taken_klucz_czaszka"))
+		{
+			.showhint("anklucz_czaszka");	
+		}
+		else
+			.showhint("anpopexit");   
+	} 
+}
+ 

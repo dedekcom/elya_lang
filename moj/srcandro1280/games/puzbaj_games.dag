@@ -1,0 +1,89 @@
+
+
+new string sMainMenuPuzBaj = "OutroStd";
+
+game MainMenuPuzBaj : MermaidStd	{
+	init	{
+		sMenuButExit = "MainMenuPuzBaj";
+		sMenuButOk = "MenuTrybPuzzle";
+		
+		MermaidStd::init("menu_puzbaj");
+		
+		if( engine.fileexist(.getpath("bgmenupuzbaj.jpg") ) )
+			.newimg("imgbkg",.getpath("bgmenupuzbaj.jpg"),0);
+		else .newimg("imgbg", "$" + .getgamepath + "menu_tryb/tryby.jpg",0);
+		.imgs = (A, "bgmenupuzbaj.jpg", "butpuz.pyz 10", "butbaj.pyz 10");
+		
+		.cbutexit;
+		.loadasker;
+		
+		anbutpuz.Button_addstdstate;
+		anbutbaj.Button_addstdstate;
+		
+		.stdenter;
+	}
+	butclick_anbutexit	{
+		.askfor(sMainMenuPuzBaj);
+	}
+	butclick_anbutpuz	{	.stdexit(sMenuImgStd);		}
+	butclick_anbutbaj	{	.stdexit("BajkaCzytana");	}
+}
+
+game BajkaCzytana : MermaidStd	{
+	init	{
+		MermaidStd::init("bajkaczyt");
+		
+		.cbutexit;
+		
+		new classfullsave csave("bajkaczytana.db");
+		csave.saveonset=(true);
+		csave.stdload;
+		new int ilastpage = csave.get(sgmproject);
+		if( ilastpage<1 ) ilastpage=1;
+		new img imgbg;
+		
+		.newfont("fnpage", "configs/fonts/seren1.ttf", 50->igetsc);
+		.newtext("txtpage", "", "fnpage", .yellow);
+		txtpage.setz(10);
+		.newtext("txtfirstpage", "<< START", "fnpage", .yellow);
+		txtfirstpage.setz(10);
+		txtfirstpage.setpos( 3->igetsc1, txtfirstpage.mypagepos );
+		txtfirstpage.txtshadow(1,"fnpage");
+		
+		.mload(0);
+		
+		.stdenter;
+	}
+	mypagepos	{	igmapph - .geth - 3->igetsc1;	}
+	mload(int id)	{
+		if( engine.fileexist( .mpath(ilastpage+id) ) )	{
+			ilastpage+=id;
+			csave.set(sgmproject, ilastpage);
+			ccs.buildfromscreen;
+			imgbg.load(.mpath(ilastpage));
+			imgbg.setpos(0,0);
+			txtpage.txtset(ilastpage);
+			txtpage.setpos( igmappw - txtpage.getw - 3->igetsc1, txtpage.mypagepos );
+			txtpage.txtshadow(1,"fnpage");
+			sgmstate = "state_nextpage";
+			ccs.enter("advsetstdstate");
+			if( ilastpage==1 )
+				txtfirstpage.txthides;
+			else txtfirstpage.txtshows;
+		}
+	}
+	mpath(int id)	{	.getpath(sPuzBajImgPref + id + ".jpg");	}
+	mouse_lclick	{
+		if( .advstdstate )	{
+			if( mouse.getpx > igmappw/2 )	{
+				.mload(1);
+			} else if( txtfirstpage.isin(mouse.getpos,0,0) )	{
+				.mload(1-ilastpage);
+			} else .mload(-1);
+		}
+	}
+	butclick_anbutexit	{
+		ccs.buildblack;
+		.stdexit("MainMenuPuzBaj");
+	}
+}

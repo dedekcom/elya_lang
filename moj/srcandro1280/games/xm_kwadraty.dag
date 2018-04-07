@@ -1,0 +1,140 @@
+
+new int iKwadratyBad = 1;
+new int iKwadratyOk = 1;
+new int iKwadratyMiejsca = 7;
+
+game Kwadraty : MermaidStd	{
+	init	{
+		MermaidStd::init("kwadraty");
+		
+		.imgs = (A, "bkg.jpg", "sqr.pyzGH 20");
+		new gmimgvec grels;
+		"grels" ..< "els.pyz";
+		grels.setz(10);
+		
+		new int iilekwadratow = iKwadratyBad + iKwadratyOk;
+		
+		new vector vsq;
+		for( int i=1; i<=grsqr.size; i++)	{
+			@s = "grk" + i;
+			new gmimgvec <s>;
+			for( int j=0; j<grels.size; j++ )	{
+				if( i == <grels.get(j)>.actionname->strsubb(1) )
+					<s>.add( grels.get(j) );
+			}
+			if( <s>.size >= iKwadratyBad )
+				vsq.add( i );
+		}
+		
+		vsq.hash;
+		new gmimgvec grkwadraty;
+		new string slastimg = null;
+		new int ipostate = 0;
+		new gmimgvec grimgs;
+		int ile = (iKwadratyMiejsca <= vsq.size ? iKwadratyMiejsca : vsq.size);
+		for( i=0; i<ile; i++ )
+			.buildsqr(i, vsq.get(i));
+		grimgs.hash;
+		for( i=0; i<grimgs.size; i++ )
+			.putsimg(grimgs.get(i));
+		
+		new int ilegood = iKwadratyMiejsca;
+		
+		.stdenter;
+	}
+	buildsqr(int idkwadrat, int idsq)	{
+		
+		@s = "grk" + idsq;
+		for( int j=0; j< <s>.size; j++ ) {
+			< <s>.get(j)>.var2("bontafel", 2->rand);
+		}
+		
+		grkwadraty.add( s );
+		
+		int idlos = 0;
+		for( int i=0; i<iilekwadratow; i++ )	{
+			@sim = "img" + idkwadrat + "_" + i;
+			new img <sim>;
+			@sqr = grsqr.get( idsq-1 );
+			<sim>.imgclonesize( sqr );
+			
+			@sim2 = "imgbg"+idkwadrat+"_"+i;
+			new img <sim2>;
+			<sim2>.create( <sqr>.getw, <sqr>.geth, .white, 32 );
+			<sim2>.setz( <sqr>.getz );
+			<sim2>.setpos( <sqr>.getpx, <sqr>.getpy );
+			<sim2>.show;
+			<sim2>.imgborders(2, .black, 64);
+			
+			grimgs.add(sim);
+			if( i<iKwadratyOk )
+				<sim>.var("bimgood");
+			//idlos = i-iKwadratyOk;
+			idlos = i;
+			for( int j=0; j<grels.size; j++ )	{
+				@san = grels.get(j);
+				if( <san>.hasvar("bontafel") )	{
+					if( <s>.contains(san) )	{
+						if( <sim>.hasvar("bimgood") )	{
+							if( <san>.bontafel )	{
+								<san>.hide;
+							} else {
+								<sim>.blit(san);
+							}
+						} else {
+							if( <s>.find(san) == idlos )	{
+								if( <san>.bontafel )	{
+								
+								} else {
+									<sim>.blit(san);
+								}
+								idlos=-1;
+							} else {
+								if( <san>.bontafel )	{
+									<sim>.blit(san);
+								}
+							}
+						}
+					} else if ( !<san>.bontafel )	{
+						<sim>.blit(san);
+					}
+				} else <sim>.blit(san);
+			}
+		}
+	}
+	putsimg(string sim)	{
+		@sbkg = grels.first;
+		int dt = 5->igetsc;
+		
+		if( slastimg==null )	{
+			<sim>.setpos( <sbkg>.getpx - <sim>.getw - dt, <sbkg>.getpy );
+		} else if ( ipostate==0 )	{
+			<sim>.setpos( <slastimg>.getpx, <slastimg>.getey + dt );
+			if( <sim>.getey > <sbkg>.getey )
+				ipostate = 1;
+		} else if ( ipostate==1 )	{
+			<sim>.setpos( <slastimg>.getex + dt, <sbkg>.getey + dt );
+			if( <sim>.getex > <sbkg>.getex )
+				ipostate = 2;
+		} else if ( ipostate==2 )	{
+			<sim>.setpos( <sbkg>.getex + dt, <slastimg>.getpy - dt - <sim>.geth );
+		}
+		slastimg = sim;
+	}
+	mouse_lclick	{
+		if( .advstdstate )	{
+			if( grimgs.isin(mouse.getpos,1,1) )	{
+				@s = grimgs.getsfound;
+				if( <s>.hasvar("bimgood") )	{
+					ilegood--;
+					grimgs.remove(s);
+					<s>.imgbuildoverlay(.white, 64, 0);
+					if( ilegood==0 )
+						gameapi.play("Kwadraty");
+				} else {
+					<s>.imgbuildoverlay(.red,64,0);
+				}
+			}
+		}
+	}
+}

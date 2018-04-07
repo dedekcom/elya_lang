@@ -1,0 +1,368 @@
+game Logika : Komputro {
+	init	{
+		Komputro::init("logika");
+		.path = ("logika");
+		.bkg = ("bkg.pyz");
+		.imgs = (A,"help.pyz", "znaki.pyz");
+		.sfxs = (A, "cios2", "error", "skok2", "brawo 30", "buu 30");
+		new gmimgvec groks;
+		new gmimgvec groks2;
+		new @Ilosc = 7;
+		.copyanimas("anznaki", "anok", 0, Ilosc);
+		anznaki.hide;
+		groks.additer("anok",0 , Ilosc);
+		.newarray("text", "txtok", Ilosc);
+		groks2.additer("txtok", 0, Ilosc);
+		groks2.hide;
+		
+		.loadguys;
+		.loadlekcja;
+		new TextDb tdhelp(null, 12, "help.db", 20,20,20, anhelp.getpx+25, anhelp.getpy+55, 5, 50, "left");
+		tdhelp.hide;
+		new classplacepointer2 clp;
+		new classsimplebutton cbok;
+		cbok.build("scripts/common/butok.pyz", "imglobcurs", 250, 525, 100, 0);
+		new vector veczd;
+		veczd.vecnewint(20);
+		veczd.hash;
+		new vector veczd2;
+		veczd2.vecnewint(20);
+		veczd2.hash;
+		new vector veclev;
+		
+		.newdb("dbask", "zdania.db");
+		.newarray("text", "txtodp", 20);
+		new gmimgvec grodp;
+		grodp.additer("txtodp",0,20);
+		grodp.hide;
+		if( KomputroMode==1 )	{	// swiety mikolaj istnieje dla dzieci
+			dbask.set(18,3,1);
+			dbask.set(19,3,0);
+		}
+		
+		@sfungo = func { .profstop; igmstate=1; };
+		@sfungo2 = func { .jackstop; igmstate=1; };
+		@sfunjakto = func { .profstop; .jacksay("sndjakto"); };
+		new @Level = 1;
+		new @ilstate = 1;
+		.sounds = (A,
+			"sndintro", "Pierwsze zadanie jest bardzo proste: na kartce widzisz zdania",
+				func { .cbplay("sndgo1"); clp.showob(groks.get(0), "ru"); },
+			"sndgo1", "Klikaj±c na znakach zapytania zaznacz które zdania s± prawdziwe a które fa³szywe",
+				func { clp.show(cbok.getimgfunc("getcx"), cbok.getimgfunc("getcy"), "rd"); .cbplay("sndgo2"); },
+			"sndgo2", "Kiedy skoñczysz wci¶nij ten przycisk abym sprawdzi³ poprawno¶æ rozwi±zania",
+				func { igmstate=1; .profstop; clp.stoph; },
+			"sndnotall", "Nie wszystkie zdania zosta³y oznaczone", func { .profstop; .jacksay("sndnotall2"); },
+			"sndnotall2", "Ojej rzeczywi¶cie", sfungo2,
+			"sndnon1", "Niestety widzê prawdziwe zdanie oznaczone jako fa³szywe", sfungo,
+			"sndnon2", "Niestety widzê fa³szywe zdanie oznaczone jako prawdziwe", sfungo,
+			"sndmik1", "Jacku! Wiadomym powszechnie jest i¿ ¦wiêty Miko³aj istnieje!", sfunjakto,
+			"sndmik2", "Niestety muszê ciê zmartwiæ: prawdziwy ¦wiêty Miko³aj nie istnieje", sfunjakto,
+			"sndjakto", "Ojej! A ja my¶la³em ¿e jest odwrotnie", sfungo2,
+			"sndok1", "Brawo! Prawdziwo¶æ wszystkich zdañ okre¶li³e¶ poprawnie",
+				func { veczd.hash; <GAME>.insertzdania; groks.hide; groks2.show; .cbplay("snd1t1"); },
+			"snd1t1", "Teraz zrób to samo ale zdania prawdziwe oznacz jedynk± a fa³szywe zerem", sfungo,
+			"sndok2", "¦wietnie! Teraz zadanie nieco trudniejsze",
+				func { tdhelp.view(A,0,1); .cbplay("snd2t1"); clp.showob("anhelp","uu"); },
+			"snd2t1", "Korzystaj±c z tego schematu", func { .cbplay("snd2t2"); clp.stoph; },
+			"snd2t2", "Oznacz poprawnie zaprzeczone zdania wiedz±c ¿e nieprawda ¿e prawda oznacza fa³sz" ,
+				func { .preparelevel(2); },
+			"sndok3", "Doskonale! Teraz trudniejsze zadanie", func { .cbplay("snd3t1"); },
+			"snd3t1", "Dotychczas oznacza³e¶ pojedyncze zdania; Teraz poka¿ê ci kiedy poznaæ czy zdanie jest prawdziwe je¿eli sk³ada siê z dwóch czê¶ci po³±czonych spójnikiem I",
+				func { .profstop; .jacksay("snd3t2"); },
+			"snd3t2", "Ojej nic nie rozumiem", "viewand",
+			"snd3t3", "Spokojnie ju¿ t³umaczê; Oto dwa zdania proste po³±czone za pomoc± I",
+				func { txtzd1.createtxt( 200,20,20 ); .cbplay("snd3t4"); },
+			"snd3t4", "Pierwsze",
+				func { txtzd1.createtxt(.grey(22)); .cbplay("snd3t5");txtzd2.createtxt( 200,20,20 ); },
+			"snd3t5", "I drugie", func { <GAME> { 
+					txtzd2.createtxt( .grey(22) );
+					.newtext("txtoki1", "1", "fnttxtok", .black);
+					txtoki1.anposz( txtzd1.getpx+20, txtzd1.getpy - FontSize-5, 510);
+					.newtext("txtoki2", "1", "fnttxtok", .black);
+					txtoki2.anposz( txtzd2.getex-20, txtzd2.getpy - FontSize-5, 510);
+					.cbplay("snd3t6");
+				}; },
+			"snd3t6", "Jak wiesz oba te zdania s± prawdziwe", func { txtoki.txtset("1"); .cbplay("snd3t7"); },
+			"snd3t7", "Przypuszczamy zatem ¿e ca³e zdanie jest prawdziwe; I jest tak w rzeczywisto¶ci",
+				func { .cbplay("snd3t8"); txtoki.txtset("?"); txtzd1.txtset(.get1(8)); txtoki1.txtset("0");
+					clp.showpob("txtzd1", "rd"); },
+			"snd3t8", "Có¿ jednak powiemy o takim zdaniu z³o¿onym którego pierwszy cz³on jest fa³szywy?",
+				func { .profstop; .jacksay("snd3t9"); clp.stoph; },
+			"snd3t9", "¯e jest prawdziwe?", func { .jackstop; .profsay("snd3t10"); },
+			"snd3t10", "Niestety nie; Do okre¶lenia czy zdanie z³o¿one jest prawdziwe czy fa³szywe bêdziemy potrzebowali specjalnej tabelki", func { <GAME> {
+					tdhelp.view(A,2,3,4,5);
+					.newtext("txti1", "0 and 0 -> 0", "fntask", .black);
+					.newtext("txti2", "0 and 1 -> 0", "fntask", .red);
+					.newtext("txti3", "1 and 0 -> 0", "fntask", .black);
+					.newtext("txti4", "1 and 1 -> 1", "fntask", .black);
+					@y = 120;
+					@dy = FontSize+3;
+					txti1.anposz(300, y, 510);
+					txti2.anposz(300, y+dy, 510);
+					txti3.anposz(300, y+2*dy, 510);
+					txti4.anposz(300, y+3*dy, 510);
+					clp.showpob("txti2", "ru");
+					.cbplay("snd3t11");
+				}; },
+			"snd3t11", "Jak widzisz nasze zdanie pasuje do tej regu³y; pierwsze fa³szywe czyli 0 a drugie prawdziwe czyli 1", func { .cbplay("snd3t12"); txtoki.txtset("0"); clp.showpob("txtoki","ld"); },
+			"snd3t12", "Odczytujemy zatem z tabeli ¿e ca³e zdanie z³o¿one jest fa³szywe",
+				func { .cbplay("snd3t13"); <GAME> {
+					new gmimgvec grprzyk;
+					grprzyk.additer("txti", 1, 4);
+					grprzyk.addlist(A, "txtoki", "txtoki1", "txtoki2", "txtzd1", "txtzd2", "txtand", "gsq");
+					clp.showob("anhelp", "uu");
+					}; },
+			"snd3t13", "Regu³y zdania z³o¿onego z I zostawiam tutaj; Spróbuj okre¶liæ czy zdania z³o¿one s± prawdziwe czy fa³szywe",
+				func { grprzyk.hide; .preparelevel(3); },
+			"sndok4", "Wspaniale! Wszystkie zdania z³o¿one oznaczy³e¶ bezb³êdnie!", func {.cbplay("snd4t1");},
+			"snd4t1", "Przed nami kolejne zadanie; Oznaczenie zdañ ze spójnikiem Lub", func {
+					grprzyk.show;
+					txtand.txtset("or");
+					txtoki.txtset("1");
+					txti1.txtset("0 or 0 -> 0");
+					txti2.txtset("0 or 1 -> 1");
+					txti3.txtset("1 or 0 -> 1");
+					txti4.txtset("1 or 1 -> 1");
+					.profstop;
+					.jacksay("snd4t2");
+				},
+			"snd4t2", "O widzê ¿e wystarczy tylko jedno prawdziwe zdanie proste ¿eby ca³e zdanie by³o prawdziwe", func { .jackstop; .profsay("snd4t3"); },
+			"snd4t3", "Bardzo s³uszna uwaga; My¶lê ¿e z tymi zdaniami nie bêdziesz mia³ problemu",
+				func { .cbplay("snd4t4"); tdhelp.view(A,6,7,8,9); clp.showob("anhelp", "dd"); },
+			"snd4t4", "Do³±czam pomocnicz± tabelkê dla zdañ ze spójnikiem Lub; Powodzenia!",
+				func { grprzyk.hide; .preparelevel(4); },
+			"sndok5", "Znakomicie! Poprawnie rozró¿niasz wszystkie podstawowe konstrukcje logiczne; W nagrodê rozwi±¿ ostatnie zadanie", func { for( int i=0; i<Ilosc; i++) veclev.add( 4->rand+1 );
+				.preparelevel(5); },
+			"sndok6", "Brawo! Zaliczam lekcjê", "finito"
+		);
+		
+		new font fntask;
+		new @FontSize = 16;
+		fntask.load( sgmfontfile, FontSize );
+		//if( KomputroMode==1 )	{
+			.newimgarray("grhelp", "text", "txth", 2*Ilosc);
+			new classsimplebutton cbhelp;
+			cbhelp.build("scripts/common/help.pyz", "imglobcurs", 262, 440, 100, 0);
+			grhelp.each( func { (@id) .setfont("fntask"); } );
+		//}
+		new font fnttxtok;
+		fnttxtok.load( sgmfontfile, 22 );
+		groks.each( func { (@id)
+			.setframe("ask",0);
+			@y = id * .geth;
+			.ansetbpos( 390, 90 + y );
+			@i2 = veczd.get(id);
+			@s = "txtodp" + (2*id);
+			<s>.setpos( 395 + .getw, 95+y );
+			<s>.setfont( "fntask" );
+			<s>.show;
+			
+			s = "txtodp" + (2*id+1);
+			<s>.setpos( 415 + .getw, 97+y+FontSize );
+			<s>.setfont( "fntask" );
+			<s>.show;
+			
+			s = "txtok" + id;
+			<s>.setfont("fnttxtok");
+			//<s>.setpos( 390, 90 + y );
+			<s>.set("?");
+			<s>.createtxt( 20, 20, 20 );
+			//setbkg(int x,int y,int w,int h,int r,int g,int b,int a)
+			<s>.setbkg( 390, 90+y, <s>.getw+5, <s>.geth+5, 20,20,20,20);
+			} );
+		.insertzdania;
+		.profsay("sndintro");
+// 		.viewand;
+	}
+	preparelevel(int idlev)	{
+		Level=idlev;
+		clp.stoph;
+		.profstop;
+		igmstate=1;
+		veczd.hash;
+		veczd2.hash;
+		.preparegroks2;
+		<GAME>.insertzdania;
+	}
+	get1(@id)	{	dbask.get(id,1)->to_u + dbask.get(id,2);	}
+	get2(@id)	{	dbask.get(id,1) + dbask.get(id,2);	}
+	viewand	{
+		<GAME> {
+			new gfxSquare gsq(200,100,400,300);
+			gsq.set(.grey(240), 255);
+			gsq.build;
+			gsq.setz(500);
+			gsq.border(1,1, .grey(192), 255);
+			gsq.border(1,1,.black,255);
+			gsq.shadow(2,2,128);
+			
+			@y = 150;
+			.newtext("txtoki", "?", "fnttxtok", .grey(22) );
+			txtoki.setbkg( 220, y + 105, txtoki.getw+5, txtoki.geth+5, 20,20,20,20);
+			txtoki.setz(510);
+			.newtext("txtzd1", .get1(3), "fntask", .grey(22) );
+			txtzd1.anposz(250, y + 100, 510);
+			.newtext("txtand", "and", "fntask", .red );
+			txtand.anposz(300, y + 110 + FontSize, 510);
+			.newtext("txtzd2", .get2(5)+".", "fntask", .grey(22) );
+			txtzd2.anposz(350, y + 110 + FontSize, 510);
+			
+			.jackstop;
+			.profsay("snd3t3");
+		};
+	}
+	preparegroks2	{	groks2.each( func { (@id) .set("?"); .createtxt(20,20,20); } ); }
+	insertzdania	{
+		groks.each( func { (@id)
+			.setframe("ask",0);
+			@s1 = "txtodp"+(id*2);
+			@s2 = "txtodp"+(id*2+1);
+			@i2 = veczd.get(id);
+			int i1 = ( Level==5 ) ? veclev.get(id) : Level;
+			match( i1 )	{
+				1 =>	{<s1>.set( .get1(i2) + "." ); <s2>.set(""); }
+				2 => { <s1>.set( dbask.get(20, 1) );
+					<s2>.set( .get2(i2) + "." ); }
+				3 => { <s1>.set( .get1( veczd2.get(id) ) );
+					<s2>.set( "and  " + .get2(i2) + "." ); }
+				4 => { <s1>.set( .get1( veczd2.get(id) ) );
+					<s2>.set( "or " + .get2(i2) + "." ); }
+				? => ;
+			}
+			<s1>.createtxt(133,16,200);
+			if( <s2>.get->length > 0 )	{
+			<s2>.createtxt(133,16,200); <s2>.show; } else <s2>.hide; } );
+	}
+	cbok_CLICK	{	<GAME>.check;	}
+	cbok_MOVEON	{
+		sndakskermovon.play;
+	}
+	cbhelp_MOVEON	{
+		sndakskermovon.play;
+		if( igmstate!=1 || ilstate==1)	return;
+		int i[5], string s[3];
+		i3=0;
+		@dx = 16;
+		for( i0=0; i0<Ilosc; i0++)	{
+			i2 = veczd.get(i0);
+			i1 = ( Level==5 ) ? veclev.get(i0) : Level;
+			s0 = "txtodp" + (2*i0);
+			s1 = "txtodp" + (2*i0+1);
+			@col = func { return 50,50,255; };
+			if( i1==1 )	{
+				s2 = grhelp.get(i3); i3++;
+				<s2>.set( dbask.get(i2, 3) );
+				<s2>.setpos( <s0>.getpx-dx, <s0>.getpy );
+				<s2>.createtxt( .<col> );
+				<s2>.show;
+			} else if (i1==2)	{
+				s2 = grhelp.get(i3); i3++;
+				<s2>.set( dbask.get(i2, 3) );
+				<s2>.setpos( <s1>.getpx-dx, <s1>.getpy );
+				<s2>.createtxt( .<col> );
+				<s2>.show;
+			} else {
+				s2 = grhelp.get(i3); i3++;
+				<s2>.set( dbask.get(i2,3) );
+				<s2>.setpos( <s0>.getpx-dx, <s0>.getpy );
+				<s2>.createtxt( .<col> );
+				<s2>.show;
+				s2 = grhelp.get(i3); i3++;
+				<s2>.set( dbask.get( veczd2.get(i0),3 ) );
+				<s2>.setpos( <s1>.getpx-dx, <s1>.getpy );
+				<s2>.createtxt( .<col> );
+				<s2>.show;
+			}
+		}
+	}
+	cbhelp_MOVEOFF	{
+		grhelp.hide;
+	}
+	check	{
+		if( igmstate!=1 )	return;
+		fxerror.play;
+		igmstate = 2;
+		int i[3], string s[2];
+		for( i0=0; i0<Ilosc; i0++)	{
+			i2 = veczd.get(i0);
+			i1 = ( Level==5 ) ? veclev.get(i0) : Level;
+			match(i1)	{
+				1 => i1 = dbask.get(i2, 3);
+				2 => i1 = !(dbask.get(i2, 3)->to_i);
+				3 => i1 = ( dbask.get(i2,3)->to_i && dbask.get( veczd2.get(i0),3 )->to_i );
+				4 => i1 = ( dbask.get(i2,3)->to_i || dbask.get( veczd2.get(i0),3 )->to_i );
+				? => ;
+			}
+			if( ilstate==1)	s0 = <groks.get(i0)>.actionname;
+			else if (ilstate>1)
+				s0 = <groks2.get(i0)> {
+					match(.get)	{
+						"?" => "ask";
+						"0" => "no";
+						"1" => "ok";
+						? => ;
+					} };
+			if( Level==1 && (i2==18 || i2==19) && s0!="ask" )	{
+				if( KomputroMode==1 )	{
+					if( (i2==18 && s0=="no") || (i2==19 && s0=="ok") )	{
+						.profsay("sndmik1");
+						return;
+					}
+				} else {
+					if( (i2==18 && s0=="ok") || (i2==19 && s0=="no") )	{
+						.profsay("sndmik2");
+						return;
+					}
+				}
+			} else {
+				if( s0=="ask" )	{
+					fxbuu.play;
+					.profsay("sndnotall");
+					return;
+				} else if (s0=="no" && i1==1 )	{
+					fxbuu.play;
+					.profsay("sndnon1");
+					return;
+				} else if (s0=="ok" && i1==0 )	{
+					fxbuu.play;
+					.profsay("sndnon2");
+					return;
+				}
+			}
+		}
+		igmstate=2;
+		fxbrawo.play;
+		.profsay("sndok"+ilstate);
+		ilstate++;
+	}
+	mouse_lclick	{
+		.cactsndstop(true);
+		if ( igmstate!=1 ) return;
+		string s[2];
+		if( ilstate==1 )	{
+			if ( groks.isin(mouse.getpos, 1,0) ) {
+				<groks.getsfound>.ansetnextact;
+				fxskok2.play;
+			}
+		} else if (ilstate>1)	{
+			if ( groks2.isin(mouse.getpos, 1,1) ) {
+				s0 = groks2.getsfound;
+				match(<s0>.get)	{
+					"?" => "0";
+					"0" => "1";
+					"1" => "?";
+					? => ;
+				}
+				<s0>.set;
+				<s0>.createtxt(20,20,20);
+				fxskok2.play;
+			}
+		}
+	}
+	key_down	{	if(igmdebug) .keyrestart;	}
+	finito	{
+		.profstop;
+		gameapi.play("Elektro");
+	}
+}

@@ -1,0 +1,310 @@
+
+new string sMenuArg;
+game Menu : Bill {
+	init	{
+		Bill::init("menu");
+		
+		.imgs = (A, "bkg.pyz");
+		
+		.newgrimg("grdzieci", "dzieci", 10);
+		
+		new Buttons butgry("gry.pyz");
+		.newdb("dbgry", "gry.db");
+		@sfont = .stdfont(32);
+		int i[5];
+		for( int i=0; i<dbgry.getrowsno; i++)	{
+			@s = "txt"+i;
+			.newtext(s, dbgry.get(i,0), sfont, .yellow);
+			|i0, i1| = butgry.getbutpos(i);
+			<s>.setpos( i0+120, i1+33 );
+			<s>.setz(20);
+		}
+		.cbutexit;
+	}
+	anbutexit_click	{	gameapi.exit;	}
+	butgry_lclick	{
+		int id = sobject.strsubbs("p");
+		id--;
+		if( id<dbgry.getrowsno)	{
+			if( dbgry.getcolsno(id)>2 ) 
+				sMenuArg=dbgry.get(id,2);
+			gameapi.play(dbgry.get(id,1));
+		}
+	}
+}
+
+game Farma : Bill2	{
+	init	{
+		Bill2::init("farma");
+		
+		.img = ("bkg.pyz");
+	}
+	angoleft_click	{
+		iZgadujMode = 2;
+		gameapi.play("Zgaduj");
+	}
+	angoright_click	{
+		gameapi.play("Farma2");
+	}
+}
+
+game Farma2 : Bill2	{
+	init	{
+		Bill2::init("farma");
+		
+		.img = ("farma2.pyz");
+		
+		new AnRewind anrew("anfarma2", 100, 100, 100, 100, 10, 1);
+	}
+	angoleft_click	{
+		gameapi.play("Farma");
+	}
+	angoright_click	{
+		iZgadujMode = 1;
+		gameapi.play("Zgaduj");
+	}
+}
+
+new int iKoloNr = 0;
+game Kolo : Bill2	{
+	init	{
+		Bill2::init("kolo");
+		
+		.imgs = (A, "bkg.pyz", "k"+iKoloNr+".pyz 10");
+		new int iKolors = 6;
+	}
+	angoleft_click	{
+		iKoloNr--;
+		if( iKoloNr<0 ) iKoloNr=iKolors-1;
+		gameapi.play("Kolo");
+	}
+	angoright_click	{
+		iKoloNr = (iKoloNr+1)%iKolors;
+		gameapi.play("Kolo");
+	}
+}
+
+new int DziejeNr = 1;
+game Dzieje : Bill2	{
+	init	{
+		Bill2::init("dzieje");
+		
+		.imgs = (A, "bkg.pyz", "d"+DziejeNr+".pyz 10");
+		new int iDzieje = 11;
+	}
+	angoleft_click	{
+		DziejeNr--;
+		if( DziejeNr<1 ) DziejeNr=iDzieje;
+		gameapi.play("Dzieje");
+	}
+	angoright_click	{
+		DziejeNr++;
+		if( DziejeNr>iDzieje ) DziejeNr=1;
+		gameapi.play("Dzieje");
+	}
+}
+
+game Historia : Bill2	{
+	init	{
+		Bill2::init("historia");
+		
+		.imgs = (A, "bkg.pyz");
+		.newanima("anpoka", "historia.pyz", 10);
+	}
+	angoleft_click	{
+		anpoka.ansetprevfr;
+	}
+	angoright_click	{
+		anpoka.ansetnextfr;
+	}
+}
+
+game Pojazdy : Bill2	{
+	init	{
+		Bill2::init("pojazdy");
+		
+		.imgs = (A, "bkg.pyz");
+		.newanima("anpoka", "pojazdy.pyz", 10);
+	}
+	angoleft_click	{
+		anpoka.ansetprevfr;
+	}
+	angoright_click	{
+		anpoka.ansetnextfr;
+	}
+}
+
+game Anime : Bill2	{
+	init	{
+		Bill2::init("anime");
+		
+		.imgs = (A, "bkg.pyz");
+		.newanima("anpoka", "anime.pyz", 10);
+	}
+	angoleft_click	{
+		anpoka.ansetprevfr;
+	}
+	angoright_click	{
+		anpoka.ansetnextfr;
+	}
+}
+
+game Tasma : Bill2 {
+	init	{
+		Bill2::init("tasma");
+		
+		.imgs = (A, "bkg.pyz", "kucharz.pyz 20", "prosiak.pyz 30");
+		
+		.newgrimg("grpod", "tasmapod", 0);
+		.newgrimg("grtas", "tasma", 10);
+		grtas.nplay(-1);
+		
+	}
+	angoleft_click	{
+		gameapi.play("Animy");
+	}
+	angoright_click	{
+		gameapi.play("Pojazdy2");
+	}
+}
+
+game Pojazdy2 : Bill2	{
+	init	{
+		Bill2::init("pojazdy");
+		
+		.newanima("anrew", "pojazdy2.pyz", 10);
+		
+		new AnRewind crew("anrew", 100, 100, 100, 100, 10, 1);
+	}
+	angoleft_click	{
+		gameapi.play("Tasma");
+	}
+	angoright_click	{
+		gameapi.play("Animy");
+	}
+}
+
+
+game Animy : Bill2 {
+	init	{
+		Bill2::init("animy");
+		
+		.imgs = (A, "bkg.pyz");
+		
+		.newgrimg("gran", "animy", 0);
+		gran.nplay(-1);
+		
+	}
+	angoleft_click	{
+		gameapi.play("Pojazdy2");
+	}
+	angoright_click	{
+		gameapi.play("Tasma");
+	}
+}
+
+
+game Ufo1 : Bill2 {
+	init	{
+		Bill2::init("ufo");
+		
+		.imgs = (A, "ufo1.pyz");
+	}
+	angoleft_click	{
+		gameapi.play("Ufo6");
+	}
+	angoright_click	{
+		gameapi.play("Ufo2");
+	}
+}
+
+game Ufo2 : Bill2 {
+	init	{
+		Bill2::init("ufo");
+		
+		.imgs = (A, "u2bg.pyz");
+		.newgrimg("gruf", "ufo2", 10);
+		gruf.nplay(-1);
+	}
+	angoleft_click	{
+		gameapi.play("Ufo1");
+	}
+	angoright_click	{
+		gameapi.play("Ufo3");
+	}
+}
+
+game Ufo3 : Bill2 {
+	init	{
+		Bill2::init("ufo");
+		
+		.newgrimg("gruf", "ufo3", 10);
+		gruf.nplay(-1);
+	}
+	angoleft_click	{
+		gameapi.play("Ufo2");
+	}
+	angoright_click	{
+		gameapi.play("Ufo4");
+	}
+}
+
+game Ufo4 : Bill2 {
+	init	{
+		Bill2::init("ufo");
+		
+		.newgrimg("gruf", "ufo4", 10);
+		gruf.nplay(-1);
+	}
+	angoleft_click	{
+		gameapi.play("Ufo3");
+	}
+	angoright_click	{
+		gameapi.play("Ufo5");
+	}
+}
+
+game Ufo5 : Bill2 {
+	init	{
+		Bill2::init("ufo");
+		
+		.newgrimg("gruf", "ufo5", 10);
+		gruf.nplay(-1);
+	}
+	angoleft_click	{
+		gameapi.play("Ufo4");
+	}
+	angoright_click	{
+		gameapi.play("Ufo6");
+	}
+}
+
+game Ufo6 : Bill2 {
+	init	{
+		Bill2::init("ufo");
+		
+		.newgrimg("gruf", "ufo6", 10);
+		gruf.nplay(-1);
+	}
+	angoleft_click	{
+		gameapi.play("Ufo5");
+	}
+	angoright_click	{
+		gameapi.play("Ufo1");
+	}
+}
+
+game Gry : Bill2	{
+	init	{
+		Bill2::init("gry");
+		
+		.imgs = (A, "bkg.pyz");
+		.newanima("anpoka", "gry.pyz", 10);
+	}
+	angoleft_click	{
+		anpoka.ansetprevfr;
+	}
+	angoright_click	{
+		anpoka.ansetnextfr;
+	}
+}

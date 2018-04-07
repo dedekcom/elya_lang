@@ -1,0 +1,571 @@
+
+new int iMusic = 1;
+new int iNutka = 1;
+new string sAskerGame;
+class Dzieje : classadv, GameController	{
+	init(string s)	{
+		igmstate = 0;
+		classadv::init;
+		GameController::init(s);
+		.path = (s);
+		.setwavpath(SNDPATH);
+		.sfxs=(A,"pop 50", "pik1");
+		bsms.setstd;		// ustawia standardowo 
+		clmusic.play;
+		clbuts.reset;
+		advmouse.setstd;
+		if( igmdemo )	{
+			new anima anpieczatka {
+				.load("scripts/common/pieczatka.pyz");
+				.setz(200);
+				.hide;
+			};
+		}
+	}
+	cshowbut(@dir)	{	clp.show(cbok.getimgfunc("getcx"), cbok.getimgfunc("getcy"), dir); }
+	napisshow(int x, int y)	{
+		.show;
+		.move(x,y);
+	}
+	napispod(string s)	{	.napisshow(<s>.getcx-.getw/2, <s>.getey+5); }
+	crect	{	new Rect rec(600,196,403,497);	}
+	crect2	{	new Rect rec2(6,174,1012,530);	}
+	inpiecz(int x, int y)	{
+		if( igmdemo )	{
+			anpieczatka.setpos(x,y);
+			anpieczatka.show;
+		}
+	}
+	askfor(@s)	{ if( igmstate!=111) {sAskerGame=s; claskexit.askexittomenu; }	}
+	outpiecz	{	if(igmdemo)	anpieczatka.hide;	}
+	/***********************************************************/
+	exit	{
+		bsms.setstd;
+		.game_exit;
+	}
+	public askrestart	{	claskexit.askrestart;	}
+	/***********************************************************/
+	advclick()	{
+		if( igmdebug && (igmstate==0 || igmstate==5) )	{
+			this.cactsndstop(true);
+		}
+	}
+	public keyrestart	{
+		/*if( igmdebug && keyboard.iskeydown("lctrl") && keyboard.iskey("r") )
+			gameapi.play(this);*/
+	}
+	/***********************************************************/
+	keydown()	{
+		if( igmdebug==false )	{	return;	}
+		
+		if( keyboard.iskey("p") )	{
+			clpause.pause();
+		} else if( keyboard.iskey("escape") )	{
+			claskexit.askexittomenu();
+		} else {
+// 			clnextgm.checkkey();
+		}
+	}
+	/***********************************************************/
+	key_down	{
+		if( igmdebug && keyboard.iskeydown("lctrl") && keyboard.iskey("r") )	.crestart;
+	}
+}
+
+class Epoka : Dzieje	{
+	init(string s)	{
+		Dzieje::init(s);
+		new bool bStartPlay;
+		.list = (A, "prehistoria", "Prehistoria", "egipt", "EpokaEg", "daleki", "EpokaCh", "europa", "EpokaSr", "afryka", "EpokaAf", "ameryka", "EpokaAm", "grecja", "EpokaGr", "rzym", "EpokaRz", "grgry");
+		.list=(A, "Prehistoria", "bgrlas", "Sredniowiecze", "bgrlas", "lmusic");
+		.loadlekcja;
+		.newbgrloop("sndmusic", lmusic.get( lmusic.find(GAME) + 1 ) + ".wav");
+		if( iMusic ) sndmusic.play; else sndmusic.stop(false);
+		if( !iNutka ) clmusic.reset;
+	}
+	blitwpodklad	{
+		.setframe(-1,1);
+		imgpodklad.blit(this);
+		.setframe(-1,0);
+	}
+	loadlekcja	{
+		|new int X1, new int Y1, new int X2, new int Y2| = 12, 185, 500, 690;
+		
+		@spath = .getgraphpath;
+		.path = ("plansza");
+		.imgs = (A, "podklad.png");
+		new gmimgvec grramka;
+		"grramka" ..< "ramka.pyz";
+		grramka.setz(50);
+		new gmimgvec grepoki;
+		"grepoki" .* ("epoki" + LANG + ".pyz");
+		grepoki.each( func {	(@id)
+			.setz(5);
+			if( .actionname->strsubb(1)!=GAME.strsubb(1) )
+				.hide;
+			.addmethod("_butmoveon", func {
+				fxpop.play;
+				if( igmstate!=3 ) {	.show; advmouse.setbut; }
+				} );
+			.addmethod("_butmoveoff", func {
+				if( igmstate!=3) {
+					if( .actionname->strsubb(1)!=GAME.strsubb(1) )
+						.hide;
+					advmouse.setstd; 
+				}
+				} );
+			} );
+		grepoki.eval("blitwpodklad");
+		
+		new gmimgvec grprzyc;
+		"grprzyc" .* "przyciski.pyz";
+		grprzyc.setz(100);
+		grprzyc.each( func {	(@id)
+			if( .actionname=="help") { .hide; return; }
+			.addmethod("_butmoveon", func {
+				fxpop.play;
+				if( igmstate!=3 ) { 
+					advmouse.setbut;
+					.setframe(-1,1);
+				}
+				} );
+			.addmethod("_butmoveoff", func {
+				if( igmstate!=3 )	{
+					advmouse.setstd;
+					.setframe(-1,0);
+				}
+				} );
+			} );
+		grprzyc.remove("help");
+		
+		/*new anima anmapka	{
+			.load(.getgraphpath+"mapka.pyz");
+			.setz(1);
+			.setframe(GAME,0);
+			.addmethod("_butmoveon", func {
+				if( igmstate!=3 ) advmouse.setbut;	
+				.inpiecz( .getcx, .getcy );
+				} );
+			.addmethod("_butmoveoff", func { if( igmstate!=3 ) advmouse.setstd; .outpiecz;	} );
+		};*/
+		
+		.setgraphpath(spath);
+		
+		.imgs = (A, "mapa.pyz 10");
+		.newanima("antytul", "tytul" + LANG + ".pyz", 0);
+		imgpodklad.blit("antytul");
+		antytul.hide;
+		anmapa.clip(X1, Y1, X2, Y2);
+		
+		new gmimgvec grludki;
+		"grludki" .* "ludki.pyz";
+		grludki.eval("blitwpodklad");
+		grludki.setz(60);
+		grludki.each( func {	(@id)
+			.hide;
+			.addmethod("_butmoveon", "_lekmoveonact" );
+			.addmethod("_butmoveoff", "_lekmoveoffact" );
+			} );
+		
+		new gmimgvec grobs;
+		"grobs" .* "obiekty.pyz";
+		
+		new anima anmovon	{
+			.load(.getgraphpath+"moveon.pyz");
+			.hide;
+			.setz(10);
+			new vector vecac;
+			vecac.type("string");
+			for(int i=0; i<.nofactions; i++)	{
+				vecac.add(.nameofaction(i));
+			}
+			.addmethod("contains", func { (string s) vecac.contains(s); } );
+		};
+		
+		
+		grobs.each( func {	(@id)
+			.addmethod("_butmoveon", "_lekmoveonact" );
+			.addmethod("_butmoveoff", "_lekmoveoffact" );
+			.setz(20);
+			.hide;
+			.clip(X1, Y1, X2, Y2);	} );
+		new gmimgvec grmap;
+		grmap.addlist(A, "anmapa", "grobs" );
+		grmap.move((X1+X2-anmapa.getw)/2,(Y1+Y2-anmapa.geth)/2);
+		
+		new anima anbutmusic	{
+			.load("scripts/plansza/music.pyz");
+			.setz(100);
+			.setframe(0,iMusic);
+			.addmethod("_butmoveon", func { fxpop.play; if( igmstate!=3 ) advmouse.setbut;	} );
+			.addmethod("_butmoveoff", func { if( igmstate!=3 ) advmouse.setstd;	} );
+		};
+		new anima anbutnutka	{
+			.load("scripts/plansza/nutka.pyz");
+			.setz(100);
+			.setframe(0,iNutka);
+			.addmethod("_butmoveon", func { fxpop.play; if( igmstate!=3 ) advmouse.setbut;	} );
+			.addmethod("_butmoveoff", func { if( igmstate!=3 ) advmouse.setstd;	} );
+		};
+		new bool bZoom = false;
+		new anima anbutzoom	{
+			.load("scripts/plansza/zoom.pyz");
+			.setz(100);
+			.addmethod("_butmoveon", func {
+				if( igmstate==2 && bZoom )	{
+					fxpop.play;
+					advmouse.setbut;
+					.setframe(-1,1);
+				}
+				} );
+			.addmethod("_butmoveoff", func {
+				if( igmstate==2 )	{
+					if( bZoom )	.setframe(-1,0);
+					advmouse.setstd;
+				}
+			 	} );
+		};
+		
+		new anima anzoomer;
+		anzoomer.hide;
+		//new snd sfxbg;
+		new int iilesfx=0;
+		new gmobjvec sfxbg;
+		sfxbg.buildarray("snd", "sfxbg", 10);
+		sfxbg.each( func { (@id)
+			.vars2(A,"iframe",-1,"vol",100);
+			} );
+		
+		new db dbob;
+		dbob.loadbeh(.getgraphpath+"obiekty" + LANG + ".beh");
+		.adddzwieki("-say");
+		.adddzwieki("-say2");
+		.adddzwieki("-say3");
+		.stdexportsnd;
+		new int iFontSize = 25;
+		new @sfntopis = .snewfont( "configs/fonts/normal.ttf", iFontSize);
+		new @sfntopis2 = .snewfont( "configs/fonts/normal.ttf", iFontSize+4);
+		new text txtobrazki;
+		txtobrazki.setfont(sfntopis);
+		.newimgarray("grtxtile", "text", "txtileo", 16);
+		grtxtile.each( func {(@id)
+				.setfont(sfntopis2);
+				.txtset(id);
+				.addmethod("withincut", func { (int x, int y) 1; } );
+				.addmethod("actionname", func { "_number_"; } );
+				.addmethod("_butmoveon", func {
+					if( igmstate==2 && .isvisible && .get->to_i>0 )	{
+						advmouse.setact;
+					}
+					});
+				.addmethod("_butmoveoff", func {
+					if( igmstate==2 && .isvisible)	advmouse.setstd;
+					} );
+			});
+		
+		new anima anobrazek	{
+			.addmethod("onsetframe", func {
+				string s;
+				for( int i=0; i<sfxbg.size; i++)	{
+					s = sfxbg.get(i);
+					if( <s>.iframe==.framenr )	{
+						<s>.setvol(<s>.vol);
+						<s>.play;
+					}
+				}
+				} );
+		};
+		new int iileobrazow;
+		new string sactobraz = null;
+		new gmimgvec grobrazki	{
+			.addlist(A, "txtobrazki", "grtxtile", "anobrazek");
+			.setz(50);
+			.hide;
+		};
+		
+		new gmimgvec _grbuts;
+		_grbuts.addgroups(A, "grobs", "grludki", "grepoki", "grprzyc", "grtxtile");
+		_grbuts.addlist(A,"anbutmusic", "anbutzoom"/*, "anmapka"*/, "anbutnutka");
+		_grbuts.sortimgs;
+		
+		new @_slastlek = null;
+		new @sclickedlek = null;
+		new @_itoler = 50;
+		new @_imover = 8;
+		.cycle = ("timbgcyk", func {
+			|int x, int y| = mouse.getpos;
+			if( clsurf.isin(x,y,X1,Y1,X2,Y2) )	{
+				if( igmstate==1 )	{
+					int dt;
+					if( x-X1 < _itoler )	{ 
+						dt = X1 - anmapa.getpx;
+						if( dt > 0 )	{
+							if (dt > _imover) dt = _imover;
+							grmap.move(dt,0);
+						}
+					} else if (X2-x<_itoler) {
+						dt = anmapa.getex - X2;
+						if( dt>0 )	{
+							if( dt>_imover) dt=_imover;
+							grmap.move( -dt, 0 );
+						}
+					} if( y-Y1 < _itoler )	{
+						dt = Y1 - anmapa.getpy;
+						if( dt > 0 )	{
+							if (dt > _imover) dt = _imover;
+							grmap.move(0,dt);
+						}
+					} else if (Y2-y<_itoler)	{
+						dt = anmapa.getey - Y2;
+						if( dt>0 )	{
+							if( dt>_imover) dt=_imover;
+							grmap.move( 0, -dt );
+						}
+					}
+					<GAME>.lekcjamove;
+				}
+			}
+			.play;
+			} );
+		timbgcyk.play;
+		
+		igmstate = 1;
+	}
+	_lekmoveonact	{
+		if( igmstate==1)	{
+			if( this->contains("ludki") )
+				fxpop.play;
+			.show;
+			advmouse.setact;
+			@s = .actionname;
+			if( anmovon.contains(s) )	{
+				anmovon.setframe(s,0);
+				anmovon.show;
+				if( igmdemo && vblok.contains(s) )
+					.inpiecz( anmovon.getcx, anmovon.getey-60 );
+			}
+		}
+	}
+	adddzwieki(string spref)	{
+		string s;
+		for( int i=0; i<dbob.getrowsno; i++)	{
+			for( int j=0; j<dbob.getcolsno(i); j++)	{
+				if( dbob.get(i,j)==spref )	{
+					j+=2;
+					s = "";
+					while( dbob.get(i,j)!=")" )	{
+						s += dbob.get(i,j)+" ";
+						j++;
+					}
+					j++;
+					.addsnd( "snd"+i+"_"+j, s );
+				}
+			}
+		}
+	}
+	_restoresfx	{
+		iilesfx = 0;
+		sfxbg.stop(false);
+		sfxbg.each( func { (@id) iframe=-1; } );
+	}
+	_lekmoveoffact	{
+		if( igmstate==1)	{
+			.hide;
+			advmouse.setstd;
+			anmovon.hide;
+			.outpiecz;
+		}
+	}
+	lekcjamove	{
+		|int x, int y| = mouse.getpos;
+		if(_grbuts.isincut(x,y,false,true) )	{
+			@s = _grbuts.getsfound;
+			if( s!=_slastlek )	{
+				.leklastoff;
+				_slastlek = s;
+				<s>._butmoveon;
+			}
+		} else {
+			.leklastoff;
+		}
+	}
+	leklastoff	{
+		if( _slastlek!=null )	{
+			<_slastlek>._butmoveoff;
+			_slastlek = null;
+		}
+	}
+	lekcjaclick	{
+		if( igmstate==3 )	{
+			igmstate = 2;
+			anzoomer.hide;
+			return;
+		} else if (igmstate==2 && (clsurf.isin(mouse.getpos,X1,Y1,X2,Y2)||grludki.isin(mouse.getpos,0,0) )) {
+			.lekcjaret;
+			return;
+		}
+		if ( _slastlek!=null )	{
+			@s = <_slastlek>.actionname;
+			match(s)	{
+				"music" => {
+					iMusic = !iMusic;	anbutmusic.setframe(0,iMusic);
+					if( iMusic ) sndmusic.play;
+					else sndmusic.stop(false);
+					fxpik1.play;
+				}
+				"nutka" => {
+					iNutka = !iNutka;
+					anbutnutka.setframe(0,iNutka);
+					if( iNutka ) clmusic.play;
+					else clmusic.reset;
+					fxpik1.play;
+				}
+				"prehistoria", "egipt", "grecja", "daleki", "rzym", "europa", "afryka", "ameryka" => {
+					//if( !igmdemo )	{
+						gameapi.play( grgry.get( grgry.find(s) + 1 ) );
+					//}
+				}
+				"Prehistoria" => ;	// mapka
+				"help" => ;
+				"exit" => gameapi.play("MenuPreh");
+				"_number_" => if( igmstate==2) {
+					fxpik1.play;
+					.viewobraz(sactobraz, _slastlek.strsubbs("txtileo"));
+					}
+				"nonzoom" => ;
+				"yeszoom" => {
+					if( igmstate==2)	{
+						fxpik1.play;
+						igmstate=3;
+						anzoomer.show;
+						advmouse.setstd;
+					}
+				}
+				? => {
+					if( igmstate==1 )	{
+						if( igmdemo && vblok.contains(s) ) return;
+						sactobraz = s;
+						@irow = dbob.findbyrow(s);
+						iileobrazow=0;
+						@icol = 0;
+						while( icol<dbob.getcolsno(irow) )	{
+							if( dbob.get(irow,icol)=="file:" ) iileobrazow++;
+							icol++;
+						}
+						if( iileobrazow==0 ) return;
+						advmouse.setstd;
+						igmstate = 2;
+						sclickedlek = _slastlek;
+						fxpik1.play;
+						.viewobraz(s, 1);
+					}
+				}
+			}
+		} else .cactsndstop(true);
+	}
+	lnapiscol		{	return 117,1,1;	}
+	lnapiscolact	{	return 217,1,1;	}
+	viewobraz(string srow, int id)	{
+		.cactsndstop(false);
+		@irow = dbob.findbyrow(srow);
+		string s[2];
+		@srx = 776;
+		@sry = 194;
+		@x = srx;
+		@y = sry + iFontSize + 5;
+		@dx = 8;
+		txtileo0.txtsetcol("- ",.lnapiscol);
+		txtileo0.setpos(x,y);
+		txtileo0.show;
+		x+=txtileo0.getw+dx;
+		for( int i=1; i<=iileobrazow; i++)	{
+			s0 = "txtileo"+i;
+			if( i==id)	<s0>.txtsetcol(i,.lnapiscolact);
+			else	<s0>.txtsetcol(i,.lnapiscol);
+			<s0>.setpos(x,y);
+			<s0>.show;
+			x+=<s0>.getw+dx;
+		}
+		s1 = "txtileo"+(iileobrazow+1);
+		<s1>.txtsetcol(" -",.lnapiscol);
+		<s1>.setpos(x,y);
+		<s1>.show;
+		x+=<s1>.getw;
+		grtxtile.move((srx-x)/2,0);
+		._restoresfx;
+		if( irow>=0 )	{
+			@icol = 1;
+			@ile = 0;
+			while( icol<dbob.getcolsno(irow) )	{
+				match( dbob.get(irow, icol) )	{
+					"text:" => {
+						s0 = dbob.get(irow, icol+1); icol+=2;
+						s0.change("_"," ");
+						txtobrazki.txtsetcol("- "+s0+" -",.lnapiscol);
+						txtobrazki.setpos(srx-txtobrazki.getw/2,sry);
+						txtobrazki.show;
+					}
+					"file:" => { ile++;
+						icol++;
+						if(ile==id)	{
+							s0 = dbob.get(irow,icol);	icol++;
+							anobrazek.load(.getgraphpath+s0+".pyz");
+							anobrazek.setz(190);
+							//anobrazek.show;
+							anmovon.hide;
+							bZoom = false;
+							anbutzoom.setframe(0,0);
+							while(icol<dbob.getcolsno(irow) && dbob.get(irow,icol)!="file:")	{
+								match(dbob.get(irow,icol))	{
+									"-zoom" => {
+										bZoom = true;
+										anbutzoom.setframe(1,0);
+										icol++;
+										anzoomer.load(.getgraphpath+dbob.get(irow,icol)+".pyz");
+										anzoomer.setz(200);
+										anzoomer.hide;
+									}
+									"-say", "-say2", "-say3" => {
+										while( dbob.get(irow,icol)!=")" ) icol++;
+										.cbplay("snd"+irow+"_"+(icol+1));
+										bStartPlay = true;
+									}
+									"-sfx" => {
+										icol++;
+										s0 = sfxbg.get(iilesfx); iilesfx++;
+										<s0>.load(SFXPATH+dbob.get(irow,icol)+".wav"); icol++;
+										<s0>.iframe = (dbob.get(irow,icol)); icol++;
+										<s0>.iframe = (dbob.get(irow,icol)); icol++;
+										<s0>.vol = ( dbob.get(irow,icol) );
+									}
+									? => ;
+								}
+								icol++;
+							}
+							icol = dbob.getcolsno(irow);
+							anobrazek.play(0);
+						} else {
+							while(icol<dbob.getcolsno(irow) && dbob.get(irow,icol)!="file:")	icol++;
+						}
+					}
+					? => icol++;
+				}
+			}
+		}
+	}
+	lekcjaret	{
+		igmstate = 1;
+		.cactsndstop(false);
+		anobrazek.stop(false);
+		._restoresfx;
+		grobrazki.hide;
+		anbutzoom.setframe(0,0);
+		bZoom = false;
+		.leklastoff;
+		if( sclickedlek!=null )	{
+			<sclickedlek>._butmoveoff;
+			sclickedlek = null;
+		}
+		.lekcjamove;
+	}
+}

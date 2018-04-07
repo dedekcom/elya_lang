@@ -1,0 +1,96 @@
+
+new db dbconf;
+dbconf.loadscript("configs/config.beh");
+public def readcfg(string svar, def val)	{
+	int id = dbconf.findbyrow(svar);
+	if( id<0 ) val;
+	else dbconf.get(id,1);
+}
+public int ireadscfg(string svar, int val)	{
+	.readcfg(svar,val.igetsc)->to_i->igetsc;
+}
+
+engine.setdebugstate( .readcfg("enginedebug:", 0) );
+
+new int igmdebug = .readcfg("igmdebug:", 0);
+new int igmpcdebug = .readcfg("igmpcdebug:", 0);
+if( igmpcdebug )	{
+	mouse.showsys;
+}
+new int igmexportan = .readcfg("igmexportan:", 0);
+new int igmimportan = .readcfg("igmimportan:", 0);
+new int igmenablesave = .readcfg("igmenablesave:", 0);
+
+new int igmdelay = .readcfg("igmdelay:", engine.getloopdelay);
+public imstotick	{	(0.5 + .to_r/igmdelay)->to_i;	}
+public iticktoms	{	igmdelay * .get;	}
+
+/**************************************************************/
+new int igmwinlocal = .readcfg("igmwinlocal:", 0);		// special folder windows
+new int igmmac = .readcfg("igmmac:", 0);
+new int igmipad = .readcfg("igmipad:", 0);
+new int igmiphone = .readcfg("igmiphone:", 0);
+new int igmandroid = .readcfg("igmandroid:", 0);
+
+new string sgmdeveloper = .readcfg("sgmdeveloper:", "Dagiel");
+new string sgmproject = dbconf.dbget("sgmproject:");
+
+public bool isapple		{	igmipad || igmmac || igmiphone;		}
+public bool checktouchpad	{	igmipad || igmiphone || igmandroid;	}
+
+//---------------------- ekran ------------------------------
+
+|new int igmappw, new int igmapph| = engine.getappsize;	// rozmiar
+|new int igmoffsetx, new int igmoffsety| = engine.getscreenoffset;	// przesuniecie na wezszych od apki monitorach
+//|new int iResX, new int iResY| = engine.getscreensize;	// rozmiar gry po przeskalowaniu
+|new int iResX, new int iResY| = engine.getscreenres;	// rozmiar gry po przeskalowaniu
+|new real rgmscalex, new real rgmscaley| = engine.getscreenscale;
+new int i1024offsetx = 171->igetsc;
+public int getxoffset	{
+	igmandroid ? (engine.getxandro < igmoffsetx ? igmoffsetx : engine.getxandro) : igmoffsetx;
+}
+
+// ("appw/h: "+igmappw+","+igmapph+" offset: "+igmoffsetx+","+igmoffsety+" resx/y: "+iResX+","+iResY)->print;
+
+public def getappcenter	{
+	return igmappw/2, igmapph/2;
+}
+public int edgeex	{	iResX+igmoffsetx;	}
+public int edgeey	{	iResY+igmoffsety;	}
+//------------------ sciezki --------------------
+
+public string getwinpath(string spath)	{
+	string s = engine.getspecialpath("appdata");
+	if( s!=null )	{
+		s + "/" + sgmdeveloper + "/" + sgmproject + "/" + spath;
+	} else spath;
+}
+
+public getsavepath	{
+	if( .isapple )	{
+		engine.getsavepath;
+	} else {
+		(igmwinlocal ?  .getwinpath("saves/") :  "saves/");	
+	}
+}
+
+public buildsavedir	{
+	if( igmwinlocal && !.isapple )	{
+		string s = engine.getspecialpath("appdata");
+		if( s!=null )	{
+			s += "/" + sgmdeveloper;
+			int odp = engine.mkdir(s);
+			odp = 0;
+			if( odp==0 || odp==1 )	{
+				s +=  "/" + sgmproject;
+				odp = engine.mkdir(s);
+				odp = 0;
+				if( odp==0 || odp==1 )	{
+					s+= "/saves";
+					_ = engine.mkdir(s);
+				}
+			}
+		}
+	}
+}
+.buildsavedir;

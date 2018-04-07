@@ -1,0 +1,275 @@
+game City : DziejeGame	{
+	init	{
+		DziejeGame::init("city");
+		
+		.EgiptSave("miasto");
+		
+		.gamebg;
+		
+		/*.imgs = (A,"bari.pyz","bg5.pyz","cheti.pyz","mask4.pyz","mask9.pyz","path3.pyz","path8.pyz","ups5.pyz",
+			"bg1.pyz","bg6.pyz","mask1.pyz","mask5.pyz","path1.pyz","path4.pyz","path9.pyz","bg2.pyz","bg7.pyz","mask26.pyz",
+			"mask6.pyz","path26.pyz","path5.pyz","ups1.pyz","bg3.pyz","bg8.pyz","mask2.pyz","mask7.pyz","path29.pyz",
+			"path6.pyz","ups2.pyz","bg4.pyz","bg9.pyz","mask3.pyz","mask8.pyz","path2.pyz","path7.pyz","ups3.pyz");*/
+		new gmimgvec gral;
+		new gmimgvec grtmp;
+		new gmimgvec grpt1;
+		new gmimgvec grpt2;
+		new gmimgvec grups;
+		.newsfx("step1", "step2.wav");
+		step1.setvol(20);
+		.newsfx("step2", "step2.wav");
+		step2.setvol(20);
+		string s[2], int i[2];
+		int x = 0;
+		int y = 0;
+		new int W = 799;
+		new int H = 599;
+		for( int i=1; i<=9; i++)	{
+			s0 = "anbg"+i;
+			.newanima(s0, "bg"+i+".pyz", 0);
+			<s0>.setpos(x,y);
+			gral.add(s0);
+			
+			if( engine.fileexist(.getgraphpath + "mask"+i+".pyz" ) )	{
+				"grtmp" .* ("mask"+i+".pyz");
+				grtmp.move(x,y);
+				grtmp.setz(10);
+				grtmp.nplay(-1);
+				gral.addgr("grtmp");
+				grtmp.free;
+			}
+			if( engine.fileexist(.getgraphpath + "mask2"+i+".pyz" ) )	{
+				"grtmp" .* ("mask2"+i+".pyz");
+				grtmp.move(x,y);
+				grtmp.setz(20);
+				grtmp.nplay(-1);
+				gral.addgr("grtmp");
+				grtmp.free;
+			}
+			if( engine.fileexist(.getgraphpath + "path"+i+".pyz" ) )	{
+				"grtmp" .* ("path"+i+".pyz");
+				grtmp.move(x,y);
+				grtmp.hide;
+				gral.addgr("grtmp");
+				grpt1.addgr("grtmp");
+				grtmp.free;
+			}
+			if( engine.fileexist(.getgraphpath + "path2"+i+".pyz" ) )	{
+				"grtmp" .* ("path2"+i+".pyz");
+				grtmp.move(x,y);
+				grtmp.hide;
+				gral.addgr("grtmp");
+				grpt2.addgr("grtmp");
+				grtmp.free;
+			}
+			if( engine.fileexist(.getgraphpath + "ups"+i+".pyz" ) )	{
+				"grtmp" .* ("ups"+i+".pyz");
+				grtmp.move(x,y);
+				grtmp.hide;
+				gral.addgr("grtmp");
+				grups.addgr("grtmp");
+				grtmp.free;
+			}
+			if(i%3)	x += W;
+			else {
+				y+=H;
+				x=0;
+			}
+		}
+		grtmp.free;
+		gral.evalclip;
+		gral.move( X1 - W, Y1-2*H );
+		new int borx = anbg1.getpx;
+		new int bory = anbg1.getpy;
+		new int borex = anbg9.getex;
+		new int borey = anbg9.getey;
+		
+		.imgs = (A, "cheti.pyz", "bari.pyz", "klawisze.pyz 10");
+		new string sdir = "l";
+		
+		.mpos(783,425);
+		ancheti.addmethod("onendframe", func {
+			if( keyboard.iskeydown("up") )	.mgo("u");
+			else if( keyboard.iskeydown("left") )	.mgo("l");
+			else if( keyboard.iskeydown("right") )	.mgo("r");
+			else if( keyboard.iskeydown("down") )	.mgo("d");
+			else .mplay( "stand" + ancheti.actionname->gete(0,1) );
+			} );
+		ancheti.anloopfin;
+		anbari.anloopfin;
+		ancheti.advclip;
+		anbari.advclip;
+		.cycle = ("timrownaj", func {
+			@speed = 3;
+			@dx2 = (X2-X1)/2-10;
+			@dy2 = (Y2-Y1)/2-10;
+			@dx = speed;
+			@dy = speed;
+			if( ancheti.getposx < X1 + dx2 )	{
+				if( borx+dx<=X1 )	.amov(dx,0);
+			} else if ( ancheti.getposx > X2 - dx2 )	{
+				if( borex-dx>=X2 )	.amov(-dx,0);
+			}
+			if( ancheti.getposy < Y1 + dy2 )	{
+				if( bory+dy<=Y1 )	.amov(0, dy);
+			} else if ( ancheti.getposy > Y2 - dy2 )	{
+				if( borey-dy>=Y2 )	.amov(0, -dy);
+			}
+			.play;
+			} );
+		
+		.sounds = (A,
+			"snd1", "¦wita³o kiedy Cheti i Bari wyszli z lochu; Mieszkañcy stolicy jeszcze spali ale ulice przeczesywali stra¿nicy w poszukiwaniu ksiê¿niczki Cynthii",
+				func { .cbplay("cheti1"); },
+			":cheti1", "Trzymaj siê blisko mnie Bari; Musimy unikaæ stra¿ników", "mstart",
+			":woje1", "Hej wy tam!!", func { .cbplay("cheti2"); },
+			":cheti2", "O rany zauwa¿yli nas! Uciekamy na start!", func { ccs.close(func { gameapi.play("City"); }); },
+			":cheti3", "Nasz okrêt jest pusty; Ale spójrz; Tam s± jakie¶ schody", "mendcs",
+			":bari1", "Wchod¼ pierwszy ja bêdê zabezpiecza³ ty³y", "mendcs",
+			":cheti4", "Czy¿by¶my dotarli do ¶lepego zau³ka?", func { .cbplay("bari2"); },
+			":bari2", "Gdzie¶ tu musi byæ przej¶cie", "mendcs",
+			":cheti5", "Stój! Widzê stra¿ników za rogiem tego domu; Musimy ich omin±æ", "mendcs",
+			":cheti6", "Stra¿nicy nas nie zauwa¿yli; Idziemy dalej", "mendcs",
+			":cheti7", "Wrota do ¶wi±tyni s± zamkniête; Mo¿e tam poszukamy?", func { .cbplay("bari3"); },
+			":bari3", "¯o³nierze przeszukuj± wszystkie domy ale nikt nie szuka w ¶wi±tyni; Tylko jak przejdziemy przez te wielkie wrota?", "mendcs",
+			":bari4", "Na Skarabeusza! Z dachu ¶wi±tyni widaæ ca³e miasto", func { .cbplay("cheti8"); },
+			":cheti8", "Cii; S³yszê tam jakie¶ g³osy; Chod¼my", "mendcs",
+			":cheti9", "Jestem pewien ¿e s³yszê g³os Haseta; Wejd¼my przez okno do tej ¶wi±tyni", func {
+				ccs.close( func {
+					.EgiptSave("golden");
+					gameapi.play("MK1");
+					} );
+				}
+			/*"sndswiatynia",
+				bgwrota.pyz
+				bgdrabina.pyz
+				bguwagawoj.pyz
+				bgnadach.pyz
+				bgschody1.pyz
+				bgpomost.pyz*/
+			);
+		
+		timrownaj.play;
+		.mplay("standl");
+		/*new img imgcien;
+		imgcien.create(799,599,.black,128);
+		imgcien.setz(200);
+		imgcien.setpos(X1,Y1);*/
+		
+		ccs.enter( func { .cbplay("snd1"); } );
+	}
+	mstart	{	igmstate=1;	}
+	mend	{
+		ccs.close( null );
+	}
+	mgo(string sd)	{
+		@x = ancheti.getposx;
+		@y = ancheti.getposy;
+		@speed = 10;
+		@dx = speed;
+		@dy = speed;
+		match(sd)	{
+			"u" => {y-=dy; dx=0; dy = -dy; }
+			"l" => { x-=dx; dx=-dx; dy=0;	}
+			"r" => { x+=dx; dy=0;	}
+			"d" => { y+=dy; dx=0; }
+			? => ;
+		}
+		int odp = 0;
+		sdir = sd;
+		string s;
+		if( igmstate == 1 )	{
+			if( grups.isin(x,y,0,1) )	{
+				/*bgswiatynia.pyz
+				bgwrota.pyz
+				bgdrabina.pyz
+				bguwagawoj.pyz
+				bgnadach.pyz
+				bgschody1.pyz
+				bgpomost.pyz*/
+				s = <grups.getsfound>.actionname;
+				.mcs( s );
+				match(s)	{
+					"woj" => "woje1";
+					"pomost" => "cheti3";
+					"schody1" => "bari1";
+					"nadach" => "cheti4";
+					"uwagawoj" => "cheti5";
+					"drabina" => "cheti6";
+					"wrota" => "bari3";
+					"swiatynia" => "bari4";
+					"end" => "cheti9";
+					? => ;
+				};
+				s = _;
+				.cbplay(s);
+			} else if( grpt1.isin(x,y,0,1) )	{
+				.mz(5);
+				.mpos(dx,dy);
+				odp = 1;
+			} else if( grpt2.isin(x,y,0,1) )	{
+				.mz(15);
+				.mpos(dx,dy);
+				odp = 1;
+			}
+		}
+		.mplay(odp ? "go"+sd : "stand"+sd);
+	}
+	mcs(string s)	{
+		if( s!="woj" && s!="end" )	{
+			"grtmp" .* ("bg"+s+".pyz");
+			grtmp.setz(400);
+			grtmp.move(X1, Y1);
+			grtmp.nplay(-1);
+			//imgcien.hide;
+			grups.removeat( grups.getfound );
+		}
+		igmstate = 2;
+	}
+	mendcs	{
+		grtmp.deleteallgm;
+		grtmp.free;
+		igmstate = 1;
+		//imgcien.show;
+	}
+	amov(int x, int y)	{
+		gral.move(x,y);
+		ancheti.move(x,y);
+		anbari.move(x,y);
+		borx+=x;
+		borex+=x;
+		bory+=y;
+		borey+=y;
+	}
+	mplay(string s)	{
+		if( !ancheti.isplaying(s) )	{
+			ancheti.play(s);
+			anbari.play(s);
+		}
+	}
+	mz(int z)	{
+		ancheti.setz(z);
+		anbari.setz(z);
+	}
+	mpos(int x, int y)	{
+		ancheti.move(x,y);
+		@w = ancheti.getw/2 + 4;
+		@h = ancheti.geth/2 + 4;
+		x = ancheti.getposx;
+		y = ancheti.getposy;
+		@dx = 10;
+		match(sdir)	{
+			"u" => anbari.setpos(x-dx, y+h);
+			"r" => anbari.setpos(x-w, y-dx);
+			"d" => anbari.setpos(x+dx, y-h);
+			"l" => anbari.setpos(x+w, y+dx);
+			? => ;
+		}
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}

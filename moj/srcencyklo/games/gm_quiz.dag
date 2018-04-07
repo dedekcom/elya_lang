@@ -1,0 +1,222 @@
+new int quizmode;
+
+game MenuQuiz : Dzieje, TMenu	{
+	init	{
+		Dzieje::init("quiz");
+		.tinit("menuquiz" + LANG + ".pyz");
+		.setsndbase("menuquiz");
+		.newanima("antyp", "typ" + LANG + ".pyz", 30);
+		antyp.hide;
+		.sounds=(A,
+			"sndintro", "Wybierz stopieñ trudno¶ci", "gmunlockall",
+			"sndsnd10", "kartkówka", null,
+			"sndsnd20", "sprawdzian", null,
+			"sndsnd40", "egzamin", null
+			);
+		.cbplay("sndintro");
+	}
+	cgo(@id)	{	quizmode=id;	gameapi.play("Quiz");	}
+	cview(@id)	{	antyp.show; antyp.setframe(0,id);	}
+	snd10_MOVEON	{	.cview(0);	}
+	snd20_MOVEON	{	.cview(1);	}
+	snd40_MOVEON	{	.cview(2);	}
+	snd10_MOVEOFF	{	antyp.hide;	}
+	snd20_MOVEOFF	{	antyp.hide;	}
+	snd40_MOVEOFF	{	antyp.hide;	}
+	snd10_BUTCLICK	{	.cgo(10);	}
+	snd20_BUTCLICK	{	.cgo(20);	}
+	snd40_BUTCLICK	{	.cgo(40);	}
+	exit_BUTCLICK	{	gameapi.play("MenuPreh");	}
+}
+
+game Quiz : Dzieje	{
+	init	{
+		Dzieje::init("quiz");
+		.newdb("dbpyt", "pytania.db");
+		.sfxs=(A, "ok");
+		string s;
+		new vector vecpyt;
+		new vector vecpos;
+		vecpos.vecnewint(3);
+		.importbank("sndtak", "myes", "mdalej");
+		.importbank("sndnie", "mno", "mdalej");
+		.sounds=(A,
+			"sndend1", "Oj pope³ni³e¶ stanowczo za du¿o b³êdów; Poucz siê i spróbuj ponownie", "mend2",
+			"sndend2", "Test zaliczony ale mog³oby byæ lepiej; Postaraj siê jeszcze trochê", "mend2",
+			"sndend3", "Ca³kiem nie¼le choæ zdarzy³o siê kilka b³êdów; Mo¿e nastêpnym razem pójdzie lepiej", "mend2",
+			"sndend4", "Bardzo dobrze! Prawie wszystkie zadania rozwi±zane prawid³owo", "mend2",
+			"sndend5", "Doskonale! Bezb³êdnie rozwi±zany test", "mend2",
+			"sndrekord", "Brawo! Dotychczasowy rekord zosta³ pobity!", "mcheck",
+			"sndblok10", "W nagrodê odblokowujê najtrudniejszy poziom puzli", "mend",
+			"sndblok20", "W nagrodê odblokowujê budowê wie¿y w Biskupinie", "mend",
+			"sndblok40", "W nagrodê odblokowujê najtrudniejszy etap w uk³adaniu szkieletów", "mend"
+			);
+		//.setsndbase("quizpyt");
+		for( int i=0; i<dbpyt.getrowsno; i++)	{
+			s = dbpyt.get(i,1);
+			if( s!="ref")	.addsndf("snd_"+i, s, "mgo");
+			vecpyt.add(i);
+		}
+		.stdexportsnd;
+		vecpyt.hash;
+		vecpyt.veclimes(quizmode);
+		.imgs=(A,"mamut.pyz 10", "bkg" + LANG + ".pyz", "rekordH.pyz 100", "odblokujH.pyz 90", "nakladka.pyz 4");
+		anmamut.play("std");
+		new gmimgvec grel;
+		_ = "grel" .+ "anodp1" .+ "anodp2" .+ "anodp3";
+		if( LANG.in(A,"", "eng") )
+			new @sfont22 = .stdfont(18);
+		else new @sfont22 = .snewfont("configs/fonts/normal.ttf",22);
+		.newtext("txtstatus", "", sfont22, .white);
+		.newdb("dbstatus", "status.db");
+		new int idlang = dbstatus.findbyrow(LANG=="" ? "pl" : LANG);
+		
+		txtstatus.setz(10);
+		txtstatus.setpos( 20, 710 );
+		//txtstatus.txtshadow(2, sfont22);
+		new int ilepytan = vecpyt.size;
+		new int ipoprawne=0;
+		new int izle = 0;
+		new int irekord;
+		new classsimplebutton cbexit;
+		cbexit.build("scripts/quiz/exit.pyz", "imglobcurs", 0, 0, 100, 0);
+		if( save.get("rekordquiz"+quizmode)!=null )	irekord=save.get("rekordquiz"+quizmode);
+		
+		.copyanima("anrekord", "anbest");
+		anbest.setframe(0,2);
+		anbest.show;
+		.newtext("txtdotyczas", dbstatus.get(idlang,4), sfont22, .white);
+		txtdotyczas.setz( anrekord.getz+5 );
+		txtdotyczas.setpos( anbest.getpx - txtdotyczas.getw, txtstatus.getpy+txtstatus.geth+3);
+		.newtext("txtbest", irekord, sfont22, 192,0,0);
+		txtbest.setz( anrekord.getz+5 );
+		txtbest.setpos(anbest.getcx-txtbest.getw/2, anbest.getcy-txtbest.geth/2-4);
+		
+		.reload;
+		.unlockall;
+	}
+	cbexit_MOVEON	{	sndakskermovon.play;	}
+	cbexit_CLICK	{	gameapi.play("MenuQuiz");	}
+	mprint	{
+		@id = ilepytan-vecpyt.size+1;
+		if( id>ilepytan ) id = ilepytan;
+		txtstatus.txtset(dbstatus.get(idlang,1) + id + "/"+ ilepytan +
+			dbstatus.get(idlang,2) + ipoprawne +
+			dbstatus.get(idlang,3)+ izle);
+	}
+	mstatus	{
+		grel.hide;
+		anrekord.show;
+		if( !(ipoprawne==quizmode && !save.bis("zaliczony"+quizmode)) )	{
+			anrekord.setframe(0,3);
+			.copyanima("anrekord", "anrekbg");
+			anrekbg.setz( anrekord.getz-10);
+			anrekbg.setframe(0,5);
+		}
+		
+		annakladka.hide;
+		if( engine.varexist("anprzyk") )	anprzyk.hide;
+		.newtext("txtrekord", ipoprawne, sfont22, 192,0,0);
+		txtrekord.setz( anrekord.getz+5 );
+		txtrekord.setpos(anrekord.getcx-txtrekord.getw/2, anrekord.getcy-20);
+		real r = ipoprawne;
+		r/=ilepytan;
+		int ocena = 5;
+		if( r<0.5 )	ocena=1;
+		else if (r<0.6) ocena=2;
+		else if (r<0.8) ocena=3;
+		else if (r<1) ocena=4;
+		.cbplay("sndend"+ocena);
+	}
+	mend2	{
+		if( ipoprawne>irekord )	{
+			txtrekord.txtset(ipoprawne);
+			.copyanima("anrekord", "anrek2");
+			anrek2.setframe(0, anrekord.framenr+1);
+			fxok.play;
+			.cbplay("sndrekord");
+		} else .mend;
+	}
+	mend	{	igmstate=11;	}
+	mcheck	{
+		save.set("rekordquiz"+quizmode, ipoprawne);
+		if( ipoprawne==quizmode && !save.bis("zaliczony"+quizmode) )	{
+			save.bset("zaliczony"+quizmode);
+			if( quizmode==20 ) anodblokuj.setframe(0,1);
+			else if (quizmode==40) anodblokuj.setframe(0,2);
+			anodblokuj.show;
+			.cbplay("sndblok"+quizmode);
+		} else .mend;
+	}
+	mgo	{	igmstate = 1;	}
+	mdalej	{
+		_ = vecpyt.vecpop;
+		if( vecpyt.size )	{
+			<GAME>.reload;
+		} else {
+			.mprint;
+			<GAME>.mstatus;
+		}
+	}
+	reload	{
+		.vardelif("anodp2");
+		.vardelif("anodp3");
+		.vardelif("anprzyk");
+		.vardelif("anodp1");
+		@id = vecpyt.veclast;
+		.newanima("anodp1", "p"+(id+1)+".pyz", 20);
+		.copyanima("anodp1", "anodp2");	anodp2.setframe(0,1);
+		.copyanima("anodp1", "anodp3");	anodp3.setframe(0,2);
+		if( anodp1.nofactions>1 )	{
+			.copyanima("anodp1", "anprzyk");
+			anprzyk.setframe(1,0);
+		}
+		vecpos.hash;
+		for( int i=0; i<3; i++) <"anodp"+(i+1)>.setpos(vecpos.get(i)*336,0);
+		.mprint;
+		.ask;
+	}
+	ask	{
+		igmstate = 0;
+		@id = vecpyt.last;
+		if( dbpyt.get(id,1)=="ref" ) id = dbpyt.get(id,2)->to_i - 1;
+		.cbplay("snd_"+id);
+	}
+	mouse_lclick	{
+		if( igmstate!=1 ) {
+			if( igmstate==11 ) gameapi.play("MenuQuiz");
+			return;
+		}
+		if( grel.isin( mouse.getpos, true, false ) )	{
+			igmstate = 0;
+			fxpop.play;
+			if( <grel.getsfound>.framenr==0 ) {
+				anmamut.play("yes");
+				ipoprawne++;
+				.cbplay("sndtak");
+			} else {
+				anmamut.play("no");
+				izle++;
+				.cbplay("sndnie");
+			}
+		} else if (anmamut.isin(mouse.getpos,true,false) )	.ask;
+	}
+	/*keydown	{
+		if( keyboard.iskey("1") )	{
+			ipoprawne=1;
+			izle = 9;
+			.mprint;
+			.mstatus;
+		} else if (keyboard.iskey("2") )	{
+			ipoprawne=10;
+			izle = 0;
+			.mprint;
+			.mstatus;
+		} else if (keyboard.iskey("3") )	{
+			ipoprawne=6;
+			izle = 4;
+			.mprint;
+			.mstatus;
+		}
+	}*/
+}

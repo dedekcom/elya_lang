@@ -1,0 +1,3 @@
+./kompiluj ./srcadamigo2/adamigo2.prj
+#cp ./srcadamigo2/adamigo2.odd /home/dedek/projekty/rysunki_gimp/adamigo2/project/scripts/
+awk -f optimize.awk ./srcadamigo2/adamigo2.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/adamigo2/project/scripts/adamigo2.odd

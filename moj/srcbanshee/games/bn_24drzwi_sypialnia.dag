@@ -1,0 +1,87 @@
+
+game mg24_drzwi_sypialnia :Banshee {
+	init{
+    Banshee::init("mg24_drzwi_sypialnia");
+    // .addtopck("tree");
+   
+    .imgs = (A,"bkg.jpg 1" , "popup_bkg.pyz 2" ,"drzewo_slot.pyzH 3","drzewo.pyzH 4","door_open.pyzH 5", "ramka.pyz 22","popexit.pyz 23"  );
+    .sfxs = (A, "bgrwiatrN 10", "noc2N 20", "openhead",  "magical" );
+	.butpopexit;
+	.butpopexitisinramka;
+	  
+ 
+     if (clsave.bis("e1_mg24_drzwi_sypialnia_tree_in"))
+     {
+        andrzewo.show;
+     }
+     else
+     {
+        andrzewo_slot{
+          .addmethod("isbutin", func { (int x, int y)
+    			   .isin(x,y,0,0)  ;
+    				} ); 
+    			.addmethod("butmoveon", func {
+    		 	     if (!clsave.bis("e1_mg24_drzwi_sypialnia_tree_in"))
+                   advmouse.set("use"); 
+                  else
+                    advmouse.setstd;
+    			 } );
+    			.addmethod("butmoveoff", func {
+    			   advmouse.setstd;
+    			} );
+				
+				.addmethod("butclick", func {
+					if( !.advstdstate || clsave.bis("e1_mg24_drzwi_sypialnia_tree_in")) return;
+						.cbplay("snd_emblemat");
+				} );  
+				
+				 
+				
+          butgame.add(this);
+        }; 
+    }
+    
+ 
+	
+	if (!clsave.bis("e1_mg24_drzwi_sypialnia_tree_in"))
+	{
+		.newsndfree("snd_emblemat", "kinnat_c3d3_13c");
+		snd_emblemat.addmethod("onfinish", "advsetstdstate");  	
+	}	
+	 
+    .stdstart;   
+
+ 	
+  
+  }// koniec init 
+ 
+  USE_tree	{
+	   .advsetstdstate(); 
+     if(andrzewo_slot.isin(mouse.getpos,0,0) )	{
+        fxmagical.play;
+		.removefrompck("tree");
+		.set_mg_finished;
+        andrzewo.anfadein(700,func{andrzewo_slot.hide; fxopenhead.play; andoor_open.anfadein(500,"timfinito");}); 
+        clsave.bset("e1_mg24_drzwi_sypialnia_tree_in");
+		advmouse.setstd;
+		butgame.removebut("andrzewo_slot");
+      } else  
+	   .item_gotopck;
+  }
+ 
+  mend	{
+    .stdexitdefadv("ad24_schody", "gamead24_schody0"); 
+  }
+  
+  HINT_CLICK {
+    if( !clsave.bis("ma_tree") )	{
+			.showhint("anpopexit");
+		} else 
+    { 
+			.showhint("andrzewo_slot");
+			.showhintitem("tree");
+	  }
+  } 
+ 
+}
+ 

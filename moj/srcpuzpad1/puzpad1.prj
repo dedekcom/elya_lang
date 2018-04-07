@@ -1,0 +1,50 @@
+path:
+	srcpuzpad1/
+
+src:
+	libs/system.dag
+	libs/collections.dag
+	libs/music.dag
+	libs/vars.dag
+	libs/mouse.dag
+	libs/length.dag
+	libs/packs.dag
+	libs/containers.dag
+	libs/sounds.dag
+	libs/game.dag
+	libs/buttons.dag
+	libs/masks.dag
+	libs/basetypes.dag
+	libs/gametools.dag
+	libs/gamecontroller.dag
+	libs/adv.dag
+	libs/saves.dag
+	libs/script.dag
+	gameobjs/painter.dag
+	gameobjs/asker.dag
+	gameobjs/placepointer.dag
+	gameobjs/counter.dag
+	gameobjs/gfxobjects.dag
+	gameobjs/fadeinout.dag
+	gameobjs/texttyper.dag
+	gameobjs/delaytaker.dag
+	gameobjs/imgmover.dag
+	gameobjs/rewinder.dag
+	gameobjs/buttons.dag
+	gameobjs/textbox.dag
+	gameobjs/lexer.dag
+	gameobjs/anfx.dag
+	gameobjs/lang.dag
+	gameobjs/pyzcounter.dag
+	advlibs/advmouse.dag
+	stdgame/stdgame.dag
+	stdgame/main.dag
+	games/gm_menus.dag
+	games/gm_puzzleb.dag
+
+
+all:
+	dd1.dag
+
+out:
+	srcpuzpad1/puzpad1.odd

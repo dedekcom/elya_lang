@@ -1,0 +1,114 @@
+
+new bool bMusic = true;
+
+class FarmStd : StdGame	{
+	init(string s)	{
+		StdGame::init(s);
+		
+		new img imgbgmac;
+		imgbgmac.create(igmappw, (800-768)->igetsc, .black, 255);
+		imgbgmac.setpos( 0, 768->igetsc );
+	}
+	cwideversion	{	true;	}
+	cbutexit	{
+		.newanima("anbutexit", "$scripts/common/butexit.pyz", 300);
+		anbutexit.ansetbpos( igmoffsetx + 20->igetsc, igmoffsety );
+		anbutexit.Button_addstdstate;
+	}
+	cblinkbutexit	{
+		anbutexit.imgbuildoverlay(.yellow,64,1200);
+	}
+	cbuthelp	{
+		.newanima("anbuthelp", "$scripts/common/help.pyz", 300);
+		anbuthelp.ansetbpos( igmoffsetx +iResX - anbuthelp.getw - 20->igetsc, igmoffsety );
+		anbuthelp.Button_addstdstate;
+	}
+	cbutmuz		{
+		.newanima("anbutmuz", "$scripts/common/butmuz.pyz", 300);
+		anbutmuz.setpos( anbutexit.getex + 10->igetsc, igmoffsety );
+		anbutmuz.Button_addstdstate;
+		anbutmuz.setframe( bMusic ? "on" : "off", 0 );
+	}
+	butclick_anbutmuz	{
+		if( bMusic )	{
+			bMusic = false;
+			music.fadeout(500);
+			anbutmuz.setframe("off",0);
+		} else {
+			bMusic = true;
+			anbutmuz.setframe("on",0);
+			.butmuz_playmusic;
+		}
+	}
+	cloadboki(int z)	{
+		.newanima("an1366bokl", "$scripts/common/boki.pyz", z);
+		.copyanima("an1366bokl", "an1366bokr");
+		an1366bokr.setframe(1,0);
+	}
+	caddymek	{
+		<GAME>.copyanima(this, this+"2");
+		for( int i=0; i < .nofactions-2; i++ )	{
+			@saniko = this+"iko"+i;
+			<GAME>.copyanima(this, saniko);
+			<saniko>.hide;
+			<saniko>.setz( .getz + 1 );
+			<saniko>.setframe(i+2,0);
+			.var2("saniko"+i, saniko);
+		}
+		.vars2(A, "ilesaniko", i, "sancopy", this + "2");
+		<sancopy>.hide;
+		.addmethod("isbutin", func { (int x, int y)
+			<sancopy>.isin(x,y,0,0);
+			} );
+		.addmethod("butmoveon", func {
+			if( .advstdstate )	{
+				advmouse.setact;
+				.play(1);
+				for( int i=0; i<ilesaniko; i++ )	{
+					< ["saniko"+i] >.anzoomin((10.0+i)/10.0*idymekdelay,null);
+				}
+				.Button_butmoveon;
+			}
+			} );
+		.addmethod("butmoveoff", func {
+			if( .advstdstate )	{
+				advmouse.setstd;
+				.play(0);
+				for( int i=0; i<ilesaniko; i++ )	{
+					< ["saniko"+i] >.anzoomout((10.0+i)/10.0*idymekdelay,null);
+				}
+			}
+			} );
+		.addmethod("butclick", func {
+			if( .advstdstate )
+				.Button_butclick;
+			} );
+		butgame.add(this);
+		.play(0);
+	}
+	cbuildbzyczek(string san)	{	<GAME>.cbzyczek(san, <san>.getpx, <san>.getpy);	}
+	cplaybzyczek(string san)	{	.cbuildbzyczek(san); <san>.play(-1);	}
+	anplaybzyczek	{	.cplaybzyczek(this);	}
+	cbzyczek(string san, int xstart, int ystart)	{
+		<san>.ansetbpos( xstart, ystart );
+		@s = "ftbzyk"+san;
+		new filter <s>;
+		<s>.link(san);
+		<san>.var2("iliczbzyk",0);
+		<san>.addmethod("onendframe", func {
+			iliczbzyk++;
+			if( iliczbzyk==1 )	{
+				@s = "ftbzyk"+this;
+				iliczbzyk=0;
+				real kat = 12-21->rand;
+				real dt = 5;
+				real kat2 = <s>.getangle;
+				real x = kat2->sin * dt;
+				real y = kat2->cos * dt;
+				<s>.rotate(kat);
+				.move(-x,-y);
+			}
+			} );
+	}
+}
+

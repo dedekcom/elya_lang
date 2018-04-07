@@ -1,0 +1,31 @@
+
+new classgamepause clpause;
+
+
+class classplacepointer2 : classplacepointer    {
+	init()  {
+		classplacepointer::init();
+		this.load("scripts/common/strzalka.pyz");
+	}
+}
+
+gameapi.play("MainLoader");
+game MainLoader : StdGame       {
+	init    {
+		StdGame::init("mainloader");
+		
+		//_fxtakeitem.load( .getsndpath + "getitem" );
+		
+		// ADV
+		if( engine.varexist("modadv") )	{
+			modadv.load("scripts/scripts/defaults.adv");
+			modadv.loadsounds("scripts/scripts/sounds.db");
+			modadv.settalktype("snd");
+			modadv.loadscript("scripts/scripts/initscript.dsc");
+		}
+		clsave.load("global.txt");
+		sgmlastscene = this;
+		
+		gameapi.play( dbconf.dbget("startgame:") );
+	}
+}

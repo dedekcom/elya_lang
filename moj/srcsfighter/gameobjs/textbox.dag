@@ -1,0 +1,76 @@
+class TextDb : classlocker, ObjController, gfxObject {
+	init(string sfont, int isize, string sdbfile, int r, int g, int b, int x, int y, int dy, int z, string sdir)	{
+		classlocker::init;
+		ObjController::init;
+		new string sFont = sfont;
+		sfont = .checkfont( sfont, isize );
+		new int iFontSize = isize;
+		if( sdbfile.contains(".db") )	{
+			.newdb( "dbtxt", sdbfile );
+		} else {
+			new db dbtxt;
+			if( sdbfile.getb(0,5)=="$var:" )	dbtxt.dbcopy( sdbfile.strsubb(5) );
+			else dbtxt.dbaddlast( sdbfile );
+		}
+		string s;
+		int w = 0, int ile = dbtxt.getrowsno;
+		new gmimgvec grtxt;
+		grtxt._setpos(x,y);
+		for( int i=0; i< ile; i++)	{
+			s = "txt" + i;
+			new text <s>;
+			<s>.setfont( sfont );
+			<s>.set( dbtxt.get(i,0) );
+			<s>.setpos(x,y);
+			y+=isize+dy;
+			<s>.setz(z);
+			<s>.createtxt(r,g,b);
+			if( <s>.getw>w ) w = <s>.getw;
+			grtxt.add(s);
+		}
+		if( sdir == "right" || sdir =="center" )	{
+			for( i=0; i<ile; i++)	{
+				s = "txt" + i;
+				if( sdir == "center" )	{
+					<s>.move( (w-<s>.getw)/2, 0 );
+				} else {
+					<s>.move( w-<s>.getw, 0 );
+				}
+			}
+		}
+		gfxObject::init("grtxt");
+	}
+	stdshadow(int dt)	{	.setshadow(0,0,0,dt);	}
+	setshadow(int r, int g, int b, int dt)	{
+		string s[2];
+		string sfont = ._checkfont(sFont, iFontSize, "_fntbrd");
+		for( int i=0; i< dbtxt.getrowsno; i++)	{
+			s0 = "txt" + i;
+			s1 = "txts" + i;
+			new text <s1>;
+			<s1>.set( <s0>.get );
+			<s1>.setfont( sfont );
+			<s1>.setz( <s0>.getz-1 );
+			<s1>.setpos( <s0>.getpx+dt, <s0>.getpy+dt );
+			<s1>.createtxt(r,g,b);
+			grtxt.add(s1);
+		}
+	}
+	setz(int z)	{
+		for( int i=0; i< dbtxt.getrowsno; i++)	{
+			<"txt" + i>.setz(z);
+			<"txts" + i>.setz(z-1);
+		}
+	}
+	view	{
+		@s = _;
+		string s2;
+		while(A!=s)	{
+			s2 = grtxt.get(s);
+			<s2>.show;
+			s2 = "txts" + s2.strsubbs("txt");
+			if( engine.varexist(s2) ) <s2>.show;
+			@s=_;
+		}
+	}
+}

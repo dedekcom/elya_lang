@@ -1,0 +1,289 @@
+game gamerzeka : classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		this.setgraphpath("scripts/part3/rzeka/");
+		this.cloadcursor("celownik.png");
+		int ile = this.loadanactions("anbg", "bkg.pyz", 1);
+		keyboard.autorepeat(false);
+		new vector vtor;
+		new classtriangle cltr;
+		
+		string s, string s2;
+		if( igmeasy==false )	{
+			new int iilosccykli = 300;
+		} else {
+			new int iilosccykli = 180;
+		}
+		this.cnewtimercyclefin("timbg", 1, iilosccykli*30, "mfintimbg");
+		timbg.addmethod("ontick", "mtimbgtick");
+		for( int i=0; i<ile; i++)	{
+			s = "anbg"+i;
+			<s>.setz( i+1 );
+			s2 = "clm"+i;
+			new classbgmover <s2>;
+			<s2>.setan( s );
+			<s2>.setdir("left");
+			<s>.hide();
+		}
+		
+		this.cnewanimafin("anpiast", "statki.pyz", 50, "mpiastfin");
+		this.ccopyanimafin("anpiast", "anwiks", "mwiksfin");
+		anpiast.anplaygr(0);
+		anwiks.anplaygr(1);
+		
+		new int JAPZ = 1100;
+		new int BUTZ	= 1000;
+		int ile = 20;
+		this.newancounterh( "cnbut", "anbut", "buty.pyz", BUTZ, ile);
+		this.newancounterh( "cnjap", "anjap", "japco.pyz", JAPZ, ile);
+		this.newancounterh( "cnpl", "anplum", "plum.pyz", 0, ile);
+		this.newancounterh( "cnpien", "anpien", "skaly.pyz", 0, ile);
+		new gmobjvec grpl;
+		for( i=0; i<ile; i++)	{
+			s = "anbut"+i;
+			<s>.mbuildvars();
+			<s>.addmethod("onendframe", "mbutframe");
+			this.looponfinish(s);
+			
+			s = "anjap"+i;
+			<s>.mbuildvars();
+			<s>.addmethod("onendframe", "mjapframe");
+			this.looponfinish(s);
+			
+			<"anplum"+i>.addmethod("onfinish", "mplumfin");
+			
+			s = "anpien"+i;
+			this.looponfinish(s);
+			<s>.addmethod("onendframe", "mskalframe");
+			<s>.mbuildpien();
+		}
+		this.cloadwavs("dbwav", "wavs.db");
+		
+		new int iwiksgo = false;
+		new int ipiasttor = 1;
+		new int benablefire = true;
+		int ippos = anpiast.getey() - 10;
+		vtor.beginadd( "begin", ippos-50, ippos, ippos+50 );
+		new vector vrand;
+		vrand.beginadd("begin", 0, 1, 2 );
+		this.cnewtimerfin("timfire", 1000, 1, "mfintimfire");
+		this.cnewtimercyclefin("timbg1", 1, 1, "mfintimbg1");
+		timbg1.play();
+		this.cbplay("sndnar1");
+	}
+	mfintimfire()	{	benablefire=true;	}
+	mbuildpien()	{	new int itor;	}
+	mskalframe()	{
+		if( itor==ipiasttor)	{
+			if( anpiast.isin( this.getpx()+2, this.getpy()+5, true, true )==true )	{
+				anpiast.move(-1, 0);
+				sfxpach.playif();
+			}
+		}
+		if( this.getex() < 0 )	{
+			this.anhide();
+			grpl.remove( this.getname() );
+		}
+	}
+	mplumfin()	{
+		grpl.remove(this.getname());
+		this.hide();
+	}
+	mjapframe()	{
+		if( ist==0 )	{
+			int x = this.getcx();
+			int y = this.getcy();
+			string s = engine.getimg( x, y, true, true, BUTZ, BUTZ);
+			if( s!=null )	{
+				<s>.mtrafion(-ikr.rand(2), 20);
+				this.mtrafion(ikr.rand(2),20);
+				anpiast.move( 5, 0 );
+				cpnon.play();
+				sfxpac.play();
+			} else if ( this.anonscreen()==true )	{
+				if( anwiks.isin(x,y,true,true)==true )	{
+					this.anhide();
+					anwiks.move( -x.rand(2), 0 );
+					sfxbum.play();
+				} else {
+					this.mwypad();
+				}
+			}
+		} else {
+			this.mwypad();
+		}
+	}
+	mtrafion(int x, int y)	{
+		grpl.add( this.getname() );
+		this.setz( this.getz() - 1 );
+		ikr = 10;
+		ist = 1;
+		idx = x;
+		idy = y;
+	}
+	mwyrzut(int id, int z, int x1, int y1, int x2, int y2)	{
+		this.anplayzpos( id , z, x1, y1 );
+		ist = 0;
+		x1 = cltr.talesxy( x1, y1, x2, y2, 20);
+		if( x1==0 )	{
+			idx = 17;
+			idy = 17;
+		} else {
+			idx = cltr.getdx();
+			idy = cltr.getdy();
+		}
+		ibyl = false;
+	}
+	mwypad()	{
+		if( ist==0 )	{
+			if( this.anonscreen()==true )	{
+				this.move( idx, idy );
+			} else {
+				this.anhide();
+			}
+		} else {
+			if( this.getcy()>440 )	{
+				this.anhide();
+				grpl.remove( this.getname() );
+				string s = cnpl.get();
+				grpl.add( s );
+				<s>.anplayposgr( this.getcx(), this.getcy() );
+				sfxwoda.play();
+			} else {
+				this.move( idx, idy );
+				this.anputgr();
+			}
+		}
+	}
+	mbutframe()	{
+		int x = this.getcx();
+		int y = this.getcy();
+		if( anpiast.isin( x, y, true, true ) == true )	{
+			this.anhide();
+			anpiast.move( -1, 0 );
+			cpok.play();
+			if( this.actionnr(-1)==0 )	{
+				sfxmetal.play();
+			} else {
+				sfxbum.play();
+			}
+		} else {
+			this.mwypad();
+			if( anpiast.getcy() - this.getcy() > 300 && ibyl==false)	{
+				ibyl = true;
+				this.mwyrzut( -1, BUTZ, x, y, anpiast.getcx()+10-x.rand(20) , anpiast.getcy() );
+			}
+		}
+	}
+	mbuildvars()	{
+		new int idx;
+		new int idy;
+		new int ist;
+		new int ikr;
+		new int ibyl;
+	}
+	mwiksfin()	{
+		this.play(-1);
+		if( iwiksgo==true )	{
+			iwiksgo = false;
+			this.move( 1, 0 );
+		}
+		if( this.getex() > anpiast.getex() && igmstate==1)	{
+			igmstate = 3;
+			sndnar2.play();
+		}
+	}
+	mpiastfin()	{
+		this.play(-1);
+	}
+	mstart()	{
+		igmstate = 1;
+	}
+	mwyliz(int iact, int itr)		{
+		itor = itr;
+		this.play( iact );
+		this.setpos( 800, vtor.get( itr ) );
+		this.setz( this.getey() + 10 );
+		grpl.add( this.getname() );
+	}
+	mtimbgtick()	{
+		int ipom = this.gettick();
+		int ipom2 = ipom%30;
+		if( ipom2==0 )	{
+			ipom/=30;
+			if ( ipom%3==0 )	{
+				iwiksgo = true;
+			}
+			vrand.hash();
+			<cnpien.get()>.mwyliz( ipom.rand(3), vrand.get(0) );
+			if( ipom > iilosccykli/2 )	{
+				<cnpien.get()>.mwyliz( ipom.rand(3), vrand.get(1) );
+			}
+			if( ipom%5 == 0 )	{	cprzut.play();	}
+			if( ipom%23 ==0)	{	cpkrzyk.play();	}
+		} 
+		this.mprzes();
+	}
+	mbutfire()	{
+		int ipom;
+		<cnbut.get()>.mwyrzut( ipom.rand(2), BUTZ, anwiks.getpx()+10, anwiks.getcy(), 
+					anpiast.getcx()+10-ipom.rand(20) , anpiast.getcy()-350 );
+		sfxrzut.play();
+	}
+	mprzes()	{
+		clm0.movleft(-1);
+		clm1.movleft(-3);
+		clm2.movleft(-7);
+		clm3.movleft(-1);
+		grpl.move(-7, 0);
+	}
+	mfintimbg1()	{
+		this.mprzes();
+		if( igmstate == 1 )	{
+			timbg.play();
+		} else {
+			this.play();
+			if( igmstate==2)	{
+				anwiks.move( -2, 0 );
+			}
+		}
+	}
+	mfintimbg()	{
+		if( igmstate==1)	{
+			sndnar3.play();
+		}
+		igmstate = 2;
+		timbg1.play();
+	}
+	mfinito()	{
+		gameapi.play("gamemacki1");
+	}
+	keydown()	{
+		if( keyboard.iskey("up")==true )	{
+			if( ipiasttor>0 )	{
+				ipiasttor--;
+				anpiast.move( 0, -50 );
+				anpiast.anputgr();
+			}
+		} else if( keyboard.iskey("down")==true )	{
+			if( ipiasttor<2 )	{
+				ipiasttor++;
+				anpiast.move( 0, 50 );
+				anpiast.anputgr();
+			}
+		} else  {
+			clnextgm.checkkey();
+		}
+	}
+	mouselclick()	{
+		if( igmstate==1 && benablefire==true)	{
+			<cnjap.get()>.mwyrzut( 0, JAPZ, anpiast.getcx()-55, anpiast.getcy(),
+				mouse.getcx()-5, mouse.getcy()-5 );
+			sfxrzut.play();
+			benablefire = false;
+			timfire.play();
+		}
+	}
+}
+
+

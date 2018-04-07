@@ -1,0 +1,94 @@
+/***************************************************************************/
+
+module clsurf	{
+	init()	{}
+	bool isin(int x, int y, int x1, int y1, int x2, int y2)	{
+		x >= x1 && x<=x2 && y>=y1 && y<=y2;
+	}
+	bool isin2(int x, int y, int x1, int y1, int w, int h)	{
+		x >= x1 && x < x1+w && y>=y1 && y<y1+h;
+	}
+	bool inscreen(int x, int y, int dx, int dy)	{
+		this.isin( x, y, 0-dx, 0-dy, 800+dx, 600+dy );
+	}
+	bool insurf(int x, int y, string simg)	{
+		this.isin(x,y,<simg>.getpx(), <simg>.getpy(), <simg>.getex()-1, <simg>.getey()-1);
+	}
+	bool issurfin(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)	{
+		this.isin(x1,y1, x3,y3,x4,y4) || this.isin(x2,y1, x3,y3,x4,y4) ||
+				this.isin(x1,y2, x3,y3,x4,y4) || this.isin(x2,y2, x3,y3,x4,y4);
+	}
+	bool commonsurface(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)	{
+		this.issurfin(x1,y1,x2,y2, x3,y3,x4,y4) || 
+				this.issurfin(x3,y3,x4,y4, x1,y1,x2,y2);
+	}
+	bool commonimgs(string simg1, string simg2)	{
+		this.commonsurface(<simg1>.getpx(), <simg1>.getpy(), <simg1>.getex()-1, <simg1>.getey()-1,
+				<simg2>.getpx(), <simg2>.getpy(), <simg2>.getex()-1, <simg2>.getey()-1 );
+	}
+	bool surfwithinsurf(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)	{
+		this.isin(x1,y1, x3,y3,x4,y4) && this.isin(x2,y1, x3,y3,x4,y4) &&
+				this.isin(x1,y2, x3,y3,x4,y4) && this.isin(x2,y2, x3,y3,x4,y4);
+	}
+	bool imgwithinimg(string simg1, string simg2)	{
+		this.surfwithinsurf(<simg1>.getpx(), <simg1>.getpy(), <simg1>.getex()-1, <simg1>.getey()-1,
+				<simg2>.getpx(), <simg2>.getpy(), <simg2>.getex()-1, <simg2>.getey()-1 );
+	}
+}
+
+/* modul do obliczen odleglosci */
+
+module cllen	{
+	init()	{
+		new int il1;
+		new int ilx;
+		new int ily;
+	}
+	int ilenx()	{ return ilx; }
+	int ileny()	{ return ily; }
+	int ilen4(int x1, int x2)	{	return (x1-x2)->abs();	}
+	int ilen3(string simg1, string simg2)	{
+		return this.ilen( <simg1>.getcx(), <simg1>.getcy(), <simg2>.getcx(), <simg2>.getcy() );
+	}
+	int ilen5(string simg1, string simg2)	{
+		return this.ilen( <simg1>.getpx(), <simg1>.getpy(), <simg2>.getpx(), <simg2>.getpy() );
+	}
+	int ilen2(string simg1, int x, int y)	{return this.ilen( <simg1>.getcx(), <simg1>.getcy(), x,  y );	}
+	int ilen(int x1, int y1, int x2, int y2)	{
+		ilx = x1-x2;
+		ily = y1-y2;
+		return il1.length( ilx, ily );
+	}
+	int iclenx(string simg1, int x)	{	return <simg1>.getcx() - x;	}
+	int iclenx2(string simg1, string simg2)	{	return <simg1>.getcx() - <simg2>.getcx();	}
+	int icleny(string simg1, int y)	{	return <simg1>.getcy() - y;	}
+	int icleny2(string simg1, string simg2)	{	return <simg1>.getcy() - <simg2>.getcy();	}
+	int isbetween2(string simg1, string simg2, int x1, int y1, int x2, int y2)	{
+		return this.isbetween(simg1, <simg2>.getcx(), <simg2>.getcy(), x1, y1, x2, y2);
+	}
+	int isbetween(string simg1, int xx, int yy, int x1, int y1, int x2, int y2)	{
+		il1 = this.ilen( simg1, xx, yy );
+		return ilx>=x1 && ilx<=x2 && ily>=y1 && ily<=y2;
+	}
+	int ilodlen(string s1, string s2)	{	.ilen(<s1>.lodx,<s1>.lody, <s2>.lodx, <s2>.lody);	}
+	int iposlen(string simg1, string simg2)	{
+		.ilen( <simg1>.getpos, <simg2>.getpos );
+	}
+}
+
+/****************************************************/
+class classansearcher	{
+	init()	{}
+	def _findnotr(string san, int x, int y, int dx, int dy)	{
+		int ex = <san>.getex() , int ey = <san>.getey();
+		while( x!=ex && y!=ey )	{
+			if( <san>.isin(x,y,false,true) ) return x,y;
+			x+=dx;	y+=dy;
+		}
+		return -1,-1;
+	}
+	def firstnotrx1y(string san)	{	return ._findnotr(san,<san>.getpx(), <san>.getpy(), 1, 0);	}
+	def firstnotrexy1(string san)	{	return ._findnotr(san,<san>.getex()-1, <san>.getpy(), 0, 1);	}
+	def firstnotrxy1(string san)	{	return ._findnotr(san,<san>.getpx(), <san>.getpy(), 0, 1);	}
+	def firstnotrx1ey(string san)	{	return ._findnotr(san,<san>.getpx(), <san>.getey()-1, 1, 0);	}
+}

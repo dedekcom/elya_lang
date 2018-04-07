@@ -1,0 +1,66 @@
+/*************************************************************************/
+
+class AnMover	{
+	init(string san, real x, real y)	{
+		new timer tmov;
+		tmov.settick(1);
+		tmov.setcycle(1);
+		new real rdx = x;
+		new real rdy = y;
+		new real rsx = 0;
+		new real rsy = 0;
+		new string sanima = san;
+		tmov.addmethod("onfinish", func {
+			.move;
+			.builder_func("_finish");
+			.play;
+			} );
+	}
+	move	{
+		rsx += rdx;
+		rsy +=rdy;
+		int x = rsx;
+		int y = rsy;
+		if( x || y ) {
+			<sanima>.move(x,y);
+			rsx-=x;
+			rsy-=y;
+		}
+	}
+	reset	{
+		rsx=0;
+		rsy=0;
+	}
+	play	{
+		.reset;
+		tmov.play;
+	}
+	stop	{	tmov.stop(false);	}
+}
+
+class SetAnMover	{
+	init	{}
+	setas(string sanima, real x, real y)	{
+		<sanima>.addmethod("setanmover", "setanmover");
+		<sanima>.setanmover(x,y);
+		<sanima>.addmethod("sam_move", "sam_move");
+	}
+	setanmover(real x, real y)	{
+		new real rdx = x;
+		new real rdy = y;
+		new real rsx = 0;
+		new real rsy = 0;
+		.var2("sam_speed", 1.0);
+	}
+	sam_move	{
+		rsx += (rdx*sam_speed);
+		rsy += (rdy*sam_speed);
+		int x = rsx;
+		int y = rsy;
+		if( x || y ) {
+			.move(x,y);
+			rsx-=x;
+			rsy-=y;
+		}
+	}
+}

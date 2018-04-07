@@ -1,0 +1,134 @@
+
+game mg41_trup : Banshee	{
+	init	{
+		Banshee::init("mg41_trup");
+		
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2","szczeka_anim.pyz 3", "trup.pyzH 4","gwiazda.pyz 5",	"trup_swiatlo.pyzH 6","opaska.pyzH 7","kapelusz.pyzH 8",			
+			"popexit.pyz 45", "ramka.pyz 42");
+		.butpopexit;
+		.butpopexitisinramka;
+		.addtopck("opaska");
+		
+		if (clsave.bis("e1_mg41_trup_kapelusz_in"))
+				ankapelusz.show;
+				
+		if (clsave.bis("e1_mg41_trup_opaska_in"))
+				anopaska.show;
+		
+		if(!clsave.bis("taken_gwiazda"))
+		{
+			angwiazda.show;
+			.setasitemtopck("angwiazda");
+			.newsnd("snd_cant_take", "trup_c4d4_30");
+			snd_cant_take.addmethod("onfinish", func{.advsetstdstate; anszczeka_anim.play(0); antrup_swiatlo.anfadeout(1000,null);}); 
+			  	
+		}  
+		
+		if (!clsave.bis("e1_mg41_trup_gwiazda_dostepna"))
+		{		
+			antrup{
+				.addmethod("isbutin", func { (@x, @y)
+				   .advstdstate && .isin(x,y,0,1);
+				} );  
+				.addmethod("butmoveon", func {
+					if( !.advstdstate || clsave.bis("e1_mg41_trup_gwiazda_dostepna")) return;
+					  advmouse.set("use");  
+				} );
+				.addmethod("butmoveoff", func {
+					if( !.advstdstate ) return;
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+					if( !.advstdstate   ) return;
+				} );
+				butgame.add(this);
+			};  
+		}		
+		 
+		
+		.stdstart;
+	}
+	
+	USE_kapelusz_pirata
+	  {
+		.advsetstdstate();
+		if(antrup.isin(mouse.getpos,0,1) )	{
+			.removefrompck("kapelusz_pirata");
+			ankapelusz.anfadein(500,null);
+			clsave.bset("e1_mg41_trup_kapelusz_in"); 
+			antrup_swiatlo.anfadein(1000,func{antrup_swiatlo.anfadeout(1000,null);});
+			if(clsave.bis("e1_mg41_trup_opaska_in"))
+			{
+				clsave.bset("e1_mg41_trup_gwiazda_dostepna");
+				butgame.removebut("antrup");
+			}
+			advmouse.setstd;
+		} else {
+			 .item_gotopck;
+		}
+		 
+	}  
+    
+	USE_opaska
+	  {
+		.advsetstdstate();
+		if(antrup.isin(mouse.getpos,0,1) )	{
+			.removefrompck("opaska");
+			anopaska.anfadein(500,null);
+			clsave.bset("e1_mg41_trup_opaska_in"); 
+			antrup_swiatlo.anfadein(1000,func{antrup_swiatlo.anfadeout(1000,null);});
+			if(clsave.bis("e1_mg41_trup_kapelusz_in"))
+			{
+				clsave.bset("e1_mg41_trup_gwiazda_dostepna"); 
+				butgame.removebut("antrup");
+			}
+			advmouse.setstd;
+		} else {
+			 .item_gotopck;
+		}
+		 
+	}     	
+	
+	angwiazda_TAKE {
+		if (!clsave.bis("e1_mg41_trup_gwiazda_dostepna"))
+		{
+			.cbplay("snd_cant_take");
+			antrup_swiatlo.anfadein(2000,null);
+			anszczeka_anim.play("talk");
+		}
+		else
+		{
+			.popitem_gotocenter("gwiazda");
+			.set_mg_finished;
+		}
+	}
+	
+	angwiazda_INPCK {
+		.addtopck("gwiazda"); 
+		.timfinito;
+	} 
+  
+	mend {
+		.stdexitdefadv("ad41_statek", "gamead41_statek0");
+	}
+	
+	HINT_CLICK	{
+		
+		if (clsave.bis("ma_opaska"))
+		{
+			.showhintitem("opaska");
+			.showhint("antrup_swiatlo"); 
+		}
+		else if (clsave.bis("ma_kapelusz_pirata"))
+		{
+			.showhintitem("kapelusz_pirata");
+			.showhint("antrup_swiatlo"); 
+		}
+		else if (clsave.bis("e1_mg41_trup_gwiazda_dostepna"))
+				.showhint("angwiazda"); 
+		else
+			.showhint("anpopexit");
+	}
+	 
+}
+

@@ -1,0 +1,96 @@
+/*************************************************************************/
+
+class AnMover	{
+	init(string san, real x, real y)	{
+		new timer tmov;
+		tmov.settick(1);
+		tmov.setcycle(1);
+		//new real rdx = x;
+		//new real rdy = y;
+		.vars2(A, "rdx", x, "rdy", y);
+		new real rsx = 0;
+		new real rsy = 0;
+		new string sanima = san;
+		tmov.addmethod("onfinish", func {
+			.move;
+			.builder_func("_finish");
+			.play;
+			} );
+	}
+	move	{
+		rsx += rdx;
+		rsy +=rdy;
+		int x = rsx;
+		int y = rsy;
+		if( x || y ) {
+			<sanima>.move(x,y);
+			rsx-=x;
+			rsy-=y;
+		}
+	}
+	reset	{
+		rsx=0;
+		rsy=0;
+	}
+	play	{
+		.reset;
+		tmov.play;
+	}
+	stop	{	tmov.stop(false);	}
+}
+
+public SetAnMover_tmov_onfinish	{	<.getbuildername>.sam_move; .play;	}
+class SetAnMover	{
+	init	{}
+	setas(string sanima, real x, real y)	{
+		<sanima>.addmethod("setanmover", "setanmover");
+		<sanima>.setanmover(x,y);
+		<sanima>.addmethod("sam_move", "sam_move");
+		<sanima>.addmethod("sam_copy", "sam_copy");
+		<sanima>.addmethod("sam_addtimer", func {
+			new timer tmov;
+			tmov.settick(1);
+			tmov.setcycle(1);
+			tmov.addmethod("onfinish", "SetAnMover_tmov_onfinish" );
+			} );
+		<sanima>.addmethod("sam_playtimer", func { tmov.play; }		);
+		<sanima>.addmethod("sam_stoptimer", func { tmov.stop(false); }	);
+	}
+	setanmover(real x, real y)	{
+		new real rdx = x;
+		new real rdy = y;
+		new real rsx = 0;
+		new real rsy = 0;
+		.var2("sam_speed", 1.0);
+	}
+	sam_move	{
+		rsx += (rdx*sam_speed);
+		rsy += (rdy*sam_speed);
+		int x = rsx;
+		int y = rsy;
+		if( x || y ) {
+			.move(x,y);
+			rsx-=x;
+			rsy-=y;
+			if( .hasvar("ansamcopy") )	{
+				ansamcopy.move(x,y);
+				if( rdx>0 )	{
+					if( ansamcopy.getpx > rollerx )	{
+						@dx = ansamcopy.getpx -.getw;
+						ansamcopy.move( dx, 0 );
+						.move( dx, 0 );
+					}
+				}
+			}
+		}
+	}
+	sam_copy	{
+		.vars2(A, "rollerx", 0, "rollerex", iResX);
+		.copyanima(this, "ansamcopy");
+		ansamcopy.show;
+		if( rdx>0 )	{
+			ansamcopy.ansetbpos( .getpx - .getw, .getpy );
+			//("act: "+.actionname + ","+ansamcopy.actionname + " z: "+.getz+","+ansamcopy.getz+" x: "+.getpx+","+ansamcopy.getpx)->print;
+		}
+	}
+}

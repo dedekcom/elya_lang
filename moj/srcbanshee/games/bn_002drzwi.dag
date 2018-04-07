@@ -1,0 +1,133 @@
+
+game mg002_drzwi : Banshee	{
+	init	{
+		Banshee::init("mg002_drzwi");
+		.imgs = (A, "bkg.jpg 1", "pop_bkg.pyz 2","klamka_obszar.pyzH 3",  "ramka.pyz 4" ,"klamka.pyzH 5", "popexit.pyz 6");  
+		.butpopexit;
+		.sfxs = (A, "bgrszumN 30","bgrogienN 15", "opendoor 60", "szufladaklik");
+		.newsndfree("sndnidaklamka", "kinnat_c0d0_3a");
+		imgbkg {
+			.addmethod("isbutin", func { (@x, @y)
+				!anpop_bkg.isin(x,y,0,0);
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+				 .mend;
+				} );
+				butgame.add(this);
+		};       
+    
+     
+		if (!clsave.bis("e1_ad002_kswew_klamka_wlozona"))
+		{ 
+		  anklamka_obszar{
+			.Button_isinvis;
+			.addmethod("butmoveon", func {
+				advmouse.set("use");
+				if( .enabled_tutorial )
+				{
+					if(!clsave.bis("e1_T4gears_item_shown") && clsave.bgo("e1_t4gears_shown") )
+						.show_tutorial("T4gears", .rtutpos);
+				}
+			 } );
+			 
+			.addmethod("butmoveoff", func {
+				advmouse.setstd;
+				} ); 
+			
+			.addmethod("butclick", func {
+				if( !.advstdstate || (guimov.moving && guimov.getmover=="anitem_klamka") ) return;
+					.cbselfplay("sndnidaklamka");
+				} );
+			  butgame.add(this);
+			};   
+		 }
+    
+		anklamka{
+			.addmethod("isbutin", func { (int x, int y)
+			  .advstdstate && .isin(x,y,0,0) && anklamka.isvisible;
+				} ); 
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+			if( !.advstdstate  ) return;
+				fxopendoor.play;
+			   anklamka.play("push"); 
+			   butgame.removebut(this);
+			   advmouse.setstd;
+			} );
+			butgame.add(this);
+		};
+    
+		anklamka {
+			.addmethod("onfinish", func {
+			.set_mg_finished; 
+			clsave.bset("e1_ad002_drzwi_otwarte") ;
+			.mend;   
+          
+			} );
+		};
+    
+    if (clsave.bis("e1_ad002_kswew_klamka_wlozona"))
+    { 
+      anklamka.show;
+    }
+	if( .enabled_tutorial )	{  
+		if (clsave.bis("ma_klamka") && !clsave.bis("e1_T4gears_item_shown"))
+		{ 
+			.show_tutorial("T4gears_item", .ctutpos); 
+			.tutpoint("anklamka_obszar", "ld"); 
+			.showtutitem("klamka");
+			 
+			clsave.bset("e1_T4gears_item_shown");
+		}	
+	}
+	.stdstart;
+	} //koniec init
+  
+	showtutitem(string sitem)	{
+		if( .inventory_playing || .inventory_hidden )	{
+			guinventory.sitemshow = (sitem);
+			.inventory_in;
+		} else	{
+			guinventory.blockout = (true);
+			guinventory.sitemshow = (null);
+			@s = .getanitem(sitem);
+			int x = <s>.getcx;
+			int y = <s>.getcy;
+			.tutpointxy2( x, y,"ld");
+		}
+	} 
+	
+	USE_klamka	{
+		.advsetstdstate();
+		if( anklamka_obszar.isin(mouse.getpos,0,0) )	{
+			.hide_tutorial; 
+			.removefrompck("klamka");
+			anklamka.show();
+			fxszufladaklik.play;
+			butgame.removebut("anklamka_obszar"); 
+			clsave.bset("e1_ad002_kswew_klamka_wlozona");  
+		} else {
+			.advsetstdstate; 
+			.item_gotopck;
+		}
+	} 
+  
+	mend{
+		.stdexitdefadv("ad002_kswew", "gamead002_kswew0");
+	} 
+  
+	HINT_CLICK {
+		if (!clsave.bis("e1_ad002_kswew_klamka_wlozona") && clsave.bis("taken_klamka") ) 
+		{  
+		  .showhintitem("klamka");
+		  .showhint("anklamka_obszar");
+		  .unblock_inventory(2000);
+		}
+		else if(clsave.bis("e1_ad002_kswew_klamka_wlozona"))
+		  .showhint("anklamka");  
+		else
+		  .showhint("anpopexit"); 
+	}               
+}

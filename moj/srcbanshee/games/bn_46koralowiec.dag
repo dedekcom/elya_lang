@@ -1,0 +1,45 @@
+
+game mg46_koralowiec : Banshee	{
+	init	{
+		Banshee::init("mg46_koralowiec");
+		
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2", "swiecaca_galazka.pyzH 3",  
+			"popexit.pyz 45", "ramka.pyz 42");
+		.butpopexit;
+		.butpopexitisinramka;
+		.sfxs = (A,"bgrpodwodaN 30" ) ; 
+		
+		if(!clsave.bis("taken_swiecaca_galazka"))
+		{
+			.setasitemtopck("answiecaca_galazka"); 
+			answiecaca_galazka.show;
+		}   
+		.stdstart;
+	}
+	
+	
+	answiecaca_galazka_TAKE	{	
+		.set_mg_finished;
+		.popitem_gotocenter("swiecaca_galazka");	
+	}
+	
+	answiecaca_galazka_INPCK {
+      .addtopck("swiecaca_galazka");
+	  .timfinito;
+    } 
+	 
+	 
+	mend	{
+		.stdexitdefadv("ad46_podwodna", "gamead46_podwodna0");
+	}
+	
+	HINT_CLICK	{
+		if(!clsave.bis("taken_swiecaca_galazka"))
+			.showhint("answiecaca_galazka");
+		else
+			.showhint("anpopexit"); 
+		 
+	}
+	 
+}
+

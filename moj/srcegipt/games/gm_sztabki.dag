@@ -1,0 +1,216 @@
+game Sztabki : DziejeGame	{
+	init	{
+		DziejeGame::init("sztabki");
+		
+		.EgiptSave("sztabki");
+		
+		.gamebg;
+// 		bkg.pyz  hantle.pyz  lewa.pyz  ok.pyz  pozycje.pyz  prawa.pyz  sztaby.pyz  waga.pyz
+		.imgs = (A, "bkg.pyz", "waga.pyz 10", "hantle.pyzH 20");
+		.sfxs = (A, "getpuz 60", "putpuz 60");
+		new gmimgvec grpoz;
+		"grpoz" ..< "pozycje.pyz";
+		new gmimgvec grprawa;
+		"grprawa" .* "prawa.pyz";
+		new gmimgvec grlewa;
+		"grlewa" .* "lewa.pyz";
+		new gmimgvec grglowy;
+		"grglowy" ..< "glowy.pyz";
+		new gmimgvec grmask;
+		"grmask" .* "maski.pyz";
+		grmask.hide;
+		new gmimgvec grok;
+		"grok" .* "ok.pyz";
+		grok.hide;
+		
+		new string staken;
+		
+		new gmimgvec grm;
+		grm.addgr("grlewa");
+		grm.addgr("grprawa");
+		grm.addgr("grpoz");
+		grm.eval( func {
+			.vars2(A,"weight",0, "sztabka", null);
+			} );
+		
+		new Button but;
+		
+		grmask.eval( func {
+			.Button_isinvis;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				@s = .mfirst;
+				<s>.setframe(.actionname,0);
+				.mtake(s);
+				} );
+			but.add(this);
+			} );
+		
+		new gmimgvec grels;
+		grels.buildarray("anima", "anel", grpoz.size + 2*grlewa.size+1);
+		grels.eval( func {
+			.copy("anhantle");
+			.Button_isin;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.vars2(A, "objput", null);
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				.mret;
+				.mtake(this);
+				} );
+			but.add(this);
+			.setz(50);
+			} );
+		
+		new DelayMover cmov;
+		new classplacepointer2 clp;
+		
+		.sounds = (A,
+			"snd1", "Tutaj mam sztabkê któr± zaniós³ do skarbca zarz±dca Haset", func { .cbplay("snd2");
+				string s = grmask.getsac("goldn");
+				//clp.showob( grmask.getsac("goldn"), "rd");
+				clp.show( <s>.getpx+10->igetsc, <s>.getcy, "rd");
+				},
+			"snd2", "A tutaj jest stara sztabka namiestnika", func { .cbplay("snd3"); clp.showob( grmask.getsac("hantla1"), "rd"); },
+			"snd3", "U¿yjê tych odwa¿ników do sprawdzenia czy sztabki Haseta wa¿± tyle ile powinny", func { .mstart; clp.stoph; },
+			"sndend", "A wiêc to tak? Haset przetapia sztabki i oddaje do skarbca mniej z³ota ni¿ dostaje za ³adunek kamieni! Idê zawiadomiæ namiestnika", func {
+				clsave.set("epizod", "namiestnik_areszt");
+				ccs.close( func { .gotoadv("namiestnik", "gamenamiestnik"); } );
+				}
+			);
+		clp.showob( grmask.getsac("goldh"), "rd" );
+		.cbplay("snd1");
+	}
+	string mfirst	{
+		for( int i=0; i<grels.size; i++) if( !<grels.get(i)>.isvisible ) return grels.get(i);
+	}
+	mtake(string s)	{
+		<s>.show;
+		<s>.setpos(mouse.getpos);
+		staken = s;
+		igmstate = 2;
+		.mcheckweight;
+		.mcheckpoz;
+	}
+	mstart	{
+		cmov.unlock;
+		igmstate = 1;
+	}
+	setlevel(int l)	{
+		grlewa.msetf(l);
+		grprawa.msetf(l);
+		anwaga.setframe(-1,l);
+	}
+	msetf(int l)	{
+		.eval1( func { (@id)
+			.setframe(-1,id);
+			if( sztabka!=null ) <sztabka>.setpos(.getpx, .getpy);
+			}, l );
+	}
+	mcalcw	{
+		0;
+		.eval( func { (@id) weight + id; } );
+	}
+	mcheckweight	{
+		@wl = grlewa.mcalcw;
+		@wp = grprawa.mcalcw;
+		if( wl<wp ) .sethigh;
+		else if (wl>wp) .setlow;
+		else .setstart;
+	}
+	setstart	{	.setlevel(0);	}
+	setlow	{	.setlevel(1);	}
+	sethigh	{	.setlevel(2);	}
+	cmov_GET	{
+		if( igmstate==2 )	{
+			fxgetpuz.play;
+			cmov.setpobj(staken);
+			igmstate = 3;
+		}
+	}
+	mcheckput(string sob, string sm)	{
+		if( <sm>.weight == 0 )	{
+			<sm>.weight = ( .mweight(sob) );
+			<sob>.setpos(<sm>.getpx, <sm>.getpy);
+			<sob>.objput = (sm);
+			<sm>.sztabka = (sob);
+			.mcheckweight;
+		} else <sob>.mret;
+	}
+	mret	{
+		if( objput!=null )	{
+			<objput>.weight = (0);
+			<objput>.sztabka = (null);
+			objput = null;
+		}
+		.hide;
+	}
+	mweight(string sob)	{
+		match(<sob>.actionname)	{
+			"hantla2" => 20;
+			"hantla1" => 10;
+			"hantla12" => 2;
+			"goldh" => 36;
+			"goldn" => 42;
+			? => ;
+		}
+	}
+	mcheckpoz	{
+		@c[3];
+		c0 = 0;	c1 = 0;	c2 = 0;
+		@s;
+		for( int i=0; i<grpoz.size; i++)	{
+			s = grpoz.get(i);
+			match(<s>.actionnr(-1))	{
+				0 => c0+=<s>.weight;
+				1 => c1+=<s>.weight;
+				2 => c2+=<s>.weight;
+				? => ;
+			}
+		}
+		int ile=0;
+		ile += .checkok(0,42,c0);
+		ile += .checkok(1,36,c1);
+		ile += .checkok(2,6,c2);
+		if( ile==3 )	{
+			igmstate = 4;
+			.cbplay("sndend");
+		}
+	}
+	int checkok(int id, int ile1, int ile2)	{
+		if( ile1 == ile2 )	{
+			<grok.get(id)>.show;
+			1;
+		} else {
+			<grok.get(id)>.hide;
+			0;
+		}
+	}
+	cmov_PUT	{
+		if( igmstate==3 ) {
+			fxputpuz.play;
+			|int x, int y| = mouse.getpos;
+			@s = .getfree;
+			@s2;
+			if( grlewa.isin(x,y,1,0))	{
+				.mcheckput(s, grlewa.getsfound);
+			} else if( grprawa.isin(x,y,1,0))	{
+				.mcheckput(s, grprawa.getsfound);
+			} else if( grpoz.isin(x,y,1,0) && <s>.actionname->getb(0,4)!="gold")	{
+				.mcheckput(s, grpoz.getsfound);
+				.mcheckpoz;
+			} else <s>.mret;
+			if( igmstate!=4 )
+				igmstate = 1;
+		} else if (igmstate==4 ) <.getfree>.hide;
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}

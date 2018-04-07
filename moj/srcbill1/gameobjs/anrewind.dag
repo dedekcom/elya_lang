@@ -1,0 +1,32 @@
+/*************************************************************************/
+
+class AnRewind : LObjController	{
+	init(string s, int x1, int y1, int x2, int y2, int vx, int vy) {
+		LObjController::init;
+		new string sanim = s;
+		
+		.vars2(A,"px1",x1, "px2",x2, "py1",y1, "py2",y2,
+			"speedx", vx, "speedy", vy,
+			"sx1",0, "sx2",iResX, "sy1",0, "sy2",iResY);
+		
+		.unlock;
+		.cycle = ("timrew", func {
+			.play;
+			if( .getlock ) return;
+			|int x, int y| = mouse.getpos;
+			if( x>=sx1 && x<sx1+px1 ) <sanim>.move(speedx,0);
+			if( x>=sx2-px2 ) <sanim>.move(-speedx,0);
+			if( y>=sy1 && y<sy1+py1 ) <sanim>.move(0,speedy);
+			if( y>=sy2-py2 ) <sanim>.move(0,-speedy);
+			x = <sanim>.getpx;
+			y = <sanim>.getpy;
+			
+			if( x>sx1 ) <sanim>.move(sx1-x, 0);
+			if( y>sy1 ) <sanim>.move(0,sy1-y);
+			
+			if( x+<sanim>.getw < sx2 ) <sanim>.move(sx2-x-<sanim>.getw, 0);
+			if( y+<sanim>.geth < sy2 ) <sanim>.move(0, sy2-y-<sanim>.geth);
+			} );
+		timrew.play;
+	}
+}

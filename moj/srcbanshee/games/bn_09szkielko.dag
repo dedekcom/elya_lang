@@ -1,0 +1,859 @@
+
+
+game mg09_szkielko :Banshee {
+	init{
+    new string act_id = "null";
+    Banshee::init("mg09_szkielko");
+    
+    .sfxs = (A, "bgrwiatrN 10", "diamenty 80", "cyk", "medalionleft", "retitem", "putitem1");
+    
+    new ImgRect recmask {
+      .Button_isin;
+      .Button_moveoffms;
+       
+      .setrect( 0,0, igmappw, igmapph );
+      .setz(2); 
+      .hide;
+      butgame.add(this);
+       
+    };
+	
+	 
+      
+    .imgs = (A, "bkg.jpg 1","base.pyz 2","slot1.pyz 3","slot2.pyz 3","slot3.pyz 3","slot4.pyz 3","slot5.pyz 3","osmiornica.pyzH 4","pajak.pyzH 4","waz.pyzH 4","ptak.pyzH 4","kon.pyzH 4","kot.pyzH 4","ryba.pyzH 4","mis.pyzH 4","malpa.pyzH 4","slon.pyzH 4", "mask.pyz 5","glow1.pyzH 6","glow2.pyzH 6","glow3.pyzH 6","glow4.pyzH 6","glow5.pyzH 6","final_anim.pyzH  9", "popexit.pyz 10" );
+     .butpopexit;
+     
+    imgbkg {
+		.addmethod("isbutin", func { (@x, @y)
+			!anbase.isin(x,y,0,0);
+			} );
+		.addmethod("butclick", func {
+			if( !.advstdstate ) return;
+			 .mend;
+			} );
+  		butgame.add(this);
+  	};      
+    
+    anglow1.setpos(514,488);
+    anglow1.setdrawmode(1); 
+    
+    anglow2.setdrawmode(1); 
+    anglow2.setpos(656,482);
+    
+    anglow3.setdrawmode(1); 
+    anglow3.setpos(792,406); 
+    
+    anglow4.setdrawmode(1); 
+    anglow4.setpos(866,290); 
+    
+    anglow5.setdrawmode(1); 
+    anglow5.setpos(868,160); 
+	
+	//testy
+    //  .addtopck("moneta_5");  
+    //  clsave.bset("e1_monety_zwierzeta_zebrane");
+    //  clsave.bset("ma_moneta_5");
+   
+     
+    
+   .newsndfree("snd_intro_game", "duch_reka_c1d1_27a");
+    snd_intro_game.addmethod("onfinish", func {.advsetstdstate;  anbase.butmoveon; });
+	
+	 
+	
+	.newsndfree("snd_brak_elementow", "kinnat_c1d1_28a");
+    snd_brak_elementow.addmethod("onfinish", "advsetstdstate"  );
+     
+    .askopis("mg09_szkielko");	
+	anaskopis.hide;
+	anaskopis.ansetbpos( anpopexit.getcx + anaskopis.getw, anpopexit.getcy - anaskopis.geth/2);
+    if (clsave.bis("e1_monety_zwierzeta_uzyte") )
+    { 
+		.init_coin("osmiornica",774 +25,306+50, 1);
+		.init_coin("kot",834,248,2);
+		.init_coin("waz",788,172,3);
+		.init_coin("ptak",586,242,4);
+		.init_coin("kon",740,258,5);
+		//.cbplay("snd_intro_game");
+		guihint.switchtoskip; 
+		anaskopis.show; 
+    
+    }
+    else
+    {
+      
+		if (!clsave.bis("e1_monety_zwierzeta_zebrane"))
+		{
+			.newsndfree("snd_brak_monet", "kinnat_c1d1_28");
+			snd_brak_monet.addmethod("onfinish", func {.advsetstdstate;  anbase.butmoveon; });
+			.cbplay("snd_brak_monet");
+		}
+		anbase { 
+        .Button_isinvisalpha;
+        .addmethod("butmoveon", func {
+  			 
+			if(!clsave.bis("e1_monety_zwierzeta_uzyte"))
+			advmouse.set("use"); 
+                  
+        } );
+  			.addmethod("butmoveoff", func {
+  				 
+  				  advmouse.setstd;
+  				} ); 
+				
+			.addmethod("butclick", func {
+				if( !.advstdstate  ) return;
+					if(!clsave.bis("e1_monety_zwierzeta_uzyte"))
+						.cbplay("snd_brak_elementow");
+				} ); 			
+          butgame.add(this);
+                 
+      };
+       
+    } 
+    .init_coin("pajak",565,366,0);
+    .init_coin("ryba",624,438,0);
+    .init_coin("mis",660,312,0);
+    .init_coin("malpa",675,185,0);
+    .init_coin("slon",720,386,0); 
+    
+    if (!clsave.bis("e1_monety_zwierzeta_uzyte") )
+      .enable_buttons(0);
+    
+    anslot1{
+      .Button_isin;    
+      .addmethod("butmoveon", func {
+				 
+				advmouse.set("use");
+				} );
+			.addmethod("butmoveoff", func {
+				 
+				advmouse.setstd;
+				} ); 
+			.addmethod("butclick", func {
+				if( !.advstdstate || .occupied) return;
+				 .cbplay("snd_brak_elementow");
+				} ); 	
+			.vars2(A,"occupied",false, "obj_id","null");
+			butgame.add(this);
+    }; 
+     anslot2{
+      .Button_isin;    
+      .addmethod("butmoveon", func {
+				 
+				advmouse.set("use");
+				} );
+			.addmethod("butmoveoff", func {
+				 
+				advmouse.setstd;
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate || .occupied) return;
+				 .cbplay("snd_brak_elementow");
+				} ); 			
+			.vars2(A,"occupied",false,"obj_id","null");
+			butgame.add(this);
+    }; 
+     anslot3{
+       .Button_isin;    
+      .addmethod("butmoveon", func {
+				 
+				advmouse.set("use");
+				} );
+			.addmethod("butmoveoff", func {
+				 
+				advmouse.setstd;
+				} ); 
+			.addmethod("butclick", func {
+				if( !.advstdstate || .occupied) return;
+				 .cbplay("snd_brak_elementow");
+				} ); 		
+				.vars2(A,"occupied",false,"obj_id","null");
+			butgame.add(this);	
+    }; 
+     anslot4{
+      .Button_isin;    
+      .addmethod("butmoveon", func {
+				 
+				advmouse.set("use");
+				} );
+			.addmethod("butmoveoff", func {
+				 
+				advmouse.setstd;
+				} ); 
+			.addmethod("butclick", func {
+				if( !.advstdstate || .occupied) return;
+				 .cbplay("snd_brak_elementow");
+				} ); 	
+			.vars2(A,"occupied",false,"obj_id","null");
+			butgame.add(this);
+    }; 
+     anslot5{
+      .Button_isin;    
+      .addmethod("butmoveon", func {
+				 
+				advmouse.set("use");
+				} );
+			.addmethod("butmoveoff", func {
+				 
+				advmouse.setstd;
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate || .occupied) return;
+				 .cbplay("snd_brak_elementow");
+				} ); 		
+				
+			.vars2(A,"occupied",false,"obj_id","null");
+			butgame.add(this);
+    }; 
+    
+    anfinal_anim{
+      .addmethod("onfinish", func {
+      for( int i = 1;i<6;i++)
+        <"anglow"+i>.anfadeout(200,null);
+      .mend();
+      });    
+    };
+	
+	.load_slots();
+	
+    .stdstart;  
+  } // koniec init
+   
+   
+	save_slots{
+		clsave.bset("mg09_szkielko_saved");  
+		for (int i = 1; i<6;i++)
+		{
+			clsave.set("szkielko_slot_"+i,<"anslot"+i>.obj_id);  
+		}
+	}
+	
+	load_slots{
+		 if (!clsave.bis("mg09_szkielko_saved"))
+		 	return;
+		for (int i = 1; i<6;i++)
+		{
+			@name = clsave.get("szkielko_slot_"+i); 
+			if (name!= "null") 
+			{
+				<"anslot"+i>.occupied = (true); 
+                <"anslot"+i>.obj_id = (name);
+                <"an"+name>.slot_id = (i);  
+               if (<"an"+name>.index == i)
+                  { 
+					fxmedalionleft.play;
+                    <"anglow"+i>.setframe("green",0); 
+                    <"anglow"+i>.show;
+                  }
+              
+                  else
+                  { 
+                    <"anglow"+i>.setframe("red",0);
+                    <"anglow"+i>.show; 
+                  }    
+                 if (i == 1)
+					<"an"+name>.setpos(524+37,500+38);   
+				 else if (i ==2)
+					<"an"+name>.setpos(672+32,494+38); 
+				 else if (i ==3)
+					<"an"+name>.setpos(802+37,418+38);
+				 else if (i ==4)
+					<"an"+name>.setpos(876+37,304+38); 
+				 else if (i ==5)
+					<"an"+name>.setpos(880+37,172+38); 
+				 
+				<"an"+name>.setz(4);
+				act_id = "null"; 
+				<"an"+name>.play(0); 
+				recmask.setz(2);
+            }   
+			 
+					
+		}
+	}
+     
+	init_coin(string name, int x,int y, int index )
+	{
+      <"an"+name>(name, x,y,index){(string name, int x, int y, int index)
+      .show;
+      .setpos(x,y);
+      .vars2(A,"name", name, "start_x", x, "start_y", y, "index", index, "slot_id",0 );
+      .Button_isin;    
+      .Button_moveonms;
+			.Button_moveoffms;
+      .addmethod("butclick", func {
+          if( !.advstdstate || .is_mg_finished()) return;
+            if (anslot1.isin(mouse.getpos,1,0)){ 
+              if(anslot1.occupied)
+              {
+                if (anslot1.obj_id == .name)
+                { 
+                 // .setpos(.start_x,.start_y);
+                  act_id = this;
+                  .setz(300); 
+                  .play(1);
+                  recmask.setz(5);
+                  butgame.sort; 
+                  anslot1.occupied = (false);
+                  anslot1.obj_id = ("null");
+                  .slot_id = (0); 
+                  anglow1.hide();
+                  .check_won();
+				  .save_slots();
+                  return;  
+                }
+                else
+                {
+                  .setpos(524+37,500+38); 
+                  <"an"+anslot1.obj_id>.setz(4);
+                  <"an"+anslot1.obj_id>.setpos(<"an"+anslot1.obj_id>.start_x,<"an"+anslot1.obj_id>.start_y);                 
+                  anslot1.obj_id = (.name);
+                  .slot_id = (1);
+                  if (.index == 1)
+                  { 
+					fxmedalionleft.play;
+                    anglow1.setframe("green",0); 
+                    anglow1.anfadein(800,null);
+                  }
+					else
+                  { 
+                    anglow1.setframe("red",0);
+                    anglow1.anfadein(800,null); 
+                  }    
+                }
+              }
+              else
+              {
+                anslot1.occupied = (true); 
+                anslot1.obj_id = (.name);
+                .slot_id = (.index);  
+               if (.index == 1)
+                  { 
+					fxmedalionleft.play;
+                    anglow1.setframe("green",0); 
+                    anglow1.anfadein(800,null);
+                  }
+              
+                  else
+                  { 
+                    anglow1.setframe("red",0);
+                    anglow1.anfadein(800,null); 
+                  }    
+                .setpos(524+37,500+38);    
+              } 
+              .setz(4);
+              act_id = "null"; 
+              .play(0); 
+              recmask.setz(2);
+              .save_slots();
+			  .check_won();
+            } 
+            else if (anslot2.isin(mouse.getpos,1,0)){ 
+              if(anslot2.occupied)
+              {
+                if (anslot2.obj_id == .name)
+                { 
+                 // .setpos(.start_x,.start_y);
+                  act_id = this;
+                  .setz(300); 
+                  .play(1);
+                  recmask.setz(5);
+                  butgame.sort; 
+                  anslot2.occupied = (false);
+                  anslot2.obj_id = ("null");
+                  .slot_id = (0); 
+                  anglow2.hide();
+                  .check_won();
+				  .save_slots();
+                  return;  
+                }
+                else
+                {
+                  .setpos(672+32,494+38); 
+                  <"an"+anslot2.obj_id>.setz(4);
+                  <"an"+anslot2.obj_id>.setpos(<"an"+anslot2.obj_id>.start_x,<"an"+anslot2.obj_id>.start_y);                   
+                  anslot2.obj_id = (.name);
+                  .slot_id = (2);
+                 if (.index == 2)
+                  { 
+					fxmedalionleft.play;
+                    anglow2.setframe("green",0); 
+                    anglow2.anfadein(800,null);
+                  }
+              //    else if (.index >0)
+              //      anglow2.play("blue");
+                  else
+                  { 
+                    anglow2.setframe("red",0);
+                    anglow2.anfadein(800,null); 
+                  }    
+                }
+              }
+              else
+              {
+                anslot2.occupied = (true); 
+                anslot2.obj_id = (.name);
+                .slot_id = (.index); 
+                 if (.index == 2)
+                  { 
+					fxmedalionleft.play;
+                    anglow2.setframe("green",0); 
+                    anglow2.anfadein(800,null);
+                  }
+              //    else if (.index >0)
+              //      anglow2.play("blue");
+                  else
+                  { 
+                    anglow2.setframe("red",0);
+                    anglow2.anfadein(800,null); 
+                  }    
+                .setpos(672+32,494+38);     
+              } 
+              .setz(4);
+              act_id = "null"; 
+              .play(0); 
+              recmask.setz(2);
+              .check_won();
+			  .save_slots();
+            }
+            else if (anslot3.isin(mouse.getpos,1,0)){ 
+              if(anslot3.occupied)
+              {
+                if (anslot3.obj_id == .name)
+                { 
+                  // .setpos(.start_x,.start_y);
+                  act_id = this;
+                  .setz(300); 
+                  .play(1);
+                  recmask.setz(5);
+                  butgame.sort; 
+                  anslot3.occupied = (false);
+                  anslot3.obj_id = ("null");
+                  .slot_id = (0); 
+                  anglow3.hide();
+                  .check_won();
+				  .save_slots();
+                  return;  
+                   
+                }
+                else
+                {
+                  .setpos(802+37,418+38);
+                  <"an"+anslot3.obj_id>.setz(4);
+                  <"an"+anslot3.obj_id>.setpos(<"an"+anslot3.obj_id>.start_x,<"an"+anslot3.obj_id>.start_y);                     
+                  anslot3.obj_id = (.name);
+                  .slot_id = (3);
+                  if (.index == 3)
+                  { 
+					fxmedalionleft.play;
+                    anglow3.setframe("green",0); 
+                    anglow3.anfadein(800,null);
+                  }
+              //    else if (.index >0)
+              //      anglow3.play("blue");
+                  else
+                  { 
+                    anglow3.setframe("red",0);
+                    anglow3.anfadein(800,null); 
+                  }    
+                }
+              }
+              else
+              {
+                anslot3.occupied = (true); 
+                anslot3.obj_id = (.name);
+                .slot_id = (.index); 
+                if (.index == 3)
+                  { 
+			fxmedalionleft.play;
+                    anglow3.setframe("green",0); 
+                    anglow3.anfadein(800,null);
+                  }
+              //    else if (.index >0)
+              //      anglow3.play("blue");
+                  else
+                  { 
+                    anglow3.setframe("red",0);
+                    anglow3.anfadein(800,null); 
+                  }    
+                .setpos(802+37,418+38);    
+              }
+              .setz(4);
+              act_id = "null"; 
+              .play(0); 
+              recmask.setz(2);
+              .check_won();
+			  .save_slots();
+            }
+            else if (anslot4.isin(mouse.getpos,1,0)){ 
+              if(anslot4.occupied)
+              {
+                if (anslot4.obj_id == .name)
+                { 
+                  // .setpos(.start_x,.start_y);
+                  act_id = this;
+                  .setz(300); 
+                  .play(1);
+                  recmask.setz(5);
+                  butgame.sort; 
+                  anslot4.occupied = (false);
+                  anslot4.obj_id = ("null");
+                  .slot_id = (0); 
+                  anglow4.hide();
+                  .check_won();
+				  .save_slots();
+                  return;  
+                   
+                }
+                else
+                {
+                  .setpos(876+37,304+38); 
+                  <"an"+anslot4.obj_id>.setz(4);
+                  <"an"+anslot4.obj_id>.setpos(<"an"+anslot4.obj_id>.start_x,<"an"+anslot4.obj_id>.start_y);                 
+                  anslot4.obj_id = (.name);
+                  .slot_id = (4);
+                   if (.index == 4)
+                  { 
+					fxmedalionleft.play;
+                    anglow4.setframe("green",0); 
+                    anglow4.anfadein(800,null);
+                  }
+              //    else if (.index >0)
+              //      anglow4.play("blue");
+                  else
+                  { 
+                    anglow4.setframe("red",0);
+                    anglow4.anfadein(800,null); 
+                  }    
+                }
+              }
+              else
+              {
+                anslot4.occupied = (true); 
+                anslot4.obj_id = (.name);
+                .slot_id = (.index); 
+                 if (.index == 4)
+                  { 
+					fxmedalionleft.play;
+                    anglow4.setframe("green",0); 
+                    anglow4.anfadein(800,null);
+                  }
+              //    else if (.index >0)
+              //      anglow4.play("blue");
+                  else
+                  { 
+                    anglow4.setframe("red",0);
+                    anglow4.anfadein(800,null); 
+                  }    
+                  
+                .setpos(876+37,304+38);     
+              }
+              .setz(4);
+              act_id = "null"; 
+              .play(0); 
+              recmask.setz(2);
+              .check_won();
+			  .save_slots();
+            }
+            else if (anslot5.isin(mouse.getpos,1,0)){ 
+              if(anslot5.occupied)
+              {
+                if (anslot5.obj_id == .name)
+                { 
+                  // .setpos(.start_x,.start_y);
+                  act_id = this;
+                  .setz(300); 
+                  .play(1);
+                  recmask.setz(5);
+                  butgame.sort; 
+                  anslot5.occupied = (false);
+                  anslot5.obj_id = ("null");
+                  .slot_id = (0); 
+                  anglow5.hide();
+                  .check_won();
+				  .save_slots();
+                  return;  
+                   
+                }
+                else
+                {
+                  .setpos(880+37,172+38);   
+                  <"an"+anslot5.obj_id>.setz(4);
+                  <"an"+anslot5.obj_id>.setpos(<"an"+anslot5.obj_id>.start_x,<"an"+anslot5.obj_id>.start_y);                  
+                  anslot5.obj_id = (.name);
+                  .slot_id = (5);
+                  if (.index == 5)
+                  { 
+					fxmedalionleft.play;
+                    anglow5.setframe("green",0); 
+                    anglow5.anfadein(800,null);
+                  }
+              //    else if (.index >0)
+              //      anglow5.play("blue");
+                  else
+                  { 
+                    anglow5.setframe("red",0);
+                    anglow5.anfadein(800,null); 
+                  }    
+                }
+              }
+              else
+              {
+                anslot5.occupied = (true); 
+                anslot5.obj_id = (.name);
+                .slot_id = (.index); 
+                 if (.index == 5)
+                  { 
+					fxmedalionleft.play;
+                    anglow5.setframe("green",0); 
+                    anglow5.anfadein(800,null);
+                  }
+              //    else if (.index >0)
+              //      anglow5.play("blue");
+                  else
+                  { 
+                    anglow5.setframe("red",0);
+                    anglow5.anfadein(800,null); 
+                  }    
+                  
+                .setpos(880+37,172+38);     
+              }
+              .setz(4);
+              act_id = "null"; 
+              .play(0); 
+              recmask.setz(2);
+              .check_won();
+			  .save_slots();
+            }
+            else if (act_id == "null"){ 
+              act_id = this;
+              .setz(300); 
+              .play(1);
+              recmask.setz(5);
+              butgame.sort;
+              .check_won(); 
+			  .save_slots();
+              return;
+            }
+             
+            else{
+		fxretitem.play;
+              .setpos(.start_x,.start_y);
+              .setz(4);
+              act_id = "null"; 
+              .play(0); 
+              recmask.setz(2);
+            }  
+            butgame.sort;
+            
+      } ); 
+	  
+	  .addmethod("butrel", func {
+			.butclick;
+	   });    
+      butgame.add(this);   
+    };
+  }
+   
+ 	mouse_move	{
+	  if (act_id != "null")
+        <act_id>.setpos(mouse.getpos);
+	}
+  
+  check_all_done()
+  {
+    for(int i =1;i<6;i++)
+    {
+      if (<"anglow"+i>.actionname != "green")
+        return false;
+    }  
+    return true;
+  }
+  
+  check_won()
+  {
+	if (act_id == "null")
+		fxcyk.play;
+	else fxputitem1.play;
+    if (.check_all_done())
+    {
+      .set_mg_finished();
+      fxdiamenty.play;
+      anfinal_anim.play(1); 
+        
+    }
+  }
+  
+  enable_buttons(bool bvis){
+    if (bvis)
+    { 
+      
+      butgame.add("anpajak");
+      butgame.add("anryba");
+      butgame.add("anmis");
+      butgame.add("anmalpa");
+      butgame.add("anslon");
+     
+      butgame.add("anslot1");
+      butgame.add("anslot2");
+      butgame.add("anslot3");
+      butgame.add("anslot4");
+      butgame.add("anslot5");
+    }
+    else
+    {
+   
+      butgame.removebut("anpajak");
+      butgame.removebut("anryba");
+      butgame.removebut("anmis");
+      butgame.removebut("anmalpa");
+      butgame.removebut("anslon");   
+      
+      butgame.removebut("anslot1");
+      butgame.removebut("anslot2");
+      butgame.removebut("anslot3");
+      butgame.removebut("anslot4");
+      butgame.removebut("anslot5");
+      
+    }
+  }
+  
+  USE_moneta_5	{
+		.advsetstdstate();
+    if(anbase.isin(mouse.getpos,0,1) )	{
+			.removefrompck("moneta_5");
+			fxcyk.play;
+			fxdiamenty.play;
+			.init_coin("osmiornica",774 +25,306+50, 1);
+			.init_coin("kot",834,248,2);
+			.init_coin("waz",788,172,3);
+			.init_coin("ptak",586,242,4);
+			.init_coin("kon",740,258,5); 
+
+			<"anosmiornica">.hide;
+			.timplay("tim1", 150,func{<"anosmiornica">.show;});  
+			<"ankot">.hide;
+			.timplay("tim2", 200,func{<"ankot">.show;});  
+			<"anwaz">.hide;
+			.timplay("tim3", 250,func{<"anwaz">.show;});  
+			<"anptak">.hide;
+			.timplay("tim4", 300,func{<"anptak">.show;});  
+			<"ankon">.hide;
+			.timplay("tim5", 350,func{<"ankon">.show;});   
+			butgame.removebut("anbase");
+
+			.enable_buttons(1);
+			clsave.bset("e1_monety_zwierzeta_uzyte");
+			
+			.timplay("timdlg", 1000,func{.cbplay("snd_intro_game");});
+			guihint.switchtoskip;
+			anaskopis.show; 
+		} else {
+			 .item_gotopck;
+		}
+     
+	}   
+ 
+  mend	{
+    .stdexitdefadv("ad09_polekoniczyny", "gamead09_polekoniczyny0"); 
+	}
+	
+	SKIP_CLICK	{
+		if( .advstdstate )	{
+			 
+			.set_mg_finished();
+			guihint.switchtohint;
+			anaskopis.anfadeout(500,null);
+			fxdiamenty.play;
+			 
+			anosmiornica.setz(4); 
+			anosmiornica.setpos(524+39,500+35); 
+			anosmiornica.play(1);
+
+			ankot.setz(4); 
+			ankot.setframe(1,0);
+			ankot.anfadein(100,null);
+			ankot.setpos(672+32,494+38); 
+
+			anwaz.setz(4); 
+			anwaz.setframe(1,0);
+			anwaz.anfadein(100,null);
+			anwaz.setpos(802+37,418+38);
+
+			anptak.setz(4); 
+			anptak.setframe(1,0);
+			anptak.anfadein(100,null);
+			anptak.setpos(876+37,304+38); 
+
+			ankon.setz(4); 
+			ankon.setframe(1,0);
+			ankon.anfadein(100,null);
+			ankon.setpos(880+37,172+38); 
+			
+			anglow1.setframe("green",0); 
+			anglow1.anfadein(100,null);
+			
+			anglow2.setframe("green",0); 
+			anglow2.anfadein(100,null);
+			
+			anglow3.setframe("green",0); 
+			anglow3.anfadein(100,null);
+			
+			anglow4.setframe("green",0); 
+			anglow4.anfadein(100,null);
+			
+			anglow5.setframe("green",0); 
+			anglow5.anfadein(100,null);
+			
+		 	anfinal_anim.play(1); 
+		}
+	 }  
+  
+  HINT_CLICK {
+    if (!clsave.bis("e1_monety_zwierzeta_zebrane"))
+    {
+      .showhint("anpopexit"); 
+      return;   
+    }else if(!clsave.bis("e1_monety_zwierzeta_uzyte"))
+    {
+      .showhint("anbase");
+      .showhintitem("moneta_5");
+      return;
+    }
+    
+    
+    if (!anslot1.occupied)
+    { 
+      .showhint("anosmiornica"); 
+      .showhint("anglow1"); 
+      return;
+    }   
+    else if (!anslot2.occupied) 
+    { 
+      .showhint("ankot");
+      .showhint("anglow2"); 
+       return;
+    }
+    else if (!anslot3.occupied) 
+    { 
+      .showhint("anwaz");
+      .showhint("anglow3"); 
+       return;
+    }
+    else if (!anslot4.occupied) 
+    { 
+      .showhint("anptak");
+      .showhint("anglow4"); 
+       return;
+    }
+    else if (!anslot5.occupied) 
+    {
+      .showhint("ankon");
+      .showhint("anglow5"); 
+       return;
+    }
+    .showhint("anpopexit");  
+  } 
+}
+ 

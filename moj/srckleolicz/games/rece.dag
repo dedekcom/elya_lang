@@ -1,0 +1,522 @@
+class classplacepointer2 : classplacepointer	{
+	init()	{
+		classplacepointer::init();
+		this.load("scripts/common/strzalka.pyz");
+	}
+}
+
+game gamerece1 : classadvkleo	{
+	init()	{
+		classadvkleo::init();
+		this.setgraphpath("scripts/rece/");
+		new classquickdialog clqd;
+		new classquickanloader clqa;
+		new vector vecrece;
+		vecrece.type("int");
+		new vector vecrece2;
+		vecrece2.type("int");
+		
+		new classplacepointer2 clpt;
+		new string slastdial;
+		new int ilevel = 1;
+		new int iporownaj = 1;
+		new string smoved=null;
+		new int icyfx;
+		new int icyfy;
+		
+		clqd.load("dialogi.dlg");
+		clqa.load("scena.ans");
+		this.cloadwavs("dbwav", "wavs.db");
+		
+		ancyfra.eval("anresizemets");
+		igmstate = 1;
+		new int ilaststate = igmstate;
+		
+		clqd.play("start");
+	}
+	viewhand(int x, int ic)	{
+		string s = "anreka"+ic;
+		<s>.setpos(x, 400);
+		<s>.show();
+	}
+	viewcyfra(int x, int ic)	{
+		string s = "ancyfra"+ic;
+		<s>.setcpos(x,500);
+		<s>.show();
+	}
+	viewoba(int x, int ic)	{
+		this.viewcyfra(x,ic);
+		this.viewhand(x,ic);
+	}
+	prepareview(int ile, int ileview, int id)	{
+		vecrece.free();
+		vecrece2.free();
+		for( int i=0; i<ile; i++)	{
+			if( i!=id)	{	vecrece2.add(i);	}
+		}
+		vecrece2.hash();
+		vecrece.add(id);
+		
+		for( i=0; i<ileview-1; i++ )	{
+			vecrece.add( vecrece2.get(i) );
+		}
+		vecrece.hash();
+		
+		this.hideall();
+	}
+	hideall()	{
+		anreka.hide();
+		ancyfra.hide();
+	}
+	showview(int ile)	{
+		int dx = 800/(ile+1);
+		for( int i=0; i<ile; i++)	{
+			this.viewoba(dx,i);
+			dx += <"anreka"+i>.getw();
+		}
+	}
+	stdparaview(int id)	{
+		<"ancyfra"+id>.setframe(0,id);
+		<"anreka"+id>.setframe(0,id);
+	}
+	startview(int ileprepare, int ileview, int ijaka, int isort)	{
+		if( isort==1 )	{		// szukamy prawidlowej pary
+			ijaka = ijaka.rand(ijaka+1);	// losuj z dotychczas poznanych
+		}
+		if( isort==2 )	{
+			vecrece.free();
+			vecrece.beginadd("begin", 0, 1, 2, 1);
+		} else {		// losowana kolejnosc i sklad
+			this.prepareview(ileprepare, ileview, ijaka);
+		}
+		string s[2], int id;
+		for( int i=0; i<ileview; i++)	{
+			s0 = "anreka"+i;
+			s1 = "ancyfra"+i;
+			id = vecrece.get(i);
+			if( isort==0 )	{		// reka=cyfra
+				<s0>.setframe(0,id);
+				<s1>.setframe(0,id);
+			} else if (isort==1)	{	// jedna para prawidlowa
+				if( id==ijaka )	{
+					<s0>.setframe(0,id);
+					<s1>.setframe(0,id);
+				} else {
+					id = id.randdiff(ileprepare,ijaka);
+					<s0>.setframe(0,id);
+					<s1>.setframe(0,id.randdiff(ileprepare,id));
+				}
+			} else if (isort==2)	{
+				<s0>.setframe(0,id);
+				if( id==2 )	{	<s1>.setframe(0,1);	}
+				else {	<s1>.setframe(0,id);	}
+			}
+		}
+		this.showview(ileview);
+	}
+	pointobj(string sob, string sdir)	{	clpt.show(<sob>.getcx(), <sob>.getcy(), sdir);	}
+	pointpos(int x, int y, string sdir)	{	clpt.show(x,y,sdir);	}
+	pointreka(int id, int dx, string sdir)	{
+		string s = "anreka"+id;
+		clpt.show(<s>.getposx(), <s>.getpy()+dx, sdir);
+	}
+	resetstate()	{
+		ilaststate = igmstate;
+		igmstate = 1;
+	}
+	retstate()	{	igmstate=ilaststate;	}
+	startview2()	{
+		if( iporownaj>7 )	{
+			cpok.stop(false);
+			this.hideall();
+			this.udalo();
+		} else {
+			this.hideall();
+			vecrece.free();
+			if( iporownaj==1 )	{vecrece.beginadd("begin", 0,1);}
+			else if( iporownaj==2 )	{vecrece.beginadd("begin", 1,3);}
+			else if( iporownaj==3 )	{vecrece.beginadd("begin", 0,1,2);}
+			else if( iporownaj==4 )	{vecrece.beginadd("begin", 0,1,3);}
+			else if( iporownaj==5 )	{vecrece.beginadd("begin", 1,2,3);}
+			else if( iporownaj==6 )	{vecrece.beginadd("begin", 0,1,2,3);}
+			else if( iporownaj==7 )	{vecrece.beginadd("begin", 2,1,2,3);}
+			iporownaj++;
+			vecrece.hash();
+			for( int i=0; i<vecrece.size(); i++)	{
+				<"anreka"+i>.setframe(0,vecrece.get(i));
+				<"ancyfra"+i>.setframe(0,vecrece.get(i));
+			}
+			this.showview(vecrece.size());
+		}
+	}
+	bool goodchoice()	{
+		int id = anreka.isin(mouse.getpx(),mouse.getpy(),true,true) - 1;
+		if( id>=0 )	{
+			vecrece.sort(true);
+			if( vecrece.veclast() == <anreka.get(id)>.framenr() )	{return true;	}
+		}
+		return false;
+	}
+	/************************************/
+	clqdwkret_12_START()	{
+		anreka0.setframe(0,5);
+		this.viewhand(400,0);
+		this.pointreka(0, 50, "lu");
+	}
+	clqdwkret_12_2_START()	{
+		anreka0.setframe(0,0);
+		this.viewhand(400,0);
+		this.pointreka(0, 50, "lu");
+	}
+	clqdwkret_12_FINISH()	{	clpt.stoph();	}
+	clqdwkret_12_2_FINISH()	{	clpt.stoph();	}
+	clqdwkret_14_START()	{	this.viewcyfra(400,0);	}
+	clqdwkret_15_START()	{	this.pointobj("ancyfra0","ld");	}
+	clqdwkret_15_FINISH()	{	clpt.stoph();	}
+	clqdstart_FINISH()	{	clqd.play("level1");	}
+	
+	clqdlevel1_START()	{	this.startview(5,3,0,0);	}
+	clqdlevel1_FINISH()	{	igmstate=2;	}
+	clqdlevel2_START()	{	this.startview(5,3,0,0);	}
+	clqdlevel2_FINISH()	{	igmstate=3;	}
+	clqdlevel3_START()	{	this.startview(5,3,0,1);	}
+	clqdlevel3_FINISH()	{	igmstate=4;	}
+	
+	clqdlevel4_START()	{	this.hideall();	}
+	clqdwkret_23_START()	{
+		this.stdparaview(1);
+		this.viewhand(400,1);
+		this.pointreka(1, 60, "ru");
+	}
+	clqdwkret_23_2_START()	{
+		this.viewcyfra(400,1);
+		this.pointobj("ancyfra1","dd");
+	}
+	clqdlevel4_FINISH()	{
+		clpt.stoph();
+		this.clqdoki_FINISH();
+	}
+	
+	clqdlevel5_START()	{	this.startview(5,3,1,0);	}
+	clqdlevel5_FINISH()	{	igmstate=5;	}
+	clqdlevel6_START()	{	this.startview(5,3,1,0);	}
+	clqdlevel6_FINISH()	{	igmstate=6;	}	
+	clqdlevel7_START()	{	this.startview(5,3,1,1);	}
+	clqdlevel7_FINISH()	{	igmstate=7;	}
+	clqdlevel8_START()	{
+		this.hideall();
+	}
+	clqdwkret_27_START()	{
+		this.stdparaview(1);
+		this.viewhand(290,1);
+		this.stdparaview(2);
+		this.viewhand(510,2);
+	}
+	clqdwkret_28_START()	{
+		this.hideall();
+		this.viewhand(400,2);
+		this.pointreka(2, 100, "rr");
+	}
+	clqdwkret_28_2_START()	{
+		this.viewcyfra(400,2);
+		this.pointobj("ancyfra2","rd");
+	}
+	clqdlevel8_FINISH()	{
+		clpt.stoph();
+		this.clqdoki_FINISH();
+	}
+	clqdlevel9_START()	{	this.startview(6,4,2,0);	}
+	clqdlevel9_FINISH()	{	igmstate=9;	}
+	clqdlevel10_START()	{	this.startview(6,4,2,0);	}
+	clqdlevel10_FINISH()	{	igmstate=10;	}
+	clqdlevel11_START()	{	this.startview(6,4,2,2);	}
+	clqdlevel11_FINISH()	{	igmstate=11;	}
+	clqdwkret_33_START()	{
+		this.hideall();
+		this.stdparaview(3);
+		this.viewhand(400,3);
+		this.pointreka(3, 300, "uu");
+	}
+	clqdwkret_34_START()	{
+		clpt.stoph();
+		this.hideall();
+		this.stdparaview(2);
+		this.viewhand(290,2);
+		this.stdparaview(3);
+		this.viewhand(510,3);
+	}
+	clqdwkret_35_START()	{
+		this.hideall();
+		this.viewhand(400,3);
+		this.viewcyfra(400,3);
+		this.pointobj("ancyfra3","ld");
+	}
+	clqdkomentdo11_FINISH()	{
+		clpt.stoph();
+		this.clqdoki_FINISH();
+	}
+	clqdlevel12_START()	{	this.startview2();	}
+	clqdlevel12_FINISH()	{	igmstate=12;	}
+	clqdlevel13_START()	{
+		this.hideall();
+		vecrece.vecnewint(4);
+		vecrece.hash();
+		vecrece2.vecnewint(4);
+		vecrece2.hash();
+		string s, int dx = 100;
+		for( int i=0; i<4; i++)	{
+			s = "anreka"+i;
+			<s>.setframe(0,vecrece.get(i));
+			<s>.show();
+			<s>.setpos(dx,400);
+			dx+=<s>.getw();
+			s = "ancyfra"+i;
+			<s>.setframe( 0, vecrece2.get(i) );
+			<s>.show();
+			<s>.setpos((i+1)*150, 520);
+		}
+	}
+	clqdlevel13_FINISH()	{
+		cpok.reset();
+		igmstate = 13;	
+	}
+	clqdwkret_39_START()	{	this.hideall();	}
+	clqdkomentdo13_FINISH()	{
+		cpok.reset();
+		igmstate=14;
+		vecrece.vecnewint(4);
+		vecrece.hash();
+		iporownaj=0;
+		string s;
+		for( int i=0; i<4; i++)	{
+			s = "ancyfra"+i;
+			<s>.setframe( 0, i );
+			<s>.show();
+			<s>.setpos(700, 150+i*110);
+		}
+		this.pokalapkie();
+	}
+	clqdlevel14_START()	{	}
+	clqdlevel14_FINISH()	{
+		cplicz.playid( vecrece.get(iporownaj) );
+	}
+	_cpliczfin()	{	igmstate=15;	}
+	
+	clqdlevel15_START()	{	}
+	clqdlevel15_FINISH()	{
+		igmstate=16;
+		this.pokacyfke();
+	}
+	pokacyfke()	{
+		ancyfra0.setframe(0,vecrece.get(iporownaj));
+		this.viewcyfra(400,0);
+	}
+	
+	clqdfinito_START()	{	this.hideall();	}
+	clqdfinito_FINISH()	{
+		this.finishgame();
+	}
+	
+	clqdoops_START()	{
+		slastdial = clqd.getprevdialog();
+		this.resetstate();
+	}
+	clqdoops_FINISH()	{
+		this.retstate();
+		clqd.play(slastdial);
+	}
+	clqdoki_START()	{
+		this.resetstate();
+	}
+	clqdoki_FINISH()	{
+		ilevel++;
+		clqd.play("level"+ilevel);
+	}
+	nieudalo()	{	clqd.play("oops");	}
+	udalo()	{	clqd.play("oki");	}
+	/************************************/
+	int _getid(string sob)	{
+		int id = <sob>.isin(mouse.getpx(),mouse.getpy(),true,true) - 1;
+		if( id>=0 )	{
+			return <<sob>.get(id)>.framenr();
+		}
+		return -1;
+	}
+	int _getidob(string sob)	{
+		int id = <sob>.isin(mouse.getpx(),mouse.getpy(),true,true) - 1;
+		if( id>=0 )	{
+			string s = <sob>.get(id);
+			return s.strsubbs(sob);
+		}
+		return -1;
+	}
+	int getcyfra()	{	return this._getid("ancyfra");	}
+	int getreka()	{	return this._getid("anreka");	}
+	msprawdz(string san, int iv)	{
+		if( this._getid("an"+san)==iv )	{	this.udalo();	}
+		else {	this.nieudalo();	}
+	}
+	msprawdzpare()	{
+		int id = this._getidob("anreka");
+		if( id==-1 )	{	id=this._getidob("ancyfra");	}
+		if( id!=-1 )	{
+			if( <"anreka"+id>.framenr()==<"ancyfra"+id>.framenr() )	{
+				this.udalo();
+			} else {	this.nieudalo();	}
+		}else {
+			this.nieudalo();
+		}
+	}
+	mouselclick()	{
+		if( igmdebug==true )	{
+			clqd.stop(true);
+		}
+		int id;
+		if( igmstate==2 )	{	this.msprawdz("reka",0);	}
+		else if( igmstate==3 )	{	this.msprawdz("cyfra",0);	}
+		else if( igmstate==4 )	{	this.msprawdzpare();	}
+		else if( igmstate==5 )	{	this.msprawdz("reka",1);	}
+		else if( igmstate==6 )	{	this.msprawdz("cyfra",1);	}
+		else if( igmstate==7 )	{	this.msprawdzpare();	}
+		else if( igmstate==9 )	{	this.msprawdz("reka",2);	}
+		else if( igmstate==10 )	{	this.msprawdz("cyfra",2);	}
+		else if( igmstate==11 )	{
+			if( this._getid("anreka")==2 )	{
+				this.resetstate();
+				clqd.play("komentdo11");	
+			} else {	this.nieudalo();	}
+		} else if (igmstate==12)	{
+			if( this.goodchoice()==true )	{
+				cpnon.stop(false);
+				cpok.play();
+				this.startview2();	
+			}else {	this.crplay("cpnon");	}
+		} else if (igmstate==13)	{
+			this.preparemover( this._getidob("ancyfra") );
+		} else if (igmstate==14)	{
+			if( this.getcyfra()==anreka0.framenr() )	{
+				iporownaj++;
+				if( iporownaj>=vecrece.size() )	{
+					this.cactsndstop(false);
+					cpok.reset();
+					vecrece.vecnewint(4);
+					vecrece.hash();
+					iporownaj=0;
+					this.hideall();
+					string s;
+					for( id=0;id<4; id++)	{
+						s = "ancyfra"+id;
+						<s>.setframe( 0, id );
+						<s>.show();
+						<s>.setpos((id+1)*150, 320);
+					}
+					this.udalo();
+				} else {
+					this.cbplay("cpok");
+					this.pokalapkie();
+				}
+			} else {
+				this.crplay("cpnon");
+			}
+		} else if (igmstate==15)	{
+			if( this.getcyfra()==vecrece.get(iporownaj) )	{
+				iporownaj++;
+				if( iporownaj>=vecrece.size() )	{
+					this.cactsndstop(false);
+					cpok.reset();
+					vecrece.vecnewint(4);
+					vecrece.hash();
+					iporownaj=0;
+					this.hideall();
+					string s, int dx=100;
+					for( id=0;id<4; id++)	{
+						s = "anreka"+id;
+						<s>.setframe( 0, id );
+						<s>.show();
+						<s>.setpos(dx, 400);
+						dx+=<s>.getw();
+					}
+					this.udalo();
+				} else {
+					this.cbplay("cpok");
+				}
+			} else {
+				this.crplay("cpnon");
+			}
+		} else if (igmstate==16)	{
+			if( this.getreka()==vecrece.get(iporownaj) )	{
+				iporownaj++;
+				if( iporownaj>=vecrece.size())	{
+					this.cactsndstop(false);
+					this.resetstate();
+					clqd.play("finito");
+				} else {
+					this.cbplay("cpok");
+				}
+			} else {
+				this.crplay("cpnon");
+			}
+		}
+	}
+	_cpokfin()	{
+		if( igmstate==15 )	{
+			ilevel--;
+			this.udalo();
+		} else if (igmstate==16)	{
+			this.pokacyfke();
+		}
+	}
+	pokalapkie()	{
+		anreka0.setframe(0,vecrece.get(iporownaj));
+		this.viewhand(400,0);
+	}
+	preparemover(int id)	{
+		if( id!=-1)	{
+			smoved = "ancyfra"+id;
+			icyfx = <smoved>.getposx();
+			icyfy = <smoved>.getposy();
+			<smoved>.mssaverelpos();
+		}
+	}
+	mouselrel()	{
+		if( smoved!=null )	{
+			if( igmstate==13)	{
+				int id = this._getid("anreka");
+				if( id!=-1 )	{
+					if( <smoved>.framenr()==id )	{
+						this.cbplay("cpok");
+						<smoved>.hide();
+					} else {
+						this.crplay("cpnon");
+					}
+				}
+				<smoved>.setpos(icyfx, icyfy);
+				smoved=null;
+				for( id=0; id<4; id++)	{
+					if( <"ancyfra"+id>.isvisible()==true )	{
+						return;
+					}
+				}
+				this.resetstate();
+				this.cactsndstop(false);
+				clqd.play("komentdo13");	
+			}
+		}
+	}
+	mousemove()	{
+		if( smoved!=null )	{
+			<smoved>.mssetrelpos();
+		}
+	}
+	finishgame()	{
+		sgmlastscene = gameapi.getgamename();
+		sgmglobpath = "domek";
+		sgmgame = "gamedomek2";
+		gameapi.play( modadv.get("defaultadv:",1) );
+	}
+	mouserclick()	{
+		if( igmdebug )	{
+			this.finishgame();
+		}
+	}
+}

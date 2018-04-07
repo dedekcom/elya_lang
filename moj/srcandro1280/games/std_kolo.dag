@@ -1,0 +1,135 @@
+
+new int idBgKol = 1;
+
+game KoloPion : MermaidStd	{
+	init	{
+		MermaidStd::init("kolo");
+		
+		.sfxs=(A,"pedzel", "pedzel2");
+		
+		new int paintmode = 0;
+		
+		.imgs = (A, "kolobg.jpg", "obwodka.pyz 25", "butleft.pyz 120", "butright.pyz 120");
+		
+		.cbutexit;
+		.loadasker;
+		.cbutmusic;
+		anbutleft.Button_addstdstate;
+		anbutright.Button_addstdstate;
+		
+		this.newanima("anfg", "imgs/kol"+iImgId+".pyz", 100);
+		anfg.setframe("foreground",0);
+		
+		new gmimgvec grdraw;
+		_ = this.newanframesgr("anfg", "andraw", anfg.actionnr("draw"), "grdraw");
+		grdraw.setz(10);
+		
+		new gmimgvec grpaleta;
+		"grpaleta" ..< "farby.pyz";
+		grpaleta.setz(20);
+		
+		new int iCol0;
+		new int iCol1;
+		new int iCol2;
+		new int iactcol = 0;
+		.mputobwodka;
+		
+		new img imgbgkol;
+		
+		string ssavefile = "kol"+iImgId+".vec";
+		if( ssavefile!=null )	{
+			new string savefile = ssavefile;
+			new db dbkolory;
+			@s = ssavefile;
+			//if( engine.fileexist(s) )	{
+			if( .saveexist(s) )	{
+				dbkolory.vecload(s);
+				grdraw.each( func { (@id)
+					.paint( dbkolory.get(id,0), dbkolory.get(id,1), dbkolory.get(id,2), 255, 0);
+					} );
+			} else {
+				.mresetcols;
+				for( int i=0; i<grdraw.size; i++ )
+					dbkolory.dbaddstringrow("255 255 255"," ");
+				.tp_savekols;
+			}
+		} else {
+			.mresetcols;
+		}
+		
+		.mputbg(0);
+		
+		.stdenter;
+	}
+	mputbg(int id)	{
+		idBgKol.inextrol(id, 3);
+		imgbgkol.load( .getgraphpath + "imgsbg/bg"+idBgKol+".jpg" );
+		//imgbgkol.setpos( anfg.getex - imgbgkol.getw, (igmapph - imgbgkol.geth)/2 );
+		//imgbgkol.ancenterscreen;
+		@x = imgbgkol.getpx + imgbgkol.getw/3;
+		anbutleft.ansetbpos( x, imgbgkol.getey-anbutleft.geth );
+		anbutright.ansetbpos( x, imgbgkol.getpy );
+		imgkolobg.setpos( imgbgkol.getex, 0 );
+	}
+	mresetcols	{
+		grdraw.eval( func { .paint(.white,255,0); } );
+	}
+	mputobwodka	{
+		@s = grpaleta.get(iactcol);
+		|iCol0, iCol1, iCol2, _| = <s>.getrgba(<s>.getcx, <s>.getcy);
+		anobwodka.ancenterimg(s);
+	}
+	tp_savekols	{
+		if( !<GAME>.hasvar("dbkolory") ) return;
+		grdraw.each( func { (@id)
+			int c[4];
+			//|c0, c1| = .anfirstnontr;
+			int ex = .getex , int ey = .getey;
+			int x = .getpx, int y=.getpy;
+			while( x!=ex && y!=ey )	{
+				if( .isin(x,y,false,true) ) { c0=x; c1=y; x=ex; }
+				else x++;
+			}
+			|c0,c1,c2,_| = .getrgba(c0,c1);
+			dbkolory.set(id,0,c0);
+			dbkolory.set(id,1,c1);
+			dbkolory.set(id,2,c2);
+			} );
+		dbkolory.vecsave( savefile );
+	}
+	tp_default_erase	{	.tp_erase(.white,255);	}
+	tp_erase(int r, int g, int b, int a)	{
+		for( int i=0; i< grdraw.size; i++)	{
+			<grdraw.get(i)>.paint(r,g,b,a,paintmode);
+			dbkolory.set(i,0,255);
+			dbkolory.set(i,1,255);
+			dbkolory.set(i,2,255);
+		}
+		.tp_savekols;
+	}
+	but1_lclick	{	if( sobject!=null ) .savekols;	}
+	clbuts_reset_butclick	{
+		fxpedzel.play;
+		.tp_default_erase;
+	}
+	mouse_lclick	{
+		if( .advstdstate )	{
+			|int x, int y| = mouse.getpos();
+			if( grdraw.isin(x,y,true,true) )	{
+				<grdraw.getsfound>.paint( iCol0, iCol1, iCol2, 255, paintmode );
+				fxpedzel.play;
+			} else if ( grpaleta.isin(x,y,false,true) )	{
+				iactcol = grpaleta.getfound;
+				.mputobwodka;
+				fxpedzel2.play;
+			}
+		}
+	}
+	game_exit	{
+		.tp_exit;
+		.tp_savekols;
+	}
+	butclick_anbutexit	{	.askfor("MenuImgStd");	}
+	butclick_anbutleft	{	.mputbg(-1);	}
+	butclick_anbutright	{	.mputbg(1);	}
+}

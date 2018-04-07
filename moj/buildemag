@@ -1,0 +1,3 @@
+./kompiluj ./srcemag/emag.prj
+#cp ./srcemag/emag.odd /home/dedek/projekty/rysunki_gimp/emag/project/scripts/
+awk -f optimize.awk ./srcemag/emag.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/emag/project/scripts/emag.odd

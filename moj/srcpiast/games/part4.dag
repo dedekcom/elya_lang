@@ -1,0 +1,178 @@
+game gamepart4grzybki : classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		this.cloadterrain("scripts/part4/grzybki/", "bkg.png", "elementy.pyz");
+		new int GRZYBZ=10;
+		new int ilegrzybow = this.loadanframes("angrzyb", "grzybki.pyz", 0, GRZYBZ);
+		new int ilezostalo = ilegrzybow;
+		this.cloadwavs("dbwav", "wavs.db");
+		this.cbplaywithfin("sndp1","mstart");
+	}
+	mstart()	{	igmstate=1;	}
+	mfinito()	{	gameapi.play("gamemacki2");	}
+	mouselclick()	{
+		if( igmstate==1)	{
+			string s = engine.getimg( mouse.getpx(), mouse.getpy(), true, true, GRZYBZ, GRZYBZ );
+			if( s!=null && s.getb(2,3)=="grz")	{
+				<s>.hide();
+				sfxgetitem.play();
+				ilezostalo--;
+				if( ilezostalo==ilegrzybow/2 )	{
+					this.crplay("sndp2");
+				} else if (ilezostalo==3)	{
+					this.crplay("sndp3");
+				} else if (ilezostalo==1)	{
+					this.crplay("sndp4");
+				} else if (ilezostalo==0)	{
+					igmstate = 2;
+					this.cbplaywithfin("sndp5", "mfinito");
+				}
+			}
+		}
+	}
+}
+
+game gamepart4gotuj : classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		this.cloadterrain("scripts/part4/gotuj/", "bkg.png", "elements.pyz");
+		new int PRODZ = 100;
+		int ile = this.loadanfrbyact("angot", "produkty.pyz", PRODZ);
+		new classmask clm;
+		int ile2, int j;
+		string s;
+		for( int i=0; i<ile; i++)	{
+			ile2 = angot0_0.nofframes(i);
+			for( j=0; j<ile2; j++)	{
+				s = "angot"+i+"_"+j;
+				clanpack.resizemethods(s);
+				clm.addmask( s, s, "imglobcurs", false );
+			}
+		}
+		clm.clickfunc("mclickmask");
+		clm.movonfunc("mmovmask");
+		new string smoved;
+		new int idialog = 0;
+		new int brestart = false;
+		new int iilewrzucil;
+		new int iilejest;
+		
+		this.cloadwavs("dbwav", "wavs.db");
+		new vector vpom;
+		vpom.type("string");
+		this.newdb("dbdial", "dialog.db");
+		
+		new int ilastdial = dbdial.getrowsno()-1;
+		
+		new vector vgrzyb;
+		vgrzyb.type("string");
+		vgrzyb.beginadd("begin", "chuba", "sndm17", "muchomor", "sndm18", "borszatan", "sndm19");
+		
+		this.cbplay("sndm1");
+	}
+	/***************************************/
+	mreaddial()	{
+		igmstate=2;
+		if( idialog>= dbdial.getrowsno() )	{
+			this.cbplay("sndm20");
+		} else {
+			dbdial.copyvec("vpom", idialog);
+			iilewrzucil=0;
+			iilejest = vpom.get(1);
+			this.cbplay("snd"+vpom.get(0));
+		}
+	}
+	mquestfin()	{	igmstate=1;	}
+	mchecksklad(string ssk)	{
+		igmstate=2;
+		clm.disable( ssk );
+		string sact = <ssk>.actionname();
+		int ipos = vpom.find( sact );
+		if( ipos < 0 )	{
+			int ipos2 = vgrzyb.find( sact );
+			if( ipos2 >= 0 )	{
+				this.cbplay( vgrzyb.get( ipos2+1 ) );
+			} else {
+				this.cbplay("sndm16");
+			}
+		} else {
+			vpom.set( ipos, null );	// zeby juz wiecej go nie znalezc
+			iilewrzucil++;
+			if( iilewrzucil==iilejest && vpom.get( vpom.size()-2 )=="last" )	{
+				this.cbplay("snd"+vpom.get( vpom.size()-1 ) );
+			} else {
+				this.cbplay("snd"+vpom.get(ipos+1));
+			}
+		}
+	}
+	mcheckdial()	{
+		if( iilewrzucil==iilejest)	{
+			idialog++;
+			this.mreaddial();
+		} else {
+			igmstate = 1;
+		}
+	}
+	/***************************************/
+	mfinp19()	{	gameapi.play("gamemacki3"); }
+	mfinm1()	{	this.mreaddial();	}
+	mfinm20()	{	this.cbplay("sndp19");	}
+	/***************************************/
+	mplayrestart()	{
+		if( brestart==false )	{
+			this.cbplay("sndp17");
+			brestart = true;
+		} else {
+			this.cbplay("sndp18");
+		}
+	}
+	mrestart()	{
+		clm.enableall();
+		idialog = 0;
+		igmstate = 0;
+		this.cbplay("sndm1");
+	}
+	mmovmask(string smask)	{
+		if( smoved==null )	{
+			sfxmv.playif();
+		}
+	}
+	mclickmask(string smask)	{
+		if( igmstate==1)	{
+			smoved = smask;
+			<smask>.mssaverelpos();
+			<smask>.setz(1000);
+			sfxget.play();
+		}
+	}
+	msay(string ssnd)	{
+		igmstate = 2;
+		this.cbplay(ssnd);
+	}
+	mouselrel()	{
+		if( smoved!=null)	{
+			if( anbg1.isin(mouse.getpx(), mouse.getpy(), true, true)==true )	{
+				this.mchecksklad(smoved);
+				sfxput.play();
+			} else {
+				sfxret.play();
+			}
+			<smoved>.setpos(0,0);
+			<smoved>.setz( PRODZ );
+			smoved = null;
+		}
+	}
+	mouselclick()	{
+		if( igmdebug==true)	{
+			this.cactsndstop(true);
+		}
+	}
+	mousemove()	{
+		if( smoved!=null )	{
+			<smoved>.mssetrelpos();
+		}
+	}
+}
+
+
+

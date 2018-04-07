@@ -1,0 +1,845 @@
+game Grafika : Komputro {
+	init	{
+		Komputro::init("grafika");
+		.path = ("grafika");
+		.loadlekcja;
+		.imgs = (A, "bkg.pyz", "obraz.pyz 10");
+		.sfxs = (A, "pedzel", "pik", "brawo 50", "mikrofala", "error 40");
+		anobraz.clones=(A, "anramka", "anr2", "anr1", "ang2", "ang1", "anb2", "anb1");
+		anramka.setframe(0,1);
+		anr1.setframe(1,0);		anr2.setframe(1,1);		ang1.setframe(1,0);
+		ang2.setframe(1,1);		anb1.setframe(1,0);		anb2.setframe(1,1);
+		@h = anr2.geth + 5;
+		ang1.move(0, h);	ang2.move(0, h);
+		anb1.move(0, 2*h);	anb2.move(0, 2*h);
+		.mimage("r");
+		.mimage("g");
+		.mimage("b");
+		
+		.sounds_from(A,
+			"sndwrong", /* "Nieprawid³owa konstrukcja",*/ "mret",
+			"sndint", /*"Przerwane wykonanie programu",*/ "mret2",
+			"sndklik", /*"Zaprogramuj zadanie jeszcze raz",*/ "mret",
+			"sndok", /*"Zadanie wykonane poprawnie; kliknij aby przej¶æ dalej",*/ "startzad",
+			"sndnon", /*"Niestety program zadzia³a³ niepoprawnie; popraw b³êdy i uruchom ponownie",*/ "mret",
+			"sndbad", /*"U¿yj konstrukcji wymaganej przez tre¶æ zadania",*/ "mret2",
+			"sndbrak", /*"B³±d; Odwo³a³e¶ siê do nieistniej±cego obiektu",*/ "mret2",
+			"sndzlazm", /*"Niepoprawna nazwa obiektu",*/ "mret2",
+			"sndend", /*"Doskonale! Wszystkie zadania wykonane",*/ "mend",
+			"robot" );
+		@serror = func { fxerror.play; };
+		@sok = func { fxmikrofala.play; };
+		sndok.addmethod("onstart", sok );
+		sndnon.addmethod("onstart", serror );
+		sndwrong.addmethod("onstart", serror );
+		sndint.addmethod("onstart", serror );
+		sndbad.addmethod("onstart", serror );
+		sndbrak.addmethod("onstart", serror );
+		sndzlazm.addmethod("onstart", serror );
+		.sounds = (A,
+			"sndbadval", "Dozwolone warto¶ci to zero i jeden", "mret2",
+			"sndpoza", "Piksel spoza zakresu!", "mret2",
+			"sndzip", "¦wietnie; przed nami ostatnia czê¶c lekcji kompresja obrazów", "startzad",
+			"sndfinito", "Wspaniale! Policja w ca³ym kraju ma ju¿ portret pamiêciowy gangstera a my przechodzimy do kolejnej lekcji",
+				"mfinito",
+			"sndnorle", "Niestety obrazek nie jest skompresowany poprawnie; próbuj dalej", func { tdrle.enable; }
+			);
+		sndzip.addmethod("onstart", sok );
+		sndzip.addmethod("onstart", func { fxbrawo.play; } );
+		sndbadval.addmethod("onstart", serror );
+		sndpoza.addmethod("onstart", serror );
+		sndnorle.addmethod("onstart", serror );
+		new map2 mapv("string");
+		new stack st1("string");
+		new vector veccol;
+		new vector veckod;
+		veckod.type("string");
+		new vector vec1;
+		vec1.type("string");
+		new vector vecid;
+		new vector vecid2;
+		new @idinstr = 0;
+		new @Level = 0;
+		new @HelpLevel = 0;
+		new @itafle = 10;
+		new @H = 26;
+		@dh = 1;
+		new @NoVar = false;
+		@x = 8;
+		int i, int j, string s;
+		new gmimgvec grtaf;
+		new @ifontsize = 10;
+		.monofont("fnkod", ifontsize);
+		new @stdfont10 = .snewfont( "configs/fonts/normal.ttf", 10);
+		new @stdfont14 = .snewfont( "configs/fonts/normal.ttf", 14);
+		new @stdfont12 = .snewfont( "configs/fonts/normal.ttf", 12);
+		new img imgtlo(H, dh, x)	{
+			(@h, @dh, @x)
+			.setpos( x - dh, 40 - dh );
+			h = (h+dh)*itafle + 1;
+			.create( h, h, .black, 255 );
+		};
+		for( i=0; i<itafle; i++)	{
+			for( j=0; j<itafle; j++)	{
+				s = "img"+i+"_"+j;
+				new img <s>;
+				<s>.create( H, H, .white, 255 );
+				<s>.setpos( j*(H+dh) + x, i*(H+dh) + 40 );
+				grtaf.add(s);
+				s = "txt"+i+"_"+j;
+				new text <s>;
+				<s>.setfont( stdfont10 );
+				<s>.set( "["+i+","+j+"]" );
+				<s>.createtxt( 142, 120, 222 );
+				<s>.setpos(  j*(H+dh) + x, i*(H+dh) + 42 );
+			}
+		}
+		new gfxSquare gsq(50,30,700,500);
+		gsq.set( 20,60,50, 240);
+		gsq.build;
+		gsq.setz(500);
+		gsq.hide;
+		
+		new classsimplebutton cbok;
+		cbok.build("scripts/common/butok.pyz", "imglobcurs", 546,525, 100, 0);
+		new classsimplebutton cbhelp;
+		cbhelp.build("scripts/common/help.pyz", "imglobcurs", 650,527, 100, 0);
+		
+		new int dfor {
+			.vars(A, "id", "ifrom", "ito", "iter", "bstart", "idinstr");
+			.addmethod("reset", func { 
+				id = 0;
+				iter = null;
+				ifrom = 0;	ito=0;
+				bstart = true;
+				idinstr=0;	} );
+			.reset;
+		};
+		new int dwhile	{
+			.vars(A, "idinstr", "bstart");
+			.addmethod("reset", func { idinstr=0; bstart=true; });
+			.reset;
+		};
+		
+		new string Code;
+		Lexer::setas("Code");
+		new db dbcode;
+		Code.consts = (A,"p","[","]","if","else", "for","end", "<=",">","<", "==","!=", "/","*","+","-",",", "=", "int", "string", "null", "..", "in",".", "(", ")", "while");
+		dbcode.dbaddstringrow("p [ $int , $int ] = $int"," ");					// 0
+		.timer = ("timtik", 600, func { <GAME>.fintik; } );
+		
+		new TextBoxTyper ttb("fnkod", ifontsize, 0.6*ifontsize, 20,20,120, "",
+			309,360, 268,222, 2);
+		new img imgerror {
+			.create(268,ifontsize,.red,128);
+			.setz(0);
+			.hide;
+		};
+		new img imggo {
+			.create(268,ifontsize, 250,250,10, 128);
+			.setz(0);
+			.hide;
+		};
+		new TextBoxTyper tth("fnkod", ifontsize, 0.6*ifontsize, .grey(64), "",
+			309,360, 268,222, 2);
+		ttb.setz(100);
+		tth.setz(100);
+		tth.hide;
+		new TextBoxTyper ttk("fnkod", ifontsize, 0.6*ifontsize, 10,20,60, "at0; ,[](){}-+_/=#<>*.\"\\!?%:&",
+			309,108, 268,252, 2);
+		ttk.setz(100);
+		.startzad;
+	}
+	porownaj	{
+		int i[3], int j;
+		veccol.free;
+		for( int i=0; i<itafle; i++)	{
+			for( j=0; j<itafle; j++)	{
+				|i0,i1,i2,_| = <"img"+i+"_"+j>.angetcrgba;
+				if( i0!=255 || i1!=255 || i2!=255 ) {
+					veccol.add(i);
+					veccol.add(j);
+					veccol.add(i0);
+					veccol.add(i1);
+					veccol.add(i2);
+				}
+			}
+		}
+	}
+	mimage(string s)	{
+		@s1 = "an"+s+"1";
+		<s1>.hide;
+		s = "im"+s+"1";
+		new img <s>;
+		<s>.create(<s1>.getw,<s1>.geth,<s1>.angetcrgba);
+		<s>.setpos(<s1>.getpx,<s1>.getpy);
+		<s>.setz(<s1>.getz-1);
+		<s>.show;
+		<s1>.hide;
+	}
+	zapal(@i, @j, @r, @g, @b)	{	<"img"+i+"_"+j>.create( H, H, r, g, b, 255 );	}
+	fintik	{
+		if( idinstr==vecid.size )	{
+			imggo.hide;
+			igmstate = 3;
+			match( Level )	{
+				1 =>	{.porownaj;
+					.cbplay( ( veccol.veceq2(A,4,4,.black) ? "sndok" : "sndnon") );}
+				2 =>	{.porownaj;
+					.cbplay( ( veccol.veceq2(A,0,0,.black,0,9,.black,9,0,.black,9,9,.black) ?
+						"sndok" : "sndnon") );}
+				3, 4, 5, 6, 7 => {
+					.porownaj;
+					@ile =  veccol.size/5;
+					if( ile!=ilejedynek )	{
+						.cbplay("sndnon");
+						return;
+					}
+					int id, int i[2];
+					for( int i=0; i<ile; i++)	{
+						id=i*5;
+						i0 = veccol.get(id);
+						i1 = veccol.get(id+1);
+						if( ! ( dbdraw.get( i0, i1 )==1 && .miscol(i0, i1, .black) ) )	{
+							.cbplay("sndnon");
+							return;
+						}
+					}
+					.cbplay("sndok");
+				}
+				? => ;
+			}
+			return;
+		}
+		Code = veckod.get( idinstr );
+		imggo.show;
+		imggo.setpos( 309, 108 + vecid2.get( idinstr ) * (ifontsize+2) );
+		fxpik.play;
+		Code.id = (0);
+		Code.gettoken( "vec1", 1 ) ;
+		string s, int i[3];
+		@idin = vecid.get( idinstr );
+		match( idin )	{
+			0, 3, 4, 5, 6, 7, 8 => {
+				match(idin)	{
+					6 => {i0 = .mread(3);
+						i1 = .mread(6)->to_i - .mread(9)->to_i;
+						i2 = vec1.get(13);}
+					7 => { i0 = .mread(3)->to_i - .mread(6)->to_i;
+						i1 = .mread(9);
+						i2 = vec1.get(13); }
+//dbcode.dbaddstringrow("p [ $int 3 - $int 6 * $alpha 9 , $alpha 12 + $int 15 ] = $int 19"," ");		// 8
+					8 => { i0 = .mread(3)->to_i - ( .mread(6)->to_r * .mread(9)->to_r );
+						i1 = .mread(12)->to_r + .mread(15)->to_r;
+						i2 = vec1.get(19); }
+					? => {
+						i0 = .mread(3);
+						i1 = .mread(6);
+						i2 = vec1.get(10);
+					}
+				}
+				if( NoVar ) 	{
+					NoVar = false;
+					return;
+				}
+				if( i0<0||i0>=10||i1<0||i1>=10 )	{
+					.playbad("sndpoza");
+					return;
+				}
+				if( i2!=0 && i2!=1 )	{
+					.playbad("sndbadval");
+					return;
+				}
+				.zapal(i0, i1, (i2 ? .black : .white ) );
+				fxpedzel.play;
+				.gonext;
+			}
+			1, 9 => {
+				if( idin == 1 )	{
+					i0 = vec1.get(5);
+					i1 = vec1.get(8);
+				} else {
+					i0 = 0 - vec1.get(6);
+					i1 = vec1.get(9);
+				}
+				if( dfor.bstart == true )	{
+					dfor.bstart = (false);
+					dfor.ifrom = (i0);
+					dfor.ito = (i1);
+					dfor.id = ( dfor.ifrom );
+					dfor.idinstr = (idinstr);
+					st1.push("for");
+					dfor.iter = ( vec1.get(2) );
+					mapv.add( dfor.iter, dfor.id );
+				}
+				if( dfor.id > dfor.ito )	{
+					.mtoend;
+					dfor.bstart = (true);
+					timtik.play;
+				} else .gonext;
+			}
+			2 => {
+				if( st1.top == "if" )	{
+					_ = st1.pop;
+					.gonext;
+				} else if (st1.top=="while")	{
+					if( dwhile.bstart )	{
+						_ = st1.pop;
+						idinstr++;
+					} else {
+						idinstr = dwhile.idinstr;
+					}
+					timtik.play;
+				} else {
+					if( dfor.bstart )	{
+						_ = st1.pop;
+						idinstr++;
+					} else {
+						dfor.id = ( dfor.id + 1 );
+						mapv.set( dfor.iter, dfor.id );
+						idinstr = dfor.idinstr;
+					}
+					timtik.play;
+				}
+			}
+			10 => {
+				mapv.add( vec1.get(1), -(vec1.get(5)->to_r) );
+				.gonext;
+			}
+			11 => {
+				s = .mread(1);
+				@r = .mread(4)->to_r + vec1.get(7)->to_r;
+				if( NoVar ) 	{ NoVar=false; return;	}
+				mapv.set( vec1.get(1), r );
+				.gonext;
+			}
+			12 => {
+				if( dwhile.bstart == true )	{
+					dwhile.bstart = (false);
+					dwhile.idinstr = (idinstr);
+					st1.push("while");
+				}
+				@r = .mread(2)->to_r;
+				if( NoVar ) { NoVar=false; return; }
+				if( r > vec1.get(5)->to_r )	{
+					.mtoend;
+					dwhile.bstart = (true);
+					timtik.play;
+				} else .gonext;
+			}
+			? => ;
+		}
+	}
+	mtoend	{
+		@id = vecid.get(idinstr)==20 ? 1 : 0;		// else
+		@b = true;
+		while( b ) {
+			match ( vecid.get(idinstr) )	{
+				2 => { id--; if( id==0 ) return; else idinstr++; }
+				1, 9, 12 => { id++; idinstr++; }
+				? => idinstr++;
+			}
+		}
+	}
+	mvar2(string s)	{
+		if( mapv.contains(s) )	return mapv.get(s);
+		.playbad("sndbrak");
+		NoVar = true;
+		return 0;
+	}
+	mread(int id)	{	vec1.get(id-1)=="$int" ? vec1.get(id) : .mvar2(vec1.get(id));	}
+	miscol(int i, int j, int r, int g, int b)	{
+		int r[3];
+		|r0,r1,r2, _| = <"img"+i+"_"+j>.angetcrgba;
+		r==r0 && g==r1 && b==r2;
+	}
+	gonext	{	idinstr++; timtik.play;	}
+	playbad(@s)	{	igmstate=3; .cbplay(s);	}
+	mreset	{
+		idinstr = 0;
+		dfor.reset;
+		dwhile.reset;
+		st1.free;
+		mapv.free;
+	}
+	cbok_CLICK	{
+		if( igmstate==11 )	{
+			int c[3];
+			|c0,c1,c2,_|=anobraz.angetcrgba;
+			/*1) czerwony 255,0,0
+2) zielony 0,255,0
+3) niebieski 0,0,255
+4) ¿ó³ty 249,231,26
+5) czarny 0,0,0
+6) bia³y 255,255,255
+7) ciemny szary 64,64,64
+8) jasny szary 192,192,192
+9) fioletowy 220,17,244
+10) b³êkitny 54,255,238*/
+			match(colpos)	{
+				1 => (c0==255&&c1==0&&c2==0);
+				2 => (c0==0&&c1==255&&c2==0);
+				3 => (c0==0&&c1==0&&c2==255);
+				4 => (c0==249&&c1==231&&c2==26);
+				5 => (c0==0&&c1==0&&c2==0);
+				6 => (c0==255&&c1==255&&c2==255);
+				7 => (c0==64&&c1==64&&c2==64);
+				8 => (c0==192&&c1==192&&c2==192);
+				9 => (c0==220&&c1==17&&c2==244);
+				10 => (c0==54&&c1==255&&c2==238);
+				? => false;
+			}
+			c0 = _;
+			if( c0 )	{
+				fxmikrofala.play;
+				.nextcol;
+			}
+			return;
+		}
+		if( igmstate!=1 ) return;
+		igmstate = 5;
+		.mreset;
+		string s, int j;
+		veckod.free;
+		vecid.free;
+		vecid2.free;
+		ttk.disable;
+		for( int i=0; i < ttk.Rows; i++)	{
+			s = ttk.getid(i);
+			s.clear;
+			if( s.length>0 )	{
+				veckod.add( s );
+				Code = s;
+				j = Code.expectdb("dbcode", 0);
+				vecid.add( j );
+				vecid2.add( i );
+				if( j<0 )	{
+					.wronginstr(i);
+					igmstate = 3;
+					.cbplay("sndwrong");
+					//vecid.print;
+					return;
+				}
+			}
+		}
+		if( vecid.empty )	{	.mret;	return;	}
+		match( Level )	{
+			4 => {
+				if( !( vecid.veceq2(A,1,0,2) || vecid.veceq2(A,1,3,2) || vecid.veceq2(A,1,4,2) ||
+					vecid.veceq2(A,1,5,2) ) )	{
+					igmstate = 3;
+					.cbplay("sndbad");
+					return;
+				}
+			}
+			5 => {
+				if( !( vecid.veceq2(A,1,5,6,2) || vecid.veceq2(A,1,6,5,2) || vecid.veceq2(A,1,5,7,2)
+					|| vecid.veceq2(A,1,7,5,2)
+					) )	{
+					igmstate = 3;
+					.cbplay("sndbad");
+					return;
+				}
+			}
+			6 => {
+				if( !( vecid.veceq2(A,9,8,2) ) )	{
+					igmstate = 3;
+					.cbplay("sndbad");
+					return;
+				}
+			}
+			7 => {
+				if( !( vecid.veceq2(A,10,12,8,11,2) ) )	{
+					igmstate = 3;
+					.cbplay("sndbad");
+					return;
+				}
+			}
+			? => ;
+		}
+		timtik.play;
+	}
+	wronginstr(int k)	{
+		imgerror.show;
+		imgerror.setpos( 309,108+k*(ifontsize+2) );
+	}
+	mret	{
+		imgerror.hide;
+		.recreate;
+		igmstate = 1;
+		ttk.enable;
+	}
+	mret2	{	igmstate = 3; .cbplay("sndklik");	}
+	startzad	{
+		<GAME> {
+			match(Level)	{
+				0, 3, 5, 6, 7, 8 => { .buildopis; .viewopis; igmstate = 4;	}
+				? => .mstart1;
+			}
+		};
+	}
+	mstart1	{	igmstate=6; }
+	mstart	{
+		.viewzad;
+		.recreate;
+		ttk.clear;
+		tth.clear;
+		ttb.clear;
+		ttk.activate(0);
+		igmstate = 1;
+		match(Level)	{
+			1 => {tth.settext( "p[4,4] = 1", 1 );
+				ttb.settext( "p[???] = ??", 1 );}
+			2 => {tth.settext( "p[0,0] = 1",
+					"p[0,9] = 1",
+					"p[9,0] = 1",
+					"p[9,9] = 1",
+					4 );
+				}
+			3 => {
+				@h = 10;
+				@dh = 1;
+				@x = 88;
+				@s;
+				new gmimgvec grtaf2;
+				new img imgtlo2(h, dh, x)	{
+					(@h, @dh, @x)
+					.setpos( x - dh, 410 - dh );
+					h = (h+dh)*itafle + 1;
+					.create( h, h, .black, 255 );
+					grtaf2.add(this);
+				};
+				for( @i=0; i<itafle; i++)	{
+					for( @j=0; j<itafle; j++)	{
+						s = "img2"+i+"_"+j;
+						new img <s>;
+						<s>.create( h, h, .white, 255 );
+						<s>.setpos( j*(h+dh) + x, i*(h+dh) + 410 );
+						grtaf2.add(s);
+					}
+				}
+				new db dbdraw;
+				new @ilejedynek = 0;
+				dbdraw.dbbuild(A,
+					0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
+					0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+					0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+					0, 1, 0, 0, 0, 0, 0, 1, 0, 0,
+					0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+					0, 0, 1, 0, 1, 0, 1, 0, 0, 0,
+					0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					10 );
+				.zliczjedynki;
+			}
+			4 => {
+				grtaf2.hide;
+				dbdraw.dbsetall(0);
+				for(@i=0; i<10; i++) dbdraw.set(8,i,1);
+				.zliczjedynki;
+				dbcode.dbaddstringrow("for $alpha in $int .. $int"," ");		// 1
+				dbcode.dbaddstringrow("end"," ");						// 2
+				dbcode.dbaddstringrow("p [ $alpha , $int ] = $int"," ");		// 3
+				dbcode.dbaddstringrow("p [ $int , $alpha ] = $int"," ");		// 4
+				dbcode.dbaddstringrow("p [ $alpha , $alpha ] = $int"," ");		// 5
+				tth.settext( "for i in 0..9",
+					"  p[8, i] = 1",
+					"end",
+					3 );
+				ttb.settext( "for ?? in ??..??",
+					"  p[??, ??] = ??",
+					"end",
+					3 );
+			}
+			5 => {
+				dbdraw.dbsetall(0);
+				for(@i=0; i<10; i++) { dbdraw.set(i,i,1); dbdraw.set(i,9-i,1); }
+				.zliczjedynki;
+				dbcode.dbaddstringrow("p [ $alpha , $int - $alpha ] = $int"," ");		// 6
+				dbcode.dbaddstringrow("p [ $int - $alpha , $alpha ] = $int"," ");		// 7
+				tth.settext( "for i in 0..9",
+					"  p[i, i] = 1",
+					"  p[i, 9-i] = 1",
+					"end",
+					"---------- lub ----------",
+					"for i in 0..9",
+					"  p[i, i] = 1",
+					"  p[ 9-i, i] = 1",
+					"end",
+					9 );
+					ttb.settext( "for ?? in ??..??",
+					"  p[???] = ??",
+					"  p[???] = ??",
+					"end",
+					4 );
+			}
+			6 => {
+				dbdraw.dbsetall(0);
+				for(@i=-2; i<=2; i++) { dbdraw.set( 5-(2*i),i+5,1); }
+				.zliczjedynki;
+				dbcode.dbaddstringrow("p [ $int - $int * $alpha , $alpha + $int ] = $int"," ");		// 8
+				dbcode.dbaddstringrow("for $alpha in - $int .. $int"," ");		// 9
+				tth.settext( "for x in -2..2",
+					"  p[ 5-2*x, x+5 ] = 1",
+					"end",
+					3 );
+					ttb.settext( "for x in ???",
+					"  p[ ??, ?? ] = 1",
+					"end",
+					3 );
+			}
+			7 => {
+				dbdraw.dbsetall(0);
+				for(@x = -2.0; x<=2.5; x+=0.5) { dbdraw.set( 5-(x*2),x+5,1); }
+				.zliczjedynki;
+				dbcode.dbaddstringrow("$alpha = - $real"," ");		// 10
+				dbcode.dbaddstringrow("$alpha = $alpha + $real"," ");		// 11
+				dbcode.dbaddstringrow("while $alpha <= $real"," ");		// 12
+				tth.settext( "x = -2.0",
+					"while x <= 2.5",
+					"  p[ 5-2*x, x+5 ] = 1",
+					"  x = x + 0.5",
+					"end",
+					5 );
+					ttb.settext( "x = ??",
+					"while x <= ??",
+					"  p[ ??? ] = 1",
+					"  x = x + ??",
+					"end",
+					5 );
+			}
+			8 => {
+				.newdb("dbrgb", "zadrgb.db");
+				new TextDb tdrgb(stdfont12, 12, "$var:dbrgb", .grey(20), 315,157, 4,150, "left");
+				new @colpos = 0;
+				imggo.show;
+				new ConTextTyper tcr(null, 16, .black, "0", 3);
+				tcr	{
+					.setpos(anr2.getpx-60, anr2.getpy+15);
+					.disable;
+					.onenter(this,"colenter");
+					new @splotno = "anr1";
+					_ = .consttext("R:", .getpx-25, .getpy, 16, .red);
+				};
+				new ConTextTyper tcg(null, 16, .black, "0", 3);
+				tcg	{
+					.setpos(ang2.getpx-60, ang2.getpy+15);
+					.disable;
+					.onenter(this,"colenter");
+					new @splotno = "ang1";
+					_ = .consttext("G:", .getpx-25, .getpy, 16, .green);
+				};
+				new ConTextTyper tcb(null, 16, .black, "0", 3);
+				tcb	{
+					.setpos(anb2.getpx-60, anb2.getpy+15);
+					.disable;
+					.onenter(this,"colenter");
+					new @splotno = "anb1";
+					_ = .consttext("B:", .getpx-25, .getpy, 16, .blue);
+				};
+				new @slastcol = null;
+				int ic[3];
+				|ic0,ic1,ic2,_| = anobraz.angetcrgba;
+				tcr.txtset(ic0);
+				tcg.txtset(ic1);
+				tcb.txtset(ic2);
+				new gmimgvec grtc;
+				grtc.addlist(A,"tcr","tcg","tcb");
+				ttk.disable;
+				tcr.colenter;	tcg.colenter;	tcb.colenter;
+				tcr.enable;
+				.nextcol;
+			}
+			9 => {
+				ttk.disable;
+				tdrgb.hide;
+				grtc.eval("disable");
+				grtc.hide;
+				imggo.hide;
+				igmstate = 12;
+				new ConTextTyper tdrle(stdfont12, 12, .black, "0 ", 135);
+				.newtext("txtrle", "13 0 2 4 8 0 1 4 1 6 1 0 2 4 4 0 1 6 2 4 1 0 1 6 4 0 1 6 1 0 2 4 1 6 4 0 3 2 2 4 8 2 1 0 1 2 1 0 7 2 1 0 1 2 1 0 24 2", stdfont12, .grey(128) );
+				txtrle.setz(522);
+				txtrle.hide;
+				txtrle.setpos(35,328);
+				tdrle.setpos(35,328);
+				tdrle.setz(500);
+				new img imglast {
+					.create( 750, 20, .white, 192 );
+					.setz(10);
+					.setpos(25,322);
+				};
+				new img imgcol0	{
+					.create( 20, 20, .black, 255 );
+					.setpos( 350, 150 );
+					_ = .consttext("0  (black)", .getex+15, .getpy, 16, .black);
+				};
+				new img imgcol2	{
+					.create( 20, 20, 0,170,0, 255 );
+					.setpos( 350, 150+.geth+5 );
+					_ = .consttext("2  (green)", .getex+15, .getpy, 16, .black);
+				};
+				new img imgcol4	{
+					.create( 20, 20, 170,0,0, 255 );
+					.setpos( 350, 150 + 2*(.geth+5) );
+					_ = .consttext("4  (red)", .getex+15, .getpy, 16, .black);
+				};
+				new img imgcol6	{
+					.create( 20, 20, 170,85,0, 255 );
+					.setpos( 350, 150 + 3*(.geth+5) );
+					_ = .consttext("6  (brown)", .getex+15, .getpy, 16, .black);
+				};
+				tdrle.enable;
+				tdrle.onenter(null, func {
+					@s = tdrle.get;
+					s.clear;
+					if ( s=="13 0 2 4 8 0 1 4 1 6 1 0 2 4 4 0 1 6 2 4 1 0 1 6 4 0 1 6 1 0 2 4 1 6 4 0 3 2 2 4 8 2 1 0 1 2 1 0 7 2 1 0 1 2 1 0 24 2" ) {
+						.cbplay("sndfinito");
+						fxbrawo.play;
+					} else .cbplay("sndnorle");
+					} );
+				dbdraw.dbbuild(A,
+					0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 4, 4, 0, 0, 0, 0, 0,
+					0, 0, 0, 4, 6, 0, 4, 4, 0, 0,
+					0, 0, 6, 4, 4, 0, 6, 0, 0, 0,
+					0, 6, 0, 4, 4, 6, 0, 0, 0, 0,
+					2, 2, 2, 4, 4, 2, 2, 2, 2, 2,
+					2, 2, 2, 0, 2, 0, 2, 2, 2, 2,
+					2, 2, 2, 0, 2, 0, 2, 2, 2, 2,
+					2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+					2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+					10 );
+				for( int i=0; i<10; i++)	{
+					for( int j=0; j<10; j++)	{
+						match(dbdraw.get(i,j))	{
+							0 => .zapal(i,j,.black);
+							2 => .zapal(i,j,0,170,0);
+							4 => .zapal(i,j,170,0,0);
+							6 => .zapal(i,j,170,85,0);
+							? => ;
+						}
+					}
+				}
+			}
+			? => ;
+		}
+	}
+	colenter	{
+		int ile = .get;
+		if( ile<0 ) ile=0;
+		else if (ile>255) ile = 255;
+		.txtset(ile);
+		int w = imr1.getw;
+		int h = imr1.geth;
+		.disable;
+		match(splotno)	{
+			"anr1" => imr1.create(w,h,ile,0,0,255);
+			"ang1" => img1.create(w,h,0,ile,0,255);
+			"anb1" => imb1.create(w,h,0,0,ile,255);
+			? => ;
+		}
+		slastcol=this;
+		int c[3];
+		|c0,c1,c2| = tcr.get, tcg.get, tcb.get;
+		anobraz.paint(c0,c1,c2, 255, 0);
+		fxpedzel.play;
+	}
+	nextcol	{
+		imggo.setpos(315, 157 + (12+4)*(colpos+2) );
+		colpos++;
+		if( colpos==11 )	{
+			igmstate = 3;
+			//Level++;
+			.cbplay("sndzip");
+		} else
+			igmstate = 11;
+	}
+	zliczjedynki	{
+		ilejedynek = 0;
+		.double_for(10, 10, func { (@i,@j)
+						if( dbdraw.get(i,j)==1 )	{
+							<"img2"+i+"_"+j>.create(10,10,.black,255);
+							ilejedynek++;
+						}
+						} );
+	}
+	viewzad	{
+		.deletegmobj("dbzad");
+		.newdb( "dbzad", "zad" + Level + ".db");
+		.deletegmobj("tdzad");
+		new TextDb tdzad(stdfont12, 10, "$var:dbzad", .grey(20), 50,350, 4,150, "left");
+		Level++;
+	}
+	buildopis	{
+		.deletegmobj("dbopis");
+		.newdb("dbopis", "opis" + HelpLevel + ".db");
+		.deletegmobj("tdopis");
+		new TextDb tdopis(stdfont14, 10, "$var:dbopis", .grey(222), 65,35, 4, 550, "left");
+		tdopis.hide;
+		HelpLevel++;
+	}
+	viewopis	{	igmstate = 2;	gsq.show;		tdopis.show;	}
+	hideopis	{
+		if( Level==8 ) igmstate=11;
+		else if (Level==9) igmstate=12;
+		else	igmstate = 1;
+		gsq.hide;
+		tdopis.hide;
+	}
+	recreate	{	grtaf.each( func { (@id) .create( H, H, .white, 255 ); } );	}
+	cbhelp_CLICK	{	if( igmstate==1 || igmstate==11 || igmstate==12 )	.viewopis;	}
+	cbhelp_MOVEON	{
+		sndakskermovon.play;
+		if( igmstate==1 )	{	ttb.hide;	tth.show;	}
+		else if (igmstate==12)	txtrle.show;
+	}
+	cbhelp_MOVEOFF	{
+		if( engine.varexist("txtrle") )	txtrle.hide;
+		ttb.show;	tth.hide;
+	}
+	mouse_lclick	{
+		|int x, int y| = mouse.getpos;
+		match( igmstate )	{
+			1 => ;
+			2 => .hideopis;
+			4 => { .hideopis; .mstart; }
+			5 => { timtik.stop(false); imggo.hide; igmstate = 3; .cbplay("sndint"); }
+			6 => .mstart;
+			11 => {
+				grtc.eval("disable");
+				if( grtc.isin(x,y,1,0) )	{
+					<grtc.getsfound>.enable;
+				}
+			}
+			? => .cactsndstop(true);
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug ) {
+			if( igmstate==1 )	{
+				igmstate = 3;
+			/*Level=7;
+			.mstart;*/
+				.cbplay("sndok");
+			} else if (igmstate==11)	{
+				igmstate = 3;
+				//Level=8;
+				.cbplay("sndzip");
+			}
+		}
+	}
+	key_down	{
+		if(igmstate==11 && keyboard.iskey("enter"))	{
+			match(slastcol)	{
+				"tcr" => tcg.enable;
+				"tcg" => tcb.enable;
+				"tcb" => tcr.enable;
+				? => ;
+			}
+		}
+	}
+	mfinito	{	gameapi.play("Komputer");	}
+}

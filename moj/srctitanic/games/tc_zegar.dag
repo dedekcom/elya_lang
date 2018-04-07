@@ -1,0 +1,264 @@
+
+
+game Zegar : Kajuta	{
+	init	{
+		Kajuta::init("zegar");
+		
+		.imgs = (A, "zegar.png", "els1.pyzG 10", "els2.pyzGH 15", "wskazowki.pyz 120", "szyba.pyz 125", "podpo.pyz 20",
+			"$scripts/common/bable.pyzH 5");
+		
+		grels1.sortz(10);
+		
+		new classplacepointer2 clp;
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1","Uszkodzny zegar. Wszystkie cyfry pospada³y ze swoich miejsc. U³o¿ê je.",
+				func { if( Trudnosc<2 )	{
+					clp.showob( "anmatch3but", "uu" );
+					.txtplay("lektor1");
+					} else .stdret;
+					},
+			"lektor1", "If you want to skip this Mini Game, you can play Match 3 instead.", func { clp.stoph; .stdret; }
+			);
+		
+		//.mpanel;
+		
+		.sfxs = (A, "cyfra", "wcisnij");
+		
+		new Rect rec2(anszyba.getpx,anszyba.getpy,anszyba.getw,anszyba.geth);
+		
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		grels2.eval( func {
+			//.Button_isinvis;
+			.addmethod("isbutin", func { (@x, @y)
+				if( cmov.moving && .actionnr(-1) == <cmov.getmover>.actionnr(-1) )
+					.mcheckpos(x,y);
+				else 0;
+				} );
+			.addmethod("butmoveon", func {
+				if( .isvisible==false && cmov.moving )	{
+					advmouse.setbut;
+					yesitsme=1;
+				}
+				} );
+			.addmethod("butmoveoff", func {
+				yesitsme=0;
+				advmouse.setstd;
+				} );
+			.var2("yesitsme",0);
+			but1.add(this);
+			} );
+		
+		if( igmdebug )	.mbutnext;
+		.mskipminigame;
+		.match3but;
+		
+		mus.playstr("mystery_war.ogg -l -v 50");
+		
+		ccs.enter( func { .txtplay("lilian1"); } );
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( anszyba.framenr==0 )	{
+			if( anszyba.isin(mouse.getpos,1,0) )	{
+				anszyba.setframe(0,1);
+				fxwcisnij.play;
+			}
+		} else {
+			if( grels1.isin(mouse.getpos,1,0) )	{
+				@s = grels1.getsfound;
+				.mssetobj(s);
+				<s>.setz(130);
+				grels1.remove(s);
+				fxwcisnij.play;
+			}
+		}
+	}
+	mcheckpos(int x, int y)	{	0->length(x-.getcx, y-.getcy) < 40;	}
+	cmov_PUT	{
+		@s = .getfree;
+		//if( grels2.isin(mouse.getpos,0,0) )	{
+		@s2 = grels2.get( grels2.findac( <s>.anactnr ) );
+		if( <s2>.yesitsme )	{
+			//if( <s>.actionnr(-1)==<s2>.actionnr(-1) )	{
+				<s>.hide;
+				<s2>.show;
+				fxcyfra.play;
+				anbable.setpos( <s2>.getcx, <s2>.getcy );
+				anbable.play(0);
+				grels2.remove(s2);
+				if( grels2.empty )	{
+					igmstate = 2;
+					.mend;
+				}
+			//} else .melret(s);
+		} else {
+			.melret(s);
+			fxwcisnij.play;
+		}
+	}
+	melret(string s)	{
+		grels1.add(s);
+		grels1.sortz(10);
+		rec2.fit(s);
+	}
+	hint_click	{
+		if( anszyba.framenr==0 )	{
+		
+		} else if( grels1.size )	{
+			@s = grels1.rand;
+			@s2 = grels2.get( grels2.findac( <s>.anactnr ) );
+			.playhints(s, s2);
+		}
+	}
+	/************** wyjscia *****************/
+	anbutnext_click	{
+		.mend;
+	}
+	mend	{
+		.mprzejdz("Skrytkaschody");
+	}
+	match3_won	{ .mend; }
+	skip_minigame	{	.mend;	}
+}
+
+game BoxA : Kajuta	{
+	init	{
+		Kajuta::init("boxa");
+		.path = ("box");
+		
+		.titsounds=(A, ":lilian1", "Nareszcie!! Uda³o siê!! mam ostatni klucz. Zabiorê go i szybko przeka¿e wszystkie klucze prababci.", func { .mprzejdz("Kajutamuzeum"); }
+			);
+		
+		.imgs = (A, "bga.jpg", "boxa.pyz 5", "txta.pyzH 10", "keya.pyzH 20");
+		
+		.sfxs = (A, "skrzyniaopen2 70");
+		mus.playstr("tytan_wnetrze.ogg -l -v 30");
+		
+		if( clsave.bis("e3_ulozylabox") )	{
+			antxta.show;
+			anboxa {
+				.Button_stdalpha;
+				.addmethod("butclick", func {
+					if( igmstate!=1 ) return;
+					but1.removebut(this);
+					.setframe(1,0);
+					fxskrzyniaopen2.play;
+					antxta.hide;
+					ankeya.show;
+					} );
+				but1.add(this);
+			};
+			ankeya {
+				.Button_stdalpha;
+				.addmethod("butclick", func {
+					if( igmstate!=1 ) return;
+					igmstate=0;
+					<GAME>.klucz_show(6);
+					.hide;
+					} );
+				but1.add(this);
+			};
+		} else {
+			anboxa {
+				.Button_stdalpha;
+				.addmethod("butclick", func {
+					if( igmstate!=1 ) return;
+					igmstate=0;
+					clsave.bset("e3_ulozylabox");
+					.mprzejdz("BoxB");
+					} );
+				but1.add(this);
+				.hoverhint(this);
+			};
+		}
+		ccs.enter( func { igmstate=1; } );
+	}
+	klucz6_shown	{ .timplay("timkey", 2000, func { .klucz_to_kolo(6); });	}
+	klucz6_in_kolo	{
+		clsave.set("epizod", "e4_end");
+		.txtplay("lilian1");
+	}
+}
+
+game BoxB : Kajuta	{
+	init	{
+		Kajuta::init("boxa");
+		.path = ("box");
+		
+		.titsounds = (A, ":lilian1", "Miedziane litery odpad³y z pude³ka. U³o¿e je na swoich miejscach.", "stdret"
+			);
+		
+		.imgs = (A, "bgb.jpg", "elsb.pyzG 10", "$scripts/common/bable.pyzH 3");
+		
+		.sfxs = (A, "litera");
+		
+		mus.playstr("tytan_wnetrze.ogg -l -v 30");
+		
+		grelsb.eval( func { .setframe(-1,1); } );
+		.copyanima(grelsb.first, "anpoka");
+		anpoka.hide;
+		
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		if( igmdebug )	.mbutnext;
+		.mskipminigame;
+		.match3but;
+		
+		ccs.enter( func { .txtplay("lilian1"); } );
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( grelsb.isin(mouse.getpos,1,1) )	{
+			@s = grelsb.getsfound;
+			@x = <s>.getpx;
+			@y = <s>.getpy;
+			<s>.setframe(-1,0);
+			<s>.ansetbpos(x,y);
+			.mssetobj(s);
+			<s>.setz(130);
+			grelsb.remove(s);
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		if( <s>.aninlod(50) )	{
+			<s>.setpos(0,0);
+			<s>.setz(5);
+			anbable.setpos(<s>.getcx, <s>.getcy);
+			anbable.play(0);
+			fxlitera.play;
+			if( grelsb.empty )
+				.mend;
+			else igmstate = 1;
+		} else {
+			<s>.setz(10);
+			<s>.setframe(-1,1);
+			<s>.setpos(0,0);
+			grelsb.add(s);
+		}
+	}
+	/************** wyjscia *****************/
+	anbutnext_click	{
+		.mend;
+	}
+	mend	{
+		if( AdventureMode )
+			.mprzejdz("BoxA");
+		else .mprzejdz("MainMenu");
+	}
+	match3_won	{ .mend;	}
+	skip_minigame	{	.mend;	}
+	hint_click	{
+		if( grelsb.size )	{
+			@s = grelsb.rand;
+			anpoka.setframe( <s>.actionnr(-1), 0 );
+			anpoka.setpos(0,0);
+			.playhints(s, "anpoka");
+		}
+	}
+}
+

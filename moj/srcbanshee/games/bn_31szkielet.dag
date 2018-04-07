@@ -1,0 +1,118 @@
+
+game mg31_szkielet :Banshee {
+	init{
+	
+	 
+		Banshee::init("mg31_szkielet");
+		.imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2", "noz_za_zebrami.pyzH 3","pogrzebacz_anim.pyzH 4", "noz_do_szkla.pyzH 5", "ramka.pyz 34", "popexit.pyz 36" );
+		
+		//.addtopck("pogrzebacz");
+		.sfxs = (A, "bgrsala2N 70", "fireN 5" );
+		.setasitemtopck("annoz_do_szkla");
+		if (!clsave.bis("e1_mg31_szkielet_pogrzebacz_uzyty"))
+		{
+			annoz_za_zebrami.show;
+			.newsndfree("snd_cant_reach", "kinnat_c4d4_12");
+			snd_cant_reach.addmethod("onfinish", "advsetstdstate");  
+			annoz_za_zebrami{
+				.Button_isinvis;
+				.addmethod("butmoveon", func {
+				 
+					if(!clsave.bis("e1_mg31_szkielet_noz_clicked") )
+						 advmouse.set("take");
+					else
+						advmouse.set("use");
+				} );
+				.addmethod("butmoveoff", func {
+					 
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+					if( !.advstdstate ) return;
+					clsave.bset("e1_mg31_szkielet_noz_clicked");
+					.cbplay("snd_cant_reach"); 
+				} );
+				butgame.add(this);
+			};  
+		}
+		else
+		{
+			if (!clsave.bis("taken_noz_do_szkla"))
+			{
+				anpogrzebacz_anim.show;
+				anpogrzebacz_anim.setframe(0,14);
+				annoz_do_szkla.show;
+			}
+		
+		};
+		
+		anpogrzebacz_anim{
+			.addmethod("onfinish", func {
+				annoz_do_szkla.show;
+				.advsetstdstate;
+			} );
+		};
+		 
+		 
+		anpopup_bkg {
+			.Button_isinalpha;
+			butgame.add(this);
+		}; 
+		
+		imgbkg {
+			.Button_isinalpha;
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+				.mend;
+				} );
+				butgame.add(this);
+			};       
+		.butpopexit;     
+		 
+		.stdstart;
+	}// koniec init 
+	 
+	annoz_do_szkla_TAKE {
+		anpogrzebacz_anim.hide;
+		.popitem_gotocenter("noz_do_szkla");
+		.set_mg_finished;
+    }  
+	
+	annoz_do_szkla_INPCK {
+		.addtopck("noz_do_szkla"); 
+		.timfinito;	
+	}
+
+     	
+
+	USE_pogrzebacz	{
+		.advsetstdstate();
+		if( annoz_za_zebrami.isin(mouse.getpos,0,0))	{
+			.removefrompck("pogrzebacz");
+			clsave.bset("e1_mg31_szkielet_pogrzebacz_uzyty");
+			anpogrzebacz_anim.play(0);
+			annoz_za_zebrami.hide;
+			butgame.removebut("annoz_za_zebrami");
+			advmouse.setstd;	
+		} else {
+			.item_gotopck;
+		}
+	}  
+     
+	 
+	HINT_CLICK {
+		if( clsave.bis("ma_pogrzebacz") )	{
+			.showhintitem("pogrzebacz");
+			.showhint("annoz_za_zebrami");
+		}
+		else if (clsave.bis("e1_mg31_szkielet_pogrzebacz_uzyty") &&  !clsave.bis("taken_noz_do_szkla"))
+				.showhint("annoz_do_szkla");
+		else
+			.showhint("anpopexit"); 
+	}
+  
+	mend	{
+		 .stdexitdefadv("ad31_salatortur", "gamead31_salatortur0");
+	}
+}
+ 

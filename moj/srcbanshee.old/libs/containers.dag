@@ -1,0 +1,475 @@
+/**************************************************************/
+	// operacje na obrazach, dzwiekach, timerach i animacjach
+class gmobjvec {
+	init()	{
+		new vector lsim;
+		lsim.type("string");
+	}
+	operator=(string sgr)	{
+		if( engine.varexist(sgr) )	{
+			match(<sgr>.gettype())	{
+				"vector" => this.copy(sgr);
+				"gmobjvec" => this.copy(sgr);
+				"gmimgvec" => this.copy(sgr);
+				? => {	this.free(); this.add(sgr); }
+			}
+		} else {
+			this.free();
+			this.add(sgr);
+		}
+	}
+	save(string s)	{	lsim.save(s);	}
+	load(string s)	{	lsim.load(s);	}
+	operator+(string sob)	{	this.add(sob);		this;	}
+	operator-(string sob)	{	this.remove(sob);	this;	}
+	removegr(string sgr)	{	for( int i=0; i < <sgr>.size; i++)	.remove( <sgr>.get(i) );	}
+	addtogr(string sgr)	{	for( int i=0; i<this.size(); i++)	<sgr>.add(this.get(i));	}
+	addgr(string sgr)	{	for( int i=0; i< <sgr>.size(); i++)	this.add( <sgr>.get(i) );	}
+	addgroups	{	.withlist("addgr");	}
+	copy(string sgr)	{
+		this.free();
+		this.addgr(sgr);
+	}
+	free()	{ lsim.free();	}
+	int size()	{ 	lsim.size;	 }
+	bool empty()	{	.size==0;	}
+	hash()	{ lsim.hash(); }
+	string first()	{ lsim.get(0); }
+	string last()	{ lsim.get( lsim.size-1 ); }
+	print()	{
+		engine.print("");
+		engine.print("------ type("+.gettype+") " + this + " ------");
+		lsim.print();
+		engine.print("------ end ------");
+		engine.print("");
+	}
+	string get(int i)	{	lsim.get(i);	}
+	set(int pos, string sval)	{	lsim.set(pos,sval);	}
+	add(string simg)	{	lsim.add(simg);	}
+	additer(string s, int ifrom, int iile)	{
+		while( iile>0 )	{
+			.add(s+ifrom);
+			ifrom++;
+			iile--;
+		}
+	}
+	buildarray(string styp, string sname, int ilosc)	{
+		<gameapi.getgamename>.newarray(styp,sname,ilosc);
+		.additer(sname,0,ilosc);
+	}
+	deleteall	{	for( int i=0; i<.size; i++)	delete <.get(i)>;	}
+	deleteallgm	{
+		@s = gameapi.getgamename;
+		for( int i=0; i<.size; i++)	<s>.vardel(.get(i));
+	}
+	deleteallgmobj	{
+		@s = gameapi.getgamename;
+		for( int i=0; i<.size; i++)	<s>.deletegmobj(.get(i));
+	}
+	lockall	{	.eval("lock");	}
+	unlockall	{	.eval("unlock");	}
+	addbegin(string simg)	{	lsim.addbegin(simg);	}
+	swap(int i, int j)	{	lsim.swap(i,j);	}
+	addonce(string simg)	{	if( !lsim.contains(simg) )	lsim.add(simg);	}
+	sepadd(string separator)	{
+		string s = _;
+		while( s!=separator )	{
+			this.addbegin(s);
+			s = _;
+		}
+	}
+	addlist	{	.sepadd(A);	}
+	removelist	{ .withlist("remove");	}
+	insertat(string sob, int pos)	{
+		@ile = .size;
+		if( pos<=0 )	.addbegin(sob);
+		else if (pos>=ile)	.add(sob);
+		else {
+			.add(null);
+			for( @i=ile; i>pos; i--)	.set( i, .get(i-1) );
+			.set(pos, sob );
+		}
+	}
+	remove(string simg)	{	lsim.remove(simg);	}
+	removeat(int pos)		{	lsim.removeat(pos);	}
+	removefirst			{	lsim.removeat(0);	}
+	removelast			{	lsim.removeat(.size-1);	}
+	removealloccurs(string simg)	{	while(this.contains(simg))	this.remove(simg);	}
+	removeif(string sfun)	{
+		for( int i=0; i<.size; i++)
+			if( <.get(i)>.<sfun>() )  .removeat(i);
+	}
+	int find(string simg)		{	lsim.find(simg);	}
+	int contains(string simg)	{	lsim.contains(simg);	}
+	addgroup(string sob, int ile)	{	.addgroup2( sob, 0, ile-1 );	}
+	addgroup2(string sob, int ifrom, int ito)	{
+		while( ifrom <= ito )	{
+			this.add( sob+ifrom );
+			ifrom++;
+		}
+	}
+	string rand()	{
+		int ile = .size;
+		ile>0 ? .get(ile.rand) : null;
+	}
+	string randdiff(string s)	{
+		int ile = .size;
+		if( ile>0 )	{
+			int id = ile.rand;
+			int i = id;
+			while( .get(id)==s )	{
+				id = (id+1)%ile;
+				if( id==i )	return null;
+			}
+			return .get(id);
+		}
+		null;
+	}
+	buildfullvars	{	.each( func { (@id) .buildfullname; } );	}
+	buildvars		{	.each( func { (@id) .addtogamevars(this); } );	}
+	/******************* metody na obiektach grupy *****************************/
+	movefrom(string simg, int x, int y)	{
+		int i = this.find(simg);
+		if( i>=0 )	{
+			while( i<lsim.size() )	{
+				<lsim.get(i)>.move(x,y);
+				i++;
+			}
+		}
+	}
+	move(int x, int y)	{	this.eval2("move",x,y);	}
+	setpos(int x, int y)	{	this.eval2("setpos",x,y);	}
+	show()	{	this.eval("show");	}
+	hide()	{	this.eval("hide");	}
+	stop(int fin)	{	this.eval1("stop",fin);	}
+	play()	{	this.eval("play");	}
+	setdelay(int d)	{	this.eval1("setdelay",d);	}
+	isplaying	{
+		for( int i=0; i<.size; i++)	if( <.get(i)>.isplaying(-1) ) return true;
+		false;
+	}
+	graddmethod(string sdest, string ssrc)	{	this.eval2("addmethod",sdest,ssrc);	}
+	string getimg(int x, int y, int bignorehidden, int bignorealpha)	{
+		for( int i=lsim.size()-1; i>=0; i--)	{
+			if( <lsim.get(i)>.isin( x,y,bignorehidden,bignorealpha ) )	return lsim.get(i);
+		}
+		return null;
+	}
+	int isin(int x, int y, bool bignorehidden, bool bignorealpha)	{
+		for( int i=lsim.size()-1; i>=0; i--)	{
+			if( <lsim.get(i)>.isin( x,y,bignorehidden,bignorealpha ) )	return i+1;
+		}
+		return false;
+	}
+	setframe(def ac, int ifr)	{	this.eval2("setframe",ac,ifr);	}
+	setz(int z)	{	this.eval1("setz",z);	}
+	/**************/
+	eval(string sfunc)	{
+		for(int i=0; i<lsim.size(); i++)	{<lsim.get(i)>.<sfunc>();	}
+	}
+	eval1(string sfunc, def darg)	{
+		for(int i=0; i<lsim.size(); i++)	{<lsim.get(i)>.<sfunc>(darg);}
+	}
+	eval2(string sfunc, def darg1, def darg2)	{
+		for(int i=0; i<lsim.size(); i++)	{<lsim.get(i)>.<sfunc>(darg1, darg2);}
+	}
+	eval3(string sfunc, def darg1, def darg2, def darg3)	{
+		for(int i=0; i<lsim.size(); i++)	{<lsim.get(i)>.<sfunc>(darg1, darg2, darg3);}
+	}
+	int _find(string sfun, def id)	{
+		for( int i=0; i<this.size; i++) if ( <this.get(i)>.<sfun>()==id ) return i;
+		-1;
+	}
+	int _find1(string sfun, @id)	{
+		for( int i=0; i<.size; i++) if ( <this.get(i)>.<sfun>(id) ) return i;
+		-1;
+	}
+	each(string sfun)	{	for( int i=0; i<.size; i++) <.get(i)>.<sfun>(i);	}
+	each1(string sfun, @d1)	{	for( int i=0; i<.size; i++) <.get(i)>.<sfun>(i, d1);	}
+	each2(string sfun, @d1, @d2)	{	for( int i=0; i<.size; i++) <.get(i)>.<sfun>(i, d1, d2);	}
+	bool ineach(string sfun)	{
+		for( int i=0; i<.size; i++) if( !<.get(i)>.<sfun>(i) )	return false;
+		true;
+	}
+	int find_closest(string sob, string sfun)	{
+		if( .empty ) return;
+		int id = 0, real il;
+		real ilen = <.get(0)>.<sfun>(sob);
+		for( int i=1; i<.size; i++)	{
+			il = <.get(i)>.<sfun>(sob);
+			if( il < ilen )	{
+				id = i;
+				il = ilen;
+			}
+		}
+		id;
+	}
+	/**************/
+	sortimgsfun(string sfun)	{	lsim.vecsort(sfun);	}
+	sortimgs()	{	// sortowanie od najmniejszych
+		lsim.vecsort("_scmpimg1");
+	}
+	bool _scmpimg1(string s0, string s1)	{
+		( <s0>.getz() < <s1>.getz() || ( <s0>.getz()==<s1>.getz() && <s0>.getidobj() < <s1>.getidobj() ) );
+	}
+}
+
+class gmimgvec : gmobjvec	{
+	init()	{
+		gmobjvec::init();
+		new int _ix = 0;
+		new int _iy = 0;
+		new int _iz = 0;
+		new int _ifound = -1;
+		new string sanload = null;
+	}
+	_setpos(int x, int y)	{	|_ix, _iy| = x,y;	}
+	int lodx()	{0;}
+	int lody()	{0;}
+	int getposx()	{	_ix;	}
+	int getposy()	{	_iy;	}
+	int getpos()	{	return _ix, _iy;	}
+	int getpx() {	_ix;	}
+	int getpy() {	_iy;	}
+	int getw()	{	this.getex()-this.getpx();	}
+	int geth()	{	this.getey()-this.getpy();	}
+	int getcx() {	this.getpx()+this.getw()/2;	}
+	int getcy() {	this.getpy()+this.geth()/2;	}
+	int getz()	{	_iz;	}
+	int getex()	{
+		int ile = this.size();
+		if( ile<=0 )	{	return _ix;	}
+		int x = <this.get(0)>.getex();
+		int x2;
+		for( int i=1; i<ile; i++)	{
+			x2 = <this.get(i)>.getex();
+			if( x2>x )	{	x=x2;	}
+		}
+		x;
+	}
+	int getey()	{
+		int ile = this.size();
+		if( ile<=0 )	{	return _iy;	}
+		int y = <this.get(0)>.getey();
+		int y2;
+		for( int i=1; i<ile; i++)	{
+			y2 = <this.get(i)>.getey();
+			if( y2>y )	{	y=y2;	}
+		}
+		y;
+	}
+	int _getpx()	{
+		int ile = this.size();
+		if( ile<=0 )	{	return _ix;	}
+		int x = <this.get(0)>.getpx();
+		int x2;
+		for( int i=1; i<ile; i++)	{
+			x2 = <this.get(i)>.getpx();
+			if( x2<x )	{	x=x2;	}
+		}
+		x;
+	}
+	int _getpy()	{
+		int ile = this.size();
+		if( ile<=0 )	{	return _iy;	}
+		int y = <this.get(0)>.getpy();
+		int y2;
+		for( int i=1; i<ile; i++)	{
+			y2 = <this.get(i)>.getpy();
+			if( y2<y )	{	y=y2;	}
+		}
+		y;
+	}
+	int _getw	{	.getex-._getpx;	}
+	int _geth	{	.getey-._getpy;	}
+	/*minx	{	.find_closest(null, func {(@s) .getpx; } );	}
+	miny	{	.find_closest(null, func {(@s) .getpy; } );	}
+	countborders	{
+		_ix = .minx;
+		_iy = .miny;
+	}*/
+	setz(int z)	{
+		_iz = z;
+		this.eval1("setz",z);
+	}
+	move(int x, int y)	{
+		_ix +=x;
+		_iy +=y;
+		this.eval2("move",x,y);
+	}
+	setpos(int x, int y)	{
+		_ix = x;
+		_iy = y;
+		this.eval2("setpos",x,y);
+	}
+	setpos2(int x, int y)	{
+		_ix = x;
+		_iy = y;
+		if( !.empty )	{
+			x -= <.get(0)>.getpx;
+			y -= <.get(0)>.getpy;
+			.move(-x,-y);
+		}
+	}
+	changeframe(int ifr) {
+		string s;
+		for( int i=0; i<.size; i++)	{
+			s = .get(i);
+			<s>.setframe( <s>.actionnr(-1), ifr );
+		}
+	}
+	nplay(int n)	{	.eval1("play",n);	}
+	txtreset	{	for( int i=0; i<.size; i++) <.get(i)>.txtset("");	}
+	anputgr()	{	this.eval("anputgr");	}
+	anputy(int ypos)	{	this.eval1("anputy", ipos);	}
+	int isin(int x, int y, bool bignorehidden, bool bignorealpha)	{
+		for( int i=lsim.size()-1; i>=0; i--)	{
+			if( <lsim.get(i)>.isin( x,y,bignorehidden,bignorealpha ) )	{
+				_ifound=i;
+				return i+1;
+			}
+		}
+		_ifound = -1;
+		false;
+	}
+	int isinfunc(int x, int y, string sfunc)	{
+		for( int i=lsim.size()-1; i>=0; i--)	{
+			if( <lsim.get(i)>.<sfunc>( x,y ) )	{
+				_ifound=i;
+				return i+1;
+			}
+		}
+		_ifound = -1;
+		false;
+	}
+	int isincut(int x, int y, bool bignorehidden, bool bignorealpha)	{
+		for( int i=lsim.size()-1; i>=0; i--)	{
+			if( <lsim.get(i)>.withincut(x,y) && <lsim.get(i)>.isin( x,y,bignorehidden,bignorealpha ) )	{
+				_ifound=i;
+				return i+1;
+			}
+		}
+		_ifound = -1;
+		false;
+	}
+	bool withincut(int x, int y)	{
+		y; x;
+		.ineach(func { (@id)
+			int x = _;
+			int y = _;
+			.withincut(x,y);
+			y; x;
+			} );
+		x = _;
+		y = _;
+	}
+	int findif(string sfunc)	{	._find( sfunc,true);	}
+	int getfound()	{	_ifound;	}
+	string getsfound()	{	this.get(_ifound);	}
+	int findfr(int id)	{	._find("framenr", id);	}
+	int findsfr(string s)	{	._find("framename", s);	}
+	int findac(int id)	{	._find("anactnr", id);	}
+	int findsac(string sac)	{	._find("actionname", sac);	}
+	int nearest_to(string sob)	{
+		//.find_closest(sob, func {(string s) 0->length( .getpx-<s>.getpx, .getpy-<s>.getpy ); } );
+		.find_closest(sob, func {(string s) cllen.ilen5(this,s); } );
+	}
+	string getsac(string sac)	{	.get( .findsac(sac) );	}
+	string getsacfr(string sac, int fr)	{	for(int i=0; i<.size; i++) if( <.get(i)>.actionname==sac && <.get(i)>.framenr==fr ) return .get(i); null; }
+	/*def find_min(string s)	{
+		if( .empty ) return;
+		int x = <s>.getpx;
+		int y = <s>.getpy;
+		int id = 0, int il;
+		int ilen = id.length( <.get(0)>.getpx-x, <.get(0)>.getpy-y );
+		for( int i=1; i<.size; i++)	{
+			il = id.length( <.get(i)>.getpx-x, <.get(i)>.getpy-y );
+			if( il < ilen )	{
+				id = i;
+				il = ilen;
+			}
+		}
+	}*/
+	blitto(string simg)	{	for( int i=0; i<.size; i++)	<simg>.blit(.get(i));	}
+	sortz(int z)	{	for( int i=0; i<.size; i++) <.get(i)>.setz(z+i);	}
+	/****************************/
+	ancopies(string san, int ile)	{
+		for( int i=0; i<ile; i++)	{
+			<GAME>.copyanima(san, san+"_"+i);
+			.add(san+"_"+i);
+		}
+	}
+	loadallan(string sname, string sfile, int z)	{
+		string s = gameapi.getgamename();
+		<s>.newanima(sname,sfile,z);
+		_ = <s>.newanfrbyactgr(sname, sname, this);
+		<sname>.hide();
+	}
+	addsrcanima(string san) {       .var2("srcanima", san); }
+	operator*(string s)	{
+		string sg = gameapi.getgamename;
+		string san;
+		if ( s.contains(".pyz") ) {
+			if( s.getb(0,1)=="$" )	{
+				new vector _vtmp; _vtmp.type("string");
+				_vtmp.vecbuildfromstring(s, "/");
+				san = "an" + _vtmp.last->strsubes(".pyz");
+				delete _vtmp;
+			} else {
+				san = "an" + s.strsubes(".pyz");
+			}
+			<sg>.newanima(san,s,0);
+		} else san = s;
+		sanload = san;
+		_ = <sg>.newanactionsgr(san, san, this);
+		<san>.hide();
+		.addsrcanima(san);
+	}
+	operator<(string s)	{
+		string sg = gameapi.getgamename;
+		string san;
+		if ( s.contains(".pyz") ) {
+			san = "an" + s.strsubes(".pyz");
+			<sg>.newanima(san,s,0);
+		} else san = s;
+		sanload = san;
+		_ = <sg>.newanfrbyactgr(san, san, this);
+		<san>.hide();
+		.addsrcanima(san);
+	}
+	deleteloaded	{
+		.deleteallgm;
+		if( sanload!=null ) <gameapi.getgamename>.vardel(sanload);
+	}
+	deleteinit	{
+		@s = gameapi.getgamename;
+		for( int i=0; i<.size; i++)	{
+			@s2 = .get(i);
+			if( <s2>.gettype=="gmimgvec" )	{
+				<s2>.deleteinit;
+			}
+			<s>.vardel(s2);
+		}
+		if( sanload!=null ) <gameapi.getgamename>.vardel(sanload);
+	}
+}
+
+class gmadvvec : gmimgvec	{
+	init	{	gmimgvec::init;	}
+	int butisin(int x, int y, bool bignorehidden, bool bignorealpha)	{
+		for( int i=lsim.size()-1; i>=0; i--)	{
+			if( <lsim.get(i)>.butisin( x,y,bignorehidden,bignorealpha ) )	{
+				_ifound=i;
+				return i+1;
+			}
+		}
+		_ifound = -1;
+		false;
+	}
+}
+
+class gmmaskvec : gmadvvec	{
+	init()	{	gmadvvec::init;	}
+	int butisin(int x, int y, bool bigvis, bool bigalpha)	{	gmimgvec::butisin(x,y,false,bigalpha);	}
+}
+

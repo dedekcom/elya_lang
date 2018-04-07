@@ -1,0 +1,191 @@
+
+new int iKoloId = 1;
+new int iIleKolo = .readcfg("iIleKolo:",iKoloId);
+
+new bool bPlayMusic = true;
+new int igmogg = true;
+
+public playmainmusic	{
+	music.smixer = ("engine");
+	music.playstr("bajka2.ogg -l -v 50");
+}
+
+game MenuImg : MermaidStd	{
+	init	{
+		MermaidStd::init("menu_img");
+		
+		.imgs = (A, "butok.pyz 30", "butnext.pyz 30", "putprev.pyz 30", "cien.pyz 10", "bgmenuimg.jpg",
+			"$scripts/common/cyfry.pyz 30");
+		
+		.cbutexit;
+		.loadasker;
+		.cbutmusic;
+		
+		anbutok.imgbuildoverlay(.yellow,64,1200);
+		
+		new gmimgvec grnr;
+		int ile = .mputnumber(null,iIleKolo);
+		int w = 1.1 * ancyfry.getw;
+		for( int i=0; i<ile; i++ )	{
+			@s = "anilepuz"+i;
+			.copyanima("ancyfry", s);
+			<s>.setpos( anbutok.getpx - w*(i+1), ancien.getey + 10->igetsc );
+			s = "annr"+i;
+			.copyanima("ancyfry", s);
+			<s>.setpos( anbutok.getpx - w*(i+ile+2), ancien.getey + 10->igetsc );
+			<s>.hide;
+			grnr.add(s);
+		}
+		_ = .mputnumber("anilepuz", iIleKolo);
+		ancyfry.setframe(1,0);
+		ancyfry.setpos( anbutok.getpx - w*(ile+1), ancien.getey + 10->igetsc );
+		
+		new img imgpic1;
+		new img imgpic2;
+		new string spic1 = "imgpic1";
+		new string spic2 = "imgpic2";
+		<spic1>.mload;
+		.mustawnr;
+		new int ispeed;
+		
+		.cycle=("timrew", func {
+			<spic1>.move( 0, ispeed );
+			<spic2>.move( 0, ispeed );
+			@dy = <spic2>.getpy;
+			if( (ispeed<0 && dy<0 ) || (ispeed>0 && dy>0) )	{
+				<spic1>.hide;
+				<spic2>.mustaw;
+				@s = spic1;
+				spic1 = spic2;
+				spic2 = s;
+				.advsetstdstate;
+				ancien.show;
+				.mustawnr;
+			} else .play;
+			} );
+		
+		anbutnext.Button_addstdstate;
+		anputprev.Button_addstdstate;
+		
+		anbutok.Button_addstdstate;
+		
+		.stdenter;
+	}
+	butclick_anbutnext	{	<GAME>.mnext(1);	}
+	butclick_anputprev	{	<GAME>.mnext(-1);	}
+	butclick_anbutok	{	ccs.showloading; .stdexit("Kolo");	}
+	mustaw	{	.ansetcpos( ancien.getcx, ancien.getcy-1 );	}
+	mload	{
+		.load( "scripts/" + sgmkolopref + "/imgscol/colcol_" + iKoloId + ".jpg" );
+		.anzoom( 500.0 / 912.0 );
+		.setz( 20 );
+		.anclipob("ancien");
+		.show;
+		.mustaw;
+	}
+	mnext(int id)	{
+		iKoloId += id;
+		if( iKoloId < 1 ) iKoloId = iIleKolo;
+		else if ( iKoloId > iIleKolo ) iKoloId = 1;
+		<spic2>.mload;
+		ispeed = 0.4*<spic1>.geth;
+		int dy = 5;
+		if( id>0 ) {
+			ispeed = -ispeed;
+			<spic2>.move( 0, <spic1>.geth + dy );
+		} else {
+			<spic2>.move( 0, - <spic2>.geth - dy );
+		}
+		sgmstate = "state_rewind";
+		//ancien.hide;
+		timrew.play;
+	}
+	int mputnumber(string spref, int number)	{
+		int id = 0;
+		while( number>0 )	{
+			if( spref!=null )	{
+				@s = spref + id;
+				<s>.setframe( 0, number%10 );
+				<s>.show;
+			}
+			number = number/10;
+			id++;
+		}
+		id;
+	}
+	mustawnr	{
+		grnr.hide;
+		_ = .mputnumber("annr", iKoloId);
+	}
+	butclick_anbutexit	{	.askfor("Outro");	}
+}
+
+game Intro : MermaidStd	{
+	init	{
+		MermaidStd::init("intro");
+		.imgs = (A, "bkg.jpg", "tytul.pyzGH 10");
+		
+		new int idtyt = 0;
+		ccs.enter( func {
+			.advsetstdstate;
+			.mtytgo;
+			} );
+		
+		.playmainmusic;
+	}
+	mend	{
+		.stdexit("MenuImg");
+	}
+	mouse_lclick	{
+		.mend;
+	}
+	mtytgo	{
+		if( idtyt >= grtytul.size )	{
+			.mend;
+		} else {
+			int time = ( idtyt == grtytul.size-1 ? 4000 : 1000 );
+			<grtytul.get(idtyt)>.anfadein(time, "mtytgo");
+			idtyt++;
+		}
+	}
+}
+
+game Outro : MermaidStd	{
+	init	{
+		MermaidStd::init("outro");
+		
+		if( sgmkolopref.in(A, "nestor") )	{
+			.img = ("outrobg.jpg");
+		} else {
+			.imgs=(A, "bkg.pyz", "bg2.pyz 5", "farm1.pyzG 10", "coralreef.pyzG 10", "tytul_logo.pyzG 20");
+			
+			<grfarm1.getsac("download")>.mlinker("linkfarm:");
+			<grcoralreef.getsac("download")>.mlinker("linkcoral:");
+		}
+		
+		.stdenter;
+		.timplay("timfinish", 12000, "mend");
+	}
+	mlinker(string slink)	{
+		if( .isapple ) {
+			.cblinkbut;
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( (igmmac || igmipad) && .advstdstate )	{
+					engine.system("open "+.readcfg(slink, "http://www.daamdaam.com"));
+				}
+				} );
+			butgame.add(this);
+		} else .hide;
+	}
+	mend	{
+		if( .advstdstate )	{
+			sgmstate = "state_exit";
+			music.fadeout(800);
+			.closexit;
+		}
+	}
+	mouse_lclick	{
+		.mend;
+	}
+}

@@ -1,0 +1,88 @@
+
+game mg43_lustro :Banshee {
+	init{
+		Banshee::init("mg43_lustro");
+		.imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2", "kinnat.pyz 3","maska_lustro.pyz 5", "zakladanie.pyz 6","ramka.pyz 7","popexit.pyz 8" );
+		.sfxs = (A,"bgrsala2N 10", "skrzypienie_podlogiN 10", "helmet" ) ;
+		
+		.butpopexit;
+		.butpopexitisinramka;   
+		// .addtopck("helm");
+		ankinnat.anfadein(800,null);
+		anzakladanie.addmethod("onfinish", func{.cbplay("snd_final");});
+		ankinnat{
+				.show;	
+				.Button_isinvis;
+				.addmethod("butmoveon", func {
+					if(  (!.advstdstate && sgmstate!="getitem") || clsave.bis("e1_mg43_lustro_helm_zalozony")) return;
+					  
+					if(!clsave.bis("e1_mg43_lustro_helm_zalozony") )
+						 advmouse.set("use");
+					 
+				} );
+				.addmethod("butmoveoff", func {
+					 
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+					if( !.advstdstate || clsave.bis("e1_mg43_lustro_helm_zalozony") ) return;
+						.cbplay("snd_need_helmet");
+				} );
+				butgame.add(this);
+			}; 
+
+		if (!clsave.bis(save_prefix+"intro_spoken"))
+		{
+			.newsndfree("snd_intro", "kinnat_c4d4_39");
+			snd_intro.addmethod("onfinish", "advsetstdstate");  
+			.cbplay("snd_intro"); 
+			clsave.bset(save_prefix+"intro_spoken");			
+		 }  	 
+		 	
+		 
+		.newsndfree("snd_need_helmet", "kinnat_c4d4_42");
+		snd_need_helmet.addmethod("onfinish", "advsetstdstate");   
+		
+		.newsndfree("snd_final", "kinnat_c4d4_42a");
+		snd_final.addmethod("onfinish", "timfinito");   
+		 
+		
+		.stdstart;  
+		 
+		}// koniec init 
+  
+	mend	{
+		.stdexitdefadv("ad43_pokoj", "gamead43_pokoj0"); 
+	}
+	
+	USE_helm	{
+		.advsetstdstate; 
+		if(ankinnat.isin(mouse.getpos,0,0) ){
+			fxhelmet.play();
+			.removefrompck("helm");
+			clsave.bset("e1_mg43_lustro_helm_zalozony");
+			.set_mg_finished;	
+			anzakladanie.play(0);
+			advmouse.setstd;
+			 
+			butgame.removebut("ankinnat"); 
+		 
+		} 
+		else {
+		  .item_gotopck;
+		   
+		}
+	}  
+	
+  
+	HINT_CLICK {
+		if (clsave.bis("ma_helm"))
+		{
+			.showhintitem("helm");
+			.showhint("ankinnat"); 
+		} 
+		else
+			.showhint("anpopexit");   
+	}
+}
+ 

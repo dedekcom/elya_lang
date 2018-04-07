@@ -1,0 +1,3 @@
+./makeswinki ./srcswinki/swinki.prj
+#cp ./srcswinki/swinki.odd /home/dedek/projekty/rysunki_gimp/swinki/project/scripts/
+awk -f optimize.awk ./srcswinki/swinki.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/swinki/project/scripts/swinki.odd

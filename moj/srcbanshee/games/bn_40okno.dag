@@ -1,0 +1,81 @@
+
+game mg40_okno : Banshee	{
+	init	{
+		Banshee::init("mg40_okno");
+		
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2", "okno_otwarte.pyzH 3", 
+			"popexit.pyz 45", "ramka.pyz 42");
+		.sfxs = (A,"bgrmorze3N 10", "openwindow");  	
+		.butpopexit;
+		.butpopexitisinramka;
+		// .addtopck("lom"); //testy
+		if (!clsave.bis("e1_mg40_okno_otwarte"))	
+		{
+			.newsndfree("okno_snd", "kinnat_c4d4_29");
+			okno_snd.addmethod("onfinish", "advsetstdstate");   
+		};
+		
+		anokno_otwarte{
+			if (clsave.bis("e1_mg40_okno_otwarte"))
+				.show;
+			.Button_isinvis; 
+			.addmethod("butmoveon", func {
+				if( (!.advstdstate  && sgmstate!="getitem" ) || clsave.bis("e1_mg40_okno_otwarte")) return;
+				  advmouse.set("use");  
+				 
+				
+			} );
+			.addmethod("butmoveoff", func {
+				 
+				  advmouse.setstd;
+				} ); 
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+				if (!clsave.bis("e1_mg40_okno_otwarte"))
+					.cbplay("okno_snd");  
+			} );
+			butgame.add(this);
+		};  
+		
+		 
+		
+		if (!clsave.bis(save_prefix+"intro_spoken"))
+		{
+			.newsndfree("snd_intro", "kinnat_c4d4_29b");
+			snd_intro.addmethod("onfinish", "advsetstdstate");  
+			.cbplay("snd_intro"); 
+			clsave.bset(save_prefix+"intro_spoken");			
+		 }  	
+		 
+		.stdstart;
+	}
+	
+	USE_lom	{
+	   .advsetstdstate(); 
+		if(anokno_otwarte.isin(mouse.getpos,0,1) )	{
+			fxopenwindow.play;
+			.removefrompck("lom");
+			butgame.removebut("anokno_otwarte");
+			clsave.bset("e1_mg40_okno_otwarte");
+			advmouse.setstd;
+			.set_mg_finished;
+			anokno_otwarte.anfadein(500,"timfinito");
+		} else  
+	   .item_gotopck;
+  } 
+	
+	mend	{
+		.stdexitdefadv("ad40_pomost", "gamead40_pomost0");
+	}
+	HINT_CLICK	{
+		if (clsave.bis("ma_lom"))
+		{
+			.showhintitem("lom");
+			.showhint("anokno_otwarte"); 
+		} 
+		else
+		.showhint("anpopexit");
+	}
+	 
+}
+

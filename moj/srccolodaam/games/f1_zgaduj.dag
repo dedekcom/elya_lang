@@ -1,0 +1,293 @@
+
+class muzHero	{
+	init(string sgr)	{
+		new string sfxhero = "fx" + sgr.strsubbs("gr");
+		new string shero = sgr;
+		new string sfirst = <sgr>.first;
+		.stand;
+	}
+	play(string s)	{
+		string s[2];
+		for( int i=0; i < <shero>.size; i++)	{
+			s0 = <shero>.get(i);
+			s1 = <s0>.actionname;
+			if( s.streq(s1) )	{
+				<s0>.play(-1);
+			} else if( s1.getb(0,2) != "bg" ) {
+				<s0>.stop(false);
+				<s0>.hide;
+			}
+		}
+	}
+	stand	{	.play("stand");	}
+	go		{
+		.play("go");
+		<sfxhero>.play;
+	}
+}
+
+new int iZgadujMode = 1;
+
+game Zgaduj : FarmStd {
+	init	{
+		FarmStd::init("mg_zgaduj");
+		
+		new vector veczwierz;
+		veczwierz.type("string");
+		
+		.imgsgr = (A, "bgkrowa.pyz 4", "bgchlop.pyz 5", "koszyk.pyz 100", "zajac2.pyz 82", "myszgarnek.pyz 86", "okienko.pyzH 200", "glowki.pyzH 210",
+			"grall");
+		.cloadboki(10);
+		grall.move(an1366bokl.getw,0);
+		
+		.sfx = ("bgrlas1N 20");
+		
+		new vector vkrok;
+		vkrok.beginadd("begin", -1, -1, 0, 0, 1, 1, 1, 0, 0, -1);
+		new int ivkrok = 0;
+		anbgchlop.setframe( 3->rand, 0 );
+		anbgkrowa.addmethod("onendframe", func {
+			.move( -2, vkrok.get(ivkrok) );
+			anbgchlop.move( -2, vkrok.get(ivkrok) );
+			ivkrok = (ivkrok+1)%vkrok.size;
+			if( .getex < -100 )	{
+				anbgchlop.setframe( 3->rand, 0 );
+				@dx = 1200;
+				anbgchlop.move( dx, 0 );
+				.move( dx, 0 );
+			}
+			} );
+		anbgkrowa.play(-1);
+		
+		
+		.newgrimg1366("grbg", "bg", 3);
+		<grbg.get(0)>.setz(0);
+		<grbg.get(4)>.setz(6);
+		
+		new AnMover canmov1( grbg.get(1), 0.72, 0);	canmov1.play;
+		new AnMover canmov2( grbg.get(2), 0.46, 0);	canmov2.play;
+		new AnMover canmov3( grbg.get(3), 0.32, 0);	canmov3.play;
+		.cycle = ("timcykbg", func {
+			for( int i=1; i<=3; i++ )	{
+				string s = grbg.get(i);
+				if( <s>.getpx > igmappw + 20 + 30->rand )
+					<s>.setpos( -20 - 30->rand - <s>.getw - <s>.lodx, 0 );
+			}
+			.play;
+			} );
+		timcykbg.play;
+		
+		.newgrimg1366("grsun", "slonce", 2);
+		grsun.nplay(-1);
+		.newgrimg1366("grgrzeda", "grzeda", 10);
+		.newmuzhero("krowa", 20);
+		.newmuzhero("kogut", 30);
+		.newmuzhero("pies1", 40);
+		.newmuzhero("kot", 50);
+		.newgrimg1366("grplot", "plot", 60);
+		.newmuzhero("kaczor", 70);
+		.newmuzhero("zajac1", 73);
+		.newgrimg1366("grzajac3", "zajac3", 76);
+		grzajac3.nplay(-1);
+		.newgrimg1366("grbudka", "budka", 80);
+		.newmuzhero("pies2", 83);
+		.newmuzhero("koziol", 90);
+		.newmuzhero("koziol2", 93);
+		.newgrimg1366("grmyszki", "myszki", 110);
+		.newgrimg1366("grmysz2", "mysz2", 120);
+		grmysz2.nplay(-1);
+		.newmuzhero("mysz3", 113);
+		.newmuzhero("kura1", 130);
+		.newmuzhero("kura2", 140);
+		.newmuzhero("kura3", 150);
+		
+		new int ileleweli = 6;
+		new int iLevel = 1;
+		new int ilezwierz = 1;
+		new int idzwierz = 0;
+		new int iErrors;
+		
+		new int iWokno = 100;
+		
+		string s[2];
+		new gmimgvec grglowki;
+		for( int i = 0; i<ileleweli; i++)	{
+			s0 = "grok" + i;
+			new gmimgvec <s0>;
+			for( int j=0; j<3; j++)	{
+				s1 = "anok" + j + "_"+i;
+				.copyanima( "anokienko", s1 );
+				<s0>.add(s1);
+			}
+			s1 = <s0>.get(2);
+			<s1>.setz(220);
+			<s1>.setframe("nakladka",0);
+			
+			.copyanima("anglowki", "anglo" + i);
+			grglowki.add("anglo"+i);
+		}
+		
+		.sounds = (A,
+			"sndgo", "Point the animal that will make sound", "mnext",
+			"sndstart", "Go!", "mstart",
+			"sndno", "Oh, try again.", "mgo",
+			"sndyes", "Great! Lets try next level", func {
+				/*if( iLevel==2 )	.cbplay("sndnext");
+				else .mnext;*/
+				.mnext;
+				},
+			"sndyes2", "Super! Its the last stage!", "mnext",
+			"sndnext", "Now it will be a little harder", "mnext",
+			"sndend", "Congratulations! You are the champion of the animals speech!", "mend",
+			"sndstartfree", "Touch the animal to hear its sound", null
+			);
+		
+		.timer = ("timstart", 1500, func {
+			<.macthero>.go;
+			} );
+		
+		.cstrzalki;
+		.cbutexit;
+		
+		ccs.enter( func {
+			.advsetstdstate;
+			if( iZgadujMode==2 )	{
+				.cbplay("sndgo");
+			} else {
+				igmstate = 11;	// testowanie dzwiekow zwierzakow
+				.cbplay("sndstartfree");
+			}
+			} );
+	}
+	newgrimg1366(string sgr, string sfile, int z)	{
+		.newgrimg(sgr,sfile,z);
+		<sgr>.move(an1366bokl.getw,0);
+	}
+	newmuzhero(string shero, int z)	{
+		.sfx = (shero + " 50");
+		string s= "gr"+shero;
+		string sher = "m"+shero;
+		
+		.newgrimg1366(s, shero, z);
+		<s>.eval1( func { (string sher)
+			new string shero = "m"+sher;
+			new string sghero = "gr"+sher;
+			.addmethod("onfinish", func {
+				if( .actionname->getb(0,2)=="go" && !<sghero>.isplaying )
+					<shero>.stand;
+				} );
+			}, shero );
+		new muzHero <sher>(s);
+		<s>.vars2(A, "shero", sher);
+		<s>.addmethod("isbutin", func { (@x, @y)
+			.isin(x,y,1,1);
+			} );
+		<s>.addmethod("butmoveon", func {
+			advmouse.setact;
+			} );
+		<s>.addmethod("butmoveoff", func {
+			advmouse.setstd;
+			} );
+		<s>.addmethod("butclick", func {
+			if( igmstate==2 )	{
+				igmstate = 5;
+				<shero>.go;
+			} else if (igmstate==11)	{
+				<shero>.go;
+			}
+			} );
+		butgame.add(s);
+		veczwierz.add(sher);
+		<"fx"+shero>.var2("shero", sher);
+		<"fx"+shero>.addmethod("onfinish", func {
+			if( igmstate==1 )	{
+				idzwierz++;
+				if( idzwierz >= ilezwierz )	{
+					.cbplay("sndstart");
+				} else
+					timstart.play;
+			} else if (igmstate==5)	{
+				igmstate = 2;
+				if( .macthero != shero )	{
+					iErrors++;
+					<.mact>.msetbad;
+				} else <.mact>.msetok;
+				string s = grglowki.get(idzwierz);
+				<s>.show;
+				<s>.setframe( shero.strsubbs("m"), 0 );
+				<s>.mpos( idzwierz );
+				idzwierz++;
+				if( idzwierz>=ilezwierz )	{
+					igmstate = 3;
+					if( iErrors > 0 )	{
+						.cbplay("sndno");
+					} else {
+						iLevel++;
+						ilezwierz=iLevel;
+						if(iLevel>ileleweli)	{
+							.cbplay("sndend");
+						} else if (iLevel==ileleweli)	{
+							.cbplay("sndyes2");
+						} else {
+							.cbplay("sndyes");
+						}
+					}
+				} else <.mact>.setact;
+			}
+			} );
+	}
+	mstart	{
+		idzwierz = 0;
+		igmstate = 2;
+	}
+	// okienko
+	msetstd	{
+		.show;
+		<.get(0)>.ansetsframe("bg", "std");
+		<.get(1)>.hide;
+	}
+	_mset(string s1)	{
+		.show;
+		<.get(0)>.ansetsframe("bg", s1);
+		<.get(1)>.ansetsframe("podklad", s1);
+	}
+	msetready	{	._mset("yellow");	}
+	msetok		{	._mset("green");	}
+	msetbad		{	._mset("red");	}
+	mpos(int id)	{	.setpos( 300 + id * iWokno, 0 );	}
+	mact		{	"grok"+idzwierz;	}
+	macthero	{	veczwierz.get(idzwierz);	}
+	/*************************************/
+	mreset	{
+		grglowki.hide;
+		for( int i=0; i<ilezwierz; i++)	{
+			<"grok"+i>.hide;
+		}
+	}
+	mnext	{
+		veczwierz.hash;
+		.mgo;
+	}
+	mgo	{
+		.mreset;
+		igmstate = 1;
+		idzwierz = 0;
+		iErrors=0;
+		string s;
+		for( int i=0; i<ilezwierz; i++)	{
+			s = "grok"+i;
+			<s>.mpos(i);
+			<s>.msetstd;
+		}
+		<.mact>.setact;
+		
+		timstart.play;
+	}
+	mouse_rclick	{
+		if( igmdebug )	.cactsndstop(true);
+		if( igmstate==11 )	{
+			gameapi.play(this);
+		}
+	}
+	butclick_anbutexit	{	.stdexit("MenuZgaduj");	}
+}

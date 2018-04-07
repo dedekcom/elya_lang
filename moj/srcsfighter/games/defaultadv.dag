@@ -1,0 +1,404 @@
+
+class StreetFighter : Common	{
+	init(@s)	{
+		Common::init(s);
+	}
+}
+public lbord	{	imgbg.getpx + 30;	}
+public rbord	{	imgbg.getex - 30;	}
+public lscr	{	30;	}
+public rscr	{	iResX-30;	}
+class Fighter	{
+	init(string sfightr, string sdir, string ssec, string ssecan, string sfile)	{
+		new string ssecond = ssec;
+		new string secan = ssecan;
+		new bool bNop = true;
+		new bool willnop = false;
+		new bool bbij = false;
+		new bool bauc = false;
+		new string sDir = sdir;
+		new string sfighter = sfightr;
+		if( sdir=="l" )	{
+			new string sku = "up";
+			new string skd = "down";
+			new string skl = "left";
+			new string skr = "right";
+			new string shk = "[";
+			new string shp = "]";
+			new string slk = ";";
+			new string slp = "'";
+		} else {
+			new string sku = "w";
+			new string skd = "s";
+			new string skl = "a";
+			new string skr = "d";
+			new string shk = "q";
+			new string shp = "e";
+			new string slk = "z";
+			new string slp = "c";
+		}
+		new string sKey;
+		new int Dx = 0;
+		.var2("fstate",1); // 0 - down, 1 - normal, 2 - up, 3 - auc, 4 - kick
+		new int speed = 20;
+		new db dbcios;
+		new anima anfighter (sfighter, sfile) { (@sf, @sfile)
+			if( sfile==null )	{.copy("anpicaso"); sfile="picasso"; }
+			else .load("scripts/heroes/" + sfile + ".pyz");
+			dbcios.load("scripts/heroes/"+sfile+".db");
+			for( int i=0; i<dbcios.getrowsno; i++ )	{
+				new int <"var"+dbcios.get(i,0)> = i;
+			}
+			.setz(10);
+			.setpos(200, 550);
+			.play("stand"+sDir+sDir);
+			.addtogamevars(sf);
+		};
+		anfighter.addmethod("sfmove", func { (int x, int y)
+			.move(x,y);
+			ankopia.move(x,y);
+			} );
+		new anima ankopia;
+		ankopia.copy("anfighter");
+		ankopia.hide;
+		anfighter.addmethod("onfinish", func {
+			bNop = true;
+			bbij = false;
+			bauc = false;
+			.setdir;
+			if( fstate )	{
+				if( fstate==2 && <ssecond>.fstate<2 )	{
+					ccen.unmix(sfighter);
+					.setdir;
+				}
+				.play("stand"+sDir+sDir);
+				fstate=1;
+			} else .play("stand" + sDir + "d");
+			} );
+		anfighter.addmethod("onendframe", "mendf");
+		
+		new gmobjvec grkey;
+		grkey.addlist(A,sku,skd,skl,skr,shk,shp,slk,slp);
+		new gmobjvec grk2;
+		grk2.addlist(A,"u","d","l","r","hk","hp","lk","lp");
+		grkey.addmethod("iskey", func {
+			for( int i=0; i<.size; i++ ) if( keyboard.iskey(.get(i)) ) return grk2.get(i);
+			return null;
+			} );
+		new string sseq = "";
+		new timer timlap;
+		timlap.setcycle(10);
+		timlap.settick(1);
+		timlap.addmethod("onfinish", func {
+			//if( sseq!="" ) sseq.print;
+			sseq="";
+			.play;
+			} );
+		timlap.play;
+	}
+	foundkey	{
+		match(sseq)	{
+			"dhp" => if ( !bbij && fstate==0 || fstate==1 )	{
+				anfighter.playif( "p3"+sDir+"d");
+				.uderz;
+				true;
+				} else false;
+			"dhk" => if ( !bbij && fstate==0 || fstate==1 )	{
+				anfighter.playif( "k3"+sDir+"d");
+				.uderz;
+				true;
+				} else false;
+			"ldrhp" => if ( !bbij && fstate==0 || fstate==1 )	{
+				anfighter.playif( "byk"+sDir+sDir);
+				.uderz;
+				true;
+				} else false;
+			? => false;
+		}
+	}
+	checkkeys	{
+		if( bauc )	{
+			sseq="";
+			return;
+		}
+		@s = grkey.iskey;
+		if( s!=null ) {
+			sseq+=s;
+			if(sseq.length>20) sseq="";
+			if( !.foundkey )	{
+				timlap.stop(false);
+				timlap.play;
+			} else timlap.stop(true);
+		}
+	}
+	getsec	{	ssecond;	}
+	dir	{	sDir;	}
+	dir=(string s)	{	sDir=s;}
+	auc	{	bauc;	}
+	auc=(bool b)	{	bauc=b;	}
+	puts(@s, @sk)	{
+		if( keyboard.keypressed(s) )
+			sKey+=sk;
+	}
+	setdir	{
+		if( .bleft )	{ sDir = "r"; <ssecond>.dir=("l");	}
+		else { sDir = "l"; <ssecond>.dir=("r");	}
+	}
+	mendf	{
+		sKey = "";
+		.setdir;
+		keyboard.getkeystate;
+		.puts(sku,"u");
+		.puts(skd,"d");
+		.puts(skl,"l");
+		.puts(skr,"r");
+		.puts(shk,"hk");
+		.puts(shp,"hp");
+		.puts(slk,"lk");
+		.puts(slp,"lp");
+		if(bbij || bauc) null;
+		else match(sKey)	{
+			"u" => .jump(0);
+			"ul" => .jump(-2*speed);
+			"ur" => .jump(2*speed);
+			"r" => .walk(speed);
+			"l" => .walk(-speed);
+			"d" => .schyl;
+			"hp", "dhp" => .walhp;
+			"lk", "dlk" => .wallk;
+			"hk", "dhk" => .walhk;
+			"lp", "dlp" => .wallp;
+			? => {
+				if( fstate!=2 ) Dx = 0;
+				if( fstate==0 ) .jump(0);
+				else null;
+			}
+		}
+		string s = _;
+		if( s!=null )	.playif(s);
+		if( willnop )	{	willnop=false;	 bNop=false;	}
+		.hmove;
+		s = .framename;
+		if( s.getb(0,3)=="bum" && !<ssecond>.auc)	{
+			//int row = dbcios.findbyrow(.actionname+"_"+.framenr);
+			s=.actionname;
+			int row = ["var"+s+"_"+.framenr];
+			if( row<0 || row==dbcios.getrowsno )	{
+				("no frame "+.actionname+"_"+.framenr)->print;
+				return;
+			}
+			int x;
+			if( sDir=="l" ) x= .getpx+dbcios.get(row,2);
+			else x = .getex-dbcios.get(row,2);
+			int y = .getpy+dbcios.get(row,3);
+			int ile = dbcios.get(row,1);
+			if( <secan>.isin(x,y,true,true) || (s.gete(0,1)=="d" &&
+				(sDir=="l" && x-<secan>.getex<-10) || (sDir=="r" && x-<secan>.getpx>10) ) )	{
+				<ssecond>.auc=(true);
+				<secan>.setz(10);
+				.setz(11);
+				s = <ssecond>.dir;
+				s += s;
+				if( <secan>.fstate==2 )	{
+					<secan>.setframe( "aujmp"+s, <secan>.framenr );
+					<secan>.setdx( sDir=="l" ? -2 : 2 );
+				} else {
+					if( ile>=30 )	{
+						<secan>.play( "aujmp"+s );
+						<secan>.setdx( sDir=="l" ? -2 : 2 );
+					} else {
+						<secan>.play( (ile>20 ? "auc2"+s : "auc1"+s) );
+						<secan>.setdx( sDir=="l" ? -1 : 1 );
+					}
+				}
+			}
+		}
+	}
+	dx=(int dx)	{	Dx=dx;	}
+	setdx(real rmul)	{	Dx = speed*rmul;	}
+	dx	{	Dx;	}
+	bleft	{	.getposx < <secan>.getposx;	}
+	walhp	{
+		if( ._wal("p3","p2","p3","p3") ) null;
+	}
+	wallp	{
+		if( ._wal("p2","p1","p1","p1") ) null;
+	}
+	walhk	{
+		if( ._wal("k3","k2","k3","k2") ) null;
+	}
+	wallk	{
+		if( ._wal("k1","k1","k1","k2") ) null;
+	}
+	_wal(@s1, @s2, @s3, @s4)	{
+		if (fstate==1)	{
+			.uderz;
+			s1+sDir+sDir;
+		} else if(fstate==0)	{
+			.uderz;
+			s2+sDir+"d";
+		} else if( fstate==2)	{
+			bbij=true;
+			if( Dx!=0 ) s3 = s3+sDir+"u";
+			else s3 = s4+sDir+"u";
+			.setframe(s3, .framenr);
+			s3;
+		} else return true;
+		false;
+	}
+	uderz	{
+		Dx=0;
+		bbij=true;
+	}
+	hmove	{
+		ccen.set;
+		@x = .px + Dx;
+		@ex = .pex + Dx;
+		@fst2 = <ssecond>.fstate;
+		@s = <secan>.actionname;
+		@sdx = <ssecond>.dx;
+		if( .bleft )	{
+			//if( Dx<0 && (x<=.lscr || ccen.f2ex+Dx>=.rscr) ) Dx=0;
+			if( Dx<0 && ccen.f1x+Dx<=.lscr && ccen.f2ex-Dx>=.rscr ) Dx=0;
+			else if (Dx>0 && ex>=ccen.f2x)	{
+				if (fstate==1 && fst2<=1)	{
+					if( s.getb(0,4)=="stan"  && ccen.f2ex+Dx<.rbord){
+						Dx = (2*speed)/3;
+						<secan>.sfmove(Dx,0);
+					} else Dx=0;
+				} else if (fstate==2 && fst2==2)	{
+					if( sdx<0 )	{
+						Dx=0;
+						<ssecond>.dx=(0);
+					}
+				}
+			}
+		} else {
+			if( Dx>0 && (ccen.f1x-Dx<=.lscr && ccen.f2ex+Dx>=.rscr) ) Dx=0;
+			else if (Dx<0 && x<=ccen.f1ex)	{
+				if( fstate==1 && fst2<=1 )	{
+					if( s.getb(0,4)=="stan" && ccen.f1x+Dx> .lbord )	{
+						Dx = -(2*speed)/3;
+						<secan>.sfmove(Dx, 0);
+					} else Dx=0;
+				} else if (fstate==2 && fst2==2)	{
+					if( sdx>0 )	{
+						Dx=0;
+						<ssecond>.dx=(0);
+					}
+				}
+			}
+		}
+		if( x<=.lbord || ex>=.rbord ) Dx = 0;
+		if( Dx ) {
+			.sfmove(Dx,0);
+		}
+	}
+	jump(@dx)	{
+		if( fstate==1 ) {
+			Dx = dx;
+			( ( (dx>0&&sDir=="r") ||(dx<0&&sDir=="l") )  ? "jumj" : "jump" ) + sDir + sDir;
+			fstate=2;
+			.wnop;
+		} else if (fstate==0) {"go" + sDir + "d" + sDir + sDir; Dx = dx; fstate=1; }
+		else null;
+	}
+	nop		{	bNop=false;	}
+	wnop	{	willnop=true;	}
+	walk(@dx)	{
+		if( fstate==0 || fstate==1 ) {"go"+sDir+sDir; fstate=1;Dx = dx; }
+		else null;
+	}
+	schyl	{
+		if( fstate==1 )	{"go" + sDir + sDir + sDir + "d"; fstate=0; Dx=0;}
+		else if (fstate==0 ) "stand" + sDir + "d";
+		else null;
+	}
+	playif(@s)	{	if( !.isplaying(s) ) .play(s);	}
+	herpos(@x, @y)	{
+		anfighter.setpos(x,y);
+		ankopia.setpos(x,y);
+	}
+}
+
+class Central	{
+	init(string s1, string s2)	{
+		new string spl1 = s1;
+		new string spl2 = s2;
+		.set;
+	}
+	getposx	{	(<spl1>.getposx+<spl2>.getposx)/2;	}
+	getposy	{
+		@x = <spl1>.getey;
+		@y = <spl2>.getey;
+		x>y? x : y;
+	}
+	bool bleft(string s)	{	s==spl1;	}
+	set	{	if( <spl2>.getposx < <spl1>.getposx )	{	|spl1,spl2| = spl2, spl1;	}	}
+	f1x	{	<spl1>.px;	}
+	f1ex	{	<spl1>.pex;	}
+	f2x	{	<spl2>.px;	}
+	f2ex	{	<spl2>.pex;	}
+	move2(@dx)	{	<spl2>.sfmove(dx,0);	}
+	move1(@dx)	{	<spl1>.sfmove(dx,0);	}
+	getsec(string s)	{	s==spl1 ? spl2 : spl1;	}
+	//sgn(string s)		{	s==spl1 ? 1 : -1;	}
+	sgn(string s)		{	<s>.dir=="l" ? -1 : 1;	}
+	unmix(string spad)	{
+		.set;
+		@dx = .f1ex - .f2x;
+		if( dx>0 )	{
+			if( .f1x-dx <= .lbord )	.move2(dx);
+			else if (.f2ex+dx>= .rbord)	.move1(-dx);
+			else	<.getsec(spad)>.sfmove(.sgn(spad)*dx, 0);
+			.set;
+		}
+	}
+}
+
+game Battle : StreetFighter	{
+	init	{
+		StreetFighter::init("sftmp");
+		keyboard.autorepeat(false);
+		new img imgbg;
+		imgbg.load("scripts/arena1/tmpbg.png");
+		
+		new classadvcamera camera;
+		camera.newbgr("bgfight", 1, 1);
+		camera.addtobgr("bgfight", "anpicaso");
+		camera.addtobgr("bgfight", "anpicaso2");
+		camera.addtobgr("bgfight", "imgbg");
+		camera.setborders(imgbg.getw, imgbg.geth);
+		new Fighter picasso("anpicaso", "r", "picasso2", "anpicaso2", "picasso");
+		new Fighter picasso2("anpicaso2", "l", "picasso", "anpicaso", null);
+		//camera.setpos(
+		//anpicaso.setpos( imgbg.getw/2-100, 600 );
+		//anpicaso2.setpos( imgbg.getw/2+100, 600 );
+		picasso.herpos( imgbg.getw/2-100, 600 );
+		picasso2.herpos( imgbg.getw/2+100, 600 );
+		anpicaso.addmethod("Width", "mpicaso");
+		anpicaso.addmethod("px", "mpx");
+		anpicaso.addmethod("pex", "mpex");
+		anpicaso2.addmethod("Width", "mpicaso");
+		anpicaso2.addmethod("px", "mpx");
+		anpicaso2.addmethod("pex", "mpex");
+		new Central ccen("anpicaso", "anpicaso2");
+		camera.setactor("ccen");
+		camera.start;
+		camera.setscene;
+	}
+	exit	{	keyboard.autorepeat(true);	}
+	mpicaso	{	40;	}
+	mpx		{	.getposx-.Width;	}
+	mpex	{	.getposx+.Width;	}
+	keydown	{
+		if( anpicaso.getz<anpicaso2.getz )	{
+			picasso.checkkeys;
+			picasso2.checkkeys;
+		} else {
+			picasso2.checkkeys;
+			picasso.checkkeys;
+		}
+		if( keyboard.iskey("escape") ) gameapi.exit;
+	}
+}

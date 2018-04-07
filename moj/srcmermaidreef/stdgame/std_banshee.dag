@@ -1,0 +1,442 @@
+
+class StdGameSave : StdGame	{
+	init(string s)	{
+		StdGame::init(s);
+	}
+	save_game	{	BanGui::_save_game(.getsavename);	}
+	load_game	{	BanGui::_load_game(.getsavename);	}
+	can_save	{	BanGui::can_save;	}
+}
+
+class ButtonBanshee : Button {
+	init {
+		Button::init;
+	}
+	onmousemove	{
+		if( .getlock ) return;
+		if( sclicked!=null )	{
+			if( <sclicked>.hasaddedmet("butmoving") )	<sclicked>.butmoving;
+		}
+		|int x, int y| = mouse.getpos;
+		if(grbuts.isinfunc(x,y,"isbutin") )	{
+			@s = grbuts.getsfound;
+			if( s!=sobject && .gui_canclick2v(s) )	{
+				.lastoff;
+				sobject = s;
+				.<this + "_moveon">;
+ 				if( <s>.hasaddedmet("butmoveon") /*&& .gui_canclick2v(s)*/ )
+					<s>.butmoveon;
+			}
+		} else {
+			.lastoff;
+		}
+	}
+	_butmouselclick	{
+		.<this + "_lclick">;
+		if( sobject!=null)	{
+			sclicked = sobject;
+			if (<sobject>.hasaddedmet("butclick") && .gui_canclick2v(sobject) )	{
+				<sobject>.butclick;
+			}
+		}
+	}
+}
+
+class BansheeStd : StdGame, BanGui	{
+	init(string s)	{
+		StdGame::init(s);
+		if( PrzygodaMode )	{
+			BanGui::init;
+			.deletegmobj("butgame");
+			new ButtonBanshee butgame;
+			banguisrc.load;
+			.initgui;
+			if(!bHOInventory) .inventory_show;
+			
+			new string save_prefix = clsave.get("epizod")->getb(0,2) + "_" + GAME + "_";
+		}
+	}
+	csubplay(string s)	{
+		if( igmsubtitle )	{
+			int ilektor = igmlektor;
+			if( !<s>.loaded )	{
+				igmlektor = 0;
+			}
+			@dt = subtitle.play(s);
+			if( igmlektor || dt<=0 ) <s>.play;
+			else {
+				timlektor.setdelay( dt );
+				timlektor.play;
+				sfxblink.play;
+			}
+			imgnextdialog.setpos( igmoffsetx, igmoffsety+subtitle.geth );
+			if( dt > 0 && igmlektor )	{
+				imgnextdialog.show;
+			}
+			igmlektor = ilektor;
+		} else
+			<s>.play;
+	}
+	//---------------- button exit popup
+	butpopexit	{
+		anpopexit {
+			.Button_isinalpha;
+			.vars2(A, "bholdon", false);
+			.addmethod("butmoveon", func {
+				//if( !.advstdstate ) return;
+				if( .isin(mouse.getpos,1,1) )	{
+					advmouse.setbut;
+					sfxbutmoveon2.play;
+					.setframe(-1,1);
+				}
+				} );
+			.addmethod("butmoveoff", func {
+				//if( !.advstdstate ) return;
+				advmouse.setstd;
+				.setframe(-1,0);
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate || bholdon ) return;
+				sfxbutclick2.play;
+				.mend;
+				} );
+			butgame.add(this);
+		};
+	}
+	butpopexitisinramka	{
+		anpopexit.addmethod("isbutin", func { (int x, int y)
+			.isin(x,y,1,1) || !anramka.isin(x,y,1,0);
+			} );
+	}
+	loadimgexitbut	{
+		imgbkg.Button_isin;
+		imgbkg.addmethod("butclick", func {
+			if( .advstdstate )
+				.mend;
+			} );
+		butgame.add("imgbkg");
+	}
+	loadhoexit	{
+		//.newanima("anhoexit", "$scripts/sys_gui/popexit.pyz", 1000);
+		if( HiddenShape ) return;
+		new ImgRect anhoexit;
+		anhoexit.setrect( 0, guihoinventory.getpy - 4, igmappw, igmapph );
+		anhoexit.setz( guihoinventory.getz - 1 );
+		//anhoexit.ansetbpos( igmoffsetx + iResX - anhoexit.getw, igmoffsety );
+		//anhoexit.Button_stdalpha;
+		anhoexit.Button_isin;
+		anhoexit.addmethod("butmoveon", func {
+			if( .canexit )
+				advmouse.set("godd");
+			});
+		anhoexit.Button_moveoffms;
+		anhoexit.addmethod("butclick", func {
+			if( .canexit )	{
+				if( <GAME>.hasmet("mexit_hidden") ) .mexit_hidden;
+				else {
+					mus.fadeout(1000);
+					@s = clsave.get("GAME_sgmlastscene");
+					.stdexitdefadv(s->strsubbs("game")->strsubes("0"), s);
+				}
+			}
+			} );
+		butgame.add("anhoexit");
+	}
+	get_mg_save	{	save_prefix + "finished";	}
+	set_mg_finished	{	clsave.bset( .get_mg_save );	}
+	is_mg_finished	{	clsave.bis( .get_mg_save );	}
+	returntomenu	{
+		gameapi.play("MainMenu");
+		ccs.buildfromscreen;
+	}
+	askopis(string s)	{
+		.newanima("anaskopis", "$scripts/sys_gui/askopis.pyz", 1000);
+		anaskopis.var2("sopis", s);
+		anaskopis.ansetbpos( igmoffsetx + iResX - anaskopis.getw, igmoffsety );
+		anaskopis.Button_stdalpha;
+		anaskopis.addmethod("butclick", func {
+			if( .advstdstate )	{
+				.show_mghelp(sopis);
+			}
+			} );
+		butgame.add("anaskopis");
+	}
+	mousemove	{
+		.gmcontrol_mousemove;
+		if( PrzygodaMode )	{
+			.gui_mousemove;
+		}
+	}
+	mouserclick	{
+		.gmcontrol_mouserclick;
+		if( PrzygodaMode && (.advstdstate || sgmstate=="state_newitem_shown" ) )	{
+			_ = .gui_mouserclick;
+		}
+	}
+	virtual can_skip_mg	{	false;	}
+	virtual skip_mg		{	}
+}
+
+class Banshee : BansheeStd	{
+	init(string s)	{
+		bHOInventory = false;
+		BansheeStd::init(s);
+	}
+}
+
+class HOBanshee : Hidden, BansheeStd	{
+	HOBanshee_init(string s)	{
+		bHOInventory = true;
+		BansheeStd::init(s);
+		.init_hidden;
+		.loadhoexit;
+	}
+	stdhoenter	{
+		ccs.enter( func {
+			igmstate = 1;
+			.advsetstdstate;
+			} );
+	}
+	mtoloupe(string sname)	{
+		string s;
+		if( <GAME>.hasvar(sname) ) s = sname;
+		else {
+			if( .istakenhoitem(sname) ) return;
+			s = .mgetel(sname);
+		}
+		.gui_toloupe(s);
+		guiloupemask.setz( <grguiloupe.last>.getz );
+		<s>.hide;
+		<s>.var2("myz",<s>.getz);
+		if( !bhoshape )
+			< <s>.stxtview>.createtxt( .holoupecol );
+		
+		<s>.addmethod("isbutin", func { (@x, @y)
+			if( .loupe_visible )	{
+				.setframe(-1,0);
+				.isin(x,y,0,1);
+				.setframe(-1,1);
+			} else 0;
+			} );
+		<s>.addmethod("butmoveon", func {
+			//guiloupemask.setz(.getz);
+			//.setz(guiloupemask.getz);
+			;
+			} );
+		<s>.addmethod("butmoveoff", func {
+			//guiloupemask.setz(guiloupe.getz-1);
+			//.setz(myz);
+			;
+			} );
+	}
+	holoupecol	{	return 0,202,1;	}
+	mhintonobj(string s)	{
+		if( s==null ) return false;
+		if( .gui_inloupe(s) )	{
+			.showhint2v(s);
+			.showhint2v("guiglass");
+		} else {
+			@actfr = <s>.framenr;
+			<s>.setframe(-1,0);
+			string s2 = .mgetfirsthint;
+			<s2>.setpos( <s>.getcx, <s>.getcy );
+			<s>.setframe(-1,actfr);
+			<s2>.setz( 600 );
+			<s2>.play(0);
+		}
+		true;
+	}
+  //----------------  double_screen
+	finalpopexit	{
+		igmstate = 8;
+		sgmstate = "state_findbscreen";
+		.copyanima("anpopexit", "anpopexitscr");
+		anpopexitscr.setz( anpopexit.getz + 1 );
+		anpopexitscr {
+			.addmethod("isbutin", func { (int x, int y)
+				if( .isin(x,y,1,0) )	{
+					if( .framenr==0 )	{
+						advmouse.setact;
+						.setframe(-1,1);
+					}
+					true;
+				} else if( sgmstate=="state_newitem_shown" )	{
+					if( .framenr==1 )	{
+						advmouse.setstd;
+						.setframe(-1,0);
+					}
+					true;
+				} else false;
+				} );
+			.addmethod("butclick", func {
+				if( sgmstate=="state_newitem_shown" )	{
+					if( .framenr==1 )
+						sfxbutclick2.play;
+					<imdbls.sbkg>.hide;
+					<imdbls.stxtnew>.hide;
+					<imdbls.sitem1>.hide;
+					<imdbls.sitem2>.hide;
+					anpopexitscr.hide;
+					.hide;
+					sgmstate = "state_foutdbscreen";
+					imdbls.show;
+					imdbls.anzoomfadeinout(ishowpouptime,-1,-1, "mend" );
+				}
+				} );
+			butgame.addbut(this);
+		};
+	}
+  
+  
+  show_double_screen(string item1, string item2, string background)	{	<GAME> (item1,item2,background)	{
+	(string item1, string item2, string background)
+	
+	 	.finalpopexit;
+     
+    if (item1 == "rune")
+      .saveitemtostack("runa");
+    else
+      .saveitemtopck(item1);
+    
+    if (item2 == "rune")
+       .saveitemtostack("runa");
+    else
+		  .saveitemtopck(item2);
+            
+		@dh = 0.12;
+		@stxtnew = "found";
+		@stxtitem_1 = "item1";
+		@stxtitem_2 = "item2";
+		.newtext(stxtnew, dbgame.dbget("found_new_items"),"fnthogui", .guifontcolor); 
+		.newtext(stxtitem_1, dbitems.dbget(item1), "fnthogui", .guifontcolor); 
+		.newtext(stxtitem_2, dbitems.dbget(item2), "fnthogui", .guifontcolor); 
+		@centerx = igmappw/2 - <background>.getcx;
+		@centery = igmapph/2 - <background>.getcy;
+     
+		<background>.setpos(centerx,centery); 
+		<stxtnew>.setpos( <background>.getcx - <stxtnew>.getw/2, <background>.getpy + dh * <background>.geth );
+		<stxtnew>.setz(330);
+		anpopexitscr.setpos(<background>.getpx + <background>.getw - anpopexitscr.getw/2 -4,<background>.getpy +  anpopexitscr.geth/2 +5);
+		@bottom =  <background>.getey - <stxtitem_1>.geth - <stxtitem_1>.geth;  
+		<stxtitem_1>.setpos( <background>.getcx - <background>.getw/4 - <stxtitem_1>.getw/2, bottom);
+		<stxtitem_1>.setz(330);
+		<stxtitem_2>.setpos( <background>.getcx + <background>.getw/4 - <stxtitem_2>.getw/2, bottom);
+		<stxtitem_2>.setz(330);
+		.set_mg_finished(); 
+		//.timfinito;
+		new img imdbls;
+		imdbls.vars2(A, "sbkg", background, "stxtnew", stxtnew, "sitem1", stxtitem_1, "sitem2", stxtitem_2, "bisitempopup", true);
+		imdbls.imgbuildfromlist(A, background, stxtnew, stxtitem_1, stxtitem_2, "anpopexitscr");
+		<background>.hide; <stxtnew>.hide; <stxtitem_1>.hide; <stxtitem_2>.hide;
+		imdbls.setz( 350 );
+		imdbls.hide;
+		.timplay("timdbls", 500, func {
+			sfxopenpopup.play;
+			imdbls.anzoomfadeinout(ishowpouptime,1,1, func {
+			.hide;
+			<sbkg>.show; <stxtnew>.show; <sitem1>.show; <sitem2>.show;
+			anpopexitscr.show;
+			sgmstate = "state_newitem_shown";
+			} );
+			} );
+	}; }
+  show_single_screen(string item, string background)	{	<GAME> (item,background)	{
+	(string item, string background)
+    .finalpopexit;
+     
+    if (item == "rune")
+      .saveitemtostack("runa");
+    else
+      .saveitemtopck(item);
+		<background>.show;
+    <background>.Button_isin;
+		<background>.addmethod("butclick", func {
+			if( .advstdstate )
+				.mend;
+			} );
+		butgame.add(background);    
+		@dh = 0.12;
+		@stxtnew = "found";
+		@stxtitem = "item";
+	 
+		.newtext(stxtnew, dbgame.dbget("found_new_item"),"fnthogui", .guifontcolor); 
+		.newtext(stxtitem, dbitems.dbget(item), "fnthogui", .guifontcolor); 
+	 
+		@centerx = igmappw/2 - <background>.getcx;
+		@centery = igmapph/2 - <background>.getcy;
+     
+		<background>.setpos(centerx,centery); 
+		<stxtnew>.setpos( <background>.getcx - <stxtnew>.getw/2, <background>.getpy + dh * <background>.geth );
+		<stxtnew>.setz(330);
+		anpopexitscr.setpos(<background>.getpx + <background>.getw - anpopexitscr.getw/2 -15,<background>.getpy +  anpopexitscr.geth/2 +15);
+		@bottom =  <background>.getey - <stxtitem>.geth - <stxtitem>.geth;  
+		<stxtitem>.setpos( <background>.getcx  - <stxtitem>.getw/2, bottom);
+		<stxtitem>.setz(330);
+		.set_mg_finished(); 
+		//.timfinito;
+		new img imdbls;
+		imdbls.vars2(A, "sbkg", background, "stxtnew", stxtnew, "sitem1", stxtitem, "sitem2", stxtitem, "bisitempopup", true);
+		imdbls.imgbuildfromlist(A, background, stxtnew, stxtitem, "anpopexitscr");
+		<background>.hide; <stxtnew>.hide; <stxtitem>.hide;
+		imdbls.setz( 350 );
+		sfxopenpopup.play;
+		imdbls.anzoomfadeinout(ishowpouptime,1,1, func {
+			.hide;
+			<sbkg>.show; <stxtnew>.show; <sitem1>.show; <sitem2>.show;
+			anpopexitscr.show;
+			sgmstate = "state_newitem_shown";
+			} );
+  
+  }; }
+	HINT_CLICK	{	.ho_hint_click;	}
+}
+
+game BanFilm : StdGameSave	{
+	init	{
+		StdGameSave::init("film");
+		advmouse.set("empty");
+		if( PrzygodaMode )	{
+			BanGui::save_pocket(.getsavename);
+		}
+		
+		//.showfps;
+		
+		new Film film1;
+		film1.bcenter = (true);
+		film1.bborders = (true);
+		film1.musicclass = ("mus");
+		film1.addmethod("onfinish", func {
+			//ccs.buildfromfile("scripts/" + clsave.get("filmpath") + "/" + slastframe);
+			ccs.buildfromscreen;
+			string s = gameapi.getgamename;
+			match( clsave.get("nextgame_type") )	{
+				"-def" => {
+					//.gotoadv(clsave.get("nextgame_path"), clsave.get("nextgame"));
+					.stdexitdefadv(clsave.get("nextgame_path"), clsave.get("nextgame"));
+				}
+				"-adv" => {
+					//.gotoadv2(clsave.get("nextgame_path"), clsave.get("nextgame"));
+					.stdexitadvadv(clsave.get("nextgame_path"), clsave.get("nextgame"));
+				}
+				//? => gameapi.play(clsave.get("nextgame"));
+				? => .stdexit(clsave.get("nextgame"));
+			}
+			} );
+		new string slastframe;
+		film1 {
+			.playfilm( "scripts/"+clsave.get("filmpath") + "/", clsave.get("filmdb") );
+			slastframe = sprefilm + iendklatka + ".jpg";
+		};
+	}
+	mouse_lclick	{
+		if( film1.isplaying ) film1.stop(true);
+	}
+	showfps	{
+		if( !.hasvar("cfps") )	{
+			new CalcFPS cfps;
+			cfps.stdset(14, 10, 10);
+		}
+		cfps.play;
+	}
+}
+

@@ -1,0 +1,47 @@
+
+new int iPaintNr = 1;
+
+game ccPaint : StdGame	{
+	init	{
+		StdGame::init("obrazki");
+		
+		new gmimgvec grels;
+		"grels" .* ("els"+iPaintNr+".pyz");
+		grels.setz(10);
+		.newanima("anmask", "mask"+iPaintNr+".pyz", 50);
+		
+		new img imgbg;
+		imgbg.create(anmask.getpx+1, anmask.geth, .white, 255);
+		
+		new img imsrc;
+		imsrc.create(anmask.getw, anmask.geth,.transparent);
+		imsrc.setpos(anmask.getpx, anmask.getpy);
+		for( int i=0; i<grels.size; i++ )	{
+			imsrc.blit( grels.get(i) );
+		}
+		imsrc.blit("anmask");
+		
+		new filter fthelp;
+		fthelp.setsmooth(1);
+		real rw = anmask.getw;
+		fthelp.link("imsrc");
+		real rscale = 0.88;
+		rw = rscale*imgbg.getw/rw;
+		fthelp.setzoom(rw);
+		
+		new img imhelp1;
+		imhelp1.create( imsrc.getw, imsrc.geth, .transparent );
+		imhelp1.setpos( imsrc.getpx, imsrc.getpy );
+		imhelp1.blit("imsrc");
+		imhelp1.setpos( (1.0-rscale)/2*imgbg.getw, 10 );
+		fthelp.unlink;
+		
+		delete imsrc;
+		
+		new gmobjvec grcols;
+		grels.eval(func {
+			// getrgba i put once do grcols
+			} );
+	}
+}
+

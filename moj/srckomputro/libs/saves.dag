@@ -1,0 +1,53 @@
+class classquest	{
+	init()	{
+		new vector vqst;
+		vqst.type("string");
+	}
+	int isdone(string sqst)	{	return vqst.contains(sqst);	}
+	int notdone( string sqst )	{	return !vqst.contains(sqst);	}
+	done(string sqst)	{	if( !vqst.contains(sqst) )	vqst.add(sqst);		}
+	reset()	{	vqst.free();	}
+	save(string sfile)	{	vqst.save( sfile );	}
+	load(string sfile)	{	vqst.load( sfile );	}
+}
+
+new classquest clqs;
+
+/***************************************************************************/
+
+class classfullsave	{
+	init(string sfile)	{
+		new db dbsav;
+		new string sstdfile;
+		.setfile(sfile);
+	}
+	public save(string sfile)	{	dbsav.save(sfile);	}
+	public load(string sfile)	{	dbsav.load(sfile);	}
+	public print()	{	dbsav.print();	}
+	public setfile(string sf)	{	sstdfile = sf;	}
+	public stdload()	{	this.load(sstdfile);	}
+	public stdsave()	{	this.save(sstdfile); }
+	public free()	{	dbsav.free();	}
+	public set(string sname, string svar)	{
+		int id = dbsav.findbyrow(sname);
+		if( id>=0 )	{
+			dbsav.set(id,1,svar);
+		} else {
+			id = dbsav.addrow()-1;
+			dbsav.add( id, sname );
+			dbsav.add( id, svar );
+		}
+// 		this.stdsave();
+	}
+	public bset(string sname)	{	this._set(sname,true);	}
+	public string get(string sname)	{
+		int id = dbsav.findbyrow(sname);
+		return id>=0?dbsav.get(id,1):null;
+	}
+	public bool is(string sname, string svar)	{
+		int i = dbsav.findbyrow(sname);
+  		return i>=0?dbsav.get(i,1)==svar:false;
+	}
+	public bool bis(string sname)	{	return this._is(sname,true);	}
+}
+

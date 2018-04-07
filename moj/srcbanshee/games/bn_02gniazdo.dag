@@ -1,0 +1,121 @@
+
+game mg02Gniazdo : Banshee	{
+	init	{
+		Banshee::init("mg02_gniazdo");
+	//   .addtopck("jajo"); // do testow 
+    .imgs = (A, "bkg.jpg", "ptak.pyzH 20", "ptak2.pyzH 10",
+			"tlo.pyz 5","skorupki.pyz 6",  "jajko.pyzH 15", "ziarno.pyzH 15","nasionka_anim.pyz 16", "popexit.pyz 50");
+		
+		 antlo {
+  		.Button_isinalpha;
+  		butgame.add(this);
+  	};
+	.loadimgexitbut;   
+    
+    .newsndfree("snd_intro", "kinnat_c1d1_1a");
+	snd_intro.addmethod("onfinish", "advsetstdstate");     
+	
+	.sfxs = (A, "ptak1", "ptak2", "bgrwiatrN", "bgrlas2N 40", "quickcrumple");
+    
+		if( !clsave.bis("e1_jajko_taken") )	{
+			anjajko.show;
+		}
+		if( !clsave.bis("taken_ziarno") )	{
+			anziarno.show;
+			.setasitemtopck("anziarno");
+			annasionka_anim.anopacityframe; 
+			annasionka_anim.setdrawmode(1);
+			annasionka_anim.play(0);
+		}
+		
+		//ptak.pyz tlo.pyz popexit.pyz ptak2.pyz 
+		if( clsave.bis("e1_ptok_odslonil_jajco") )	{
+			.copyanima("anptak2", "anptakcorp");
+			anptak2.play(1);
+		//	anptakcorp.setz(9);
+			anptakcorp.show;
+		} else {
+			anptak.play(0);
+			anptak.addmethod("onfinish", func { .play(0); });
+		}
+		
+		.butpopexit;
+    
+    anptak
+    {
+		.Button_isinalpha;
+		.addmethod("butmoveon", func {
+			if(!clsave.bis("e1_ptok_odslonil_jajco"))
+				advmouse.set("use"); 
+			else
+				advmouse.setstd;         
+        } );
+		.addmethod("butmoveoff", func {
+			advmouse.setstd;
+		} ); 
+		
+		.addmethod("butclick", func {
+			if(!clsave.bis("e1_ptok_odslonil_jajco"))
+					.cbplay("snd_intro"); 
+		} );
+	 
+        butgame.add(this);
+    };  
+   
+	.stdstart;  
+	
+	}
+ 
+	anziarno_TAKE	{
+		if( clsave.bis("e1_ptok_odslonil_jajco") ) {
+			annasionka_anim.stop(false);
+			annasionka_anim.hide;
+			.popitem_gotocenter("ziarno");
+		} else if( !anptak.isplaying(1) ) {
+			anptak.play(1);
+			.cbplay("snd_intro"); 
+		}
+	}
+	anziarno_INPCK	{
+		.addtopck("ziarno");
+		.timfinito;       
+	}
+ 
+   
+  USE_jajo	{
+		.advsetstdstate;
+    advmouse.setstd;
+    if( anptak.isin(mouse.getpos,1,1) || anjajko.isin(mouse.getpos,1,1) || anziarno.isin(mouse.getpos,1,1) )	{
+			  .removefrompck("jajo");
+        .copyanima("anptak2", "anptakcorp");
+  			anptak.anfadeout(300,0);
+			anptak.stop(false);
+  			fxquickcrumple.play;
+        anptak2.play(1);
+        anptak2.anfadein(500,null); 
+  		//	anptakcorp.setz(9);
+  			anptakcorp.show; 
+        clsave.bset("e1_ptok_odslonil_jajco");
+        advmouse.setstd;  
+    } else .item_gotopck;   
+	} 
+  
+   HINT_CLICK {
+    	if (clsave.bis("ma_jajo"))	{
+    		.showhint("anptak");
+        .showhintitem("jajo");  
+    	}else if(clsave.bis("e1_ptok_odslonil_jajco") && !clsave.bis("taken_ziarno"))
+      {
+        .showhint("anziarno");
+      }
+      else {
+    		.showhint("anpopexit");
+    	}
+  } 
+  
+	mend	{
+		.stdexitdefadv("ad02_brama", "gamead02_brama0");
+	}
+}
+
+

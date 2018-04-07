@@ -1,0 +1,66 @@
+
+new int iMusic = 1;
+new int iNutka = 1;
+new string sAskerGame;
+
+class Computro : classadv, GameController, Localize	{
+	init(string s)	{
+		AdventureGame = false;
+		igmstate = 0;
+		classadv::init;
+		GameController::init(s);
+		Localize::init;
+		.path = (s);
+		.setwavpath(SNDPATH);
+		bsms.setstd;		// ustawia standardowo 
+		clmusic.play;
+		clbuts.reset;
+		new Music mus;
+		if( PrzygodaMode )	{
+			classadvcontroller::advsaveonstart;
+			classadvinfo2::advsave_game;
+		}
+	}
+	cutscene	{
+		new CutScene ccs(0, 0, iResX, iResY);
+		ccs.setz(2000);
+	}
+	cshowbut(string sbut, @dir)	{
+		clbuts (sbut, dir) { (string sbut, @dir)
+			clp.show( buts.callimgfun( sbut, "getcx"), buts.callimgfun( sbut, "getcy"), dir ); 
+		};
+	}
+	napisshow(int x, int y)	{
+		.show;
+		.move(x,y);
+	}
+	napispod(string s)	{	.napisshow(<s>.getcx-.getw/2, <s>.getey+5); }
+	crect	{	new Rect rec(600,196,403,497);	}
+	crect2	{	new Rect rec2(6,174,1012,530);	}
+	gotoadv(string spath, string sgame)	{
+		sgmlastscene = gameapi.getgamename;
+		sgmglobpath = spath;
+		sgmgame = sgame;
+		gameapi.play("gameadvdef");
+	}
+	/***********************************************************/
+	exit	{
+		bsms.setstd;
+		.game_exit;
+	}
+	public askrestart	{	claskexit.askrestart;	}
+	onmusicfin	{	mus.play;	}
+	/***********************************************************/
+	advclick()	{
+		if( igmdebug && (igmstate==0 || igmstate==5) )	{
+			this.cactsndstop(true);
+		}
+	}
+	/***********************************************************/
+	key_down	{
+		if( igmdebug && keyboard.iskeydown("lctrl") && keyboard.iskey("r") )	.crestart;
+	}
+}
+
+
+

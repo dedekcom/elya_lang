@@ -1,0 +1,554 @@
+
+class zgadnijplayer	{
+	init()	{
+		string s = gameapi.getgamename();
+		<s>.newanima("anp1", "players.pyz", 5);
+		<s>.copyanima("anp1", "anp2");
+		//<s>.newanima("anst1", "strzalki.pyz", 101);
+		//<s>.copyanima("anst1", "anst2");
+		//anst1.setframe("left",0);
+		//anst2.setframe("right",0);
+		
+		new int iactive;
+		new bool bstopped;
+		new bool bdis1;
+		new bool bdis2;
+		this.setstd();
+	}
+	putplayers(int x1, int x2)	{
+		anp1.setpos(x1,0);
+		anp2.setpos(x2,0);
+		this.putstrzalki();
+	}
+	putonkolo()	{	this.putplayers( 0, 0);	}
+	putstrzalki()	{
+ 		//anst1.setpos( anp1.getcx() - anst1.getw()/2 - anst1.lodx(), anp1.getey() - anst1.lody() );
+ 		//anst2.setpos( anp2.getcx() - anst2.getw()/2 - anst2.lodx(), anp2.getey() - anst2.lody() );
+	}
+	putonrogi()	{
+		anp1.setpos(0 - anp1.lodx(),0 - anp1.lody());
+		anp2.setpos(800-anp2.getw() - anp2.lodx(), 0 - anp2.lody());
+		this.putstrzalki();
+	}
+	setstd()	{
+		bstopped = false;
+		bdis1 = false;
+		bdis2 = false;
+		anp1.setframe("p1",0);
+		anp2.setframe("p2",0);
+		iactive=0;
+	}
+	setp(int id)	{
+		if( bstopped || id==["bdis"+id])	return;
+		iactive = id;
+		<"anp"+id>.ansetframe(1);
+	}
+	stop()	{	bstopped = true;	}
+	dyskwalifikuj(int id)	{	<"bdis"+id> = true;	}
+	getactive()	{
+		if( anp1.framenr()==1 && anp2.framenr()==1 ) return 3;
+		else return iactive;
+	}
+	next()	{
+		if( iactive==1 )	{
+			this.setstd();
+			this.setp(2);
+		} else if (iactive==2)	{
+			this.setstd();
+			this.setp(1);
+		} else {
+			engine.print("error! can't set next player");
+		}
+	}
+}
+
+module mzgad	{
+	init() {
+		new vector vecp1;	// klatki postaci
+		new vector vecp2;	// klatki postaci
+		vecp1.type("int");
+		vecp2.type("int");
+	}
+	starttryb1()	{	vecp1.free(); vecp2.free();	}
+	add1(string s)	{	vecp1.add(<s>.framenr() );	}
+	add2(string s)	{	vecp2.add(<s>.framenr() );	}
+	starttryb2()	{
+		vecp1.addtogamevars("vecp1");
+		vecp2.addtogamevars("vecp2");
+	}
+	print()	{
+		vecp1.print();
+		vecp2.print();
+	}
+}
+
+game zgadnijmulti1 : classadvadamigo2, GameController, Dymarka	{
+	init()	{
+		classadvadamigo2::init();
+		.sfxs=(A,"koloL", "kolostart", "silnik", "endmachine", "kolostop", "mikrofala", "getpuz", "putpuz",
+			"elektropik");
+		fxkolostart.addmethod("onfinish", func { fxkolo.play;	} );
+		GameController::init("zgmu1_");
+		this.setgraphpath("scripts/zgadnij/");
+		this.bkgpyz();
+		this.newanima("ankolo", "kolo.pyz", 1);
+		.newanima("anrama", "machine.pyz", 5);
+		.newanima("annakkolo", "nakladkakolo.pyz", 2);
+		.copyanima("anrama", "anmech");
+		anmech.setz(4);
+		anmech.setframe(1,0);
+		anmech.addmethod("onfinish", "checkkolo");
+		anmech.addmethod("onstart", func { fxsilnik.playif;	} );
+		ankolo.addmethod("onendframe", "frkolo");
+		ankolo.anloopfin;
+		new @lastframe = 0;
+		
+		new gmimgvec grel;
+		//grel.loadallan("anel", "pduze.pyz", 10);
+		grel.loadallan("anel", "pmale.pyz", 10);
+		string s;
+		for( int i=0; i<grel.size(); i++)	{
+			s = <grel.get(i)>.framename();
+			this.addsndf("snd"+s, s, "endpostac");
+		}
+		grel.hash();
+		
+		new ConRewinder clrew;
+		clrew.build("scripts/wstawianki/strzalki.pyz",5,"imglobcurs","right",10,"grel");
+		clrew.setfxrew("sfx/przesun.wav");
+		
+		new zgadnijplayer plr;
+		plr.putonkolo();
+		new classplacepointer2 clp1;
+		new classplacepointer2 clp2;
+		mzgad.starttryb1();
+		
+		new Cypher cyf1(null, 28, 250, 250, 250, anp1.getcx-10, anp1.getey-40, anp1.getz+1);
+		new Cypher cyf2(null, 28, 250, 250, 250, anp2.getcx-10, anp2.getey-40, anp2.getz+1);
+		//init(string sfont, int ifontsize, int ifr, int ifg, int ifb, int x, int y, int z)	{
+		
+		new classfadeinout clfio;
+		
+		this.newdbscript("dbzg", "zgadule.db");
+		new @timstate;
+		new @timtick;
+		
+// 		this.importsnd("liczby","endlicz");
+		this.addsndff("sndstart","Zaraz maszyna wprowadzi ko³o w ruch", "fin1");
+		this.addsndff("sndf1","Kiedy ko³o zatrzyma siê ten kto pierwszy naci¶nie przypisan± mu strza³kê", "fin2");
+		this.addsndff("sndf2","na podstawie atrybutów z ko³a", "fin3");
+		this.addsndff("sndf3","musi znale¼æ pasuj±c± postaæ st±d;", "fin4");
+		this.addsndff("sndf4","Uwaga! Dopóki nie skoñczê losowania wci¶niêcie strza³ki spowoduje falstart i dyskwalifikacjê!", "finintro");
+		this.addsndf("sndstartlos","Zaczynam losowanie", "startlos");
+		this.addsndf("sndrowno", "Klawisze zosta³y wci¶niête jednocze¶nie! Losujemy jeszcze raz; Uwaga","startlos");
+		this.addsndf("sndrownofall", "Klawisze zosta³y wci¶niête jednocze¶nie! Obaj gracze zdyskwalifikowani! Losujemy jeszcze raz; Uwaga","startlos");
+		this.addsndf("sndfall1","Gracz 1 fallstart!", "fall");
+		this.addsndf("sndfall2","Gracz 2 fallstart!", "fall");
+		this.addsndf("sndfall1end","Gracz 1 zosta³ zdyskwalifikowany; Ruch nale¿y do gracza numer 2", "finfall");
+		this.addsndf("sndfall2end","Gracz 2 zosta³ zdyskwalifikowany; Ruch nale¿y do gracza numer 1", "finfall");
+		this.addsndf("sndwinp1","Pierwszy wcisn±³ strza³kê gracz 1", "startzgaduj");
+		this.addsndf("sndwinp2","Pierwszy wcisn±³ strza³kê gracz 2", "startzgaduj");
+		
+		this.addsndf("sndbrawo", "Brawo!", "endbrawo");
+		//this.addsndf("sndnalezy", "nale¿y do pozycji numer", "endnalezy");
+		this.addsndf("sndnalezy", "wskazany poprawnie", "endnalezy");
+		this.addsndf("snddalej", "Gramy dalej", "enddalej");
+		
+		this.addsndf("sndniestety","Niestety!", "endniestety");
+		//this.addsndf("sndnienalezy","nie nale¿y do pozycji numer", "endnienalezy");
+		this.addsndf("sndnienalezy","wskazany niepoprawnie", "endnienalezy");
+		this.addsndf("sndszansa","Szansa dla drugiego gracza", "endszansa");
+		
+		this.addsndf("sndwsio","Doskonale! Wszystkie zadania rozwi±zane; przechodzimy do drugiego etapu gry", "endwsio");
+		
+		grel.move(-100,0);
+		clrew.movearrows(-100,0);
+		
+		.initdym;
+		anmano.setz(0);
+		anmano.anloopfin;
+		fxtykacz.addmethod("onfinish", func { anmano.stop(false); } );
+		andym.addmethod("onstart", func { if (!anmano.isplaying(-1)) anmano.play(-1); } );
+		
+		if( this.begingame() )	{
+			clp1.showob("anmech","ld");
+			this.cbplay("sndstart");
+		} else {
+			this.startlosowanie();
+		}
+	}
+	startlosowanie()	{
+		igmstate = 3;
+		this.cbplay("sndstartlos");
+	}
+	fin1()	{
+		clp1.showob("anp1","lu");
+		clp2.showob("anp2","ru");
+		this.cbplay("sndf1");
+	}
+	fin2()	{
+		clp2.stoph();
+		clp1.showob("ankolo", "ll");
+		clp1.move(0,100);
+		this.cbplay("sndf2");
+	}
+	fin3()	{
+		clp1.showob( grel.get(0), "rr" );
+		this.cbplay("sndf3");
+	}
+	fin4()	{
+		clp1.stoph();
+		this.cbplay("sndf4");
+	}
+	finintro()	{	this.startlosowanie();	}
+	startlos()	{
+		igmstate = 2;
+		timstate = 0;
+		timtick = 12;
+		plr.setstd;
+		ankolo.setdelay(timtick);
+		ankolo.play(-1);
+		fxkolostart.play;
+		ankolo.setframe(0,lastframe);
+		anmech.play(-1);
+	}
+	frkolo	{
+		match(timstate)	{
+			0 => {	timtick--;
+				if( timtick>0)	.setdelay(.between(1,timtick/4,timtick));
+				else {
+					timtick = 30 + 0->rand(50);
+					timstate=1;
+				}
+			}	1=>	{	timtick--;
+				if( timtick<=0 )	.finlos;
+			}	? => ;
+		}
+	}
+	checkkolo	{	if( ankolo.isplaying(-1) )	.play(-1); else {fxsilnik.stop(false);fxendmachine.play;}	}
+	finlos()	{
+		ankolo.stop(false);
+		fxkolostart.stop(false);
+		fxkolostop.play;
+		fxkolo.stop(false);
+		igmstate = 1;
+		int id = ankolo.framenr;
+		while( dbzg.getcolsno(id)==1 )	{	id = (id+1)%dbzg.getrowsno();	}
+		ankolo.setframe(0,id);
+		lastframe = id;
+	}
+	finfall()	{
+		//this.finlos();
+		igmstate=1;
+		this.startzgaduj();
+	}
+	clrew_GET	{	 _ = .mspickup;	fxgetpuz.play; }
+	endbrawo	{	.cbplay("snd" + <spostac>.framename );	}
+	endniestety	{	.cbplay("snd" + <spostac>.framename );	}
+	endpostac()	{
+		if( budalo )	this.cbplay("sndnalezy");
+		else this.cbplay("sndnienalezy");
+	}
+	endnalezy()	{
+		//this.cbplay("sndli"+(ankolo.framenr+2));
+		.endlicz;
+	}
+	endnienalezy()	{
+		//this.cbplay("sndli"+(ankolo.framenr+2));
+		.endlicz;
+		
+	}
+	endlicz()	{
+		if( budalo )	{
+			if( grel.size()==0 )	this.cbplay("sndwsio");
+			else this.cbplay("snddalej");
+		} else {
+			this.cbplay("sndszansa");
+		}
+	}
+	enddalej()	{	this.startlosowanie();	}
+	endszansa()	{
+		plr.next();
+		this.startzgaduj();
+	}
+	fintafel()	{
+		<spostac>.hide();
+	}
+	clrew_PUT()	{
+		string s = clrew.getmoved();
+		if( clsurf.imgwithinimg(s, "ankolo") )	{
+			string s2 = <s>.framename();
+			this.vargmset("spostac", s);
+			igmstate = 5;
+			this.lockall();
+			int id = ankolo.framenr;
+			if( dbzg.dbfindinrow( id, s2 )>=0 )	{
+				this.vargmset("budalo", true);
+				this.cbplay("sndbrawo");
+				clrew.freeitem();
+				classanfilter::build(s);
+				clfio.setopacity(1, -10, s, "fintafel");
+				mzgad.<"add"+plr.getactive()>( s );
+				<"cyf"+plr.getactive>.++;
+				_ = dbzg.dbdelvar(id, s2);
+				fxputpuz.play;
+			} else {
+				this.vargmset("budalo", false);
+				this.cbplay("sndniestety");
+				clrew.retitem();
+				fxelektropik.play;
+			}
+		} else {clrew.retitem();fxelektropik.play;}
+	}
+	startzgaduj()	{
+		igmstate = 4;
+		this.unlockall();
+		
+		/*string s;
+		int id = iliczba1+iliczba2-2;
+		for( int i=0; i<grel.size(); i++) 	{
+			s = grel.get(i);
+			if( dbzg.dbfindinrow( id, <s>.framename() )>=0 )	{
+				clrew.getitem(s, 0,0);
+				i = grel.size();
+			}
+		}
+		grel.print();
+		this.clrew_PUT();*/
+	}
+	mouse_lclick()	{
+		if( igmstate==0 )	{
+			clp1.stoph();
+			clp2.stoph();
+			this.cactsndstop(false);
+			this.finintro();
+		} else {
+// 			if( !.hasvar("timclick") )	.timer=("timclick",35, func { bprzewin=true; } );
+			.cactsndstop(true);
+		}
+	}
+	fall()	{
+		int id = plr.getactive();
+		plr.setstd();
+		plr.setp( id%2+1 );
+		this.cbplay("sndfall"+id+"end");
+	}
+	key_down()	{
+		if( !(igmstate==1 || igmstate==2) )	return;
+		if( keyboard.iskey("left") )	plr.setp(1);
+		if( keyboard.iskey("right") )	plr.setp(2);
+		int id = plr.getactive();
+		if( id )	{
+			fxmikrofala.play;
+			plr.stop();
+			if( igmstate==1 )	{
+				if( id==3 )	{
+					this.cbplay("sndrowno");
+				} else {
+					this.cbplay("sndwinp"+id);
+					igmstate = 3;
+				}
+			} else {
+				if( id==3 )	{
+					this.cbplay("sndrownofall");
+				} else {
+					this.finlos();
+					igmstate = 3;
+					this.cbplay("sndfall"+id);
+				}
+			}
+		}
+	}
+	endwsio()	{	gameapi.play("zgadnijmulti2");	}
+	mouserclick	{	if( igmdebug) .endwsio;	}
+}
+
+game zgadnijmulti2 : classadvadamigo2, GameController	{
+	init()	{
+		classadvadamigo2::init();
+		GameController::init("zgmu2_");
+		this.setgraphpath("scripts/zgadnij/");
+		this.newanima("anbkg", "bkgm2.pyz",0);
+		.sfxs=(A, "mikrofala", "elektropik");
+		new zgadnijplayer plr;
+		plr.putonrogi();
+		
+		mzgad.starttryb2();
+// 		vecp1.free();	vecp2.free();
+// 		vecp2.beginadd("begin", 0,1,2,3,4,5,6,7,8,9,10,11,23,12,13,14,15,16,17,18,19,20,21,22);
+		//vecp2.beginadd("begin", 12,13,14,15,16,17,18,19,20,21,22);
+		
+		//string s1 = this.consttext("Punkty gracza 1:", 110, 10, 20, 92, 92, 92);
+		//string s2 = this.consttext("Punkty gracza 2:", 450, 10, 20, 92, 92, 92);
+		new int iliczba1 = 0;
+		new int iliczba2 = 0;
+		new string slicz1 = this.consttext(iliczba1, anp1.getcx-10, anp1.getey-40, 28, 255, 255, 255);
+		new string slicz2 = this.consttext(iliczba2, anp2.getcx-10, anp2.getey-40, 28, 255, 255, 255);
+		<slicz1>.setz( anp1.getz+1 );
+		<slicz2>.setz( anp1.getz+1 );
+		this.printlicze();
+		
+		new classfadeinout clfio;
+		
+		new gmobjvec grludki;
+		new int ipostprior = 20;
+		int ile = this.loadanframes("anpost", "pmale.pyz", 0, ipostprior);
+		string s[2], int ile1=0, int ile2=0, int dx=60, int dy=110, int px=5, int py=130;
+		
+		for( int i=0; i<ile; i++)	{
+			s0 = "anpost" + i;
+			s1 = <s0>.framename();
+			grludki.add( "snd" + s1 );
+			if( vecp1.contains(i) )	{
+				<s0>.setpos( px + dx*(ile1%6) - <s0>.lodx(), py + dy*(ile1/6) - <s0>.lody() );
+				ile1++;
+			} else {
+				<s0>.setpos( 400 + px + dx*(ile2%6) - <s0>.lodx(), py + dy*(ile2/6) - <s0>.lody() );
+				ile2++;
+			}
+			classanfilter::build(s0);
+		}
+		
+		new vector veczag;
+		veczag.vecnewint(24);
+		veczag.hash();
+		new string smovedon = null;
+		new int izgadywan;
+		
+		this.importgroup("zgmu1_", "endpostac", "grludki");
+		this.importsnd("liczby","endlicz");
+		
+		this.addsndff("sndintro","Zaczynamy etap drugi; Przeczytam wam zagadkê dotycz±c± jednej z postaci; Kto pierwszy wci¶nie swoj± strza³kê bêdzie pierwszy wskazywa³ postaæ o któr± pytam; ale uwaga: je¿eli wci¶nie strza³kê w trakcie zadawania pytania przestanê czytaæ", "finintro");
+		this.addsndff("sndczytam","Czytam zagadkê", "czytaj");
+		this.addsndff("sndczytam2","Czytam kolejn± zagadkê", "czytaj");
+		this.addsndff("sndczytam3","Czytam ponownie zagadkê", "czytaj");
+		this.addsndff("sndbrawo","Brawo! Wszystkie zagadki rozwi±zane", "endbrawo");
+		this.addsndff("sndzaczyna1","Zaczyna gracz 1", "endzaczyna");
+		this.addsndff("sndzaczyna2","Zaczyna gracz 2", "endzaczyna");
+		this.addsndff("sndzgadl","Dobrze; Postaæ której dotyczy³a zagadka to ", "endzgadl");
+		this.addsndff("sndposiada","Kolejny punkt dodajemy za posiadanie postaci", "endposiada");
+		this.addsndff("sndniezgadl","Niestety to nie postaæ, której dotyczy zagadka", "endniezgadl");
+		this.addsndff("sndniezgadl1","Odejmujê punkt graczowi pierwszemu", "odpoczatku");
+		this.addsndff("sndniezgadl2","Odejmujê punkt graczowi drugiemu", "odpoczatku");
+		
+		this.addsndff("sndwin1","Zwyciê¿y³ gracz numer 1!", "endwin");
+		this.addsndff("sndwin2","Zwyciê¿y³ gracz numer 2!", "endwin");
+		this.addsndff("sndremis","Mamy remis! Có¿ za emocje", "endremis");
+		this.addsndff("sndkoniec","Kliknij myszk± aby powróciæ do menu g³ównego",
+			func { igmstate=13; } );
+		
+		new snd sndzagadka;
+		new bool bzgadl = false;
+		
+		this.cbplay("sndintro");
+	}
+	endzgadl()	{	this.cbplay("snd" + <"anpost"+izgadywan>.framename() );	}
+	endniezgadl()	{
+// 		this.cbplay("snd" + <"anpost"+izgadywan>.framename() );
+		this.endpostac();
+	}
+	endposiada()	{
+		if( veczag.size() == 0 )	{
+			this.cbplay("sndbrawo");
+			igmstate = 5;	// finish
+		} else {
+			this.cbplay("sndczytam2");
+		}
+	}
+	fintafel()	{
+		if( stafelhide!=null )	<stafelhide>.hide();
+		stafelhide = null;
+	}
+	endbrawo()	{
+		if( iliczba1>iliczba2 )	this.cbplay("sndwin1");
+		else if (iliczba2>iliczba1)	this.cbplay("sndwin2");
+		else	this.cbplay("sndremis");
+	}
+	endpostac()	{
+		int id = plr.getactive();
+		if( bzgadl )	{
+			veczag.removeat(0);
+			<"iliczba"+id>++;
+			if( <"vecp"+id>.contains(izgadywan) )	{<"iliczba"+id>++; this.cbplay("sndposiada");
+			} else {this.endposiada();}
+			<schosen>.setz( ipostprior + 1 );
+			this.vargmset("stafelhide", schosen);
+			clfio.setopacity(1, -10, schosen, "fintafel");
+		} else {
+			<"iliczba"+id>--;
+			this.cbplay("sndniezgadl"+id);
+		}
+		this.printlicze();
+	}
+	finintro()		{	this.cbplay("sndczytam");	}
+	odpoczatku()	{	this.cbplay("sndczytam3");	}
+	czytaj()	{
+		izgadywan = veczag.get(0);
+		sndzagadka.load( this.getsndpath() + "postac" + izgadywan + ".wav" );
+		plr.setstd();
+		this.cbplay("sndzagadka");
+		igmstate = 1;
+	}
+	endzaczyna()	{	igmstate = 4;	}
+	printlicze()	{
+		<slicz1>.set(iliczba1);
+		<slicz2>.set(iliczba2);
+		<slicz1>.createtxt(255, 255, 255);
+		<slicz2>.createtxt(255, 255, 255);
+	}
+	mouse_move()	{
+		|int pos[2]| = mouse.getpos();
+		string s = engine.getimg(pos0,pos1,true,true,ipostprior,ipostprior);
+		if( smovedon!=null )	{
+			<smovedon>.setopacity(255);
+			smovedon=null;
+		}
+		if( s!=null )	{
+			smovedon=s;
+			<smovedon>.setopacity(128);
+			bsms.setact();
+		} else bsms.setstd();
+	}
+	mouse_lclick()	{
+		if( igmstate==13 )	{	gameapi.play("gamemenu");	return;	}
+		if( igmstate==0 )	{
+			this.cactsndstop(false);
+			this.finintro();
+		} else if (igmstate==4)	{
+			|int p[2]| = mouse.getpos();
+			string s = engine.getimg(p0,p1,true,true,ipostprior,ipostprior);
+			if( s!=null )	{
+				this.vargmset("schosen",s);
+				igmstate = 2;
+				if( <s>.framenr() == izgadywan )	{
+					bzgadl = true;
+					this.cbplay("sndzgadl");
+					fxmikrofala.play;
+				} else {
+					bzgadl = false;
+					this.cbplay("sndniezgadl");
+					fxelektropik.play;
+				}
+			}
+		}
+	}
+	key_down	{
+		if( igmstate!=1 )	return;
+		if( keyboard.iskey("left") )	plr.setp(1);
+		if( keyboard.iskey("right") )	plr.setp(2);
+		int id = plr.getactive();
+		if( id )	{
+			fxmikrofala.play;
+			this.cactsndstop(false);
+			plr.stop();
+			if( id==3 ) {
+				engine.print("error");	id=id.rand(2)+1;
+				plr.setstd();	plr.setp(id);
+			}
+			igmstate = 3;
+			this.cbplay("sndzaczyna"+id);
+		}
+	}
+	endwin()		{	.askrestart2;	}
+	endremis()	{	.askrestart2;	}
+}

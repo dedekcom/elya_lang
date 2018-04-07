@@ -1,0 +1,13 @@
+
+class Color	{
+	init	{
+		.vars(A,"r","g","b","a");
+	}
+	operator=(string scol)	{	this.set( <scol>.get() );	}
+	img=(@simg)	{
+		|r,g,b,a| = <simg>.getrgba( classansearcher::firstnotrx1y(simg) );
+	}
+	get			{	return r,g,b,a;	}
+	set(int r2, int g2, int b2, int a2)	{	|r,g,b,a| = r2,g2,b2,a2;	}
+	print	{	engine.print("Color::" + this + " (r,g,b,a) = ("+r+","+g+","+b+","+a+")");	}
+}

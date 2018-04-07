@@ -1,0 +1,130 @@
+
+public animaloader_load(string sdbfile)	{
+	new db _dbanl;
+	_dbanl.loadbeh( .getpath(sdbfile) );
+	string s[3], string san, string sord;
+	int col;
+	int i[2];
+	real r[2];
+	for( int i=0; i< _dbanl.getrowsno; i++) 	{
+		if( _dbanl.getcolsno(i) > 0 )	{
+			col = 0;
+			match(_dbanl.get(i,col))	{
+				"an:" => {
+					col++;
+					s0 = _dbanl.get(i,col); col++;
+					if( s0.contains(".pyz") )	{
+						san = "an" + s0.strsubes(".pyz");
+						.newanima(san, s0, 0);
+					} else {
+						.copyanima( _dbanl.get(i,col) , s0 );
+						col++;
+					}
+					for( int j=col; j<_dbanl.getcolsno(i); j++)	{
+						sord = _dbanl.get(i,j);
+						match( sord )	{
+							"-z" => {
+								j++;
+								<san>.setz( _dbanl.get(i,j) );
+							}
+							"-hide" => <san>.hide;
+							"-opacityframe" => <san>.anopacityframe;
+							"-nplay" => {
+								j++;
+								<san>.play( _dbanl.get(i,j)->to_i );
+							}
+							"-play" => {
+								j++;
+								<san>.play( _dbanl.get(i,j) );
+							}
+							"-delay" => {
+								j++;
+								<san>.setdelay( _dbanl.get(i,j) );
+							}
+							"-drawmode" => {
+								s0 = _dbanl.get(i,j);	j++;
+								if( s0=="lineardodge" )	{
+									<san>.setdrawmode(1);
+								}
+							}
+							"-hideonstart" => {
+								<san>.anhideonsetframe;
+							}
+							"-buildroto", "-buildrotorle" => {
+								j++;
+								real rkatl = _dbanl.get(i,j);	j++;	// kat dodatni
+								real rkatr = _dbanl.get(i,j);	j++;	// kat ujemny
+								real speed = _dbanl.get(i,j);	j++;	// speed - minus startuj w lewo, plus w prawo
+								int delay = _dbanl.get(i,j);
+								.gmbuildroto(san, rkatl, rkatr, speed, delay, ( sord == "-buildrotorle" ? true : false ));
+							}
+							? => j = .animaloader_an(san, "_dbanl", i, j);
+						}
+					}
+				}
+				? => ;
+			}
+		}
+	}
+}
+
+public animaloader_an(string san, string sdb, int row, int col)	{
+	col;
+}
+
+public gmbuildroto(string san, real rkatl, real rkatr, real speed, int delay, bool brle)	{
+	int i0 = <san>.getpx;
+	int i1 = <san>.getpy;
+	<san>.setframe(1,0);
+	<san>.ansetbpos(i0, i1);
+	string s[2];
+	
+	real r3 = 0.0;
+	speed = speed.abs;
+	i0 = 0;
+	string sprev = null;
+	for( real r2 = rkatr; r2<=rkatl; r2+=r3 )	{
+		real r4 = ((r2-rkatr)/(rkatl-rkatr))->abs;
+		
+		if( r4._rin1(0.1) ) r3 = 0.4*speed;
+		else if ( r4._rin1(0.2) ) r3 = 0.8*speed;
+		else r3 = speed;
+		
+		s1 = "_imgroto"+i0+san;
+		new img <s1>;
+		<s1>.buildrotozoom(san, r2, 1.0, 1.0);
+		while( sprev!=null && <s1>.getw==<sprev>.getw && <s1>.geth==<sprev>.geth &&
+			<s1>.getpx==<sprev>.getpx && <s1>.getpy==<sprev>.getpy )	{
+			r4 = 0.2;
+			r2 += r4*r3;
+			r3 *= (r4 + 1.0);
+			<s1>.buildrotozoom(san, r2, 1.0, 1.0);
+		}
+		<s1>.setz( <san>.getz );
+		<s1>.hide;
+		if( brle ) <s1>.rle;
+		
+		sprev = s1;
+		i0++;
+	}
+	s0 = "_timroto"+san;
+	.cycle = (s0, func {
+		<slastimg>.hide;
+		slastimg = "_imgroto"+idimg+san;
+		<slastimg>.show;
+		idimg = idimg+dir;
+		if( idimg < 0 )	{
+			idimg=0;
+			dir = 1;
+		} else if( idimg >= ileimgs ) {
+			idimg = ileimgs-1;
+			dir = -1;
+		}
+		.play;
+		} );
+	<s0>.setcycle(delay);
+	<s0>.vars2(A, "san", san, "ileimgs", i0, "slastimg", s1, "idimg", 0, "dir", 1);
+	<san>.hide;
+	<"_imgroto0"+san>.show;
+	<s0>.play;
+}

@@ -1,0 +1,51 @@
+
+class classstndgroup	{
+	init()	{
+		new gmobjvec grstnd;
+	}
+	public pause()	{
+		grstnd.eval("lock");
+		this.stop();
+	}
+	public resume()	{
+		grstnd.eval("unlock");
+		this.play();
+	}
+	public add(string sstander)	{	grstnd.add(sstander);	}
+	public remove(string sst)	{	grstnd.remove(sst);	}
+	public stop()	{	grstnd.eval("stop");	}
+	public play()	{	grstnd.eval("play");	}
+	public reset()	{	grstnd.eval("reset");}
+}
+
+class classadvstander : classlocker 	{
+	init()	{
+		classlocker::init();
+		new timer timstand;
+		timstand.settick(1);
+		timstand.delay(20000);
+		timstand.addmethod("onfinish", "_timstandfin");
+		
+		new string sanim = this.getname();
+		sanim = sanim.strsubbs( _sstndpref );
+		
+		new string _sbeh = "beh_" + sanim + "_IDLE";
+		
+		modstnd.add( this.getname() );
+	}
+	_timstandfin()	{
+		string s = gameapi.getgamename();
+		if( <s>.behexist( _sbeh )  && !this.getlock() )	{
+			<s>.playbeh( _sbeh );
+		}
+	}
+	public play()	{
+		if( !this.getlock() && !timstand.isplaying() )	{
+			timstand.play();
+		}
+	}
+	public stop()	{	timstand.stop(false);	}
+	public setdelay(int idelay)	{	timstand.setdelay(idelay);	}
+	public reset()	{	this.stop();	this.play();	}
+}
+

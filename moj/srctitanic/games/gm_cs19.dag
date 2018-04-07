@@ -1,0 +1,184 @@
+
+game Cs20Pobojowisko : StdGame	{
+	init	{
+		StdGame::init("cs20pobojowisko");
+		
+		.imgs = (A, "bg1.pyz", "palisada1.pyz 10");
+		.newgrimg("grwoj1", "woje1", 5);
+		grwoj1.nplay(-1);
+		
+		// bg2.pyz woje2.pyz maska2.pyz hegemon2.pyz zboj2.pyz
+		
+		new img imgb1;
+		new classfadeinout clfio;
+		
+		.timer = ("timgo", 2000, func { <GAME> {
+			imgb1.clone("anbg1");
+			for( int i=0; i<grwoj1.size; i++)
+				imgb1.blit(grwoj1.get(i));
+			imgb1.blit("anpalisada1");
+			delete anbg1;
+			delete anpalisada1;
+			grwoj1.stop(false);
+			grwoj1.hide;
+			imgb1.setz(50);
+			
+			.imgs = (A, "bg2.pyz", "maska2.pyz 20", "hodi.pyz 25", "hegemon2.pyz 30", "zboj2.pyz 40");
+			.newgrimg("grwoj2", "woje2", 5);
+			grwoj2.nplay(-1);
+			
+			clfio.imgtransparency(1, -5, "imgb1", func {
+				anhegemon2.play("talk");
+				grodzianie1.setvol(50);
+				.cbplay("hegemon1");
+				} );
+			}; } );
+		
+		.sounds = (A, ":grodzianie1", "Hurra! Zwyciêstwo! Wiwat Mirmi³! Wiwat Kajko i Kokosz!", null,
+			":hegemon1", "Do stu tysiêcy beczek niedosolonych ¶ledzi! Przegrupowaæ siê i marsz na wie¿ê! A ty daj znaæ kapralowi ¿eby wystrzeli³ siê do grodu z broni± C!",
+				func { anhegemon2.play("stand"); anzboj2.anplayfin(1, func {
+					ccs.close( func { gameapi.play("Cs21Kapral"); } );
+					} ); } 
+			);
+		
+		.sfxs = (A, "bgrwiatr2N 30", "wojeN 30");
+		
+		ccs.enter( func { grodzianie1.play; timgo.play; } );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Cs21Kapral : StdGame	{
+	init	{
+		StdGame::init("cs21kapral");
+		.imgs = (A, "21bg.pyz", "21oferma.pyzP 10", "21kapral.pyzP 20");
+		new gmimgvec grel;
+		grel.addlist(A, "an21oferma", "an21kapral");
+		an21oferma.addmethod("onendframe", func { grel.move(10, 0); });
+		grel.move(-600, 0);
+		
+		.sounds = (A, "sndnar1", "Jednak kapral nie dojrza³ znaków z kwatery g³ównej gdy¿ realizowa³ swój w³asny tajny plan",
+				func { .cbplay("kapral1"); },
+			":kapral1", "¯wawiej Ofermo! Jeszcze kawa³ek drogi", func { .cbplay("oferma1"); },
+			":oferma1", "Protestujê! Mia³em tylko krêciæ korbk± a robiê za konia mechanicznego!", func { .cbplay("kapral2"); },
+			":kapral2", "A jak ty spa³e¶ na wie¿y i wszyscy ciê ci±gneli¶my to co?", func { .cbplay("oferma2"); },
+			":oferma2", "Bo mnie otruli¶cie tym specyfikiem Hodona", func { fxkolowrot.stop(false); .cbplay("kapral3"); },
+			":kapral3", "Tam do kata zapomnia³em zabraæ to ¶wiñstwo; Trudno rozgromiê Mirmi³owian bez niego swoim Baranem; Dobra jeste¶my na miejscu; Przymocujê Barana i na mój znak krêæ",
+				func { ccs.close( func { gameapi.play("Cs22Kapral"); } ); }
+			);
+		
+		.sfxs = (A, "bgrout2N", "kolowrotN 40");
+		
+		ccs.enter( func { .cbplay("sndnar1"); } );
+	}
+}
+
+game Cs22Kapral : StdGame	{
+	init	{
+		StdGame::init("cs22kapral");
+		.path = ("cs21kapral");
+		.sounds = (A, ":kapral1", "Gotowe! Wci±gaj!", func { tim22.play; an22oferma.play(0); an22lina.play(0); },
+			":kapral2", "Hi hi hi!", "mfin25"
+			);
+		
+		new int idscena = 22;
+		
+		.imgs = (A, "22bg1.pyz", "22lina.pyz 10", "22oferma.pyz 20", "22maska1.pyz 30", "22maska2.pyz 40");
+		
+		.sfxs = (A, "bgrout2N", "korbka", "korbka2", "metalhit1", "miecz2", "silniczek1", "eksplozja",
+			"spadaniedesek", "wyrzut2");
+		
+		.timer = ("tim22", 3000, func { ccs.playfin( func {
+			delete an22bg1; delete an22lina; delete an22oferma; delete an22maska1; delete an22maska2;
+			.imgs = (A, "23bg.pyz", "23liny.pyzP 10", "23kapral.pyzP 20");
+			an23kapral.addmethod("onendframe", func { if(.framename=="end")
+				ccs.playfin( func {
+					delete an23bg; delete an23liny; delete an23kapral;
+					.newgrimg("gr24", "24scene", 10);
+					gr24.nplay(-1);
+					}, func { tim24.play; } ); } );
+			}, null );
+			} );
+		.timer = ("tim24", 2000, func { <GAME> {
+			gr24.deleteallgm;
+			.imgs = (A, "25bg.pyz", "25kapral.pyzP 10");
+			an25kapral.addmethod("onfinish", func { .play(-1); });
+			.cbplay("kapral2");
+			}; } );
+		
+		.timer = ("tim26", 2000, func { <GAME> {
+			gr26.deleteallgm;
+			.newgrimg("gr27", "27scene", 10);
+			gr27.nplay(-1);
+			tim27.play;
+			}; } );
+		
+		.timer = ("tim27", 2000, func { <GAME> {
+			gr27.deleteallgm;
+			.newgrimg("gr28", "28scene", 10);
+			gr28.nplay(-1);
+			tim28.play;
+			}; } );
+		
+		.timer = ("tim28", 2000, func { <GAME> {
+			gr28.deleteallgm;
+			.imgs = (A, "29liny.pyzP 10", "29bg.pyz", "29kolo.pyzP 20");
+			an29kolo.addmethod("onfinish", func { 
+				an29liny.stop(false);
+				tim29.play;
+				} );
+			}; } );
+		.timer = ("tim29", 100, func { <GAME> {
+			an29bg.hide;
+			delete an29liny; delete an29kolo;
+			.imgs = (A, "30bg.pyz", "30oferma.pyzP 10", "30b_liny.pyzH 10", "30b_kolo.pyzH 20");
+			an30oferma.addmethod("onfinish", func {
+				an30bg.hide; .hide;
+				an29bg.show;
+				an30b_liny.play(-1);
+				an30b_kolo.play(-1);
+				fxsilniczek1.playloop;
+				tim30.play;
+				} );
+			}; } );
+		.timer = ("tim30", 1000, func { <GAME> {
+			fxsilniczek1.stop(false);
+			delete an29bg; delete an30bg; delete an30oferma; delete an30b_liny; delete an30b_kolo;
+			.imgs = (A, "22bg1.pyz", "22lina.pyz 10", "31oferma.pyzP 20", "22maska1.pyz 30", "22maska2.pyz 40");
+			an22lina.setdelay(2);
+			an22lina.play(1);
+			an31oferma.addmethod("onfinish", func { .play(1); });
+			tim31.play;
+			}; } );
+		.timer = ("tim31", 1500, func { <GAME> {
+			delete an22bg1; delete an22lina; delete an31oferma; delete an22maska1; delete an22maska2;
+			.newgrimg("gr32", "32scene", 10);
+			gr32.nplay(-1);
+			<gr32.get(1)>.addmethod("onfinish", func { tim32.play; } );
+			}; } );
+		
+		.timer = ("tim32", 100, func { <GAME> {
+			gr32.deleteallgm;
+			
+			.imgs = (A, "$scripts/adwieza/adwieza.png 5", "$scripts/adwieza/bgsky.pyz",
+				"$scripts/adwieza/domek.pyz 40",
+				"$scripts/adwieza/e16mech.pyz 8",
+				"$scripts/adwieza/e15remont.pyz 10",
+				"33kolo.pyz 10", "33kapral.pyzP 30");
+			fxwyrzut2.play;
+			an33kapral.addmethod("onfinish", func { ccs.close( func {
+				gameapi.play("Cs23Wieza");
+				} ); } );
+			}; } );
+		
+		ccs.enter( func { .cbplay("kapral1"); } );
+	}
+	mfin25 {  <GAME> {
+		delete an25bg; delete an25kapral;
+		.newgrimg("gr26", "26scene", 10);
+		gr26.nplay(-1);
+		tim26.play;
+	}; }
+}

@@ -1,0 +1,21 @@
+game mg09_reka :Banshee {
+	init{
+		Banshee::init("mg09_reka");
+		
+		.imgs = (A, "bkg.jpg", "ramka.pyz 20", "klatka.pyz H");
+		
+		new Film filmb;
+		filmb.musicclass = ("mus");
+		filmb.addmethod("onfinish", "mend");
+		filmb.load("scripts/cs09_reka/", "film");
+		filmb.showfirstframe;
+		filmb.setpos( anklatka.getpx, anklatka.getpy );
+		ccs.enter( func {
+			filmb.play;
+			} );
+	}
+	mend	{ 
+		.stdexitdefadv("ad09_polekoniczyny", "gamead09_polekoniczyny0");
+	}
+}
+

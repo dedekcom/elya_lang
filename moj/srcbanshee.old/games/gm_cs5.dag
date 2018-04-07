@@ -1,0 +1,37 @@
+
+game Cs5Brama : StdGame	{
+	init	{
+		StdGame::init("cs5brama");
+		
+		.imgs = (A, "kot.pyz 20", "maska1.pyz 10", "maska2.pyz 30", "kajko.pyz 5", "kokosz.pyz 5",  "bkg.pyz");
+		.sounds = (A, ":kokosz1", "Tak mo¿e byæ?", func { .cbplay("kajko1"); },
+			":kajko1", "Mo¿e byæ prima ballerino", func { .cbplay("kokosz2"); },
+			":kokosz2", "Primo co?", func { .cbplay("kajko2"); },
+			":kajko2", "A tak mi siê powiedzia³o", "mend"
+			);
+		ccs.enter( func {
+			.cbplay("kokosz1"); 
+			timkot.play;
+			ankokosz.anplayfin(0, "mend");
+			ankajko.anplayfin(0, "mend");
+			} );
+		.timer = ("timkot", 3000, func {
+			ankot.play(-1);
+			fxkot1.play;
+			} );
+		
+		.sfxs = (A, "bgrnoc2N 15", "kot1 70");
+		
+	}
+	mend	{
+		if(!.cisplaying && ankokosz.isplaying(-1)==false && ankajko.isplaying(-1)==false)	{
+			ccs.close( func {
+				.gotoadv("adgrod", "gameadgrod0");
+				//return;
+				} );
+		}
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

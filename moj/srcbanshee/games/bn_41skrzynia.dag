@@ -1,0 +1,444 @@
+
+game mg41_skrzynia :Banshee {
+	init{
+		Banshee::init("mg41_skrzynia");
+		.imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2","gwiazda.pyzH 3",  "ramka.pyz 7","popexit.pyz 8", "zamek_mask.pyzH 9","popup2_bkg.pyzH 10",  "popup2_krysztaly_start.pyzH 11",
+		"krysztal1.pyzH 12","krysztal2.pyzH 12","krysztal3.pyzH 12","krysztal4.pyzH 12","krysztal5.pyzH 12","krysztal6.pyzH 12","krysztal7.pyzH 12","krysztal8.pyzH 12","krysztal9.pyzH 12","krysztal10.pyzH 12","krysztal11.pyzH 12","krysztal12.pyzH 12",
+		"popup2_top_mask.pyzH 29","popup2_star.pyzH 30", "final_anim1.pyzH 31",  "final_anim2.pyzH 32", "final_star.pyzH 32","skrzynia_otwarta.pyzH 33","eliksir_zielony_anim.pyzH 34","eliksir_zielony.pyzH 35","lom.pyzH 36",
+		"popup2_gwiazda_kolor.pyzH 50", "blik_anim.pyzH 51","popup2_pajeczyna.pyzH 52","popup2_ramka.pyzH 53", "popup2_popexit.pyzH 54");
+		.sfxs = (A,"bgrmorze3N 10","bgrszumN 10", "openwindow", "lokacja006_kropla1 20", "podswietl", "wzsun2"); 
+		.butpopexit;
+		//     .addtopck("gwiazda"); //testy
+		
+		.askopis("mg41"); 
+		anaskopis.hide; 	
+		anaskopis.ansetbpos( anpopexit.getcx + anaskopis.getw, anpopexit.getcy - anaskopis.geth/2);  
+		aneliksir_zielony_anim.anopacityframe;   
+		 
+		new int g_selected = -1;
+		
+		new bool popup2_open ;
+		imgbkg {
+			.addmethod("isbutin", func { (@x, @y)
+				!anpopup_bkg.isin(x,y,0,0);
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+				 .mend;
+				} );
+			butgame.add(this);
+		}; 
+		anpopup2_popexit {
+			.Button_isinalpha;
+			.addmethod("butmoveon", func {
+		 	 if( !popup2_open) return;
+				advmouse.setstd;
+				.setframe(-1,1);
+				} );
+			.addmethod("butmoveoff", func {
+				 if(!popup2_open) return;
+				advmouse.setstd;
+				.setframe(-1,0);
+				} );
+			.addmethod("butclick", func {
+			 	if(!popup2_open) return;
+			   .close_popup2();
+				} );
+			butgame.add(this);
+		}; 
+		
+		anfinal_anim1.addmethod("onfinish",func{anfinal_anim2.play(0);});
+		 
+		if(!clsave.bis("e1_mg41_skrzynia_otwarta"))
+		{
+			anzamek_mask {
+				.addmethod("isbutin", func { (int x, int y)
+				  .isin(x,y,0,0)  ;
+					} ); 
+				.addmethod("butmoveon", func {
+					if (!popup2_open )
+						advmouse.set("loupe"); 
+					else
+						advmouse.setstd; 
+			  
+				 } );
+				.addmethod("butmoveoff", func {
+				   advmouse.setstd;
+					 
+				 } );
+				.addmethod("butclick", func {
+					if( !.advstdstate || popup2_open ) return;
+						.open_popup2();
+					advmouse.setstd; 
+				} );
+				 
+				butgame.add(this);
+			};   	
+		} 	
+		if(!clsave.bis("ma_gwiazda") && !clsave.bis("e1_mg41_skrzynia_star_in"))
+		{
+			.newsndfree("snd_brak_gwiazdy", "kinnat_c4d4_36");
+			snd_brak_gwiazdy.addmethod("onfinish", "advsetstdstate");  
+			.cbplay("snd_brak_gwiazdy");
+		} 
+		
+		if (!clsave.bis("e1_mg41_skrzynia_star_in"))
+		{
+			anpopup2_star {
+				.addmethod("isbutin", func { (int x, int y)
+					.isin(x,y,0,0) && popup2_open ;
+					} );  
+				.addmethod("butmoveon", func {
+				 if( !popup2_open) return;
+					advmouse.setbut;
+					if (!clsave.bis("e1_mg41_skrzynia_star_in")) 
+						advmouse.set("use"); 
+					else
+						advmouse.setstd;
+					
+					} );
+				.addmethod("butmoveoff", func {
+					 if(!popup2_open) return;
+					advmouse.setstd;
+					 
+					} );
+				 
+				butgame.add(this);
+			};  
+		}
+		else
+		{
+			angwiazda.show;
+		}	
+
+		if (clsave.bis("e1_mg41_skrzynia_otwarta"))
+		{
+			anskrzynia_otwarta.show;
+		}
+
+		if (!clsave.bis("taken_lom") )
+		{
+			.setasitemtopck("anlom");
+			anlom.show();
+			if (!clsave.bis("e1_mg41_skrzynia_otwarta"))
+			{
+				anlom.butdisable;  
+				anlom.hide;
+			}
+			
+		}
+
+		if (!clsave.bis("taken_eliksir_zielony") )
+		{
+			.setasitemtopck("aneliksir_zielony");
+			aneliksir_zielony.show();
+			if (!clsave.bis("e1_mg41_skrzynia_otwarta"))
+			{
+				aneliksir_zielony.butdisable;  
+				aneliksir_zielony.hide;
+			}
+			else
+			{
+				aneliksir_zielony_anim.play(0);
+			}
+		}		
+		
+		.stdstart;  
+		 
+		}// koniec init 
+  
+	mend	{
+		.stdexitdefadv("ad41_statek", "gamead41_statek0"); 
+	}
+	
+	aneliksir_zielony_TAKE	{	
+		aneliksir_zielony_anim.stop(true);
+		aneliksir_zielony_anim.hide;
+		aneliksir_zielony_anim.butdisable;
+		.popitem_gotocenter("eliksir_zielony");	
+	}
+	
+	aneliksir_zielony_INPCK {
+      .addtopck("eliksir_zielony");
+	  if (clsave.bis("taken_lom"))
+		{
+			.set_mg_finished;
+			.timfinito;
+		}
+    } 
+	
+	anlom_TAKE	{	
+		.popitem_gotocenter("lom");	
+	}
+	
+	anlom_INPCK {
+		.addtopck("lom");
+		if (clsave.bis("taken_eliksir_zielony"))
+		{
+			.set_mg_finished;
+			.timfinito;
+		}
+    } 
+
+	
+	open_popup2
+	{
+		 
+		fxwzsun2.play;
+		anpopup2_bkg.show;
+		anpopup2_ramka.show;
+		anpopup2_popexit.show;
+		anpopup2_top_mask.show;
+		if (!clsave.bis("e1_mg41_skrzynia_star_in"))
+			anpopup2_krysztaly_start.show;
+		else
+			.show_crystals(null);	
+		
+		anpopup2_pajeczyna.show;
+		if (clsave.bis("e1_mg41_skrzynia_star_in"))
+		{
+			anpopup2_star.show;
+			anpopup2_gwiazda_kolor.show;
+			anblik_anim.play(0); 
+			guihint.switchtoskip;
+			anaskopis.show; 
+		} 
+		anpopup2_pajeczyna.show;
+		popup2_open =  true;
+	} 
+	
+	close_popup2()
+	{
+		fxwzsun2.play;
+		popup2_open =  false;
+		anpopup2_bkg.hide; 
+		anpopup2_ramka.hide;
+		anpopup2_popexit.hide;
+		anpopup2_top_mask.hide;
+		
+		if (!clsave.bis("e1_mg41_skrzynia_star_in"))
+			anpopup2_krysztaly_start.hide;
+		anpopup2_pajeczyna.hide;
+		if (clsave.bis("e1_mg41_skrzynia_star_in"))
+		{
+			anpopup2_star.hide; 
+			anpopup2_gwiazda_kolor.hide;
+			anblik_anim.stop(false);
+			anblik_anim.hide;
+			.hide_crystals();
+			guihint.switchtohint;
+			anaskopis.hide;
+		}
+		.advsetstdstate; 
+	} 
+	
+	/*
+			0 = red;
+			1 = red_light;
+			2 = green;
+			3 = green_light
+			4 =  blue
+			5 = blue_light
+			6 = yellow
+			7 =  yellow_light
+		
+		*/
+		
+	init_crystal(int id, int color) //init 
+	{
+			<"ankrysztal"+id>(id, color)
+			{
+				(int id,int color) 	
+				.setframe(-1, color);
+				.vars2(A,"id", id,"color", color);
+				.addmethod("isbutin", func { (int x, int y)
+				  .isin(x,y,0,0) && popup2_open && !clsave.bis("e1_mg41_skrzynia_otwarta");
+				} );     
+				.addmethod("butmoveon", func {
+				if(  clsave.bis("e1_mg41_skrzynia_otwarta")) return;
+					advmouse.set("take");
+				} );
+				.addmethod("butmoveoff", func {
+				 
+					advmouse.setstd;
+				} ); 
+
+				.addmethod("butclick", func {
+				if( !.advstdstate || !popup2_open ) return;
+					if ( g_selected < 0)
+					{
+						.setframe(-1,.color+1);
+						fxlokacja006_kropla1.play; 
+						g_selected = .id;
+						 
+					}
+					else if (g_selected != .id)
+					{
+						int selected_color = <"ankrysztal"+g_selected>.color;
+						<"ankrysztal"+g_selected>.color = (.color);
+						.color = (selected_color);
+						.setframe(-1,.color);
+						<"ankrysztal"+g_selected>.setframe(-1,<"ankrysztal"+g_selected>.color);	
+						g_selected = -1;
+						fxlokacja006_kropla1.play; 
+						if (.check_won)
+						{
+							clsave.bset("e1_mg41_skrzynia_otwarta");
+							butgame.removebut("anzamek_mask");
+							.show_won();
+						}
+					}
+					else
+					{
+						.setframe(-1,.color);
+						g_selected = -1;
+						fxlokacja006_kropla1.play; 
+					} 
+				} ); 	
+				 butgame.add(this);  
+			};	
+	}
+	
+	init_crystals()
+	{
+		.init_crystal(1, 0);
+		.init_crystal(2, 2);
+		.init_crystal(3, 4);
+		.init_crystal(4, 6);
+		.init_crystal(5, 0);
+		.init_crystal(6, 2);
+		.init_crystal(7, 4);
+		.init_crystal(8, 6);
+		.init_crystal(9, 0);
+		.init_crystal(10, 2);
+		.init_crystal(11, 4);
+		.init_crystal(12, 6);
+	}
+	
+	check_won()
+	{
+		for(int i = 1; i <= 3; i++)
+		{
+			if (<"ankrysztal"+i>.color != 0)
+				return false;
+		}
+		for(int i = 4; i <= 6; i++)
+		{
+			if (<"ankrysztal"+i>.color != 2)
+				return false;
+		}
+		for(int i = 7; i <= 9; i++)
+		{
+			if (<"ankrysztal"+i>.color != 6)
+				return false;
+		}
+		for(int i = 10; i <= 12; i++)
+		{
+			if (<"ankrysztal"+i>.color != 4)
+				return false;
+		}
+		
+		return true;
+	}
+	
+	
+	USE_gwiazda
+	{
+		.advsetstdstate();
+		if(popup2_open && anpopup2_star.isin(mouse.getpos,0,1) )	{
+			.removefrompck("gwiazda");
+			anpopup2_star.anfadein(200,null); 
+			anpopup2_gwiazda_kolor.anfadein(800,null); 
+			angwiazda.show;
+			advmouse.setstd;
+			anblik_anim.play(0);
+			anpopup2_krysztaly_start.anfadeout(200,null);
+			.show_crystals(true);
+			clsave.bset("e1_mg41_skrzynia_star_in");
+			guihint.switchtoskip; 
+			anaskopis.show; 
+			fxlokacja006_kropla1.play; 
+		} else {
+			.item_gotopck;
+		}
+	 
+	} 
+
+	show_won
+	{
+		 
+		fxpodswietl.play();
+		anfinal_anim1.play(0);
+		anfinal_star.anfadein(3000,func{ .close_popup2();anfinal_anim1.hide;anfinal_anim2.hide;anfinal_star.hide;
+		fxopenwindow.play;
+		anskrzynia_otwarta.anfadein(500,null);
+		anlom.butenable; 
+		anlom.anfadein(500,null);
+		aneliksir_zielony.butenable; 
+		aneliksir_zielony.anfadein(500,null);
+		aneliksir_zielony_anim.play(0);
+		.butrefresh; 
+		});
+ 
+	}
+
+	show_crystals(bool fade)
+	{
+		for(int i = 1; i<=12; i++)
+		{
+			if(fade)
+				<"ankrysztal"+i>.anfadein(400,null);
+			else
+				<"ankrysztal"+i>.show;
+		}
+		
+		.init_crystals();
+	
+	}
+	
+	hide_crystals()
+	{
+		for(int i =1; i<=12; i++)
+		{
+			<"ankrysztal"+i>.hide;
+		}
+	
+	}
+	
+	SKIP_CLICK	{
+		if( .advstdstate )	{
+			if (clsave.bis("e1_mg41_skrzynia_star_in"))
+			{
+				clsave.bset("e1_mg41_skrzynia_otwarta");
+				butgame.removebut("anzamek_mask");
+				.show_won();
+				 
+				guihint.switchtohint; 
+			}
+		}
+	}     	
+  
+	HINT_CLICK {
+		if (clsave.bis("ma_gwiazda"))
+		{
+			 
+			if (popup2_open)
+			{
+				.showhint("anpopup2_star"); 
+				.showhintitem("gwiazda");
+			}
+			else
+				.showhint("anzamek_mask");	
+		} 
+		else if (clsave.bis("e1_mg41_skrzynia_star_in") && !popup2_open & !clsave.bis("e1_mg41_skrzynia_otwarta"))
+			.showhint("anzamek_mask");	
+		else if ( clsave.bis("e1_mg41_skrzynia_otwarta") & ! clsave.bis("taken_lom"))
+			.showhint("anlom");	
+		else if ( clsave.bis("e1_mg41_skrzynia_otwarta") & ! clsave.bis("taken_eliksir_zielony"))
+			.showhint("aneliksir_zielony");		
+		 	
+		else
+			.showhint("anpopexit");   
+	}
+}
+ 

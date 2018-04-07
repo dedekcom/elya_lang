@@ -1,0 +1,34 @@
+/****************************************************************/
+class DelayTaker	{
+	init()	{
+		new bool bonrel = false;
+		new bool bstart = false;
+		new bool bclickrel = true;
+		this.cnewtimerfin("timwez",300,1, func { bonrel=true; } );
+	}
+	public setclickrel(bool b)	{	bclickrel=b;	}
+	public setdelay(int idelay)	{	timwez.delay(idelay);	}
+	public take()	{
+		if( bclickrel )	{
+			timwez.play();
+			bonrel=false;
+		} else bonrel=true;
+		bstart=true;
+		
+	}
+	public ret()	{
+		bonrel=false;
+		bstart=false;
+		timwez.stop(false);
+	}
+	public bool isonclick()	{
+		this.stoptimer();
+		( bstart && !bonrel );
+	}
+	public bool isonrel()	{
+		this.stoptimer();
+		( bstart && bonrel );
+	}
+	public bool istaken()	{	bstart;	}
+	public stoptimer()	{	timwez.stop(false);	}
+}

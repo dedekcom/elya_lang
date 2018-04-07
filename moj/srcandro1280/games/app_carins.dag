@@ -1,0 +1,694 @@
+
+class CarInsStd : MermaidStd	{
+	init	{
+		//advmouse.load( "scripts/app_carins/menu/cursors.pyz" );
+		MermaidStd::init("menu");
+		
+		.newanima("anbutexit", "butexit.pyz", 300);
+		int x = igmoffsetx + iResX;
+		if( x > igmappw ) x = igmappw;
+		else if( x < 20 ) x = 20;
+		anbutexit.ansetbpos( x - 20->igetsc - anbutexit.getw, igmoffsety );
+		anbutexit.Button_addstdstate;
+		
+		new bool bfullscreen = false;
+		
+		.loadasker;
+			
+		.img = ("bkg.png");
+		
+		.newdb("dbtx", "txts.db");
+		new int ifontsize = .ireadscfg("carins_stdbutton_fontsize:",30);
+		new string sfntstd = .stdfont(ifontsize);
+		new int ibutwidth = .ireadscfg("carins_stdbutton_width:",200);
+		new int ibutheight = .ireadscfg("carins_stdbutton_height:",50);
+		
+		new GUI gui("butgui", ifontsize);
+		gui.unlock;
+		
+		.newtext("txt1", "", sfntstd, .black);
+		.newtext("txt2", "", sfntstd, 128,0,0);
+		.newtext("txt3", "", sfntstd, .black);
+		txt1.setpos( 100->igetsc, 50->igetsc );
+		int dy = 10->igetsc;
+		txt2.setpos( txt1.getpx, txt1.getpy + ifontsize + dy );
+		txt3.setpos( txt1.getpx, txt2.getpy + ifontsize + dy );
+		new int iidputxt = 1;
+	}
+	mputxt(string s)	{
+		<"txt"+iidputxt>.txtset( dbtx.dbget(s) );
+		iidputxt++;
+	}
+	key_down	{
+		if( !.checktouchpad && keyboard.iskey("f") && (keyboard.iskeydown("lctrl") || keyboard.iskeydown("rctrl")) )	{
+			bfullscreen = !bfullscreen;
+			engine.setfullscreen(bfullscreen);
+		}
+	}
+}
+
+game CarInsMenu1 : CarInsStd	{
+	init	{
+		CarInsStd::init;
+		butgui.setfontsize(1.2*ifontsize);
+		
+		new gmimgvec grbuts;
+		
+		int w = 1.5*ibutwidth;
+		int h = 1.5*ibutheight;
+		int dx = 50->igetsc;
+		
+		gui.newbutton("butzrob", dbtx.dbget("zrob"), w, h);
+		grbuts.add("butzrob");
+		
+		gui.newbutton("butwyslij", dbtx.dbget("wyslij"), w, h);
+		butwyslij.setpos( butzrob.getex + dx, 0 );
+		grbuts.add("butwyslij");
+		
+		gui.newbutton("butprzejrzyj", dbtx.dbget("przejrzyj"), w, h);
+		butprzejrzyj.setpos( butwyslij.getex + dx, 0 );
+		grbuts.add("butprzejrzyj");
+		
+		grbuts.move( (igmappw - grbuts.getw)/2, (igmapph-grbuts.geth)/2 );
+		
+		.stdenter;
+	}
+	butclick_anbutexit	{	.askfor("exit");	}
+	butzrob_lclick	{
+		butzrob.unclick;
+		if( .advstdstate )	{
+			//.stdexit("CarInsMenuFirmy");
+			.stdexit("CarInsMenuFoto");
+		}
+	}
+	butwyslij_lclick	{
+		butwyslij.unclick;
+		if( .advstdstate )	{
+			.stdexit("CarInsMenuWyslane");
+		}
+	}
+	butprzejrzyj_lclick	{
+		butprzejrzyj.unclick;
+		if( .advstdstate )
+			.stdexit("CarInsMenuZrobione");
+	}
+}
+
+game CarInsMenuZrobione : CarInsStd	{
+	init	{
+		CarInsStd::init;
+		.stdenter;
+	}
+	butclick_anbutexit	{	.stdexit("CarInsMenu1");	}
+}
+
+game CarInsMenuFirmy : CarInsStd	{
+	init	{
+		CarInsStd::init;
+		butgui.setfontsize(25->igetsc);
+		
+		new gmimgvec grbuts;
+		
+		int w = 200->igetsc;
+		int h = 200->igetsc;
+		int dx = 50->igetsc;
+		
+		gui.newbutton("butpzu", "PZU", w, h);
+		grbuts.add("butpzu");
+		
+		gui.newbutton("buthestia", "Hestia", w, h);
+		buthestia.setpos( butpzu.getex + dx, 0 );
+		grbuts.add("buthestia");
+		
+		gui.newbutton("butwarta", "Warta", w, h);
+		butwarta.setpos( 0, butpzu.getey + dx );
+		grbuts.add("butwarta");
+		
+		gui.newbutton("butaxa", "AXA", w, h);
+		butaxa.setpos( butwarta.getex + dx, butpzu.getey + dx );
+		grbuts.add("butaxa");
+		
+		grbuts.move( (igmappw - grbuts.getw)/2, (igmapph-grbuts.geth)/2 );
+		
+		butgui.setfontsize(15->igetsc);
+		gui.newbutton("butpowrot", dbtx.dbget("powrot"), 100->igetsc, 30->igetsc);
+		butpowrot.setpos( dx, igmapph - butpowrot.geth - dx );
+		
+		clsave.set("carins_mode","mk_foto");
+		
+		.stdenter;
+	}
+	butclick_anbutexit	{	.askfor("exit");	}
+	butpowrot_lclick	{	.stdexit("CarInsMenu1");	}
+	buthestia_lclick	{
+		buthestia.unclick;
+		if( .advstdstate )
+			.stdexit("CarInsMenuFoto");
+	}
+	butwarta_lclick	{	butwarta.unclick;	}
+	butpzu_lclick	{	butpzu.unclick;		}
+	butaxa_lclick	{	butaxa.unclick;		}
+}
+
+game CarInsMenuFoto : CarInsStd	{
+	init	{
+		CarInsStd::init;
+		
+		.sfxs = (A, "pstryk "+.readcfg("carins_pstryk_vol:",40) );
+		
+		.imgs = (A, "fotos.pyz 10");
+		
+		new vector vfoto;
+		vfoto.resize( anfotos.nofactions, 0 );
+		
+		anfotos.Button_isin;
+		anfotos.addmethod("butmoveon", func {
+			if( .advstdstate && .framenr==0 )
+				advmouse.setact;
+			} );
+		anfotos.addmethod("butmoveoff", func {
+			if( .advstdstate )
+				advmouse.setstd;
+			} );
+		anfotos.addmethod("butclick", func {
+			if( .advstdstate && .framenr==0 )	{
+				.mkfoto;
+			}
+			} );
+		butgame.add("anfotos");
+		
+		new bool brepeat = clsave.get("carins_mode")=="repeat_foto";
+		
+		new int iidfoto;
+		if ( brepeat )	{
+			iidfoto = 1+clsave.get("carins_idfoto");
+			int ile = clsave.get("carins_ilefoto");
+			for( int i=0; i<ile; i++ )
+				vfoto.set( i, clsave.get("carins_foto_"+i) );
+		} else iidfoto = 0;
+		
+		int w = ibutwidth;
+		int h = ibutheight;
+		int dx = 20->igetsc;
+		gui.newbutton("butdalej", dbtx.dbget("dalej"), w, h);
+		butdalej.setpos( igmappw - butdalej.getw - dx, igmapph - butdalej.geth - 100->igetsc );
+		gui.newbutton("butpowtorz", dbtx.dbget("powtorz"), w, h);
+		butpowtorz.setpos( butdalej.getpx, butdalej.getpy - butdalej.geth - 3*dx );
+		gui.newbutton("butpowrot", dbtx.dbget("powrot"), w, h);
+		butpowrot.setpos( dx, butdalej.getpy );
+		
+		gui.newwndtitle("winall", null, dbtx.dbget("error"), 3.5*w, 3*h);
+		gui.printcenter("winall", dbtx.dbget("abyprzejsc"));
+		gui.newbutton("butokwinall", "OK", w, h);
+		winall.winsetpos( (igmappw - winall.getw)/2, (igmapph - winall.geth)/2 );
+		winall.winsetz(100);
+		butokwinall.setpos( winall.getcx-butokwinall.getw/2, winall.getey - 10->igetsc - butokwinall.geth );
+		winall.blit("butokwinall");
+		butokwinall.setz(110);
+		butokwinall.hide;
+		winall.winhide;
+		
+		gui.newwndtitle("winuszk", null, "?", 3.5*w, 3*h);
+		gui.printcenter("winuszk", dbtx.dbget("czy_uszkodzenia1"));
+		gui.newbutton("butuszky", dbtx.dbget("tak"), w, h);
+		gui.newbutton("butuszkn", dbtx.dbget("nie"), w, h);
+		winuszk.winsetpos( (igmappw - winuszk.getw)/2, (igmapph - winuszk.geth)/2 );
+		winuszk.winsetz(100);
+		butuszky.setpos( winuszk.getpx+dx, winuszk.getey - 10->igetsc - butuszky.geth );
+		winuszk.blit("butuszky");
+		butuszky.setz(110);
+		butuszky.hide;
+		butuszkn.setpos( winuszk.getex-dx-butuszkn.getw, winuszk.getey - 10->igetsc - butuszkn.geth );
+		winuszk.blit("butuszkn");
+		butuszkn.setz(110);
+		butuszkn.hide;
+		winuszk.winhide;
+		
+		if( brepeat )	{
+			.mlev(0);
+			butdalej.hide;
+		} else {
+			.mlev(1);
+		}
+		
+		.stdenter;
+	}
+	butclick_anbutexit	{	.askfor("CarInsMenu1");	}
+	resettxts	{
+		txt1.txtset("");
+		txt2.txtset("");
+		txt3.txtset("");
+		iidputxt = 1;
+	}
+	mlev(int id)	{
+		.resettxts;
+		iidfoto += id;
+		if( iidfoto < 1 ) {
+			iidfoto = 1;
+		} else if (iidfoto > anfotos.nofactions ) {
+			iidfoto = anfotos.nofactions;
+		}
+		butpowrot.show;
+		anfotos.setframe(iidfoto-1, vfoto.get(iidfoto-1));
+		anfotos.framenr ? butpowtorz.show : butpowtorz.hide;
+		match( iidfoto )	{
+			1 => {
+				.mputxt("prosba");
+				.mputxt("przod");
+				.mputxt("kadr");
+				if( !brepeat )
+					butpowrot.hide;
+			}
+			2 => {
+				.mputxt("prosba");
+				.mputxt("tyl");
+				.mputxt("kadr");
+			}
+			3 => {
+				.mputxt("prosba");
+				.mputxt("wnetrze");
+			}
+			4 => {
+				.mputxt("prosba");
+				.mputxt("licznik");
+			}
+			5 => {
+				.mputxt("prosba");
+				.mputxt("vin");
+			}
+			6 => {
+				.mputxt("prosba");
+				.mputxt("klucze");
+			}
+			7 => {
+				.mputxt("prosba");
+				.mputxt("uszkodzenia1");
+			}
+			8 => {
+				.mputxt("prosba");
+				.mputxt("uszkodzenia2");
+			}
+			? => ;
+		}
+	}
+	butdalej_lclick {
+		butdalej.unclick;
+		if( .advstdstate )       {
+			if( iidfoto<7 )	{
+				if( anfotos.framenr==0 )	{
+					.advsetstate("state_morefotostart");
+					winall.anzoomin(300, func { 
+						.advsetstate("state_morefoto");
+						winall.winshow;
+						butokwinall.show;
+						butokwinall.unlock;
+						winall.unlock;
+						} );
+				} else if( iidfoto==6 ) {
+					.advsetstate("state_uszkstart");
+					winuszk.anzoomin(300, func { 
+						.advsetstate("state_uszk");
+						winuszk.winshow;
+						butuszkn.show;
+						butuszkn.unlock;
+						butuszky.show;
+						butuszky.unlock;
+						winuszk.unlock;
+						} );
+				} else
+					.mlev(1);
+			} else if( iidfoto==7 )	{
+				.advsetstate("state_uszkstart");
+				winuszk.anzoomin(300, func { 
+					.advsetstate("state_uszk");
+					winuszk.winshow;
+					butuszkn.show;
+					butuszkn.unlock;
+					butuszky.show;
+					butuszky.unlock;
+					winuszk.unlock;
+					} );
+			}
+		}
+	}
+	butpowrot_lclick	{
+		butpowrot.unclick;
+		if( brepeat )	{
+			.stdexit("CarInsMenuWyslij");
+		} else {
+			if( .advstdstate )       {
+				.mlev(-1);
+			}
+		}
+	}
+	butpowtorz_lclick	{
+		butpowtorz.unclick;
+		if( .advstdstate )	{
+			.mkfoto;
+		}
+	}
+	mkfoto	{
+		.advsetstate("state_mkfoto");
+		ccs.close( func {
+			fxpstryk.play;
+			advmouse.setstd;
+			vfoto.set( iidfoto-1, 1 );
+			clsave.set("carins_foto_"+(iidfoto-1),1);
+			ccs.enter( "advsetstdstate" );
+			.mlev(0);
+			} );
+	}
+	mhidewinall	{
+		sgmstate = "state_morefotoend";
+		winall.winhide;
+		winall.lock;
+		butokwinall.lock;
+		butokwinall.hide;
+		winall.anzoomout(300, func {
+			.advsetstdstate;
+			} );
+	}
+	butokwinall_lclick	{
+		butokwinall.unclick;
+		.winall_lclick;
+	}
+	winall_lclick	{
+		if( sgmstate=="state_morefoto" )	{
+			.mhidewinall;
+		}
+	}
+	mhidewinuszk	{
+		winuszk.winhide;
+		winuszk.lock;
+		butuszkn.lock;
+		butuszkn.hide;
+		butuszky.lock;
+		butuszky.hide;
+	}
+	butuszkn_lclick	{
+		butuszkn.unclick;
+		clsave.set("carins_ilefoto", iidfoto);
+		for( int i=0; i<vfoto.size; i++ )
+			clsave.set("carins_foto_"+i, vfoto.get(i));
+		.stdexit("CarInsMenuWyslij");
+	}
+	butuszky_lclick	{
+		butuszky.unclick;
+		if( sgmstate=="state_uszk" )	{
+			.winuszk_lclick;
+			if( iidfoto<7 )
+				.mlev(1);
+		}
+	}
+	winuszk_lclick	{
+		if( sgmstate=="state_uszk" )	{
+			.mhidewinuszk;
+			sgmstate = "state_uszkend";
+			winuszk.anzoomout(300, func {
+				.advsetstdstate;
+			} );
+		}
+	}
+	mouse_rclick	{
+		//.butuszkn_lclick;
+	}
+}
+
+
+game CarInsMenuWyslij : CarInsStd	{
+	init	{
+		CarInsStd::init;
+		
+		.imgs = (A, "fotos.pyz 10");
+		
+		new int iilefoto = clsave.get("carins_ilefoto");
+		//iilefoto = 6;
+		new vector vfoto;
+		for( int i=0; i<iilefoto; i++ )	{
+			vfoto.add( clsave.get("carins_foto_"+i) );
+			//vfoto.set(i,1);
+		}
+		clsave.set("carins_mode","repeat_foto");
+		
+		.mputxt("dziekuje");
+		.mputxt("rejestracja");
+		new gmimgvec grtx;
+		
+		new string stxtrej = "txt3";
+		int pol = (BYTEZ+BYTEA)/2;
+		@startx = txt3.getpx;
+		@x = startx;
+		@size = 2*ifontsize;
+		@y = txt3.getpy + txt3.geth + size/2;
+		@dx = 4->igetsc;
+		int i = BYTEA;
+		int b = 1;
+		//for( int i=BYTEA; i<=BYTEZ; i++ )	{
+		bool bcontinue = true;
+		while( b )	{
+			if( b==1 ) {
+				if( i>BYTEZ )	{
+					b = 2;
+					i = BYTE0;
+					bcontinue = false;
+					x = startx;
+					y += 1.2*size;
+				} else bcontinue = true;
+			} else if( b==2 )	{
+				if( i > BYTE9 )	{
+					b = 3;
+					bcontinue = false;
+					x = startx;
+					y += 1.2*size;
+				} else bcontinue = true;
+			} else if( b==3 )	{
+				bcontinue = true;
+				@st = "SPACE";
+				b = 4;
+			} else if( b==4 )	{
+				@st = "DEL";
+				b = 5;
+			} else {
+				b = 0;
+				bcontinue = false;
+			}
+			if( bcontinue )	{
+				@s = "imgtxta"+i;
+				if( b<3 )	{
+					@st = "a";
+					st.setbyte(0,i);
+				}
+				txt3.txtsetcol( st, .white );
+				new img <s>;
+				<s>.var2("value",st);
+				if( st=="SPACE" || st=="DEL" )
+					<s>.create( txt3.getw + ifontsize, 2*ifontsize, .black, 192 );
+				else
+					<s>.create( 2*ifontsize, 2*ifontsize, .black, 192 );
+				
+				<s>.setpos( txt3.getpx + txt3.getw/2 - <s>.getw/2, txt3.getpy + txt3.geth/2 - <s>.geth/2 );
+				<s>.setz( 26 );
+				<s>.blit("txt3");
+				<s>.setpos(x,y);
+				
+				if( i>pol )	{
+					pol = BYTEZ;
+					x = startx;
+					y += 1.2*size;
+				} else 
+					x+=<s>.getw+dx;
+				grtx.add(s);
+				<s>.Button_stdms;
+				<s>.addmethod("butclick", func {
+					if( .advstdstate )	{
+						@s = <stxtrej>.get;
+						if( value=="DEL" )	{
+							if( s.length > 0 )	{
+								<stxtrej>.txtset( s.strsube(1) );
+							}
+						} else if( value=="SPACE" )	{
+							if( s.length < 12 )	{
+								<stxtrej>.txtset( s+" " );
+							} else <stxtrej>.txtset( s.strsube(1) + " " );
+						} else {
+							if( s.length < 12 )	{
+								<stxtrej>.txtset( s+value );
+							} else <stxtrej>.txtset( s.strsube(1) + value );
+						}
+						.mtxt4pos;
+					}
+					} );
+				butgame.add(s);
+				i++;
+			}
+		}
+		txt3.txtsetcol("", .red);
+		txt3.show;
+		.newtext("txt4", "_", sfntstd, .red);
+		.mtxt4pos;
+		.timer=("timtx",300, func {
+			.mtxt4pos;
+			if( txt4.isvisible )	{
+				txt4.hide;
+			} else txt4.show;
+			.play;
+			} );
+		timtx.play;
+		
+		x = startx;
+		y += 1.2*size;
+		int ilebuts = 0;
+		anfotos.anzoom(0.25);
+		for( int i=0; i<iilefoto; i++ )	{
+			if( vfoto.get(i) )	{
+				@s = "imgfoto"+ilebuts;
+				new img <s>;
+				anfotos.setframe(i,1);
+				<s>.imgclone("anfotos");
+				//<s>.anzoom(0.25);
+				<s>.setpos( x, y );
+				if( (i+1)%5==0 )	{
+					x = startx;
+					y += ifontsize/2 + <s>.geth;
+				} else {
+					x += ifontsize/2 + <s>.getw;
+				}
+				<s>.msetbut(ilebuts);
+				grtx.add(s);
+				ilebuts++;
+			}
+		}
+		anfotos.hide;
+		
+		@s = "imgfoto"+ilebuts;
+		@s2 = grtx.last;
+		new img <s>;
+		<s>.imgclonesizecol( s2, .red, 192);
+		.newtext("txtfoto", dbtx.dbget("dodajszkode1"), sfntstd, .black);
+		//<s>.imgfittxt( dbtx.dbget("dodajszkode"), s, "txtfoto", 5->igetsc, false );
+		txtfoto.txtcenter(s);
+		txtfoto.move(0, -0.75*txtfoto.geth);
+		<s>.blit("txtfoto");
+		txtfoto.txtset( dbtx.dbget("dodajszkode2") );
+		txtfoto.txtcenter(s);
+		<s>.blit("txtfoto");
+		txtfoto.hide;
+		<s>.setpos(x, y);
+		x+= ifontsize + <s>.getw;
+		<s>.msetbut(ilebuts);
+		ilebuts++;
+		grtx.add(s);
+		
+		int w = ibutwidth;
+		int h = ibutheight;
+		gui.newbutton("butwyslij", dbtx.dbget("wyslij"), w, h);
+		butwyslij.setpos( igmappw - butwyslij.getw - 20->igetsc, igmapph - butwyslij.geth - 100->igetsc );
+		
+		gui.newbutton("butok", "OK", w, h);
+		butok.setpos( butwyslij.getpx, butwyslij.getpy - 3*butok.geth );
+		
+		gui.newwndtitle("winrej", null, dbtx.dbget("error"), 3.5*w, 3*h);
+		gui.printcenter("winrej", dbtx.dbget("brakrej"));
+		gui.newbutton("butokwinrej", "OK", w, h);
+		winrej.winsetpos( (igmappw - winrej.getw)/2, (igmapph - winrej.geth)/2 );
+		winrej.winsetz(100);
+		butokwinrej.setpos( winrej.getcx-butokwinrej.getw/2, winrej.getey - 10->igetsc - butokwinrej.geth );
+		winrej.blit("butokwinrej");
+		butokwinrej.setz(110);
+		butokwinrej.hide;
+		winrej.winhide;
+		
+		sgmstate = "state_rejestracja";
+		.stdenter;
+	}
+	msetbut(int id)	{
+		.Button_isin;
+		.addmethod("butclick", func {
+			if( .advstdstate )	{
+				clsave.set("carins_idfoto", idfoto);
+				if( clsave.get("carins_ilefoto")->to_i < idfoto+1 )
+					clsave.set("carins_ilefoto",idfoto+1);
+				.stdexit("CarInsMenuFoto");
+			}
+			} );
+		butgame.add(this);
+		if( id > 6 )
+			id=6;
+		new int idfoto = id;
+	}
+	mtxt4pos	{	txt4.setpos( txt3.getpx + txt3.getw, txt3.getpy );	}
+	butwyslij_lclick	{
+		butwyslij.unclick;
+		if( .advstdstate )	{
+			if( .misrej )
+				.stdexit("CarInsMenuWyslane");
+			else	{
+				.mrej;
+			}
+		}
+	}
+	butok_lclick	{
+		butok.unclick;
+		if( .advstdstate )	{
+			if( .misrej )
+				.stdexit("CarInsMenu1");
+			else	{
+				.mrej;
+			}
+		}
+	}
+	misrej	{
+		@s = <stxtrej>.get;
+		s.clear;
+		s.change(" ","_");
+		if( s.length )	{
+			true;
+		} else false;
+	}
+	mrej	{
+		.advsetstate("state_norejstart");
+		winrej.anzoomin(300, func { 
+			.advsetstate("state_norej");
+			winrej.winshow;
+			butokwinrej.show;
+			butokwinrej.unlock;
+			winrej.unlock;
+			} );
+	}
+	mhidewinrej	{
+		sgmstate = "state_norejend";
+		winrej.winhide;
+		winrej.lock;
+		butokwinrej.lock;
+		butokwinrej.hide;
+		winrej.anzoomout(300, func {
+			.advsetstdstate;
+			} );
+	}
+	butokwinrej_lclick	{
+		butokwinrej.unclick;
+		.winrej_lclick;
+	}
+	winrej_lclick	{
+		if( sgmstate=="state_norej" )	{
+			.mhidewinrej;
+		}
+	}
+}
+
+game CarInsMenuWyslane : CarInsStd	{
+	init	{
+		CarInsStd::init;
+		
+		.mputxt("wyslano");
+		gui.newbutton("butkoniec", dbtx.dbget("zamknij"), 2*ibutwidth, ibutheight);
+		butkoniec.ancenterscreen;
+		
+		.stdenter;
+	}
+	butkoniec_lclick	{
+		butkoniec.unclick;
+		.stdexit("CarInsMenu1");
+	}
+	butclick_anbutexit	{	.stdexit("CarInsMenu1");	}
+}

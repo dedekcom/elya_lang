@@ -1,0 +1,854 @@
+
+class GUI {
+	init(string sgui)	{
+		.var2("sGui", sgui);
+		if( sgui!=null && !<GAME>.hasvar(sgui))	{
+			//<GAME>.varnew("Button",sgui);
+			new Button <sgui>;
+			<sgui>.addtogamevars(sgui);
+			<sgui>.addmethod(sgui+"_lclick", func {
+				grouter.eval("butouterclick");
+				.<this+"_gui_lclick">;
+				} );
+		}
+		new gmobjvec grouter;
+		//LObjController::init;
+		new Color wndcol;		wndcol.set(.grey(239),255);
+		new Color wndconcave;		wndconcave.set(.grey(199),255);
+		new Color wndact;		wndact.set(103,141,178,255);
+		new Color wndtextcol;		wndtextcol.set(.white,255);
+		
+		new Color wndborder;		wndborder.set(.black,255);
+		new Color wndborderL;		wndborderL.set(.white,255);	// wypukly
+		
+		new bool bround = false;
+		
+		new Color wndshadow;	wndshadow.set(.black,128);
+		
+		new Color wndbar;	wndbar.set(60, 132, 204, 255);
+		new Color wndbarb;	wndbarb.set(32, 71, 110, 255);
+		.vars2(A,"iwndshadow", 1, "swndshadow", "0110", "ititlebar", 24, "ibar", 4, "iytextlength", 2, "istdfont", 13,
+			 "iwndborder",1);
+		
+		new font stdfont;
+		stdfont.load(sgmfontfile,istdfont);
+		stdfont.buildfullname;
+		new font stdmonofont;
+		stdmonofont.load(sgmfontmono, istdfont);
+		stdmonofont.buildfullname;
+		new text txt1;
+		txt1.setfont("stdmonofont");
+		txt1.txtset("a");
+		new int monowidth = txt1.getw;
+		delete txt1;
+		new Color fontcol;	fontcol.set(.black,255);
+		new font stitlefont;
+		stitlefont.load(sgmfontbold,istdfont);
+		new Color titlecol;	titlecol.set(.white,255);
+		
+		new img imgquit;
+		imgquit.create(20, 20, 93,152,211,255 );
+		imgquit.imgroundborder(1,wndbarb.get);
+		imgquit.hide;
+		new img imgquitact;
+		imgquitact.create(20, 20, 143,202,251,255 );
+		imgquitact.imgroundborder(1,.white,128);
+		imgquitact.hide;
+		new string squit = this+"quit";
+		imgquit.addtogamevars(squit);
+		imgquitact.addtogamevars(squit+"act");
+		
+		new img im3;
+		im3.create(2,2,wndbarb.get);
+		imgquit.drawX(1);
+		imgquitact.drawX(1);
+		im3.create(2,2,.white,255);
+		imgquit.drawX(0);
+		imgquitact.drawX(0);
+		
+		// build arrows
+		.buildguibut("arrowleft", null, 20, 20, false);
+		.buildguibut("arrowleftact", null, 20, 20, true);
+		.buildguibut("arrowright", "imgarrowleft", 0, 0, 0);
+		.buildguibut("arrowrightact", "imgarrowleftact", 0, 0, 0);
+		.buildguibut("arrowup", null, 20, 20, false);
+		.buildguibut("arrowupact", null, 20, 20, true);
+		.buildguibut("arrowdown", "imgarrowleft", 0, 0, 0);
+		.buildguibut("arrowdownact", "imgarrowleftact", 0, 0, 0);
+		im3.create(1,1,.black,255);
+		
+		imgarrowleft.drawarrow("left");
+		imgarrowleftact.drawarrow("left");
+		imgarrowright.drawarrow("right");
+		imgarrowrightact.drawarrow("right");
+		imgarrowup.drawarrow("up");
+		imgarrowupact.drawarrow("up");
+		imgarrowdown.drawarrow("down");
+		imgarrowdownact.drawarrow("down");
+		
+		new timer timbutclick;
+		timbutclick.delay(100);
+		timbutclick.settick(1);
+		new string sButClick = null;
+		timbutclick.addmethod("onfinish", func {
+				if( sButClick!=null )	{
+					@s = sButClick;
+					sButClick = null;
+					.<s+"_lclick">;
+				}
+			} );
+		
+		.reset;
+	}
+	drawarrow(string sdir)	{
+		@x = .getcx;
+		@y = .getcy;
+		match(sdir)	{
+			"left" => {
+				_ = .imgdrawline("im3", x-2, y, x-1, y, 1, 0);
+				_ = .imgdrawline("im3", x-1, y-1, x-1, y+1, 1, 0);
+				_ = .imgdrawline("im3", x, y-2, x, y+2, 1, 0);
+				_ = .imgdrawline("im3", x+1, y-3, x+1, y+3, 1, 0);
+			} "right" => {
+				_ = .imgdrawline("im3", x-1, y-3, x-1, y+3, 1, 0);
+				_ = .imgdrawline("im3", x, y-2, x, y+2, 1, 0);
+				_ = .imgdrawline("im3", x+1, y-1, x+1, y+1, 1, 0);
+				_ = .imgdrawline("im3", x+1, y, x+2, y, 1, 0);
+			} "up" => {
+				_ = .imgdrawline("im3", x, y-2, x, y-1, 1, 0);
+				_ = .imgdrawline("im3", x-1, y-1, x+1, y-1, 1, 0);
+				_ = .imgdrawline("im3", x-2, y, x+2, y, 1, 0);
+				_ = .imgdrawline("im3", x-3, y+1, x+3, y+1, 1, 0);
+			} "down" => {
+				_ = .imgdrawline("im3", x-3, y-2, x+3, y-2, 1, 0);
+				_ = .imgdrawline("im3", x-2, y-1, x+2, y-1, 1, 0);
+				_ = .imgdrawline("im3", x-1, y, x+1, y, 1, 0);
+				_ = .imgdrawline("im3", x, y, x, y+1, 1, 0);
+			}
+			? => ;
+		}
+	}
+	drawX(int dx)	{
+		int dt = 4;
+		_ = .imgdrawline( "im3", .getpx+dt+dx, .getpy+dt+dx, .getex-dt-im3.getw+dx, .getey-dt-im3.geth+dx, 1, 0 );
+		_ = .imgdrawline( "im3", .getex-dt-im3.getw+dx-1, .getpy+dt+dx, .getpx+dt+dx-1, .getey-dt-im3.geth+dx, 1, 0 );
+	}
+	buildguibut(string sname, string sfrom, int w, int h, bool bconcave)	{
+		string s = "img" + sname;
+		new img <s>;
+		if( sfrom == null )	{
+			if( bconcave ) 	{
+				<s>.create(w, h, wndconcave.get );
+				<s>.imgborderss(2, wndshadow.get, "1001");
+				<s>.imgborderss(1, .black,255, "1001");
+				<s>.imgborderss(1, .white,255, "0110");
+			} else {
+				<s>.create(w, h, wndcol.get );
+				<s>.imgborderss(2, wndshadow.get, "0110");
+				<s>.imgborderss(1, .black,255, "0110");
+				<s>.imgborderss(1, .white,255, "1001");
+			}
+		} else <s>.clone(sfrom);
+		<s>.hide;
+		string s2 = "s" + sname;
+		new string <s2>;
+		<s2> = this+sname;
+		<s>.addtogamevars( [s2] );
+	}
+	/************** sys ************************/
+	addtogui	{
+		if( sGui!=null )	{
+			<sGui>.add(this);
+		}
+	}
+	removefromgui	{
+		if( sGui!=null )	{
+			<sGui>.removebut(this);
+		}
+	}
+	reset	{
+		//advmouse.setstd;
+	}
+	dellist	{	.withlist("delobj");	}
+	delobj(string sob)	{	.<"del"+ <sob>.guitype>(sob);	}
+	/*********************************************/
+	newwnd(string s, int w, int h)	{	._newwnd(s,w,h,"wndborder", "wndborder", "wndcol", iwndborder, swndshadow);	}
+	newwndconvex(string s, int w, int h)	{	._newwnd(s,w,h,"wndborderL", "wndborder", "wndcol", iwndborder, swndshadow);	}
+	newwndconcave(string swnd, int w, int h)	{	._newwnd(swnd,w,h,"wndborder", "wndborderL", "wndconcave", 2,"1001");	}
+	newwndtext(string swnd, int w, int h)	{	._newwnd(swnd,w,h,"wndborder", "wndborderL", "wndtextcol", 2,"1001");	}
+	_newwnd(string s, int w, int h, string swndsh0, string swndsh1, string swndcol, int iborder, string sshadow)	{
+		new img <s>;
+		<s>.addtogamevars(s);
+		<s>.create(w,h,<swndcol>.get);
+		<s>.var2("guitype","wnd");
+		if( iborder )	{
+			new img im1;
+			im1.create(w,iborder,<swndsh0>.get);
+			<s>.blit("im1");
+			im1.create(w,iborder,<swndsh1>.get);
+			im1.setpos(0, <s>.getey-iborder);
+			<s>.blit("im1");
+			im1.create(iborder,h,<swndsh0>.get);
+			im1.setpos(0,0);
+			<s>.blit("im1");
+			im1.create(iborder,h,<swndsh1>.get);
+			im1.setpos(<s>.getex-iborder,0);
+			<s>.blit("im1");
+			delete im1;
+		}
+		._mk_shadow(s, 0, iborder, iborder, w-2*iborder, iwndshadow, sshadow);
+		._mk_shadow(s, 1, <s>.getex-iborder-iwndshadow, iborder, iwndshadow, h-2*iborder, sshadow);
+		._mk_shadow(s, 2, iborder, <s>.getey-iborder-iwndshadow, w-2*iborder, iwndshadow, sshadow);
+		._mk_shadow(s, 3, iborder, iborder, iwndshadow, h-2*iborder, sshadow);
+	}
+	_mk_shadow(string simg, int pos, int x, int y, int w, int h, string sshadow)	{
+		bool b = sshadow.getb(pos,1);
+		if( b && w && h )	{
+			new img im1;
+			im1.create(w, h, wndshadow.get);
+			im1.setpos(x, y);
+			<simg>.blit("im1");
+			delete im1;
+		}
+	}
+	newwndtitle(string s, string sico, string stitle, int w, int h)	{
+		new img <s>;
+		<s>.addtogamevars(s);
+		<s>.var2("guitype","wnd");
+		@w2 = 2*ibar+w;
+		@h2 = ibar+ititlebar+h;
+		<s>.create(w2, h2, wndcol.get);
+		
+		new img im1;
+		im1.create(w2,ititlebar,wndbar.get);
+		<s>.blit("im1");
+		im1.create(w2,ibar,wndbar.get);
+		im1.setpos(0,<s>.getey-ibar);
+		<s>.blit("im1");
+		im1.create(ibar,h2,wndbar.get);
+		im1.setpos(0,0);
+		<s>.blit("im1");
+		im1.setpos(<s>.getex-ibar,0);
+		<s>.blit("im1");
+		
+		<s>.putrgba(0,0,.transparent);
+		<s>.putrgba(<s>.getex-1,0,.transparent);
+		<s>.putrgba(<s>.getex-1,<s>.getey-1,.transparent);
+		<s>.putrgba(0,<s>.getey-1,.transparent);
+		
+		im1.create(w2-2, 1, wndbarb.get);
+		im1.setpos(1,0);
+		<s>.blit("im1");
+		im1.setpos(1,<s>.getey-1);
+		<s>.blit("im1");
+		im1.create(1,h2-2, wndbarb.get);
+		im1.setpos(0,1);
+		<s>.blit("im1");
+		im1.setpos(<s>.getex-1,1);
+		<s>.blit("im1");
+		delete im1;
+		
+		if( sico!=null )	{
+			<sico>.setpos(7, 4);
+			<s>.blit(sico);
+		}
+		new text txt1;
+		txt1.setfont("stitlefont");
+		txt1.txtsetcol(stitle, wndbarb.rgb);
+		txt1.setpos(33,8);
+		<s>.blit("txt1");
+		txt1.setpos(32,7);
+		txt1.txtsetcol(stitle, titlecol.rgb);
+		<s>.blit("txt1");
+		delete txt1;
+		
+		<s> (squit) { (string s)
+			new img imquit;
+			imquit.copy(s);
+			imquit.show;
+			imquit.setpos(.getex-imquit.getw-5, .getpx+3);
+			imquit.setz(.getz+1);
+			new img imquitact;
+			imquitact.copy(s+"act");
+			imquitact.setpos( imquit.getpx, imquit.getpy );
+			imquitact.setz(imquit.getz);
+			imquitact.hide;
+			//.blit("imquit");
+		};
+		<s>.stdlocker;
+		<s>.addmethod("isbutin", func { (int x, int y)
+			.unlocked && imquit.isin(x,y,0,0);
+			} );
+		<s>.addmethod("winmove", func { (int x, int y)
+			.move(x,y);
+			imquit.move(x,y);
+			imquitact.move(x,y);
+			} );
+		.stdwinsetpos(s);
+		<s>.addmethod("winsetz", func { (int z)	.setz(z); imquit.setz(z); imquitact.setz(z); <sGui>.sort; } );
+		<s>.addmethod("butmoveon", func { imquit.hide; imquitact.show; /*advmouse.setbut;*/ } );
+		<s>.addmethod("butmoveoff", func { imquit.show; imquitact.hide; /*advmouse.setstd;*/ } );
+		<s>.addmethod("butclick", "stdclick");
+		<s>.addtogui;
+	}
+	stdwinsetpos(string s)	{	<s>.addmethod("winsetpos", func { (int x, int y)	.winmove(x-.getpx, y-.getpy);	});	}
+	stdwinmove(string s)	{	<s>.addmethod("winmove", func { (int x, int y) .move(x,y);	} );	}
+	stdwinsetz(string s)	{	<s>.addmethod("winsetz", func { (int z) .setz(z); <sGui>.sort;	} );	}
+	print(string sob, int x, int y, string stekst)	{
+		.getstdtext(stekst);
+		txt1.setpos(<sob>.getpx+x, <sob>.getpy+y);
+		<sob>.blit("txt1");
+		delete txt1;
+	}
+	getstdtext(string stekst)	{
+		new text txt1;
+		txt1.setfont("stdfont");
+		txt1.txtsetcol(stekst, fontcol.rgb);
+	}
+	/************************ buttons **************************************/
+	stdlocker	{	classlocker::setaslocker(this);	.unlock;	}
+	stdbutin(int x, int y)	{	.unlocked && .isin(x,y,1,0);	}
+	stdclick	{
+		if( .unlocked && sButClick==null)	{
+			sButClick = this;
+			timbutclick.play;
+		}
+	}
+	stdmoveon	{	.<this+"_moveon">;	}
+	stdmoveoff	{	.<this+"_moveoff">;	}
+	newbutton(string sbut, string stxt, int w, int h)	{
+		.newwndconvex(sbut, w, h);
+		.getstdtext(stxt);
+		txt1.txtset(stxt);
+		txt1.txtcenter(sbut);
+		<sbut>.blit("txt1");
+		@s = sbut+"clicked";
+		.newwndconcave(s, w, h);
+		<s>.blit("txt1");
+		<s>.hide;
+		delete txt1;
+		
+		<sbut>.stdlocker;
+		<sbut>.addmethod("isbutin", "stdbutin" );
+		<sbut>.addmethod("butmoveon", "stdmoveon");
+		<sbut>.addmethod("butmoveoff", "stdmoveoff");
+		<sbut>.vars2(A,"butstate","std","guitype","button");
+		<sbut>.addmethod("butclick", func {
+			if( .unlocked && sButClick==null)	{
+				if( butstate=="std") 	{
+					sButClick = this;
+					.hide;
+					@s = sButClick+"clicked";
+					<s>.setpos(.getpx, .getpy);
+					<s>.setz(.getz);
+					<s>.show;
+					butstate="clicked";
+					timbutclick.play;
+				} else if (butstate=="clicked")	{
+					butstate = "clickclicked";
+					sButClick = this;
+					timbutclick.play;
+				}
+			}
+			} );
+		<sbut>.addmethod("unclick", func { .show; <this+"clicked">.hide; butstate="std"; });
+		<sbut>.addmethod("clicked", func { butstate=="clicked"; });
+		<sbut>.addmethod("unclicked", func { butstate=="clickclicked"; });
+		.stdwinsetz(sbut);
+		<sbut>.addtogui;
+	}
+	delbutton(string sbut)	{
+		<sbut>.removefromgui;
+		<GAME>.vardel(sbut);
+		<GAME>.vardel(sbut+"clicked");
+		delete <sbut>;
+		delete <sbut+"clicked">;
+	}
+	delwnd(string swnd)	{
+		<swnd>.removefromgui;
+		<GAME>.vardel(swnd);
+		delete <swnd>;
+	}
+	newmenubut(string sbut, int w, int h, string stekst)	{
+		new img <sbut>;
+		<sbut>.create(w, h, wndcol.get);
+		@s = sbut + "act";
+		new img <s>;
+		.getstdtext(stekst);
+		txt1.txtcenter(sbut);
+		<sbut>.blit("txt1");
+		<s>.create(w, h, wndact.get);
+		<s>.blit("txt1");
+		<s>.hide;
+		delete txt1;
+	}
+	newsubmenu(string smenu, int wbut, int hbut, string svecname, string sdir)	{
+		._newmenu(smenu,wbut,hbut,svecname,sdir);
+		<smenu>.stdlocker;
+		<smenu>.vars2(A,"active", null,"movedon",null, "idclicked", -1, "iwbut", wbut, "ihbut", hbut, "dir", sdir, "idmoved", -1, "hideonouter",false);
+		<smenu> (svecname) { (string svec)
+			new vector vsubmenu;
+			vsubmenu.type("string");
+			vsubmenu.resize( <svec>.size, null );
+		};
+		<smenu>.addmethod("hidesubmenus", func {
+			@s;
+			for( int i=0; i<vsubmenu.size; i++) {
+				s = vsubmenu.get(i);
+				if( s!=null ) <s>.hide;
+			}
+			} );
+		<smenu>.addmethod("viewsubmenu", func { (int id)
+			@s = vsubmenu.get(id);
+			if( s!=null )	{
+				.hidesubmenus;
+				//<s>.unlock;
+				<s>.show;
+				true;
+			} else false;
+			} );
+		<smenu>.addmethod("isbutin", func { (int x, int y)
+			if( .getlock ) return;
+			@s = .get(0);
+			.removeat(0);
+			@b = .stdbutin(x,y);
+			if( b )	{
+				movedon = .getsfound;
+				idmoved = .getfound;
+				//if( movedon.gete(0,3)=="act" ) movedon=movedon.strsube(3);
+				.activate( movedon );
+			} else .deactivate;
+			.addbegin(s);
+			b;
+			} );
+		<smenu>.addmethod("deactivate", func {
+			if( active!=null )	{
+				//<active>.show;
+				<active+"act">.hide;
+				active=null;
+			}
+			} );
+		<smenu>.addmethod("activate", func { (string s)
+			if( s!=active )	{
+				.deactivate;
+				active = s;
+				//<s>.hide;
+				@s2 = s+"act";
+				<s2>.show;
+				<s2>.setpos( <s>.getpx, <s>.getpy );
+				<s2>.setz(<s>.getz+1);
+			}
+			} );
+		//<smenu>.addmethod("butmoveon", func { .activate(movedon); } );
+		//<smenu>.addmethod("butmoveoff", func { if( .unlocked ) .deactivate; } );
+		<smenu>.addmethod("butmoveon", "stdmoveon");
+		<smenu>.addmethod("butmoveoff", "stdmoveoff");
+		<smenu>.addmethod("butclick", func {
+			if( movedon!=null )
+				idclicked=idmoved;
+			if( !.viewsubmenu(idclicked) )
+				.stdclick;
+			} );
+		grouter.add(smenu);
+		<smenu>.addmethod("butouterclick", func {
+			.deactivate;
+			if( hideonouter ) .hide;
+			} );
+		<smenu>.addtogui;
+	}
+	_newmenu(string smenu, int wbut, int hbut, string svecname, string sdir)	{
+		new gmimgvec <smenu>;
+		<smenu>.addtogamevars(smenu);
+		int x = iwndborder+iwndshadow;
+		int y = x;
+		@s = smenu+"bkg";
+		int ile = <svecname>.size;
+		if( sdir == "horizontal" )
+			.newwnd(s, ile*wbut+2*x, hbut+2*y);
+		else .newwnd(s, wbut+2*x, ile*hbut+2*y);
+		<smenu>.add(s);
+		for( int i=0; i<ile; i++)	{
+			s = smenu+"_"+i;
+			.newmenubut(s, wbut, hbut, <svecname>.get(i));
+			<s>.setpos(x, y);
+			<smenu>.add(s);
+			//<smenu>.add(s+"act");
+			if( sdir=="horizontal" )	x+=wbut;
+			else y+=hbut;
+		}
+	}
+	addsubmenu(string smainmenu, int id, string smenu, string svecname)	{
+		@sdir = <smainmenu>.dir=="horizontal" ? "vertical" : "horizontal";
+		@w = <smainmenu>.iwbut;
+		@h = <smainmenu>.ihbut;
+		.newsubmenu(smenu, w, h, svecname, sdir);
+		<smainmenu> (smenu, id) { (@smenu, @id)
+			vsubmenu.set(id, smenu);
+		};
+		<smenu>.hideonouter = (true);
+		if( sdir == "horizontal" )	<smenu>.move( <smainmenu>.getpx+id, <smainmenu>.getpy+id*h );
+		else <smenu>.move( <smainmenu>.getpx+id*w, <smainmenu>.getpy+h );
+		<smenu>.setz( <smainmenu>.getz );
+		<smenu>.hide;
+	}
+	newtextbox(string sbox, string schars, int w, int h)	{
+		@swnd = sbox+"wnd";
+		@dw = iwndborder+iwndshadow;
+		.newwndtext(swnd, w+2*dw, h+2*dw);
+		
+		new TextBoxTyper <sbox>( stdmonofont.getfullname, istdfont, monowidth, fontcol.rgb, schars, dw+1, dw+1, w, h, iytextlength );
+		<sbox>.insystem = (true);
+		<sbox>.addtogamevars(sbox);
+		<sbox>.addmethod("winsetz", func { (int z) .setz(z); <this+"wnd">.setz(z); <sGui>.sort; } );
+		<sbox>.addmethod("winmove", func { (int x, int y) .move(x,y); <this+"wnd">.move(x,y); } );
+		.stdwinsetpos(sbox);
+		<sbox>.var2("guitype","textbox");
+		<sbox>.unlock;
+	}
+	deltextbox(string sbox)	{
+		<GAME>.deletegmobj(sbox);
+		delete <sbox>;
+		.delwnd(sbox+"wnd");
+	}
+	newsqltable(string stab, string sdb, string stxtdir)	{
+		if( <sdb>.getrowsno==0 || <sdb>.getcolsno(0)==0 ) return;
+		new AlgImg alg1;
+// 		public textbox(string sdest, int x, int y, string stxt, string stext, int ilimit, int fontsize, int dy, string stxtdir);
+// 		public def counttextrows(string stext, int ilimit)	{
+		int h;
+		int i[3];
+		new vector vh;
+		new vector vw;
+		int cols = <sdb>.getcolsno(0);
+		int rows = <sdb>.getrowsno;
+		int dy = 2;
+		int brzeg = (iwndshadow+iwndborder)*2;
+		for( i0=0; i0<cols; i0++)	{
+			vw.add( 0.6*istdfont * <sdb>.get(0,i0) + brzeg );
+		}
+		for( int i=1; i<rows; i++)	{
+			h = 0;
+			for( i0=0; i0<cols; i0++)	{
+				i1 = alg1.counttextrows( <sdb>.get(i, i0), <sdb>.get(0,i0) );
+				if( h<i1 ) h = i1;
+			}
+			vh.add(h*istdfont + (h-1)*dy + brzeg );
+		}
+		.newwnd(stab, vw.vecsum + brzeg, vh.vecsum + brzeg);
+		int xstart = iwndborder + iwndshadow;
+		int x = xstart;
+		int y = xstart;
+		new text txt1;
+		txt1.setfont("stdfont");
+		txt1.createtxt(.black);
+		for( i0=0; i0<cols; i0++)	{
+			alg1.textbox(stab, x, y, "txt1", <sdb>.get(1,i0), <sdb>.get(0,i0), istdfont, 0.6*istdfont, dy, stxtdir);
+			x+=vw.get(i0);
+		}
+		y += vh.get(0);
+		string s = stab + "tab";
+		for( i=2; i<rows; i++)	{
+			h = vh.get(i-1);
+			x = xstart;
+			for( i0=0; i0<cols; i0++)	{
+				.newwndtext( s, vw.get(i0), h );
+				alg1.textbox( s, 2, 2, "txt1", <sdb>.get(i,i0), <sdb>.get(0,i0), istdfont, 0.6*istdfont, dy, stxtdir);
+				<s>.setpos( x, y );
+				<stab>.blit(s);
+				.delobj(s);
+				x+=vw.get(i0);
+			}
+			y += vh.get(i-1);
+		}
+		delete txt1;
+		delete vh;
+		delete vw;
+		delete alg1;
+		
+		.stdwinsetz(stab);
+		.stdwinmove(stab);
+		.stdwinsetpos(stab);
+	}
+	getbrzeg	{	iwndshadow + iwndborder;	}
+	newrewinder(string srew, int x, int y, real w, real h, string swnd)	{
+		string sbg = srew + "bg";
+		int brzeg = .getbrzeg;
+		bool bw = w!=0 && w < <swnd>.getw;
+		bool bh = h!=0 && h < <swnd>.geth;
+		if( !bw ) w = <swnd>.getw;
+		if( !bh ) h = <swnd>.geth;
+		.newwnd(sbg, w, h);
+		
+		new img <srew>;
+		<srew>.addtogamevars(srew);
+		<srew>.vars2(A,"guitype","rewinder", "srewinded", swnd,"bisw",bw,"bish",bh, "imover", 10);
+		string s[2];
+		if( bw )	{
+			string sreww = srew+"w";
+			.newwndconcave(sreww, w, 20);
+			<sreww>.move(0, h);
+			
+			real w2 = <swnd>.getw;
+			<srew>.var2("rwmover", w2/w);
+			if( <srew>.rwmover<1 ) <srew>.rwmover = (1);
+			real w3 = (w/w2)*(w - 40.0);
+			if( w3 > w2 ) w3 = w2;
+			else if (w3<1) w3 = 1+brzeg;
+			s0 = srew + "tmpsuw";
+			.newwndconvex(s0, w3, <sreww>.geth);
+			<s0>.move(0, h);
+		} else s0=null;
+		if( bh )	{
+			string srewh = srew+"h";
+			.newwndconcave(srewh, 20, h);
+			<srewh>.move(w,0);
+			
+			real h2 = <swnd>.geth;
+			<srew>.var2("rhmover", h2/h);
+			if( <srew>.rhmover<1 ) <srew>.rhmover = (1);
+			real h3 = (h/h2)*(h - 40.0);
+			if( h3 > h2 ) h3 = h2;
+			else if (h3<1) h3 = 1+brzeg;
+			s1 = srew + "tmpsuwh";
+			.newwndconvex(s1, <srewh>.getw, h3);
+			<s1>.move(w, 0);
+		} else s1=null;
+		<srew> (s0, s1) { (string ssuw, string suwh)
+			new gmimgvec grels;
+			grels.add(this+"bg");
+			string s;
+			.vars2(A,"bsuwakx", false, "bsuwaky", false, "suwakx",0,"suwaky",0,"ssuwed",null);
+			if( bisw )	{
+				s = this + "w";
+				.var2("reww",s);
+				grels.add(s);
+				new img imgleft;
+				imgleft.copy(sarrowleft);
+				imgleft.show;
+				imgleft.setpos( <s>.getpx, <s>.getpy );
+				grels.add("imgleft");
+				new img imgleftact;
+				imgleftact.copy(sarrowleftact);
+				imgleftact.hide;
+				imgleftact.setpos( imgleft.getpx, imgleft.getpy);
+				grels.add("imgleftact");
+				new img imgright;
+				imgright.copy(sarrowright);
+				imgright.show;
+				grels.add("imgright");
+				imgright.setpos( <s>.getex-imgright.getw, <s>.getpy );
+				new img imgrightact;
+				imgrightact.copy(sarrowrightact);
+				imgrightact.hide;
+				imgrightact.setpos( imgright.getpx, imgright.getpy );
+				grels.add("imgrightact");
+				new img imgsuwak;
+				imgsuwak.clone(ssuw);
+				imgsuwak.setpos(imgleft.getex, imgleft.getpy);
+				grels.add("imgsuwak");
+				new real wsuw = imgright.getpx - imgleft.getex;
+			}
+			if( bish )	{
+				s = this + "h";
+				.var2("rewh",s);
+				grels.add(s);
+				new img imgup;
+				imgup.copy(sarrowup);
+				imgup.show;
+				imgup.setpos( <s>.getpx, <s>.getpy );
+				grels.add("imgup");
+				new img imgupact;
+				imgupact.copy(sarrowupact);
+				imgupact.setpos( imgup.getpx, imgup.getpy );
+				imgupact.hide;
+				grels.add("imgupact");
+				new img imgdown;
+				imgdown.copy(sarrowdown);
+				imgdown.show;
+				grels.add("imgdown");
+				imgdown.setpos( imgup.getpx, <s>.getey-imgdown.geth );
+				new img imgdownact;
+				imgdownact.copy(sarrowdownact);
+				imgdownact.hide;
+				imgdownact.setpos( imgdown.getpx, imgdown.getpy );
+				grels.add("imgdownact");
+				
+				new img imgsuwaky;
+				imgsuwaky.clone(suwh);
+				imgsuwaky.setpos(imgup.getpx, imgup.getpy);
+				grels.add("imgsuwaky");
+				new real hsuw = imgdown.getpy - imgup.getey;
+			}
+		};
+		if( s0!=null ) .delwnd(s0);
+		if( s1!=null ) .delwnd(s1);
+		
+		.cycle = (srew+"tim", func {
+			<this->strsubes("tim")>.winrewind;
+			.play;
+			} );
+		<srew>.stdlocker;
+		<srew>.addmethod("isbutin", func { (int x, int y)
+			.unlocked && grels.isin(x,y,1,0);
+			} );
+		<srew>.addmethod("winmove", func { (int x, int y)
+			.move(x,y);
+			grels.move(x,y);
+			@s = this+"bg";
+			/*<srewinded>.clip( (bisw ? <reww>.getpx+.getbrzeg : 0), (bish ? <rewh>.getpy+.getbrzeg : 0),
+				(bisw ? <reww>.getex-.getbrzeg : iResX), (bish ? <rewh>.getey-.getbrzeg : iResY) );*/
+			<srewinded>.clip(<s>.getpx+.getbrzeg, <s>.getpy+.getbrzeg, <s>.getex-.getbrzeg, <s>.getey-.getbrzeg);
+			} );
+		.stdwinsetpos(srew);
+		<srew>.addmethod("winmoveall", func { (int x, int y)
+			if( <srewinded>.hasaddedmet("winmove") )	<srewinded>.winmove(x,y);
+			else <srewinded>.move(x,y);
+			.winmove(x,y);
+			} );
+		<srew>.addmethod("winsetallpos", func { (int x, int y) .winmoveall(x-.getpx, y-.getpy); } );
+		<srew>.winmove( x, y );
+		<srew>.addmethod("winsetz", func { (int z)	.setz(z); grels.setz(z); <sGui>.sort; } );
+		<srew>.addmethod("setactsuw", func { (string s)
+			ssuwed = s;
+			<s>.hide;	<s+"act">.show;
+			<this+"tim">.play;
+			} );
+		<srew>.addmethod("butclick", func {
+			match( grels.getsfound )	{
+				"imgleft" =>		.setactsuw("imgleft");
+				"imgright" =>	.setactsuw("imgright");
+				"imgsuwak" => {	bsuwakx = true; suwakx = mouse.getposx-imgsuwak.getpx;	}
+				"imgup" => 		.setactsuw("imgup");
+				"imgdown" => 	.setactsuw("imgdown");
+				"imgsuwaky" => {	bsuwaky = true; suwaky = mouse.getposy-imgsuwaky.getpy;	}
+				? => ;
+			}
+			} );
+		<srew>.addmethod("butlrel", func {
+			<this+"tim">.stop(false);
+			if( ssuwed!=null )	{
+				<ssuwed+"act">.hide;
+				<ssuwed>.show;
+				ssuwed = null;
+			}
+			bsuwakx = false;
+			bsuwaky = false;
+			} );
+		<srew>.addmethod("winrewind", func {
+			if( bisw )	{
+				if( imgleftact.isvisible )	{
+					<srewinded>.move(imover,0);
+				} else if (imgrightact.isvisible )	{
+					<srewinded>.move(-imover,0);
+				}
+			}
+			if ( bish )	{
+				if( imgupact.isvisible )	{
+					<srewinded>.move(0,imover);
+				} else if (imgdownact.isvisible )	{
+					<srewinded>.move(0, -imover);
+				}
+			}
+			.stabilizerew;
+			.setrewinded;
+			} );
+		<srew>.addmethod("rewind", func { (int dx, int dy)
+			if( bisw )	<srewinded>.move(dx,0);
+			if( bish )	<srewinded>.move(0,dy);
+			.stabilizerew;
+			.setrewinded;
+			} );
+		<srew>.addmethod("stabilizerew", func {
+			if( bisw )	{
+				if( <srewinded>.getpx > <reww>.getpx+.getbrzeg ) <srewinded>.setpos( <reww>.getpx + .getbrzeg, <srewinded>.getpy );
+				else if (<srewinded>.getex < <reww>.getex-.getbrzeg ) <srewinded>.move( <reww>.getex-.getbrzeg-<srewinded>.getex, 0);
+			}
+			if( bish )	{
+				if( <srewinded>.getpy > <rewh>.getpy+.getbrzeg ) <srewinded>.setpos( <srewinded>.getpx, <rewh>.getpy + .getbrzeg );
+				else if (<srewinded>.getey < <rewh>.getey-.getbrzeg ) <srewinded>.move( 0, <rewh>.getey-.getbrzeg-<srewinded>.getey);
+			}
+			} );
+		<srew>.addmethod("butmoving", func {
+			if( bsuwakx )	{
+				real x = imgsuwak.getpx;
+				imgsuwak.setpos( mouse.getposx-suwakx, imgsuwak.getpy );
+				<srewinded>.move( rwmover*(x-imgsuwak.getpx), 0 );
+				.stabilizerew;
+				.setrewinded;
+			} else if (bsuwaky)	{
+				real y = imgsuwaky.getpy;
+				imgsuwaky.setpos( imgsuwaky.getpx, mouse.getposy-suwaky );
+				<srewinded>.move( 0, rhmover*(y-imgsuwaky.getpy) );
+				.stabilizerew;
+				.setrewinded;
+			}
+			} );
+		<srew>.addmethod("setrewinded", func {
+			if( bisw )	{
+				real dx = (<reww>.getpx-<srewinded>.getpx)->to_r/<srewinded>.getw->to_r;
+				//real dx = (imgleft.getex-<srewinded>.getpx)->to_r/(imgright.getpx-imgleft.getex)->to_r;
+				imgsuwak.setpos( imgleft.getex+dx*wsuw, imgsuwak.getpy );
+				dx = imgright.getpx - imgsuwak.getex;
+				if( dx<0 ) imgsuwak.move(dx, 0);
+			}
+			if( bish )	{
+				real dy = (<rewh>.getpy-<srewinded>.getpy)->to_r/<srewinded>.geth->to_r;
+				//real dx = (imgleft.getex-<srewinded>.getpx)->to_r/(imgright.getpx-imgleft.getex)->to_r;
+				imgsuwaky.setpos( imgsuwaky.getpx, imgup.getey+dy*hsuw );
+				dy = imgdown.getpy - imgsuwaky.getey;
+				if( dy<0 ) imgsuwaky.move(0, dy);
+			}
+			} );
+		<srew>.setrewinded;
+		<srew>.addtogui;
+	}
+	delrewinder(string srew)	{
+		if( <srew>.bisw )	.delobj(srew+"w");
+		if( <srew>.bish )	.delobj(srew+"h");
+		<srew>.removefromgui;
+		<GAME>.deletegmobj(srew);
+		<GAME>.deletegmobj(srew+"bg");
+		delete <srew>;
+		delete <srew+"bg">;
+		delete <srew+"tim">;
+	}
+	newcheckbox(string sbox)	{
+		.newwndtext(sbox,15,15);
+		<sbox> {
+			new img imcheck;
+			imcheck.create(15,15,.transparent);
+			new img im1;
+			im1.create(2,2,.black,255);
+			_ = imcheck.imgdrawline("im1", 4, 7, 6, 9, 1, 0);
+			_ = imcheck.imgdrawline("im1", 6, 9, 10, 5, 1, 0);
+			delete im1;
+			imcheck.hide;
+		};
+		<sbox>.stdlocker;
+		<sbox>.addmethod("butclick", func {
+			if( .getlock ) return;
+			.checked ? .uncheck : .check;
+			} );
+		<sbox>.addmethod("check", func { imcheck.show;	} );
+		<sbox>.addmethod("uncheck", func { imcheck.hide;	} );
+		<sbox>.addmethod("checked", func { imcheck.isvisible;	} );
+		<sbox>.addmethod("winmove", func { (int x, int y)
+			.move(x,y);
+			imcheck.move(x,y);
+			} );
+		.stdwinsetpos(sbox);
+		<sbox>.addmethod("winsetz", func { (int z) .setz(z); imcheck.setz(z); } );
+		<sbox>.addmethod("isbutin", "stdbutin");
+		<sbox>.addtogui;
+	}
+	/*******************************************/
+	/*load(string sfile)	{
+		new db dbl;
+		dbl.loadbeh( .getpath(sfile) );
+		int i[3], string s[3];
+		for( int i=0; i < dbl.getrowsno; i++)	{
+			
+		}
+		delete dbl;
+	}*/
+}

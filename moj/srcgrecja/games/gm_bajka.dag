@@ -1,0 +1,64 @@
+
+game Bajka : DziejeGame	{
+	init	{
+		DziejeGame::init("bajka");
+		
+		new int BajkaNr = 1;
+		new int BajkaPlansze = 30;
+		
+		.newanima("anbaja", "b1.pyz", 10);
+		anbaja.addmethod("onfinish", "mgo");
+		
+		.sounds = (A, "snd1", "Najwiêkszym pañstwem miastem antycznej Grecji by³y Ateny", "mgo",
+			"snd2", "Swoj± potêgê zawdziêcza³y ogromnej flocie wojennej i handlowej; Statki ateñskie przemierza³y morze ¦ródziemne i Czarne", "mgo",
+			"snd3", "Osadnicy i kupcy z miast greckich budowali na wybrze¿ach po³udniowej Europy i pó³nocnej Afryki miasta zwane koloniami; Kolonie prowadzi³y intenstywn± wymianê towarów i niewolników z miastami greckimi zwanymi polis", "mgo",
+			"snd4", "Grupa osadników ateñskich szykowa³a siê do wyp³yniêcia do dalekiej Iberii; Chcieli za³o¿yæ koloniê produkuj±c± wino i oliwê oraz sprzedawaæ ateñskie towary", "mgo",
+			"snd5", "Kolonizatorami dowodzi³ Diossos; By³ jeszcze m³ody i niezbyt do¶wiadczony jednak odebra³ bardzo starane wykszta³cenie", "mgo",
+			"snd6", "Nauki pobiera³ w Akademii ; s³awnej ateñskiej szkole filozofów", "mgo",
+			"snd7", "W ostatniej chwili do grupy dolaczyl Herkules ; pelen energii i zapalu sportowiec; Zrobil duze wrazenie na Diossosie ktory uznal ze mlody zapasnik wzmocni zaloge", "mgo",
+			"snd8", "Rankiem okret z osadnikami wyplynal z portu", "mgo",
+			"snd9", "Rejs trwal wiele tygodni; Kapitan trzymal sie znanych szlakow morskich", "mgo",
+			"snd10", "Przez cala podroz Herkules przechwalal sie swoimi niewiarygodnymi czynami. Bitwy z potworami, kampanie wojenne, zwyciestwa olimpijskie ; we wszystkim bral udzial a zafascynowanych sluchaczy nigdy mu nie brakowalo; Nikt nawet siê nie domy¶la³ ¿e opowie¶ci m³odego herosa s± jego fantazjami; Prawdziwe imiê Herkulesa brzmia³o Manes a jego zajêciem od najm³odszych lat by³o wypasanie kóz; Marz±cy o wielkich przygodach Manes wyruszy³ pewnego dnia w ¶wiat i przybra³ imiê najwiêkszego greckiego bohatera Herkulesa", "mgo",
+			"snd11", "Kiedy statek przeplywal kolo Sardynii na horyzoncie pojawila sie galera", "mgo",
+			"snd12", "Wkrotce czarne przeczucia kapitana sie sprawdzily ; pomykajacy w ich strone okret nalezal do okrutnych sardynskich piratow", "mgo",
+			"snd13", "Piracka galera byla znacznie szybsza od okretu osadnikow. Diossos nie stracil glowy ; rozdal zalodze bron i zagrzewal do obrony", "mgo",
+			"snd14", "Rozgladal sie po pokladzie za Herkulesem; W silaczu cala nadzieja! Jednak nigdzie go nie bylo", "mgo",
+			"snd15", "Tymczasem nie dostrzezony przez nikogo Herkules ukryl sie w ladowni i trzasl z przerazenia. Opowiesci o swoich wielkich czynach zwyczajnie zmyslil, nigdy nawet nie stal na polu bitwy", "mgo",
+			"snd16", "Pomimo meznej obrony zaloga ulegla doswiadczonym w boju piratom", "mgo",
+			"snd17", "Piraci wzieli osadnikow do niewoli i odholowali statek z lupami na swoja kwatere na wyspie; Dwoch straznikow zostalo przy wiezniach a reszta postanowila spalaszowac cenny ladunek greckich win", "mgo",
+			"snd18", "Przez caly dzien Herkules drzal ze strachu ale jeszcze bardziej ze wstydu; Okazal sie strasznym tchorzem; W nocy zebral cala swoja wole zagryzl zeby i wyszedl z kryjowki", "mgo",
+			"snd19", "Zupelnie zaskoczyl nielicznych straznikow i ogluszyl ich mocnym bokserskim ciosem nim zdolali zaalarmowac ziomkow; Zabawa w pirackim obozie trwala w najlepsze", "mgo",
+			"snd20", "Herkules uwolnil towarzyszy, ktorzy mysleli, ze celowo zastawil na piratow pulapke i chwalili jego przebiegly plan", "mgo",
+			"snd21", "Zaloga zajela miejsca za wioslami a Herkules odcial line do ktorej przycumowano statek; Pod oslona nocy kolonizatorzy wykneli sie z wyspy piratow", "mgo",
+			"snd22", "Wydawalo sie, ze ucieczka dojdzie do skutku jednak rankiem piraci dojrzeli strate i rzucili sie w pogon", "mgo",
+			"snd23", "Szybsza galera piracka znowu zaczela sie zblizac do osadnikow; Do poludnia nas dogonia; Powiedzial posepnie kapitan", "mgo",
+			"snd24", "Diossos wytezal umysl jak moglby uratowac zaloge; W otwartej walce nie mamy szans z piratami; Po ucieczce nie ma tez co liczyc na ich litosc; Musimy ich jakos spowolnic; Najwiecej pedu daje im wielki zagiel; Trzeba go jakos wyeliminowac; Nagle uniosl palec i krzyknal; Eureka!", "mgo",
+			"snd25", "Natychmiast kazal wyniesc wszystkie miedziane tarcze i zbudowal z nich soczewki; Przed poludniem slonce grzalo bardzo intensywnie; Promienie skupialy sie w soczewkach i odbijaly skupiona wiazka", "mgo",
+			"snd26", "Diossos kazal skierowac wiazke swiatla na zagiel piratow ktory zacz±³ siê tliæ; Piraci z wsciekloscia obserwowali powiekszajaca sie dziure; Ich statek wytracil predkosc; W dodatku czê¶æ p³on±cego ¿agla
+			opad³a na pok³ad i wznieci³a po¿ar; Wkrotce okret osadnikow odskoczyl od piratow i do wieczora zniknal im z horyzontu", "mgo",
+			"snd27", "Po wielu dniach osadnicy dotarli wreszcie do miejsca przeznaczenia", "mgo",
+			"snd28", "Przez kolejne miesiace stawiali mury, domy i port", "mgo",
+			"snd29", "Okoliczni mieszkancy chetnie wymieniali swoja zywnosc za luksusowe towary przywiezione przez Grekow; Osadnicy za³o¿yli winnice i gaje oliwne", "mgo",
+			"snd30", "Po latach osada bardzo sie wzbogaci³a; Mieszkañcy sprowadzali z Aten wyroby rzemie¶lnicze a do polis wysy³ali statki z winem i oliw±; Herkules mê¿nie sta³ na czele stra¿y osady a Diossos poswiecil sie badaniu przyrody i studiowaniu swojej umilowanej filozofii", "mgo"
+			);
+		ccs.enter( "mplansza" );
+	}
+	mgo	{	if( anbaja.isplaying(-1)==false && !.cisplaying ) .mnext;	}
+	mnext	{	if( BajkaNr < BajkaPlansze )	.mplay(BajkaNr+1);	}
+	mprev	{	if( BajkaNr > 1 )	.mplay(BajkaNr-1);	}
+	mplay(int id)	{
+		if( ccs.isplaying ) return;
+		BajkaNr = id;
+		ccs.playfin( func {
+			anbaja.load( .getgraphpath + "b" + BajkaNr + ".pyz" );
+			.cactsndstop(false);
+			}, "mplansza" );
+	}
+	mplansza	{
+		anbaja.play(0);
+		.cbplay("snd" + BajkaNr);
+	}
+	clbuts_next_butclick	{ .mnext; }
+	clbuts_prev_butclick	{ .mprev; }
+}
+

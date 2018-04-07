@@ -1,0 +1,217 @@
+
+game mg04_tarcza :Banshee {
+	 
+  init{
+    Banshee::init("mg04_tarcza");
+     
+	.imgs = (A, "bkg.jpg 0", "base.pyz 1", "kopanie_obszar.pyzH 2", "tarcza.pyz 3", "robaki.pyz 4","kopanie.pyzH 5", "puszka_robakiH.pyz 6", "maska.pyz 7","2v_tarcza.pyzH 8", "ramka.pyz 9", "popexit.pyz 10");
+    
+    .sfxs = (A, "bgrmorze3N 10", "worms 60", "kopanie2 60", "putitem1 50");
+    
+    if (!clsave.bis("taken_tarcza"))
+      .gui_toloupe("an2v_tarcza"); 
+	  
+    imgbkg {
+  		.addmethod("isbutin", func { (@x, @y)
+  			!anbase.isin(x,y,0,0);
+  			} );
+  		.addmethod("butclick", func {
+  			if( !.advstdstate ) return;
+  			 .mend;
+  			} );
+    		butgame.add(this);
+  	 };      
+      
+     .butpopexit; 
+   /*  if (!clsave.bis("e1_puszka_lopatka_dodana"))
+    {
+        .addtopck("puszka"); 
+        .addtopck("lopatka");  
+         clsave.bset("e1_puszka_lopatka_dodana");
+    }  
+	*/ 
+       
+    // buttony 
+     .setasitemtopck("antarcza");
+      antarcza.disable = (true);
+      anpuszka_robaki.anopacityframe;  
+      
+      
+	 .setasitemtopck("anpuszka_robaki");
+      anpuszka_robaki.disable = (true); 
+     
+    //animacje
+      new int ilicz = 0;
+   
+     
+     ankopanie{
+       .addmethod("onfinish", func {
+  			  .move(30,0); 
+          ilicz = 0;
+          antarcza.disable = (false);  
+          .anfadeout(300, null);
+          advmouse.setstd;
+          
+        } );
+        .addmethod("onendframe", func {
+  				ilicz++;
+    			if(ilicz == 15 || ilicz == 28) 
+          { 
+            .move(-10,0);
+          }
+        } );
+    };    
+   
+    //flagi 
+    if(clsave.bis("e1_robaki_wykopane")){
+        if (!clsave.bis("taken_puszka_robaki")){
+          anpuszka_robaki.disable = (false); 
+          anpuszka_robaki.show();
+        }
+      }
+     if(clsave.bis("e1_tarcza_wykopana"))
+     { 
+       if(clsave.bis("taken_tarcza") )
+   			  antarcza.hide;
+   		 else
+          antarcza.disable = (false);  
+      }
+    
+    if(clsave.bis("e1_robaki_wykopane")){ 
+		if(!clsave.bis("e1_tarcza_wykopana"))
+			anrobaki.play(3);
+		else
+			anrobaki.play(4);
+    }      
+     
+     
+     
+   
+	.newsndfree("snd_robaki", "kinnat_c1d1_20");
+    snd_robaki.addmethod("onfinish", "advsetstdstate"); 
+	 
+	 
+	.newsndfree("snd_tarcza", "kinnat_c1d1_22");
+    snd_tarcza.addmethod("onfinish", "advsetstdstate"); 
+	
+  
+    if (!clsave.bis("e1_tarcza_wykopana"))
+    {    
+      ankopanie_obszar{
+        .addmethod("isbutin", func { (@x, @y)
+			 .isin(x,y,0,0);
+			} ); 
+        .addmethod("butmoveon", func {
+				if (!clsave.bis("e1_tarcza_wykopana"))
+					advmouse.set("use");
+				else
+					advmouse.setstd;
+            } );
+      	 .addmethod("butmoveoff", func {
+      			advmouse.setstd;
+      			} );
+		.addmethod("butclick", func {
+			if( !.advstdstate ) return;
+			if (!clsave.bis("e1_robaki_wykopane"))
+				.cbplay("snd_robaki");
+				
+			else if (!clsave.bis("e1_tarcza_wykopana"))
+				.cbplay("snd_tarcza");
+			} ); 	
+			 	
+            butgame.add(this); 
+      };
+       
+       
+    }
+    
+	.stdstart;	
+     
+    } // koniec init
+   
+  mend	{
+    .stdexitdefadv("ad04_brzegjeziora", "gamead04_brzegjeziora0"); 
+	}
+  
+	USE_puszka	{
+		.advsetstdstate;
+		 
+		if( anbase.isin(mouse.getpos,0,0) )	{
+			.removefrompck("puszka");
+			clsave.bset("e1_robaki_wykopane");
+			fxputitem1.play;
+			anrobaki.play(1); 
+			anpuszka_robaki.disable = (false);  
+			anpuszka_robaki.anfadein(200,null);
+		} 
+		else .item_gotopck;   
+	}  
+  
+  USE_lopatka	{
+	.advsetstdstate;
+	 
+	if( ankopanie_obszar.isin(mouse.getpos,0,0) )	{
+		if (clsave.bis("e1_robaki_wykopane"))
+		{ 
+			.removefrompck("lopatka");
+			clsave.bset("e1_tarcza_wykopana");
+			ankopanie.play(0);
+			anrobaki.play(2);                 
+		}
+		else .item_gotopck;   
+	} 
+	else .item_gotopck;   
+	}
+  
+	anpuszka_robaki_TAKE {
+		.popitem_gotocenter("puszka_robaki");
+	}
+	anpuszka_robaki_INPCK {
+		.addtopck("puszka_robaki"); 
+		butgame.removebut("anpuszka_robaki"); 
+		if (!clsave.bis("e1_tarcza_wykopana"))
+			.cbplay("snd_tarcza"); 
+  }   
+  
+ 
+  antarcza_TAKE {
+    antarcza.setframe("rotostart",0);
+    .popitem_gotocenter("tarcza");
+    .set_mg_finished;   
+  }
+  antarcza_INPCK {
+      .addtopck("tarcza"); 
+      if (clsave.bis("taken_puszka_robaki") )
+        .timfinito;
+  }
+   
+  HINT_CLICK {
+     
+    if (!clsave.bis("taken_tarcza"))
+    {     
+        if (clsave.bis("e1_robaki_wykopane") && !clsave.bis("taken_puszka_robaki"))
+          .showhint("anpuszka_robaki"); 
+        else if (clsave.bis("ma_puszka"))
+        { 
+          .showhint("anrobaki");
+          .showhintitem("puszka");
+        }
+        else if (clsave.bis("ma_lopatka") && clsave.bis("e1_robaki_wykopane") )
+        { 
+          .showhint("anrobaki");
+          .showhintitem("lopatka"); 
+        }
+        else if (clsave.bis("e1_tarcza_wykopana"))
+          .showhint("antarcza");
+        else
+          .showhint("anpopexit");
+    }  else if (clsave.bis("e1_robaki_wykopane") && !clsave.bis("taken_puszka_robaki")) {
+	.showhint("anpuszka_robaki"); 
+    } else
+     {
+        .showhint("anpopexit");
+     }
+      
+   }   
+}
+ 

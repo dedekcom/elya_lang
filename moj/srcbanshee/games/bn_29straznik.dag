@@ -1,0 +1,160 @@
+
+game mg29_straznik : Banshee {
+	init{
+    Banshee::init("mg29_straznik");
+    .imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2",  "straznik.pyz 4","straznik_spi.pyzH 6", "wine_bottle.pyzH 7", "babelki.pyzH 8",   "przepis.pyzH 15","ramka.pyz 16", "popexit.pyz 17" );
+    
+	.sfxs = (A, "bgrsala2N 50", "gulniecie");
+	
+	.butpopexit;
+    .newsndfree("take_bottle_snd", "kinnat_c3d3_24a");
+    take_bottle_snd.addmethod("onfinish", "advsetstdstate");  
+	
+	.newsndfree("bad_wine_snd", "kinnat_c3d3_25");
+    bad_wine_snd.addmethod("onfinish", func{.advsetstdstate;  });  
+	
+	 
+	
+	.newsndfree("wine_first_snd", "kinnat_c3d3_24c");
+    wine_first_snd.addmethod("onfinish", func{.advsetstdstate;  });  
+	
+	
+	.newsndfree("good_wine_snd", "kinnat_c3d3_25e");
+    good_wine_snd.addmethod("onfinish", func{.advsetstdstate;  }); 
+	
+	 
+	
+    new bool przepis_show = false;
+    imgbkg {
+		.addmethod("isbutin", func { (@x, @y)
+			!anpopup_bkg.isin(x,y,0,0) ;
+			} );
+		.addmethod("butclick", func {
+			if( !.advstdstate ) return;
+			 .mend;
+			} );
+  		butgame.add(this);
+  	};
+    
+    anprzepis{
+        .Button_isin;
+		.addmethod("butmoveon", func {
+			advmouse.set("take");  
+		} );
+		.addmethod("butmoveoff", func {
+			advmouse.setstd;
+		} ); 
+        .addmethod("butclick", func { 
+        if( !.advstdstate  ) return;
+			.hide();
+			.popitem_gotocenterobj("wine_bottle", "anwine_bottle");
+			.stdpiorko("n023"); 
+		} );    
+        butgame.add(this);
+    };
+	
+	anstraznik{
+        .Button_isin;
+		.addmethod("butmoveon", func {
+			if (clsave.bis("taken_wine_bottle"))
+				advmouse.set("use");  
+		} );
+		.addmethod("butmoveoff", func {
+			advmouse.setstd;
+		} ); 
+        .addmethod("butclick", func { 
+        if( !.advstdstate  ) return;
+			.cbplay("wine_first_snd");	
+		} );    
+        butgame.add(this);
+    };
+	
+	 
+      
+	if (!clsave.bis("taken_wine_bottle"))
+	{	
+		anwine_bottle.show();
+		.setasitemtopck("anwine_bottle");    
+    } 
+
+	if (!clsave.bis(save_prefix+"intro_spoken"))
+	{
+		.newsndfree("snd_intro", "kinnat_c3d3_24b");
+		snd_intro.addmethod("onfinish", "advsetstdstate");  
+		.cbplay("snd_intro"); 
+		clsave.bset(save_prefix+"intro_spoken");			
+	 }  	
+      .stdstart; 
+  }// koniec init 
+    
+	anwine_bottle_TAKE {
+		.advsetstdstate(); 
+		if (!clsave.bis("taken_wine_bottle") && !przepis_show)
+		{
+			.hide();
+			anprzepis.anfadein(500,null);
+			przepis_show = true;
+			butgame.removebut("anwine_bottle");
+			  
+		}
+	} 
+	anwine_bottle_INPCK {
+		.addtopck("wine_bottle");
+		.cbplay("take_bottle_snd");
+		.show_objective("ob13"); 
+	} 
+
+	good_wine{
+		 
+		if (clsave.get("e1_mg29_beczka_1") != 3)
+			return false;
+		else if (clsave.get("e1_mg29_beczka_2") != 2)
+			return false;
+		else if (clsave.get("e1_mg29_beczka_3") != 2)
+			return false;
+		
+		return true;
+	}
+	
+	mend	{
+		.stdexitdefadv("ad29_winiarnia", "gamead29_winiarnia0"); 
+	}
+	
+	 USE_wine_bottle	{
+		.advsetstdstate();
+		if(anstraznik.isin(mouse.getpos,0,1) )	{
+			
+			if (.good_wine)		
+			{		
+				anwine_bottle.anfadein(1000,func{fxgulniecie.play; anstraznik.anfadeout(400,func{anbabelki.play(0); });anstraznik_spi.anfadein(800,null);anwine_bottle.anfadeout(800,func{.timfinito;}); });
+				.removefrompck("wine_bottle");
+				butgame.removebut("anstraznik");
+				.objective_done("ob13");
+				advmouse.setstd;
+				.set_mg_finished;
+				.cbplay("good_wine_snd"); 
+			   
+			} else {
+				 .item_gotopck;
+				 .cbplay("bad_wine_snd");
+			}
+		}
+		else  
+			.item_gotopck;
+	}   
+  
+   
+   
+	HINT_CLICK {
+		if (!clsave.bis("taken_wine_bottle") )  
+			.showhint("anwine_bottle"); 
+		else if (clsave.bis("ma_wine_bottle") && .good_wine )  
+		{
+			.showhint("anwine_bottle");
+			.showhintitem("wine_bottle"); 
+		}
+		else
+		  .showhint("anpopexit");   
+	}
+}
+ 

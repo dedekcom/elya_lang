@@ -1,0 +1,1695 @@
+new int iResX = 1024;
+new int iResY = 700;
+new int iScreenX = 1024;
+new int iScreenY = 768;
+
+public imgclonesize(string simg)	{
+	.create( <simg>.getw, <simg>.geth, .transparent );
+	.setpos( <simg>.getpx, <simg>.getpy );
+}
+public imgclone(string simg)	{
+	.imgclonesize(simg);
+	.blit(simg);
+	.setz( <simg>.getz );
+	<simg>.isvisible ? .show : .hide;
+}
+
+game Invest2 : ClassGameController	{
+	init	{
+// 		engine.setdebugstate(1);
+		ClassGameController::init;
+		
+		new string stxtnosuchfile = "No such file: ";
+		new string stxtnoanalysis = "<no analysis>";
+		
+		new Button butgame;
+		
+		new string sgmstate = "state_std";
+		
+		new string spath = "scripts/invest2/";
+		new int iilecharts = 6;
+		new int ichartz = 5;
+		new string sdbin;
+		new db dblog;
+		new string sactchart;
+		
+		new font fnt;
+		fnt.load("configs/fonts/normal.ttf", 10);
+		new text txt1;
+		txt1.setfont("fnt");
+		new text txtdata;
+		txtdata.setfont("fnt");
+		txtdata.createtxt(.grey(128));
+		
+		new db dbsave;
+		if( engine.fileexist( spath + "save.db" ) )
+			dbsave.load( spath + "save.db" );
+		
+		@x = 10;
+		@y = 10;
+		@dy = 2;
+		@z = 10;
+		int zhelp = 30;
+		
+		new text txdata; txdata.setfont("fnt"); txdata.setz(z);
+		txdata.setpos( x, y );
+		txdata.createtxt(.black);
+		new text txopen; txopen.setfont("fnt"); txopen.setz(z);
+		txopen.setpos( x, txdata.getey+dy );
+		txopen.createtxt(0,0,128);
+		new text txmin; txmin.setfont("fnt"); txmin.setz(z);
+		txmin.setpos( x, txopen.getey+dy );
+		txmin.createtxt(128,0,0);
+		new text txmax; txmax.setfont("fnt"); txmax.setz(z);
+		txmax.setpos( x, txmin.getey+dy );
+		txmax.createtxt(0,128,0);
+		new text txclose; txclose.setfont("fnt"); txclose.setz(z);
+		txclose.setpos( x, txmax.getey+dy );
+		txclose.createtxt(0,0,128);
+		new text txzmiana; txzmiana.setfont("fnt"); txzmiana.setz(z);
+		txzmiana.setpos( x, txclose.getey+dy );
+		new text txprice; txprice.setfont("fnt"); txprice.setz(z);
+		txprice.createtxt(64,0,0);
+		new text txhelp; txhelp.setfont("fnt"); txhelp.setz(z);
+		txhelp.createtxt(0,64,0);
+		new text txstate; txstate.setfont("fnt"); txstate.setz(z);
+		txstate.createtxt(.black);
+		new text txlink; txlink.setfont("fnt"); txlink.setz(z);
+		txlink.createtxt(.black);
+		txlink.txtset("http://podtworca.blogspot.com");
+		
+		
+		new TextTyper tcfile("fnt", .black, "a0._", 32);
+		tcfile.setpos( 10, iResY - 50 );
+		tcfile.setz(z);
+		
+		new TextTyper tcanalysis("fnt", .black, "a0._", 36);
+		tcanalysis.setpos( iResX/3, iResY - 50 );
+		tcanalysis.setz(z);
+		tcanalysis.txtset(stxtnoanalysis);
+		new string sfileanal = stxtnoanalysis;
+		
+		x+=100; 
+		.setstdstate;
+		txstate.setpos(x, y);
+		txhelp.txtset("Type 'h' for help");
+		txhelp.setpos( x, txstate.getey+dy);
+		txprice.setpos( x, txhelp.getey+dy );
+		
+		x = iResX/3;
+		new img imgsave;
+		imgsave.setasbut;
+		imgsave.setz(z);
+		imgsave.addmethod("butclick", func {
+			if( sgmstate=="state_std" )	{
+				.setstate("state_saveanal", "Saving analysis");
+				tcanalysis.enable;
+				b_skip_click = true;
+			}
+			} );
+		imgsave.createbut("save analysis");
+		imgsave.setpos(x,y);
+		
+		new img imgload;
+		imgload.setasbut;
+		imgload.setz(z);
+		imgload.addmethod("butclick", func {
+			if( sgmstate=="state_std" )	{
+				.setstate("state_loadanal", "Loading analysis");
+				tcanalysis.enable;
+				b_skip_click = true;
+			}
+			} );
+		imgload.createbut("load analysis");
+		imgload.setpos(x,y + imgsave.geth + 5);
+		
+		// x = .max(imgsave.getex, imgload.getex) + 10;
+		new img imgcfg;
+		imgcfg.setasbut;
+		imgcfg.setz(z);
+		imgcfg.addmethod("butclick", func {
+			if( sgmstate=="state_std" )	{
+				.reloadcfg;
+				b_skip_click = true;
+				.showmsg("Config reloaded");
+				.redraw;
+			}
+			} );
+		imgcfg.createbut("reload config");
+		imgcfg.setpos(x, imgload.getey+5);
+		
+		new db dbconf;
+		
+		new img imbghelp;
+		imbghelp.create( 800, 700, .white, 255 );
+		imbghelp.imgborders(2, .black, 128);
+		imbghelp.setpos( (iResX-imbghelp.getw)/2, (iResY-imbghelp.geth)/2 );
+		imbghelp.setz( zhelp );
+		imbghelp.hide;
+		new TextDb tchelp("fnt", "$path:scripts/invest2/invest2_help.txt", .black,
+			imbghelp.getpx + 10, imbghelp.getpy + 10 , 2, zhelp+2, "left");
+		tchelp.hide;
+		
+		new vector vin; vin.type("string");
+		new string sfileinput = null;
+		
+		keyboard.autorepeat(false);
+		
+		new img imgbkg;
+		imgbkg.create(iScreenX, iScreenY,.white,255);
+		new img imbg;
+		new img immspos;
+		immspos.setz(1);
+		immspos.vars2(A, "svin", null);
+		new img imhorizon;
+		
+		new img imgdot;	// do rysowania wykresow
+		
+		new img imfibo0;
+		imfibo0.vars2(A, "svin", null, "rfibo", 0.0);
+		new img imfibo236;
+		imfibo236.vars2(A, "svin", null, "rfibo", 0.236);
+		new img imfibo382;
+		imfibo382.vars2(A, "svin", null, "rfibo", 0.382);
+		new img imfibo50;
+		imfibo50.vars2(A, "svin", null, "rfibo", 0.5);
+		new img imfibo618;
+		imfibo618.vars2(A, "svin", null, "rfibo", 0.618);
+		new img imfibo1;
+		imfibo1.vars2(A, "svin", null, "rfibo", 1.0);
+		new img imfibo1618;
+		imfibo1618.vars2(A, "svin", null, "rfibo", 1.618);
+		new vector grfibo; grfibo.type("string");
+		grfibo.beginadd("begin", "imfibo0", "imfibo236", "imfibo382", "imfibo50", "imfibo618", "imfibo1", "imfibo1618");
+		
+		new real price;
+		new real rmin;
+		new real rmax;
+		new real rh1 = 5;
+		new real rh2 = 5;
+		
+		new int Depth;
+		new int Height;
+		new int Dswieca;
+		new int WykresStart;
+		new bool ShowData = false;
+		new int viewx1;
+		new int viewx2;
+		new int ShowFiboData = 0;
+		new bool bBgChart = false;
+		
+		new bool bShowLine = false;
+		new int lastlinex;
+		new int lastliney;
+		
+		//----------- ichimoku ---------
+		new bool bIchimoku = false;
+		new int tenkan_sen;
+		new int kijun_sen;
+		new int chikou_span;
+		new int senkou_span1;
+		new int senkou_span2;
+		
+		//---------------- smatr ----------
+		new bool bSMATR = false;
+		new real rsmatrx1;
+		new real rsmatry1;
+		new real rsmatry2;
+		new real rsmatry3;
+		new real rsmatry4;
+		new int ismadepth;
+		new int ismax;
+		
+		//-------------- atr ------------
+		new bool bATR = false;
+		new real ratrx;
+		new real ratry;
+		new real ratry1;
+		new real ratry2;
+		new real ratry3;
+		new int iatrdepth;
+		new int iatrsma;
+		
+		// ---------- minimax -----------
+		new bool bMinMax = false;
+		new real rmimax;
+		new real rmimay1;
+		new real rmimay2;
+		new real rmimay3;
+		new int imimamin;
+		new int imimamax1;
+		new int imimamax2;
+		
+		.reloadcfg;
+		new int InitialDepth = .readcfg("depth:", 230);
+		
+		new timer timkey;
+		timkey.setdelay(50);
+		timkey.settick(1);
+		timkey.addmethod("onfinish", func {
+			if( sgmstate=="state_std" )	{
+				
+				if( keyboard.iskeydown("up") )	{
+					if( keyboard.iskeydown("lshift") ) .setdepth(-.max(50,Depth/5));
+					else if( keyboard.iskeydown("rshift") ) .setdepth(-Depth/2);
+					else .setdepth(-.max(10,Depth/20));
+					.redraw;
+				} else if ( keyboard.iskeydown("down"))	{
+					if( keyboard.iskeydown("lshift") ) .setdepth(.max(50,Depth/5));
+					else if( keyboard.iskeydown("rshift") ) .setdepth(Depth);
+					else .setdepth(.max(10,Depth/20));
+					.redraw;
+				} else if (keyboard.iskeydown("left") )	{
+					if( keyboard.iskeydown("lctrl") )	{
+						<sactchart>.move( 10, 0 );
+					} else {
+						if( keyboard.iskeydown("rshift") ) .setchartstart(<sdbin>.getrowsno/2);
+						else if( keyboard.iskeydown("lshift") ) .setchartstart(.max(50,Depth/50));
+						else .setchartstart(.max(10,Depth/20));
+						.redraw;
+					}
+				} else if (keyboard.iskeydown("right") )	{
+					if( keyboard.iskeydown("lctrl") )	{
+						<sactchart>.move( -10, 0 );
+					} else {
+						if( keyboard.iskeydown("rshift") ) .setchartstart(-WykresStart/2);
+						else if( keyboard.iskeydown("lshift") ) .setchartstart(-.max(50,Depth/50));
+						else .setchartstart(-.max(10,Depth/20));
+						.redraw;
+					}
+				}
+			}
+			.play;
+			});
+		timkey.play;
+		
+		new bool b_skip_click = false;
+		
+		new int iIleSaves = 15;
+		for( int i=0; i<iIleSaves; i++)	{
+			@s = "imgsav"+i;
+			new img <s>;
+			<s>.vars2(A, "myid", i, "myval", null);
+			<s>.setasbut;
+			<s>.addmethod("butclick", func {
+				if( sgmstate=="state_std" )	{
+					string slast = tcfile.get;
+					tcfile.txtset(myval);
+					.checkbgchart;
+					.load_new_chart(myval, slast);
+					b_skip_click = true;
+				} else if( sgmstate=="state_loadanal" || sgmstate=="state_saveanal" )	{
+					tcanalysis.txtset(myval);
+				}
+				} );
+			<s>.setz(z);
+		}
+		.updatesavebutspos;
+		
+		new int idactchart = 1;
+		x = imgcfg.getex + 30;
+		y = imgsave.getpy;
+		new gmimgvec grcharts;
+		for( i=1; i<=iilecharts; i++ )	{
+			s = "imgbutchart"+i;
+			new img <s>;
+			<s>.setasbut;
+			<s>.setz(z);
+			<s>.addmethod("butclick", func {
+				if( sgmstate=="state_std" )	{
+					if( sactchart!=null )	{
+						<"imgbutchart"+idactchart> {
+							idepth = Depth;
+							iwykresstart = WykresStart;
+							bshowline = bShowLine;
+							sdbfile =  dbsave.dbget("input_chart");
+							};
+					}
+					.setactchart(idchart);
+					if( sdbfile==null )	{
+						<gameapi.getgamename>.load_chart( .getsav( "input_chart", .readstringcfg("input_chart:", "wig20_d.csv") ) );
+						sdbfile =  dbsave.dbget("input_chart");
+					} else {
+						Depth = idepth;
+						WykresStart = iwykresstart;
+						bShowLine = bshowline;
+						<gameapi.getgamename>.load_chart( sdbfile );
+					}
+					<gameapi.getgamename>.redraw;
+				}
+				b_skip_click = true;
+				} );
+			<s>.createbut("chart "+i);
+			<s>.setpos(x,y);
+			
+			@s2 = "imbutshowhidechart"+i;
+			new img <s2>;
+			<s2>.setasbut;
+			<s2>.setz(z);
+			<s2>.var2("schart","imgchart"+i);
+			<s2>.addmethod("butclick", func {
+				if( sgmstate=="state_std" )	{
+					(<schart>.isvisible ? <schart>.hide : <schart>.show);
+				}
+				b_skip_click = true;
+				} );
+			<s2>.createbut("hide/show");
+			<s2>.setpos(x+<s>.getw+5,y);
+			if( i%3==0 )	{
+				x = <s2>.getex + 15;
+				y = imgsave.getpy;
+			} else y+=<s>.geth + 5;
+			
+			@sdb = "dbchart"+i;
+			<s>.vars2(A, "idchart",i, "idepth",InitialDepth, "iwykresstart",WykresStart, "bshowline",bShowLine,
+				"sdbfile",null, "sdb",sdb);
+			
+			new db <sdb>;
+			new db <sdb+"rew">;
+			new db <sdb+"log">;
+			
+			s = "imgchart"+i;
+			new img <s>;
+			grcharts.add(s);
+		}
+		.setactchart(1);
+		.load_chart( .getsav( "input_chart", .readstringcfg("input_chart:", "wig20_d.csv") ) );
+		
+		.draw_initial;
+	}
+	mchartcol(int id)	{
+		match(id)	{
+			1 => return 0,0,0;
+			2 => return 32,0,0;
+			3 => return 0,32,0;
+			4 => return 0,0,32;
+			5 => return 32,32,0;
+			6 => return 0,32,32;
+			? => return 0,0,0;
+		}
+	}
+	setactchartdb	{	sdbin = "dbchart"+idactchart;	}
+	setactchart(int id)	{	<gameapi.getgamename>(id) { (int id)
+		if( sactchart!=null )	{
+			new img imgpomc;
+			new filter ftpomc;
+			imgpomc.imgclone(sactchart);
+			ftpomc.link("imgpomc");
+			ftpomc.setopacity(128);
+			<sactchart>.imgclone("imgpomc");
+			delete ftpomc;
+			delete imgpomc;
+		}
+		idactchart = id;
+		.setactchartdb;
+		sactchart = "imgchart"+id;
+		<sactchart>.show;
+	}; }
+	copydbrew	{
+		@sdb = "dbchart"+idactchart+"rew";
+		if( sdbin==sdb )	{
+			.setactchartdb;
+		} else {
+			<sdb>.free;
+			<sdb>.dbcopy(sdbin);
+			real p;
+			/*for( int i=100; i<200; i++ )	{
+				<sdb>.get(i,1)->print;
+			}
+			return;*/
+			for( int i=0; i< <sdb>.getrowsno; i++ )	{
+				if( <sdb>.getcolsno(i) > 4 )	{
+					p = <sdb>.get(i,1);
+					if( p > 0 )	{
+						p = 1.0/p;
+						<sdb>.set(i, 1, p );
+						<sdb>.set(i, 2, p );
+						<sdb>.set(i, 3, p );
+						<sdb>.set(i, 4, p );
+					} else {
+						<sdb>.set(i,1,1);
+						<sdb>.set(i,2,1);
+						<sdb>.set(i,3,1);
+						<sdb>.set(i,4,1);
+					}
+				}
+			}
+			sdbin = sdb;
+		}
+	}
+	logdata	{
+		@sdb = "dbchart"+idactchart+"log";
+		if( sdbin==sdb )	{
+			.setactchartdb;
+		} else {
+			<sdb>.free;
+			//<sdb>.dbcopy(sdbin);
+			real p;
+			for( int i=0; i< <sdbin>.getrowsno; i++ )	{
+				if( <sdbin>.getcolsno(i) > 4 )	{
+					int irow = <sdb>.addrow - 1;
+					<sdb>.add( irow, <sdbin>.get(i,0) );
+					<sdb>.add( irow, <sdbin>.get(i,1)->to_r->log );
+					<sdb>.add( irow, <sdbin>.get(i,2)->to_r->log );
+					<sdb>.add( irow, <sdbin>.get(i,3)->to_r->log );
+					<sdb>.add( irow, <sdbin>.get(i,4)->to_r->log );
+					if( <sdbin>.getcolsno(i)>5 )
+						<sdb>.add( irow, <sdbin>.get(i,5) );
+				}
+			}
+			sdbin = sdb;
+		}
+		//<sdbin>.print;
+	}
+	setasbut	{
+		.addmethod("isbutin", func { (@x, @y)
+			.getw>0 && .isin(x,y,1,1);
+			} );
+		.addmethod("butmoveon", func {
+			.transparency(200);
+			} );
+		.addmethod("butmoveoff", func {
+			.transparency(255);
+			} );
+		butgame.add(this);
+	}
+	reloadcfg	{
+		dbconf.loadscript(spath + "invest2.cfg");
+		
+		tenkan_sen = .readcfg("tenkan_sen:", 9);
+		kijun_sen = .readcfg("kijun_sen:", 26);
+		chikou_span = .readcfg("chikou_span:", 26);
+		senkou_span1 = .readcfg("senkou_span1:", 26);
+		senkou_span2 = .readcfg("senkou_span2:", 52);
+		
+		ismadepth = .readcfg("smaminmax:", 50);
+		ismax = .readcfg("minmaxd:", 14);
+		
+		iatrdepth = .readcfg("atrdepth:", 40);
+		iatrsma = .readcfg("atrsma:", 15);
+		
+		imimamin = .readcfg("mimamin:", 220);
+		imimamax1 = .readcfg("mimamax1:", 220);
+		imimamax2 = .readcfg("mimamax2:", 90);
+	}
+	getsavedinput(int id)	{	.getsav("last_input_"+id, null);	}
+	updatesavimg		{
+		string s = .getsavedinput(myid);
+		if( s!=null )	{
+			myval = s;
+			.createbut(s);
+		}
+	}
+	createbut(string s)	{
+		int dx = 3;
+		txt1.txtsetcol(s, .black);
+		.create( txt1.getw + 2*dx, txt1.geth + 2*dx, .grey(192), 255 );
+		.imgborders(2, .black, 64);
+		.setpos(0,0);
+		txt1.setpos( dx, dx );
+		.blit("txt1");
+	}
+	updatesavebutspos	{
+		@dx = 5;
+		@y = tcfile.getey + dx;
+		string slast;
+		for( int i=0; i<iIleSaves; i++ )	{
+			@s = "imgsav"+i;
+			<s>.updatesavimg;
+			if( <s>.getw > 0 )	{
+				if( i>0 )	{
+					@x = <slast>.getex;
+					if( x + <s>.getw >= iResX - dx )	{
+						y += <slast>.geth + dx;
+						x = tcfile.getpx - dx;
+					}
+					<s>.setpos( x + dx, y );
+				} else <s>.setpos( tcfile.getpx, y );
+			}
+			slast = s;
+		}
+	}
+	setdepth(int dx)	{
+		Depth += dx;
+		if( Depth < 1 ) Depth = 1;
+		
+		if( Depth >= <sdbin>.getrowsno ) Depth = <sdbin>.getrowsno-1;
+	}
+	setchartstart(int dx)	{
+		WykresStart += dx;
+		
+		if ( WykresStart + Depth >= <sdbin>.getrowsno ) WykresStart = <sdbin>.getrowsno - Depth;
+		if( WykresStart < 0 ) WykresStart = 0;
+	}
+	setstdstate	{	.setstate("state_std", "State: normal");	}
+	setstate(string s, string smsg)	{
+		sgmstate = s;
+		.showmsg(smsg);
+	}
+	stdstate(string smsg)	{	.setstate("state_std", smsg);	}
+	showmsg(string s)	{	txstate.txtset(s);	}
+	get_chart_file(string sfile)	{	spath + "input/" + sfile;	}
+	get_anal_file(string sfile)	{	spath + "analysis/"+sfile;	}
+	getactdb	{	"dbchart"+idactchart;	}
+	load_chart(string sfile)	{
+		if( !engine.fileexist(.get_chart_file(sfile)) )
+			return;
+		dbsave.setsav("input_chart",sfile);
+		
+		sfileinput = sfile;
+		tcfile.txtset(sfile);
+		string s;
+		if( vin.size )	{
+			for( int i=0; i<vin.size; i++ )	{
+				s = vin.get(i);
+				delete <s>;
+			}
+			vin.free;
+		}
+		.setactchartdb;
+		<sdbin>.loadscript( .get_chart_file(sfileinput) );
+		if( sfileinput.gete(0,3)=="csv" || sfileinput.gete(0,3)=="txt" )	{	// stooq format
+			@s = <sdbin>.get(0,0);
+			if( s=="Date,Time,Open,High,Low,Close,Volume,OpenInt" )	{	// hourly
+				<sdbin>.removerow(0);
+				for( int i=0; i< <sdbin>.getrowsno; i++ )	{
+					vin.vecbuildfromstring(<sdbin>.get(i,0), ",");
+					<sdbin>.set(i,0,vin.first);
+					for( int j=2; j<vin.size; j++ )
+						<sdbin>.add(i, vin.get(j) );
+				}
+				vin.free;
+			} else {
+				if( !s.getb(0,1)->strisint )	{
+					<sdbin>.removerow(0);	// usun naglowek jesli pierwszy znak nie jest cyfra
+				}
+				for( int i=0; i< <sdbin>.getrowsno; i++ )	{
+					vin.vecbuildfromstring(<sdbin>.get(i,0), ",");
+					<sdbin>.set(i,0,vin.first);
+					for( int j=1; j<vin.size; j++ )
+						<sdbin>.add(i, vin.get(j) );
+				}
+				vin.free;
+			}
+		}
+		for( int i=0; i< <sdbin>.getrowsno; i++ )	{
+			@s = "ivin"+i;
+			new int <s>;
+			vin.add(s);
+			<s>.vars2(A, "sdata", null, "knotx", 0, "knoty", 0, "knotey", 0);
+		}
+	}
+	draw_initial	{
+		Depth = InitialDepth;
+		Height = 500;
+		Dswieca = 3;
+		WykresStart = 0;
+		.setdepth(0);
+		.setchartstart(0);
+		.redraw;
+	}
+	redraw	{
+		.draw_chart(Depth, Height, Dswieca);
+	}
+	draw_chart(int depth, real rheight, real dwswieca)	{
+		
+		if( <sdbin>.getrowsno<=0 || depth<=0 || rheight<=0 || dwswieca<1) return;
+		/*1999-04-20 46.7099 46.7099 43.1539 44.0871 228962
+		1999-04-21 43.9987 44.1853 43.5271 43.7138 171561*/
+		
+// 		engine.setdebugstate(1);
+		
+		real dx = 1;
+		int istepdata = 20;
+		if( depth >= <sdbin>.getrowsno )	{
+			depth = <sdbin>.getrowsno - 1;
+		}
+		
+		dx = 3;
+		dwswieca = 5;
+		
+		real rw1 = 5;
+		real rw2 = 5;
+		int chartw = (dwswieca+dx)*(depth+12) + rw1 + rw2;
+		while( chartw > 1000 )	{
+			if( dx>1 )	{
+				dx--;
+			} else if( dwswieca>1 )	{
+				dwswieca--;
+			} else if( dx < 0 )	{
+				dx = 1.025*dx;
+			} else if( dx < 0.25 )	{
+				dx = -0.25;
+			} else {
+				dx = 0.975*dx;
+			}
+			chartw = (dwswieca+dx)*(depth+12) + rw1 + rw2;
+		}
+		istepdata = depth/10;
+		
+		rmax=0.0;
+		real r[3];
+		int i[9], real maxvol=0;
+		
+		i0 = <sdbin>.getrowsno-1-WykresStart;
+		if( i0 < depth ) i0 = depth;
+		rmin = <sdbin>.get(i0, 3);
+		real minvol = .getwol(i0, 1);
+		if( i0+1 < depth ) depth = i0+1;
+		
+		real rmid = 0.0;
+		for (int i=1; i<=depth; i++) 	{
+			i1 = i0-i;
+			r0 = <sdbin>.get(i1, 2);
+			if( r0>rmax ) rmax = r0;
+			r0 = <sdbin>.get(i1, 3);
+			if( r0<rmin ) rmin = r0;
+			i2 = .getwol(i1, minvol);
+			if( minvol==0 && i2>0 ) {
+				minvol=i2;
+				maxvol=i2;
+			}
+			if( i2<minvol ) minvol = i2;
+			if( i2>maxvol ) maxvol = i2;
+			rmid+=i2;
+		}
+		rmid=rmid/depth.to_r;
+		
+		real rh = rmax - rmin;
+		if( rh==0 ) return;
+		rh = (rheight-rh1-rh2)/rh;
+		
+		imbg.setpos(0,0);
+		if( bBgChart )
+			bBgChart = false;
+		else	{
+			imbg.create( (dwswieca+dx)*(depth+12) + rw1 + rw2, rheight, .transparent );
+			<sactchart>.create(imbg.getw, imbg.geth, .transparent);
+			<sactchart>.setpos(0,0);
+		}
+		immspos.create( 1, imbg.geth, .black, 64 );
+		imhorizon.create( imbg.getw, 1, .black, 32 );
+		new img imp1;
+		real col;
+		real rvol = maxvol - minvol;
+		//if( rvol==0 ) rvol = 1.0;
+		real rvol1 = 90;
+		real rvol2 = 240;
+		real rvol3 = rvol2-rvol1;
+		int c[3];
+		bool bvol0 = true;
+		
+		real p[8];
+		real p_open;
+		real p_high;
+		real p_low;
+		real p_close;
+		real p_vol;
+		
+		real min;
+		real max;
+		int idmin = -1;
+		int idmax = -1;
+		
+		int posx = mouse.getposx;
+		int idposx = -1;
+		int posabs;
+		
+		viewx1 = i0-depth+1;
+		viewx2 = i0;
+		
+		int xchart, int ychart;
+		int xtenkan = -1; int ytenkan = -1;
+		int xkijun = -1; int ykijun = -1;
+		int xchikou = -1; int ychikou = -1;
+		int xsenku1 = -1; int ysenku1 = -1;
+		int xsenku2 = -1; int ysenku2 = -1;
+		real richi[8];
+		real richix, real rysenku2b;
+		
+		//----------smatr---------
+		rsmatrx1 = -1;
+		
+		//----- atr --------
+		ratrx = -1;
+		
+		//------ line -----------
+		lastlinex = -1;
+		
+		// minimax
+		rmimax = -1;
+		
+		for (int i=1; i<=depth; i++) 	{
+			i1 = i0-depth+i;
+			p_open = <sdbin>.get(i1, 1);	// open
+			p_high = <sdbin>.get(i1, 2);	// max
+			p_low = <sdbin>.get(i1, 3);	// min
+			p_close = <sdbin>.get(i1, 4);	// close
+			p_vol = .getwol(i1, minvol);
+			col = (maxvol - p_vol);
+			if( col>0 )	{
+				bvol0 = false;
+				//col = (col*col*col*col)/(rvol*rvol*rvol*rvol);
+				col = col/rvol;
+				col = col*col*col;
+				//col = ((maxvol - p_vol)*(maxvol-p_vol)) / (rvol*rvol);
+				//col.print;
+				col = col*rvol3 + rvol1;
+				c0 = 0; c1=0;
+				if( col>rvol2*0.7 )	{
+					c2 = 0.5*col;
+				} else if ( col > rvol2*0.5 )	{
+					c2=0.3*col;
+				} else
+					c2 = 0;
+			} else {
+				col = 128;
+				c0 = 0; c1=0; c2=0;
+			}
+			
+			if( p_open>p_close )	{
+				c0 = col;
+				c1 = c2;
+				p0 = p_close;
+			} else {
+				c1 = col;
+				c0 = c2;
+				p0 = p_open;
+			}
+			
+			r0 = rh*(p_high - p_low);
+			if( r0<1 ) r0 = 1;
+			if( i%istepdata==0 )	{
+				if( rheight-rh1-rh2 > 0 )	{
+					imp1.create( 1, rheight-rh1-rh2, .grey(64), 32 );		// kreska daty
+					imp1.setpos( rw1 + (dx+dwswieca)*i + dwswieca/2, rheight - rh2 - imp1.geth );
+					imbg.blit("imp1");
+				} else {
+					"rheight-rh1-rh2 <= 0"->print;
+				}
+			}
+			if( p_vol>0 && 0==1)	{
+				if( rvol <= 0 )	{
+					("rvol <= 0 : "+rvol)->print;
+				} else {
+					if( p_open>p_close )	{
+						imp1.create( 1, ((1.0-(maxvol-p_vol)/rvol))*(rheight*0.5) + 5, .red, 64 );		// volumen
+					} else {
+						imp1.create( 1, ((1.0-(maxvol-p_vol)/rvol))*(rheight*0.5) + 5, .green, 64 );	// volumen
+					}
+					imp1.setpos( rw1 + (dx+dwswieca)*i + dwswieca/2, rheight - rh2 - imp1.geth );
+					imbg.blit("imp1");
+				}
+			}
+			
+			imp1.create( 1, r0, c0,c1,c2, 255 );		// knot
+			i3 = rw1 + (dx+dwswieca)*i + dwswieca/2;
+			xchart = i3;
+			imp1.setpos( i3, rheight - rh2 - ( rh*(p_low-rmin) ) - imp1.geth );
+			if( !bShowLine )
+				<sactchart>.blit("imp1");
+			
+			i4 = (i3-posx+(iResX-imbg.getw)/2)->abs;
+			if( idposx==-1 || i4<posabs )	{
+				idposx = i1;
+				posabs = i4;
+			}
+			
+			
+			//if( ShowData )	{
+				@s = vin.get(i1);
+				<s>.knotx = (imp1.getpx);
+				<s>.knoty = (imp1.getpy);
+				<s>.knotey = (imp1.getey);
+				<s>.sdata = (<sdbin>.get(i1, 0));
+			//}
+			
+			r0 = rh*((p_open-p_close)->abs);
+			if( r0<1 ) r0=1;
+			imp1.create( dwswieca, r0, c0,c1,c2, 255 );
+			r0 = p0 - rmin;
+			imp1.setpos( rw1 + (dx+dwswieca)*i , rheight - rh2 - rh*r0- imp1.geth );
+			if( !bShowLine )
+				<sactchart>.blit("imp1");
+			
+			if( i%istepdata==0 && ( i+istepdata <= depth ) )	{
+				txtdata.txtset( <sdbin>.get(i1,0) );
+				txtdata.setpos(imp1.getpx, rheight -txtdata.geth );
+				imbg.blit("txtdata");
+			}
+			
+			if( bShowLine )	{
+				if( lastlinex==-1 )	{
+					lastlinex = xchart;
+					lastliney = rheight - rh2 - rh*(p_close-rmin);
+				} else {
+					imgdot.create(1,1, .mchartcol(idactchart), 160);
+					ychart = rheight - rh2 - rh*(p_close-rmin);
+					_ = <sactchart>.imgdrawline("imgdot", lastlinex, lastliney, xchart, ychart, 1, 1);
+					lastlinex = xchart;
+					lastliney = ychart;
+				}
+			}
+			
+			if( bMinMax )	{
+				if( rmimax==-1 )	{
+					rmimax = xchart;
+					real rlastmima0 = .getminc(i1,imimamin);
+					real rlastmima1 = .getmaxc(i1,imimamax1);
+					real rlastmima2 = .getmaxc(i1,imimamax2);
+					
+					rmimay1 = rheight - rh2 - rh*(rlastmima0 -rmin);
+					rmimay2 = rheight - rh2 - rh*(rlastmima1 -rmin);
+					rmimay3 = rheight - rh2 - rh*(rlastmima2 -rmin);
+					//bool bdrawminmax = rlastmima0>0;
+				} else {
+					if( rlastmima0<0 )	{
+						rlastmima0 = .getminc(i1,imimamin);
+						rlastmima1 = .getmaxc(i1,imimamax1);
+						rlastmima2 = .getmaxc(i1,imimamax2);
+					} else {
+						rlastmima0 = .calcminc(i1,imimamin, rlastmima0);
+						rlastmima1 = .calcmaxc(i1,imimamax1, rlastmima1);
+						rlastmima2 = .calcmaxc(i1,imimamax2, rlastmima2);
+					}
+					imgdot.create(1,1, 255,0,192,160);
+					ychart = rheight - rh2 - rh*(rlastmima0 -rmin);
+					_ = imbg.imgdrawline("imgdot", rmimax, rmimay1, xchart, ychart, 1, 1);
+					rmimay1 = ychart;
+					
+					imgdot.create(1,1, 0,255,128,160);
+					ychart = rheight - rh2 - rh*(rlastmima1 -rmin);
+					_ = imbg.imgdrawline("imgdot", rmimax, rmimay2, xchart, ychart, 1, 1);
+					rmimay2 = ychart;
+					
+					imgdot.create(1,1, 255,128,0,160);
+					ychart = rheight - rh2 - rh*(rlastmima2 -rmin);
+					_ = imbg.imgdrawline("imgdot", rmimax, rmimay3, xchart, ychart, 1, 1);
+					rmimay3 = ychart;
+					
+					rmimax = xchart;
+				}
+			}
+			
+			if( bATR )	{
+				if( ratrx==-1 )	{
+					ratrx = xchart;
+					real ra = .getatr(i1,iatrdepth);
+					//real rs = .getsma(i1,iatrsma);
+					real rsma = .sumclose(i1,iatrsma);
+					if( rsma<0 ) real rs = 0;
+					else real rs = rsma/iatrsma;
+					ratry = rheight - rh2 - rh*(ra);
+					ratry1 = rheight - rh2 -rh * (rs - ra - rmin);
+					ratry2 = rheight - rh2 -rh * (rs + ra - rmin);
+				} else {
+					real ra = .getatr(i1,iatrdepth);
+					//real rs = .getsma(i1,iatrsma);
+					if( rsma<0 )
+						rsma = .sumclose(i1,iatrsma);
+					else
+						rsma += .calcsma(i1,iatrsma);
+					if( rsma<0 ) rs = 0;
+					else rs = rsma/iatrsma;
+					real ry1 = rs - ra;
+					real ry2 = rs + ra;
+					
+					if( p_close < ry1 )
+						imgdot.create(1,1, 255,0,192,160);
+					else if( p_close > ry2 )
+						imgdot.create(1,1, 0,255,128,160);
+					else
+						imgdot.create(1,1, 255,128,0,160);
+					
+					ychart = rheight - rh2 - rh*ra;
+					_ = imbg.imgdrawline("imgdot", ratrx, ratry, xchart, ychart, 1, 1);
+					ratry = ychart;
+					
+					ychart = rheight - rh2 -rh * (rs - ra - rmin);
+					_ = imbg.imgdrawline("imgdot", ratrx, ratry1, xchart, ychart, 1, 1);
+					ratry1 = ychart;
+					
+					ychart = rheight - rh2 -rh * (rs + ra - rmin);
+					//ychart = rheight - rh2 -rh * ((rs-ra)/rs * p_close - rmin);
+					//ychart = rheight - rh2 -rh * (p_close - ra - rmin);
+					_ = imbg.imgdrawline("imgdot", ratrx, ratry2, xchart, ychart, 1, 1);
+					ratry2 = ychart;
+					
+					ratrx = xchart;
+				}
+			}
+			
+			if( bSMATR )	{
+				if( rsmatrx1==-1 )	{
+					rsmatrx1 = xchart;
+					//|r0, r1| = .getsmax(i1,ismadepth,ismax);
+					real rsmatrmax;
+					real rsmatrmin;
+					|rsmatrmax, rsmatrmin| = .sumsmax(i1,ismadepth,ismax);
+					if( rsmatrmax==-1 ) {
+						r0 = 0;
+						r1 = 0;
+					} else {
+						r0 = rsmatrmax/ismadepth;
+						r1 = rsmatrmin/ismadepth;
+					}
+					rsmatry1 = rheight - rh2 - rh*(r0-rmin);
+					rsmatry2 = rheight - rh2 - rh*(r1-rmin);
+					rsmatry3 = (rsmatry1+rsmatry2)/2;
+					rsmatry4 = rheight - rh2 - rh*(.getsma(i1,ismadepth)-rmin);
+				} else {
+					//|r0, r1| = .getsmax(i1,ismadepth,ismax);
+					if( rsmatrmax < 0 )	{
+						|rsmatrmax, rsmatrmin| = .sumsmax(i1,ismadepth,ismax);
+						r0 = 0;
+						r1 = 0;
+					} else {
+						|r0, r1| = .calcsmax(i1,ismadepth,ismax);
+						rsmatrmax += r0;
+						rsmatrmin += r1;
+						r0 = rsmatrmax/ismadepth;
+						r1 = rsmatrmin/ismadepth;
+					}
+					
+					ychart = rheight - rh2 - rh*(r0-rmin);
+					if( r0 < p_close )
+						imgdot.create(1,1, 0,255,0,160);
+					else if( r1 > p_close )
+						imgdot.create(1,1, 255,0,0,160);
+					else
+						imgdot.create(1,1, 0,0,255,160);
+					_ = imbg.imgdrawline("imgdot", rsmatrx1, rsmatry1, xchart, ychart, 1, 1);
+					rsmatry1 = ychart;
+					
+					real ychart2 = rheight - rh2 - rh*(r1-rmin);
+					_ = imbg.imgdrawline("imgdot", rsmatrx1, rsmatry2, xchart, ychart2, 1, 1);
+					rsmatry2 = ychart2;
+					
+					_ = imbg.imgdrawline("imgdot", rsmatrx1, rsmatry3, xchart, (ychart+ychart2)/2, 1, 1);
+					rsmatry3 = (ychart+ychart2)/2;
+					
+					/*imgdot.create(1,1, 0,100,150,160);
+					real ychart3 = rheight - rh2 - rh*(.getsma(i1,ismadepth)-rmin);
+					_ = imbg.imgdrawline("imgdot", rsmatrx1, rsmatry4, xchart, ychart3, 1, 1);
+					rsmatry4 = ychart3;*/
+					
+					rsmatrx1 = xchart;
+				}
+			}
+			
+			if( bIchimoku )	{
+				|_,_,richi0,richi1| = .getextremes(i1-tenkan_sen,i1);
+				|_,_,richi2,richi3| = .getextremes(i1-kijun_sen,i1);
+				|_,_,richi4,richi5| = .getextremes(i1-senkou_span2,i1);
+				if( xtenkan==-1 )	{
+					xtenkan = xchart;
+					ytenkan = rheight - rh2 - rh*((richi0+richi1)/2.0 - rmin);
+					
+					xkijun = xchart;
+					ykijun = rheight - rh2 - rh*((richi2+richi3)/2.0 - rmin);
+					
+					xchikou = rw1 + (dx+dwswieca)*(i-chikou_span) + dwswieca/2;
+					ychikou = rheight - rh2 - rh*(p_close - rmin);
+					
+					xsenku1 = rw1 + (dx+dwswieca)*(i+senkou_span1) + dwswieca/2;
+					ysenku1 = (ytenkan+ykijun)/2;
+					
+					xsenku2 = xsenku1;
+					ysenku2 = rheight - rh2 - rh*((richi4+richi5)/2.0 - rmin);
+				} else {
+					// TENKAN SEN ("linia zwrotna")
+					// (NAJWY特ZY POZIOM + NAJNI特ZY POZIOM) / 2 przez ostatnie 9 okres闚
+					ychart = rheight - rh2 - rh*((richi0+richi1)/2.0 - rmin) ;
+					imgdot.create(1,1, 150,100,0,160);
+					_ = imbg.imgdrawline("imgdot", xtenkan, ytenkan, xchart, ychart, 1, 1);
+					
+					xtenkan = xchart;
+					ytenkan = ychart;
+					
+					if( i==2 )	{
+						txt1.txtset("tenkan sen");
+						txt1.setpos( xchart, ychart - txt1.geth );
+						imbg.blit("txt1");
+					}
+					
+					// KIJUN SEN ("linia standardowa")
+					// (NAJWY特ZY POZIOM + NAJNI特ZY POZIOM) / 2 przez ostatnie 26 okres闚
+					ychart = rheight - rh2 - rh*((richi2+richi3)/2.0 - rmin) ;
+					imgdot.create(1,1, 0,0,160,160);
+					_ = imbg.imgdrawline("imgdot", xkijun, ykijun, xchart, ychart, 1, 1);
+					
+					xkijun = xchart;
+					ykijun = ychart;
+					
+					if( i==2 )	{
+						txt1.txtset("kijun sen");
+						txt1.setpos( xchart, ychart - txt1.geth );
+						imbg.blit("txt1");
+					}
+					
+					// CHIKOU SPAN ("linia op騧niona")
+					// OBECNA CENA ZAMKNI犴IA przeniesiona w czasie wstecz (w przesz這嗆) o 26 okres闚
+					ychart = rheight - rh2 - rh*(p_close - rmin);
+					richix = rw1 + (dx+dwswieca)*(i-chikou_span) + dwswieca/2;
+					imgdot.create(1,1, 192,180,0,128);
+					_ = imbg.imgdrawline("imgdot", xchikou, ychikou, richix, ychart, 1, 1);
+					
+					xchikou = richix;
+					ychikou = ychart;
+					
+					if( i==2+chikou_span )	{
+						txt1.txtset("chikou span");
+						txt1.setpos( xchikou, ychikou - txt1.geth );
+						imbg.blit("txt1");
+					}
+					
+					// SENKOU SPAN A ("1sza linia prowadz帷a")
+					// (TENKAN SEN + KIJUN SEN)/2 przeniesiona w czasie w prz鏚 (w przysz這嗆) o 26 okres闚
+					// SENKOU SPAN B ("2ga linia prowadz帷a")
+					// (NAJWY特ZY POZIOM + NAJNI特ZY POZIOM) / 2 przez ostatnie 52 okresy przeniesione w czasie w prz鏚 ( w przysz這嗆) o 26 okres闚
+					richix = rw1 + (dx+dwswieca)*(i+senkou_span1) + dwswieca/2;
+					ychart = (ytenkan+ykijun)/2;
+					rysenku2b = rheight - rh2 - rh*((richi4+richi5)/2.0 - rmin);
+					if( ychart > rysenku2b )
+						imgdot.create(1,1, 255,0,0,96);
+					else imgdot.create(1,1, 0,255,0,96);
+					_ = imbg.imgdrawline("imgdot", richix, ychart, richix, rysenku2b, 1, 1);
+					imgdot.create(1,1, 128,28,128, 96);
+					_ = imbg.imgdrawline("imgdot", xsenku1, ysenku1, richix, ychart, 1, 1);
+					imgdot.create(1,1, 28,128,128, 96);
+					_ = imbg.imgdrawline("imgdot", xsenku2, ysenku2, richix, rysenku2b, 1, 1);
+					
+					
+					xsenku1 = richix;
+					ysenku1 = ychart;
+					xsenku2 = richix;
+					ysenku2 = rysenku2b;
+					
+					if( i==2 )	{
+						txt1.txtset("senkou span A");
+						txt1.setpos( xsenku1, ysenku1 - txt1.geth );
+						imbg.blit("txt1");
+						
+						txt1.txtset("senkou span B");
+						txt1.setpos( xsenku2, ysenku2 - txt1.geth );
+						imbg.blit("txt1");
+					}
+				}
+			}
+		}
+		
+		if( ShowData )	{
+			ShowData = false;
+			i5 = .readcfg("search_extreme_depth:", 7);
+			i6 = idposx-i5;
+			if( i6<0 ) i6=0;
+			i7 = idposx+i5;
+			if( i7 >= <sdbin>.getrowsno) i7 = <sdbin>.getrowsno-1;
+			|i4,i5,p0,p1| = .getextremes(i6,i7);
+			
+			txt1.txtset( <sdbin>.get(i4,0) + " " + <sdbin>.get(i4,2) );
+			@s = vin.get(i4);
+			@dy = 3;
+			txt1.setpos( <s>.knotx - txt1.getw/2, <s>.knoty - txt1.geth - dy );
+			if( txt1.getpy < imbg.getpy ) txt1.move(0, imbg.getpy-txt1.getpy);
+			if( txt1.getey > imbg.getey ) txt1.move(0, imbg.getey - txt1.getey - 2*txt1.geth );
+			if( txt1.getpx < imbg.getpx ) txt1.move(imbg.getpx-txt1.getpx,0);
+			if( txt1.getex > imbg.getex ) txt1.move(imbg.getex - txt1.getex,0 );
+			imbg.blit("txt1");
+			
+			txt1.txtset( <sdbin>.get(i5,0) + " " + <sdbin>.get(i5,3)  );
+			@s2 = vin.get(i5);
+			txt1.setpos( <s2>.knotx - txt1.getw/2, <s2>.knotey + dy );
+			if( txt1.getpy < imbg.getpy ) txt1.move(0, imbg.getpy-txt1.getpy);
+			if( txt1.getey > imbg.getey ) txt1.move(0, imbg.getey - txt1.getey - 2*txt1.geth );
+			if( txt1.getpx < imbg.getpx ) txt1.move(imbg.getpx-txt1.getpx,0);
+			if( txt1.getex > imbg.getex ) txt1.move(imbg.getex - txt1.getex,0 );
+			imbg.blit("txt1");
+			
+			if( (<s>.knotx - <s2>.knotx)->abs && (<s>.knoty - <s2>.knotey)->abs )	{
+				new img imp2;
+				if( <s>.knotx < <s2>.knotx ) {
+					i0 = <s>.knotx;
+					i1 = <s2>.knotx;
+				} else {
+					i0 = <s2>.knotx;
+					i1 = <s>.knotx;
+				}
+				if( <s>.knoty < <s2>.knotey ) {
+					i2 = <s>.knoty;
+					i3 = <s2>.knotey;
+				} else {
+					i2 = <s2>.knoty;
+					i3 = <s>.knotey;
+				}
+				imp2.create( i1-i0, i3-i2, 255,0,0, 64 );
+				imp2.setpos( i0, i2 );
+				imbg.blit("imp2");
+				delete imp2;
+			}
+		}
+		
+		if( ShowFiboData==2 )	{
+			//int dw = imfibo1.getpx - imfibo0.getpx;
+			int y = imbg.getpy;
+			imfibo0.setpos(<imfibo0.svin>.knotx, y);
+			txt1.txtset(<imfibo0.svin>.sdata);
+			txt1.setpos( imfibo0.getpx-txt1.getw/2, imfibo0.getpy );
+			imbg.blit("txt1");
+			imfibo1.setpos(<imfibo1.svin>.knotx, y);
+			txt1.txtset(<imfibo1.svin>.sdata);
+			txt1.setpos( imfibo1.getpx-txt1.getw/2, imfibo1.getpy );
+			imbg.blit("txt1");
+			imbg.blit("imfibo0");
+			int dw = <imfibo1.svin>.knotx - <imfibo0.svin>.knotx;
+			int x = imfibo0.getpx;
+			imfibo0.hide;
+			for( int i=1; i<grfibo.size; i++)	{
+				@s = grfibo.get(i);
+				if( s!="imfibo1" )	{
+					<s>.setpos( x + ( <s>.rfibo*dw ) , y );
+				}
+				imbg.blit(s);
+				<s>.hide;
+				txt1.txtset( <s>.rfibo );
+				txt1.setpos( <s>.getpx - txt1.getw/2, <s>.getpy + i*txt1.geth );
+				imbg.blit("txt1");
+			}
+		}
+		
+		delete imp1;
+		imbg.setpos( (iResX-imbg.getw)/2, (iResY-imbg.geth)/2 );
+		<sactchart>.setpos( imbg.getpx, imbg.getpy );
+		grcharts.setz( ichartz-1 );
+		<sactchart>.setz( ichartz );
+		imbg.setz( ichartz+1 );
+		
+		txprice.setpos( imbg.getpx, imbg.getpy-txprice.geth );
+		txlink.setpos( imbg.getpx, imbg.getey );
+		
+		.updatemspos;
+	}
+	readcfg(string s, int min)	{
+		int val = dbconf.findbyrow(s);
+		val>=0 ? dbconf.get(val,1)->to_i : min;
+	}
+	readstringcfg(string s, string sval)	{
+		s = dbconf.dbget(s);
+		s==null? sval : s;
+	}
+	real sumclose(int ifrom, int idepth)	{
+		if( idepth<=0 || ifrom-idepth<0 ) return -1;
+		real rsum=0.0;
+		int ito = ifrom;
+		ifrom=ifrom-idepth+1;
+		
+		while(ifrom<=ito)	{
+			rsum+=<sdbin>.get(ifrom,4);
+			ifrom++;
+		}
+		rsum;
+	}
+	real getmaxc(int ifrom, int idepth)	{
+		if( idepth<=0 || ifrom-idepth<1 ) return -1;
+		int ito = ifrom;
+		ifrom=ifrom-idepth+1;
+		
+		real max = <sdbin>.get(ifrom,4);
+		ifrom++;
+		while(ifrom<=ito)	{
+			if( max < <sdbin>.get(ifrom,4) )	{
+				max = <sdbin>.get(ifrom,4);
+			}
+			ifrom++;
+		}
+		max;
+	}
+	real calcmaxc(int ifrom, int idepth, real rmax)	{
+		if( idepth<=0 || ifrom-idepth<1 ) return -1;
+		
+		if( rmax == <sdbin>.get(ifrom-idepth, 4) )	// sprawdz czy odrzucony ostatnio nie byl maxem
+			.getmaxc(ifrom,idepth);
+		else rmax > <sdbin>.get(ifrom,4) ? rmax : <sdbin>.get(ifrom,4)->to_r;
+	}
+	real getminc(int ifrom, int idepth)	{
+		if( idepth<=0 || ifrom-idepth<1 ) return -1;
+		int ito = ifrom;
+		ifrom=ifrom-idepth+1;
+		
+		real min = <sdbin>.get(ifrom,4);
+		ifrom++;
+		while(ifrom<=ito)	{
+			if( min > <sdbin>.get(ifrom,4) )	{
+				min = <sdbin>.get(ifrom,4);
+			}
+			ifrom++;
+		}
+		min;
+	}
+	real calcminc(int ifrom, int idepth, real rmin)	{
+		if( idepth<=0 || ifrom-idepth<1 ) return -1;
+		
+		if( rmin == <sdbin>.get(ifrom-idepth, 4) )	// sprawdz czy odrzucony ostatnio nie byl min
+			.getminc(ifrom,idepth);
+		else rmin < <sdbin>.get(ifrom,4) ? rmin : <sdbin>.get(ifrom,4)->to_r;
+	}
+	real calcsma(int ifrom, int idepth)	{
+		if( idepth<=0 || ifrom-idepth<1 ) return -1;
+		
+		0.0 - <sdbin>.get(ifrom-idepth,4) + <sdbin>.get(ifrom,4);
+	}
+	real getsma(int ifrom, int idepth)	{
+		if( idepth<=0 || ifrom-idepth<0 ) return -1;
+		real r=0.0;
+		int ito = ifrom;
+		ifrom=ifrom-idepth+1;
+		
+		while(ifrom<=ito)	{
+			r+=<sdbin>.get(ifrom,4);
+			ifrom++;
+		}
+		r/idepth.to_r;
+	}
+	real getatr(int ifrom, int idepth)	{
+		if( idepth<=0 || ifrom-idepth<1 ) return -1;
+		real r=0.0;
+		int ito = ifrom;
+		ifrom=ifrom-idepth+1;
+		real fh, real fl, real fpc, real fm, real fm2;
+		
+		while(ifrom<=ito)	{
+			fh = <sdbin>.get(ifrom,2);
+			fl = <sdbin>.get(ifrom,3);
+			fpc = <sdbin>.get(ifrom-1,4);
+			fm = fh - fl;
+			fm2 = (fh - fpc)->abs;
+			if( fm2 > fm ) fm = fm2;
+			fm2 = (fl - fpc)->abs;
+			if( fm2 > fm ) fm = fm2;
+			r+=fm;
+			ifrom++;
+		}
+		r/idepth.to_r;
+	}
+	def getsmax(int ifrom, real depth, int atr)	{
+		if( depth<=0 || ifrom-depth-atr<0 ) return 0.0,0.0;
+		real rmax=0.0;
+		real rmin=0.0;
+		real rmin1, real rmax1;
+		int ito = ifrom;
+		ifrom=ifrom-depth+1;
+		while(ifrom<=ito)	{
+			|_,_,rmax1,rmin1| = .getextremes(ifrom-atr,ifrom);
+			rmax+=rmax1;
+			rmin+=rmin1;
+			ifrom++;
+		}
+		return rmax/depth, rmin/depth;
+	}
+	def sumsmax(int ifrom, real depth, int atr)	{
+		if( depth<=0 || ifrom-depth-atr<0 ) return -1,-1;
+		real rmax=0.0;
+		real rmin=0.0;
+		real rmin1, real rmax1;
+		int ito = ifrom;
+		ifrom=ifrom-depth+1;
+		while(ifrom<=ito)	{
+			|_,_,rmax1,rmin1| = .getextremes(ifrom-atr,ifrom);
+			rmax+=rmax1;
+			rmin+=rmin1;
+			ifrom++;
+		}
+		return rmax, rmin;
+	}
+	def calcsmax(int ifrom, int idepth, int atr)	{
+		if( idepth<=0 || ifrom-idepth-atr<1 ) return 0.0,0.0;
+		int iold = ifrom-idepth;
+		real rmax[2];
+		real rmin[2];
+		|_,_,rmax0,rmin0| = .getextremes(iold-atr,iold);
+		|_,_,rmax1,rmin1| = .getextremes(ifrom-atr,ifrom);
+		return rmax1-rmax0, rmin1-rmin0;
+	}
+	real getsmatr(int ifrom, int idepth, int atr)	{
+		if( idepth<=0 || ifrom-idepth<0 ) return -1;
+		real r=0.0;
+		int ito = ifrom;
+		ifrom=ifrom-idepth+1;
+		
+		while(ifrom<=ito)	{
+			for( int i=ifrom-atr+1; i<=ifrom; i++ )	{
+				
+			}
+			r+=<sdbin>.get(ifrom,4);
+			ifrom++;
+		}
+		r/idepth.to_r;
+	}
+	cutindex(int id)	{
+		
+		if( id<0 ) 0;
+		else if ( id >= <sdbin>.getrowsno ) <sdbin>.getrowsno-1;
+		else id;
+	}
+	getextremes(int ifrom, int ito)	{
+		real r, real rmax, real rmin;
+		int idmin = -1;
+		int idmax = -1;
+		ifrom = .cutindex(ifrom);
+		ito = .cutindex(ito);
+		
+		while( ifrom <= ito )	{
+			r = <sdbin>.get(ifrom, 2);	// max
+			if( idmax==-1 || rmax<r )	{
+				idmax = ifrom;
+				rmax = r;
+			}
+			r = <sdbin>.get(ifrom, 3);	// min
+			if( idmin==-1 || rmin>r )	{
+				idmin = ifrom;
+				rmin = r;
+			}
+			ifrom++;
+		}
+		return idmax, idmin, rmax, rmin;
+	}
+	updatemspos	{
+		int pos = -1;
+		int val;
+		int msx = mouse.getpx - imbg.getpx;
+		for( int i=viewx1; i<=viewx2; i++ )	{
+			@s = vin.get(i);
+			if( pos==-1 || (<s>.knotx-msx)->abs < val )	{
+				pos = i;
+				val = (<s>.knotx-msx)->abs;
+			}
+		}
+		immspos.svin = (vin.get(pos));
+		immspos.setpos( <vin.get(pos)>.knotx + imbg.getpx, imbg.getpy );
+		int y = mouse.getposy;
+		if( y < imbg.getpy ) y = imbg.getpy;
+		else if ( y >= imbg.getey ) y = imbg.getey-1;
+		imhorizon.setpos( imbg.getpx, y );
+		
+		string sdb;
+		bool blog;
+		if( sdbin.gete(0,3)=="log" )	{
+			sdb = "dbchart"+idactchart;
+			blog = true;
+		} else {
+			sdb = sdbin;
+			blog = false;
+		}
+		txdata.txtset( <sdb>.get( pos, 0 ) );
+		txopen.txtset("O: "+ <sdb>.get(pos, 1) );
+		txmax.txtset("H: "+ <sdb>.get(pos, 2) );
+		txmin.txtset("L: " + <sdb>.get(pos, 3) );	// min
+		txclose.txtset("C: " + <sdb>.get(pos, 4) );	// close
+		
+		real r = 0.0;
+		if( pos >= 1 ) {
+			real r2 = <sdbin>.get(pos,4);
+			if( r2 != 0 )
+				r = (r2-<sdbin>.get(pos-1,4)->to_r)/r2 * 100.0;
+		}
+		@s = "" + r + "%";
+		if( r>0 ) txzmiana.txtsetcol(s,0,128,0);
+		else if( r<0 ) txzmiana.txtsetcol(s,128,0,0);
+		else  txzmiana.txtsetcol(s,0,0,128);
+		
+		price = (imbg.getey-rh2 - mouse.getpy)->to_r/(imbg.geth - rh1 - rh2)->to_r * (rmax-rmin) + rmin;
+		
+		if( blog )
+			txprice.txtset(sfileinput + ": " + price->pow(MATH_E) + " ,   depth: "+Depth );	// close
+		else
+			txprice.txtset(sfileinput + ": " + price + " ,   depth: "+Depth );	// close
+	}
+	getwol(int ir, int mvol)	{
+		
+		if( <sdbin>.getcolsno(ir)>5 )
+			<sdbin>.get(ir, 5);
+		else mvol;
+	}
+	keydown	{
+		tcfile.onkeydown;
+		tcanalysis.onkeydown;
+		if( sgmstate=="state_std" )	{
+			if( keyboard.iskeydown("lctrl") )	{
+				if( keyboard.iskey("s") )	{
+					string s = spath + "output/" + sfileinput + ".bmp"; 
+					new img imgscreen;
+					imgscreen.create( iResX, iResY, 255,255,255,255 );
+					imgscreen.setz( 2000 );
+					imgscreen.blitscreen;
+					imgscreen.blit("txprice");
+					imgscreen.blit("txclose");
+					imgscreen.blit("txdata");
+					imgscreen.blit("txmax");
+					imgscreen.blit("txmin");
+					imgscreen.blit("txopen");
+					imgscreen.blit("txzmiana");
+					imgscreen.save( s );
+					delete imgscreen;
+					.showmsg("Chart saved to "+s);
+				} else if ( keyboard.iskey("l") )	{
+					.setstate("state_loadfile", "Loading data to chart");
+					tcfile.enable;
+				} else if ( keyboard.iskey("r") )	{
+					.showmsg("Config reloaded");
+					.reloadcfg;
+					.redraw;
+				} else if ( keyboard.iskey("g") )	{
+					.showmsg("Log data");
+					.logdata;
+					.redraw;
+				}
+			} else if (keyboard.iskeydown("space") )	{
+				.draw_initial;
+			} else if (keyboard.iskeydown("i") )	{
+				bIchimoku = !bIchimoku;
+				.redraw;
+			} else if (keyboard.iskeydown("h") )	{
+				sgmstate = "state_printhelp";
+				tchelp.show;
+				imbghelp.show;
+			} else if( keyboard.iskey("s") )	{
+				bSMATR = !bSMATR;
+				.redraw;
+			} else if( keyboard.iskey("a") )	{
+				bATR = !bATR;
+				.redraw;
+			} else if( keyboard.iskey("l") )	{
+				bShowLine = !bShowLine;
+				.redraw;
+			} else if( keyboard.iskey("m") )	{
+				bMinMax = !bMinMax;
+				.redraw;
+			} else if( keyboard.iskey("r") )	{
+				.copydbrew;
+				.redraw;
+			}
+		} else if ( sgmstate=="state_printhelp" )	{
+			if( keyboard.iskey("escape") || keyboard.iskey("h") )	{
+				.setstdstate;
+				tchelp.hide;
+				imbghelp.hide;
+			}
+		}
+	}
+	checkbgchart	{
+		if( keyboard.iskeydown("lshift") )	{
+			bBgChart = true;
+			bShowLine = !bShowLine;
+		}
+	}
+	tcfile_onenter	{
+		string s = .get_chart_file(.get);
+		if( !engine.fileexist(s) )	{
+			.txtset(stxtnosuchfile+s);
+			.stdstate("Unable to load "+s);
+		} else {
+			.checkbgchart;
+			.load_new_chart(.get, sfileinput);
+		}
+	}
+	tcanalysis_onenter	{
+		string s = .get_anal_file(.get);
+		if( sgmstate=="state_loadanal" )	{
+			if( !engine.fileexist(s) )	{
+				//.txtset(stxtnosuchfile+s);
+				.txtset(sfileanal);
+				.stdstate("Unable to load "+s);
+			} else {
+				sfileanal = .get;
+				<GAME>.loadanalysis(s);
+			}
+		} else {
+			s = .get;
+			if( s.contains("<") || s.contains(">") )	{
+				.txtset(sfileanal);
+				.stdstate("Unable to save "+s);
+			} else	{
+				<GAME>.saveanalysis(.get);
+			}
+		}
+	}
+	load_new_chart(string s, string slast)	{
+		if( sfileinput==null ) return;
+		<gameapi.getgamename>.load_chart(s);
+		//<gameapi.getgamename>.draw_initial;
+		<gameapi.getgamename>.redraw;
+		.stdstate("Succesfuly loaded "+s);
+		
+		if( slast.getb(0, stxtnosuchfile.length) != stxtnosuchfile )	{
+			int pos = iIleSaves-1;
+			for( int i=0; i<iIleSaves; i++)	{
+				if( .getsavedinput(i)==slast )	{
+					pos = i;
+				}
+			}
+			
+			for( int i=pos; i>0; i-- )	{
+				.setsav("last_input_"+i, .getsavedinput(i-1));
+			}
+			.setsav("last_input_0", slast);
+			.updatesavebutspos;
+		}
+	}
+	tcfile_ontype	{
+		if( keyboard.iskeydown("escape") )	{
+			.disable;
+			.stdstate("Loading data canceled");
+			.txtset(sfileinput);
+		} else if ( keyboard.iskeydown("delete") )	{
+			.txtset("");
+		}
+	}
+	tcanalysis_ontype	{
+		if( keyboard.iskeydown("escape") )	{
+			.disable;
+			.stdstate("Loading analysis canceled");
+			.txtset(sfileanal);
+		} else if ( keyboard.iskeydown("delete") )	{
+			.txtset("");
+		}
+	}
+	public setsav(string sid, string s)	{
+		int id = dbsave.findbyrow(sid);
+		if( id < 0 )	{
+			id = dbsave.addrow - 1;
+			dbsave.add(id, sid);
+			dbsave.add(id, s);
+		} else
+			dbsave.set(id, 1, s);
+		.savesav;
+	}
+	public string getsav(string sid, string s)	{
+		int id = dbsave.findbyrow(sid);
+		if( id < 0 )	{
+			.setsav(sid, s);
+			s;
+		} else
+			dbsave.get(id,1);
+	}
+	public bool issav(string sid)	{	dbsave.findbyrow>=0;	}
+	public savesav	{
+		dbsave.save( spath + "save.db" );
+	}
+	mouse_rclick	{
+		if( sgmstate=="state_std" )	{
+			ShowData = false;
+			.redraw;
+		}
+	}
+	mouse_lclick	{
+		if( b_skip_click )	{
+			b_skip_click = false;
+		} else if( sgmstate=="state_std" )	{
+			if( ShowFiboData==2 )	{
+				ShowFiboData = 0;
+				.redraw;
+			} else if( ShowFiboData==1 )	{
+				ShowFiboData = 2;
+				imfibo1.clone("immspos");
+				imfibo1.svin = (immspos.svin);
+				.redraw;
+			} else if( keyboard.iskeydown("f") && ShowFiboData==0 )	{
+				ShowData = false;
+				ShowFiboData = 1;
+				grfibo.veceval1("clone", "immspos");
+				imfibo0.svin = (immspos.svin);
+				.redraw;
+			} else {
+				ShowData = true;
+				.redraw;
+			}
+		} else if( sgmstate=="state_loadanal" || sgmstate=="state_saveanal" )	{
+			if( tcfile.isin(mouse.getpos,0,0) )	{
+				tcanalysis.txtset(tcfile.get);
+			}
+		}
+	}
+	mouse_move	{
+		if( sgmstate=="state_std" )	{
+			.updatemspos;
+		}
+	}
+	exit	{
+		.savesav;
+	}
+	saveanalysis(string sfile)	{
+		string sfile2 = .get_anal_file(sfile);
+		sfileanal = sfile;
+		new db dbs;
+		
+		dbs.dbaddstringrow("depth "+Depth, " ");
+		dbs.dbaddstringrow("chartstart "+WykresStart, " ");
+		dbs.dbaddstringrow("line "+bShowLine, " ");
+		dbs.dbaddstringrow("ichimoku "+bIchimoku+" "+tenkan_sen+" "+kijun_sen+" "+
+					chikou_span+" "+senkou_span1+" "+senkou_span2," ");
+		dbs.dbaddstringrow("smatr "+bSMATR+" "+	ismadepth+" "+ismax, " ");
+		dbs.dbaddstringrow("atr "+bATR+" "+iatrdepth+" "+iatrsma, " ");
+		
+		dbs.save( sfile2 );
+		delete dbs;
+		.stdstate("Analyse saved to "+sfile2);
+	}
+	loadanalysis(string sfile)	{
+		new db dbl;
+		dbl.loadscript(sfile);
+		
+		int id = dbl.findbyrow("depth");
+		if( id>=0 ) Depth = dbl.get(id,1);
+		
+		id = dbl.findbyrow("chartstart");
+		if( id>=0 ) WykresStart = dbl.get(id,1);
+		
+		id = dbl.findbyrow("line");
+		if( id>=0 ) bShowLine = dbl.get(id,1);
+		id = dbl.findbyrow("ichimoku");
+		if( id>=0 ) {
+			bIchimoku = dbl.get(id,1);
+			tenkan_sen = dbl.get(id,2);
+			kijun_sen = dbl.get(id,3);
+			chikou_span = dbl.get(id,4);
+			senkou_span1 = dbl.get(id,5);
+			senkou_span2 = dbl.get(id,6);
+		}
+		id = dbl.findbyrow("smatr");
+		if( id>=0 ) {
+			bSMATR = dbl.get(id,1);
+			ismadepth = dbl.get(id,2);
+			ismax = dbl.get(id,3);
+		}
+		id = dbl.findbyrow("atr");
+		if( id>=0 ) {
+			bATR = dbl.get(id,1);
+			iatrdepth = dbl.get(id,2);
+			iatrsma = dbl.get(id,3);
+		}
+		
+		delete dbl;
+		.stdstate("Analyse loaded from "+sfile);
+		.redraw;
+	}
+}

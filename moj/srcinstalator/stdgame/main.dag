@@ -1,0 +1,9 @@
+
+igmstate = 0;
+|igmdebug, igmwinlocal, igmeasy, igmdemo, igmbegin| = false, false, false, false, true;
+
+advmouse.load("scripts/common/cursors.pyz");
+
+gameapi.play("MenuInst");
+
+/***************************************************/

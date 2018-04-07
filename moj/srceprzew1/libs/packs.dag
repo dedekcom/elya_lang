@@ -1,0 +1,277 @@
+/***************************************************************************/
+
+module clsurf	{
+	init()	{}
+	int isin(int x, int y, int x1, int y1, int x2, int y2)	{
+		if( x >= x1 && x<=x2 && y>=y1 && y<=y2 )	{
+			return true;
+		} else {
+			return false;
+		}
+	}
+	int inscreen(int x, int y, int dx, int dy)	{
+		return this.isin( x, y, 0-dx, 0-dy, 800+dx, 600+dy );
+	}
+}
+
+/***************************************************************************/
+	// rozszerzenia dla animcaji
+module clanpack	{
+	init()	{}
+	_csetbpos(int x, int y)	{
+		this.setpos( x-this.lodx(), y-this.lody() );
+	}
+	_cbuildpomvars()	{
+		new int _ixp;
+		new int _iyp;
+	}
+	_csaverelpos(int x, int y)	{
+		_ixp = x - this.getpx();
+		_iyp = y - this.getpy();
+	}
+	_csetrelpos(int x, int y)	{
+		this.setbpos( x - _ixp, y - _iyp );
+	}
+	_cmssaverelpos()	{
+		this.saverelpos( mouse.getpx(), mouse.getpy() );
+	}
+	_cmssetrelpos()	{
+		this.setrelpos( mouse.getpx(), mouse.getpy() );
+	}
+	_crplay(string sact)	{
+		if( this.isplaying(sact)==false )	{
+			this.play(sact);
+		}
+	}
+	resizemethods(string san)	{
+		<san>.addmethod("_cbuildpomvars", "_cbuildpomvars");
+		<san>._cbuildpomvars();
+		<san>.addmethod("setbpos", "_csetbpos");
+		<san>.addmethod("saverelpos", "_csaverelpos");
+		<san>.addmethod("setrelpos", "_csetrelpos");
+		<san>.addmethod("mssaverelpos", "_cmssaverelpos");
+		<san>.addmethod("mssetrelpos", "_cmssetrelpos");
+		<san>.addmethod("rplay", "_crplay");
+	}
+}
+
+
+/***************************************************************************/
+
+class classbgmover	{
+	init()	{
+		new string sim1;
+		new string sim2;
+	}
+	_load(string stype, string sfunc, string sfile,  int z)	{
+		newvars::<sfunc>("im1", sfile, z);
+		new <stype> im2;
+		im2.copy( "im1" );
+	}
+	loadimg(string sfile, int z)	{	this._load( "img", "newimg", sfile, z);	}
+	loadan(string sfile, int z)	{	this._load("anima", "newanima", sfile, z);	}
+	_set(string stype, string simg)	{
+		new <stype> im1;
+		new <stype> im2;
+		im1.copy( simg );
+		im2.copy( simg );
+	}
+	setimg(string simg)	{	this._set( "img", simg);	}
+	setan(string simg)	{	this._set( "anima", simg);	}
+	setdir(string sdir)	{
+		if( sdir=="up" || sdir=="down")	{
+			im1.setpos(0,0);
+			im2.setpos(0,im1.getey());
+			sim1 = "im1";
+			sim2 = "im2";
+		} else if (sdir=="left" || sdir=="right")	{
+			im1.setpos(0,0);
+			im2.setpos(im1.getex(), 0);
+			sim1 = "im1";
+			sim2 = "im2";
+		}
+	}
+	/*****************************************/
+	movup(int dy)	{
+		im1.move(0,dy);
+		im2.move(0,dy);
+		if( <sim2>.getey() < 600 )	{
+			<sim1>.setpos( 0, <sim2>.getey() );
+			newvars::swap("sim1", "sim2");
+		}
+	}
+	movdown(int dy)	{
+		im1.move(0,dy);
+		im2.move(0,dy);
+		if( <sim1>.getpy() > 0 )	{
+			<sim2>.setpos( 0, <sim1>.getpy()-<sim2>.geth() );
+			newvars::swap("sim1", "sim2");
+		}
+	}
+	movleft(int dx)	{
+		im1.move(dx, 0);
+		im2.move(dx, 0);
+		if( <sim2>.getex() < 800 )	{
+			<sim1>.setpos( <sim2>.getex(), 0);
+			newvars::swap("sim1", "sim2");
+		}
+	}
+	movright(int dx)	{
+		im1.move(dx, 0);
+		im2.move(dx, 0);
+		if( <sim1>.getpx() > 0 )	{
+			<sim2>.setpos( <sim1>.getpx() - <sim2>.getw(), 0);
+			newvars::swap("sim1", "sim2");
+		}
+	}
+}
+
+/***************************************************************************/
+
+class classancounter	{
+	init()	{
+		new int iile;
+		new int id;
+		new string _san;
+		new vector _vs;
+		new int _pos;
+	}
+	set(string sname, int ile)	{
+		_san = sname;
+		iile = ile;
+		id = 0;
+		_pos = sname.length();
+		_vs.resize( ile, false );
+	}
+	string get()	{
+		string s = _san+id;
+		id = (id+1)%iile;
+		return s;
+	}
+	string getf()	{
+		for(int i=0; i<iile; i++)	{
+			if( _vs.get(i)==false )	{
+				_vs.set(i, true);
+				return _san+i;
+			}
+		}
+		return null;	// brak wolnych
+	}
+	retf(string s)	{
+		_vs.set( s.getb( _pos, 10 ), false );
+	}
+	isfree(int pos)	{	return _vs.get(pos);	}
+	int getile()	{	return iile;	}
+}
+
+/*************************************************************************/
+class classlives	{
+	init()	{}
+	set(int ile, int idamage, int x, int y, int h, int r1, int g1, int b1, int a1, int r2, int g2, int b2, int a2, int z, string sside)	{
+		new int iside;
+		if( sside=="left")	{
+			iside=-1;
+		} else {
+			iside=1;
+		}
+		new int iilezyc = ile;
+		new int ibum	= idamage;
+		int idl = iilezyc*ibum;
+		new int iposxsila = x;
+		new int iendxsila = x+idl;
+		new int iposysila = y;
+		newvars::newcanvas( "imgsilapodkladka",idl, h, r1, g1, b1, a1, z-1 );
+		newvars::newcanvas( "imgsila",idl, h, r2, g2, b2, a2, z );
+		imgsila.setpos( iposxsila, iposysila );
+		imgsila.clip(iposxsila, 0,  imgsila.getex(), 600);
+		imgsilapodkladka.setpos( iposxsila, iposysila );
+	}
+	reset()	{
+		imgsila.setpos( iposxsila, iposysila );
+	}
+	damage(int idam)	{
+		imgsila.move( iside*idam*ibum, 0);
+	}
+	int destroyed()	{
+		if( iside<0)	{
+			if( imgsila.getex() < iposxsila )	{
+				return true;
+			}else {	return false; }
+		} else {
+			if( imgsila.getpx() > iendxsila )	{
+				return true;
+			} else { return false; }
+		}
+	}
+	heal(int idam)	{
+		imgsila.move( -iside*idam*ibum, 0 );
+		if( iside > 0 )	{
+			if( imgsila.getpx() < iposxsila )	{
+				imgsila.setpos( iposxsila, iposysila );
+			}
+		} else {
+			if( imgsila.getpx() > iposxsila )	{
+				imgsila.setpos( iposxsila, iposysila );
+			}
+		}
+	}
+}
+
+/*************************************************************************/
+
+class classtriangle	{
+	init()	{
+		new real rdx;
+		new real rdy;
+	}
+	real getdx()	{	return rdx;	}
+	real getdy()	{	return rdy;	}
+	real talesxy(real x, real y, real destx, real desty, real rdistance)	{
+		destx -= x;	desty-=y;
+		if( destx==0 && desty==0 )	{
+			rdx = 0;
+			rdy = 0;
+			return 0;
+		} else {
+			x = x.length( destx, desty );
+			rdx = (destx/x)*rdistance;
+			rdy = (desty/x)*rdistance;
+			return x;
+		}
+	}
+}
+
+class classwalker : classtriangle {
+	init()	{
+		classtriangle::init();
+		new real rodleg;
+		new int _ix;
+		new int _iy;
+	}
+	real countsteps(int x, int y, int destx, int desty, real rstep )	{
+		this.setdest( destx, desty );
+		rodleg = this.talesxy( x, y, destx, desty, rstep );
+		return rodleg;
+	}
+	setdest(int x, int y)	{	_ix=x;	_iy=y;	}
+	getdestx()	{	return _ix;	}
+	getdesty()	{	return _iy;	}
+	int reached(int x, int y)	{
+		real r;	r = r.length( x - _ix, y - _iy );
+		if( r >= rodleg )	{
+			return true;
+		} else {
+			rodleg = r;
+			return false;
+		}
+	}
+	int reached2(int x, int y)	{
+		real r;	r = r.length( x - _ix, y - _iy );
+		if( r > rodleg )	{
+			return true;
+		} else {
+			rodleg = r;
+			return false;
+		}
+	}
+}

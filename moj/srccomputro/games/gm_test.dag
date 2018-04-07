@@ -1,0 +1,315 @@
+
+class tesKubel	{
+	init(int ktory, int x, int y, int ile)	{
+		x = x+ktory*(ankubel.getw+2);
+		new anima ankub;
+		ankub.copy("ankubel");
+		ankub.setz(ikubelz);
+		ankub.setpos(x, y);
+		ankub.show;
+		string s;
+		new gmimgvec gral;
+		gral.add("ankub");
+		for( int i=0; i<ile; i++)	{
+			s = "ank"+i;
+			new anima <s>;
+			<s>.copy("ankubel");
+			<s>.setz(ikubelz);
+			<s>.setframe(1,i);
+			<s>.setpos(x,y);
+			<s>.show;
+			gral.add(s);
+		}
+		new text txtk;
+		txtk.setfont(stdfont16);
+		txtk.txtsetcol(ktory, .black);
+		txtk.setpos( ankub.getcx-txtk.getw/2, ankub.getey-5 );
+		txtk.setz(ikubelz+1);
+	}
+	isin	{	gral.isin;	}
+	setz(int z) 	{ gral.setz(z); ankub.setz(z);	}
+}
+
+game Test : Computro	{
+	init	{
+		Computro::init("test");
+		
+		.imgs = (A, "bg.pyz", "kubel.pyzH 10");
+		
+		new int ilevel = 0;
+		new db dbpom;
+		
+		new int ikubelz = 66;
+		new int idkubel;
+		.newarray("gmimgvec", "grkb", 4);
+		/*new gmimgvec grkbs;
+		grkbs.addlist(A, "grkb1", "grkb2", "grkb3");*/
+		
+		new @stdfont64 = .stdfont(64);
+		new @stdfont16 = .stdfont(16);
+		.newtext("txnr", "1.", stdfont64, .blue);
+		txnr.setz(10);
+		txnr.setpos(20, 10);
+		
+		new int iy1 = iResY/2 - 30;
+		new int iy3 = iResY - 120;
+		new int iy2 = (iy3+iy1)/2;
+		
+		new gmimgvec grodp;
+		.mstdodp;
+		new string _slast = null;
+		
+		new vector vecok;
+		vecok.resize(10,0);
+		
+		.nextlevel;
+		ccs.enter( func {
+			igmstate = 1;
+			mus.playstr("main.ogg -v 30 -l");
+		} );
+	}
+	nextlevel	{ <GAME> {
+		if( igmstate ==16 ) igmstate=1;
+		ilevel++;
+		if( ilevel>10 )	{
+			.newtext("txtend", " Wynik: " + vecok.vecsum + "/10", stdfont64, .red);
+			txtend.setz(1000);
+			txtend.setpos(txnr.getex + 50, txnr.getpy);
+			.timer = ("timend", 4000, func {
+				ccs.close( func {
+					ccs.show;
+					clsave.bset("done_Test");
+					clsave.set("Test_points", vecok.vecsum);
+					.gotoadv("adsala","gameadsala0");
+					});
+				} );
+			timend.play;
+			return;
+		}
+		txnr.txtset("" + ilevel + ".");
+		txnr.txtshadow(1, stdfont64);
+		.vardelif("dbzad");
+		.lang_db("dbzad", "zad"+ilevel);
+		.vardelif("tdpyt");
+		.vardelif("tdod1");
+		.vardelif("tdod2");
+		.vardelif("tdod3");
+		dbpom.dbcopyfromtos("dbzad", "<part1>", "</part1>");
+		int x = 30;
+		new TextDb tdpyt(stdfont16, 16, "$var:dbpom", 10,10,192, x,txnr.getey+5, 2,50, "left");
+		dbpom.dbcopyfromtos("dbzad", "<part2>", "</part2>");
+		new TextDb tdod1(stdfont16, 16, "$var:dbpom", .mstdcol, x, iy1, 2,50, "left");
+		dbpom.dbcopyfromtos("dbzad", "<part3>", "</part3>");
+		new TextDb tdod2(stdfont16, 16, "$var:dbpom", .mstdcol, x, iy2, 2,50, "left");
+		dbpom.dbcopyfromtos("dbzad", "<part4>", "</part4>");
+		new TextDb tdod3(stdfont16, 16, "$var:dbpom", .mstdcol, x, iy3, 2,50, "left");
+		match( ilevel )	{
+			2 => {
+				//K[0]=1+3,  K[1]=2,  K[2]=4,  K[3]=mniejsza_z_liczb(5,2) ,  K[4]=0,  K[5]=4-2+1,  K[6]=2*3,  K[7]=8,  K[8]=11,  K[9]=7
+				.mkkosz(x);
+				
+				x += 30;
+				int y = iy1+5;
+				idkubel = 1;
+				.mkosz(x, y, 0, 4);	.mkosz(x, y, 1, 2);	.mkosz(x, y, 2, 4);
+				.mkosz(x, y, 3, 2);	.mkosz(x, y, 4, 0);	.mkosz(x, y, 5, 3);
+				.mkosz(x, y, 6, 6);	.mkosz(x, y, 7, 8);	.mkosz(x, y, 8, 11);
+				.mkosz(x, y, 9, 7);
+				
+				y = iy2+5;
+				idkubel = 2;
+				.mkosz(x, y, 0, 4);	.mkosz(x, y, 1, 2);	.mkosz(x, y, 2, 4);
+				.mkosz(x, y, 3, 5);	.mkosz(x, y, 4, 0);	.mkosz(x, y, 5, 3);
+				.mkosz(x, y, 6, 6);	.mkosz(x, y, 7, 8);	.mkosz(x, y, 8, 11);
+				.mkosz(x, y, 9, 7);
+				
+				y = iy3+5;
+				idkubel = 3;
+				.mkosz(x, y, 0, 0);	.mkosz(x, y, 1, 1);	.mkosz(x, y, 2, 2);
+				.mkosz(x, y, 3, 3);	.mkosz(x, y, 4, 4);	.mkosz(x, y, 5, 5);
+				.mkosz(x, y, 6, 6);	.mkosz(x, y, 7, 7);	.mkosz(x, y, 8, 8);
+				.mkosz(x, y, 9, 9);
+				grkb0.setz(50);
+			}
+			3 => {
+				//K[0]=2,  K[1]=K[0]+2,  K[2]=K[8],  K[3]=K[0]+K[1],  K[4]=10,  K[5]=K[4]-K[3],
+				//K[6]=15-K[5],  K[7]=K[7]+1,  K[8]=K[7]*4,  K[9]=K[]+K[1]-K[3]+K[7]
+				.mdelkosz;
+				.mkkosz(x);
+				
+				x += 30;
+				int y = iy1+5;
+				idkubel = 1;
+				.mkosz(x, y, 0, 2);	.mkosz(x, y, 1, 4);	.mkosz(x, y, 2, 8);
+				.mkosz(x, y, 3, 6);	.mkosz(x, y, 4, 10);	.mkosz(x, y, 5, 3);
+				.mkosz(x, y, 6, 12);	.mkosz(x, y, 7, 7);	.mkosz(x, y, 8, 4);
+				.mkosz(x, y, 9, 7);
+				
+				y = iy2+5;
+				idkubel = 2;
+				.mkosz(x, y, 0, 2);	.mkosz(x, y, 1, 2);	.mkosz(x, y, 2, 8);
+				.mkosz(x, y, 3, 1);	.mkosz(x, y, 4, 10);	.mkosz(x, y, 5, 1);
+				.mkosz(x, y, 6, 10);	.mkosz(x, y, 7, 8);	.mkosz(x, y, 8, 4);
+				.mkosz(x, y, 9, 5);
+				
+				y = iy3+5;
+				idkubel = 3;
+				.mkosz(x, y, 0, 2);	.mkosz(x, y, 1, 4);	.mkosz(x, y, 2, 0);
+				.mkosz(x, y, 3, 6);	.mkosz(x, y, 4, 10);	.mkosz(x, y, 5, 4);
+				.mkosz(x, y, 6, 11);	.mkosz(x, y, 7, 1);	.mkosz(x, y, 8, 4);
+				.mkosz(x, y, 9, 1);
+				grkb0.setz(50);
+			}
+			4 => {
+				.mdelkosz;
+				.mkkosz(x);
+				x += 30;
+				int y = iy1+5;
+				idkubel = 1;
+				for( int i=0; i<10; i++)	{
+					.mkosz(x,y,i,1);
+				}
+				
+				y = iy2+5;
+				idkubel = 2;
+				for( i=0; i<10; i++)	{
+					.mkosz(x,y,i,i+1);
+				}
+				
+				y = iy3+5;
+				idkubel = 3;
+				for( i=0; i<10; i++)	{
+					.mkosz(x,y,i,10->rand);
+				}
+				grkb0.setz(50);
+			}
+			5 => {
+				.mstdodp;
+				.mdelkosz;
+				grkb0.deleteallgm;
+				grkb0.free;
+				.img = ("machina.pyz");
+			}
+			6 => {
+				delete anmachina;
+			}
+			7 => {
+				.img = ("robo.pyz");
+			}
+			8 => {
+				delete anrobo;
+				.img = ("pascal.pyz");
+			}
+			9 => {
+				delete anpascal;
+				.img = ("bramki.pyz");
+				.copyanima("anbramki", "anbram2");
+				anbram2.setframe(1,0);
+			}
+			10 => {
+				delete anbramki;
+				delete anbram2;
+			}
+			? => ;
+		}
+	}; }
+	mdelkosz	{
+		for( int i=0; i<4; i++)	{
+			<"grkb"+i>.deleteallgm;
+			<"grkb"+i>.free;
+		}
+	}
+	mkkosz(int x)	{
+		grodp.free;
+		grodp.addlist(A,"grkb1", "grkb2", "grkb3");
+		
+		int y = tdpyt.mgetey;
+		idkubel = 0;
+		.mkosz(x, y, 0, 0);	.mkosz(x, y, 1, 0);	.mkosz(x, y, 2, 0);
+		.mkosz(x, y, 3, 0);	.mkosz(x, y, 4, 0);	.mkosz(x, y, 5, 0);
+		.mkosz(x, y, 6, 0);	.mkosz(x, y, 7, 0);	.mkosz(x, y, 8, 0);
+		.mkosz(x, y, 9, 0);
+	}
+	mstdodp	{
+		grodp.free;
+		grodp.addlist(A,"tdod1", "tdod2", "tdod3");
+	}
+	mkosz(int x, int y, int id, int ile)	{
+		@s = "kos_"+idkubel+"_"+id;
+		new tesKubel <s>(id, x, y, ile);
+		<"grkb"+idkubel>.add(s);
+	}
+	mstdcol	{	return 10, 10, 192;	}
+	mactcol	{	return 192, 10, 10;	}
+	mgetey	{	grtxt.getey;	}
+	mretcol	{
+		if( _slast!=null) {
+			<_slast>.msetcol( .mstdcol );
+			_slast = null;
+		}
+	}
+	msetcol(int r, int g, int b)	{
+		if( .hasvar("grtxt") )	{
+			grtxt.eval3( func { (int r, int g, int b) .createtxt(r,g,b); }, r, g, b );
+		} else {
+			 <"tdod"+ _slast.strsubb(4)>.setcol(r,g,b);
+		}
+		|int r2, int g2, int b2| = .mactcol;
+		if( r2==r && g2==g && b2==b )	{
+			bsms.setact;
+		} else bsms.setstd;
+	}
+	misin(int x, int y)	{	grtxt.isin(x,y,1,0);	}
+	mouse_move	{
+		if( igmstate!=1 ) return;
+		|int x, int y| = mouse.getpos;
+		if( grodp.isin(x,y,1,0) )	{
+			@s = grodp.getsfound;
+			if( s!=_slast )	{
+				.mretcol;
+				_slast = s;
+				<s>.msetcol( .mactcol );
+			}
+		} else .mretcol;
+	}
+	mouse_lclick	{
+		if( igmstate == 16 ) return .nextlevel;
+		if( igmstate!=1 || ilevel>10) return;
+		int i1 = 0;
+		int id;
+		if( _slast!=null ) {
+			id = _slast.strsubb(4);
+			i1 = 1;
+		}
+		if( i1 )	{
+			match(ilevel)	{
+				1 => 3;
+				2 => 1;
+				3 => 3;
+				4 => 2;
+				5 => 3;
+				6 => 2;
+				7 => 1;
+				8 => {
+					anpascal.setframe(1,0);
+					3;
+				}
+				9 => {
+					anbram2.setframe(2,0);
+					2;
+				}
+				10 => 1;
+				? => 0;
+			}
+			int odp = _;
+			vecok.set( ilevel-1, odp==id );
+			/*if( !.hasvar("timnext") )	{
+				.timer = ("timnext", 3000, "nextlevel");
+			}
+			timnext.play;*/
+			<"tdod"+odp>.setcol(.green);
+			igmstate = 16;
+			//.nextlevel;
+		}
+	}
+}

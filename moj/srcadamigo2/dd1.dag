@@ -1,0 +1,6870 @@
+/******** konstrukcje  ********************/
+new string	A = "!!!";
+new real		PI = 3.14159265358979323846;
+
+public varget(string svar)				{	[svar];				}
+public varset(string svar, def val)			{	<svar> = val;			}
+public varnew(string styp, string svar)	{	new <styp> <svar>;	}
+public varnewif(string styp, string svar)	{	if( !.hasvar(svar) )	.varnew(styp,svar);}
+public vardel(string svar)				{	delete <svar>;		}
+public reader(string sname)	{
+	.varnewif("def", sname);
+	.addmethod( sname, func { [.methodname]; } );
+}
+public writer(string sname)	{
+	.varnewif("def", sname);
+	.addmethod( sname+"=", func { (def val) <.methodname->strsube(1)> = val; } );
+}
+public var(string sname)	{
+	.reader(sname);
+	.writer(sname);
+}
+public var2(string sname, def val)	{
+	.var(sname);
+	<sname> = val;
+}
+public withlist(string sfun)	{
+	@s = _;
+	while( A != s )	{
+		.<sfun>(s);
+		@s = _;
+	}
+}
+public vars	{	.withlist("var");}
+/*****************************************************/
+public bool in	{
+	bool b = false;
+	@x = .get;
+	@y = _;
+	while( A != y )	{
+		if( !b )	b = x==y;
+		@y=_;
+	}
+	b;
+}
+public with(string sfun)	{
+	string sob = _;
+	while( sob!=A )	{
+		<sob>.<sfun>();
+		sob=_;
+	}
+}
+public def case(def dout)	{	dout.in ? dout : null;	}
+public copycall(string sfun, string sob)	{
+	string s = "__call" + sfun;
+	new string <s>;
+	<s> = sob;
+	.addmethod( sfun, func {
+		string sf = .methodname;
+		< [ "__call" + sf ] >.<sf>();
+		});
+}
+public copycalls(string sobj)	{
+	string s = _;
+	while( s!=A )	{
+		.copycall( s, sobj ); 
+		s=_;
+	}
+}
+/***********************************/
+public mresize()	{	< .gettype + "_pack">::resizemethods( this );	}
+/******** petle ********************/
+public times(string sfun)		{	this.for_plus(0, this.get()-1, sfun );		}
+public upto(int ito, string sfun)	{	this.for_plus( this.get(), ito, sfun );	}
+public downto(int ito, string sfun)	{	this.for_minus( this.get(), ito, sfun );	}
+public for_plus(int ifrom, int ito, string sfun)	{
+	if( ito-ifrom<=0 )	return;
+	for( ; ifrom<=ito; ifrom++)	this.<sfun>(ifrom);
+}
+public for_minus(int ifrom, int ito, string sfun)	{
+	if( ifrom-ito<=0 )	return;
+	for( ; ifrom>=ito; ifrom--)	this.<sfun>(ifrom);
+}
+public double_for(int w, int h, string sfun)	{
+	int j;
+	for( int i=0; i<w; i++)	{
+		for( j=0; j<h; j++)	{
+			this.<sfun>(i,j);
+		}
+	}
+}
+/****************************************/
+
+// klasa do np. dynamicznego tworzenia obiektow z prefixem+id
+class classobjcounter	{
+	init(string sprefix)	{
+		new string _sprefix=sprefix;
+		new int _iile=0;
+	}
+	string get()	{
+		_iile++;
+		return _sprefix + (_iile-1);
+	}
+	int size()	{_iile;}
+}
+
+class classvsigobj	{
+	init()	{
+		new bool bplaying=false;
+	}
+	virtual play()	{	bplaying=true;	}
+	virtual stop(bool bstop)	{ 
+		bplaying=false;
+		if( bstop )	{	this.onfinish();	}
+	}
+	virtual bool isplaying()	{	bplaying;	}
+}
+
+/***************************************************************************/
+
+class classsignals	{
+	init()	{}
+	/********** std obj **********************/
+	stdfinish(string sob) { <sob>.addmethod("onfinish",func { this.<this.getname()+"_FINISH">();}); }
+	stdstart(string sob) { <sob>.addmethod("onstart",func { this.<this.getname()+"_START">(); }); }
+	stdsigs(string sob)	{
+		this.stdstart(sob);
+		this.stdfinish(sob);
+	}
+	/********** anima **********************/
+	buildanima(string san)	{
+		this.stdsigs(san);
+		<san>.addmethod("onendframe", func { this.<this.getname()+"_ENDFRAME">(); } );
+	}
+	/********** snd **********************/
+	buildsnd(string ssnd)	{	this.stdsigs(ssnd);		}
+	/********** timer **********************/
+	buildtimer(string stimer)	{
+		this.stdsigs(stimer);
+		<stimer>.addmethod("ontick", func { this.<this.getname()+"_TICK">(); });
+	}
+	/********** button *******************/
+	buildbut(string sbut)	{
+		<sbut>.addmethod("onclick", func { this.<this.getname()+"_CLICK">(); });
+		<sbut>.addmethod("onrel", func { this.<this.getname()+"_REL">(); });
+		<sbut>.addmethod("onmoveon", func { this.<this.getname()+"_MOVEON">(); });
+		<sbut>.addmethod("onmoveoff", func { this.<this.getname()+"_MOVEOFF">(); });
+	}
+}
+
+/******************************************************************/
+
+class classlocker	{
+	init()	{
+		new bool _block = true;
+	}
+	public lock()	{	_block=true;	}
+	public unlock()	{	_block=false;	}
+	public setlock(bool b)	{	_block=b;	}
+	public bool getlock()	{	return _block;	}
+}
+
+/***************************************************************************/
+
+module classdbreader	{
+	init()	{
+		new db dbl;
+	}
+	readdb( string sfunc )	{
+		int id = 0;
+		int ile = dbl.getrowsno();
+		while( id < ile )	{
+			this.<sfunc>( id );
+			id++;
+		}
+	}
+	readrow( string srow, string sfunc )	{
+		int ipos = dbl.findbyrow( srow );
+		if( ipos >= 0 )	{
+			this.<sfunc>( ipos );
+		}
+	}
+}
+
+/***************************************************************************/
+
+
+/***************************************************************************/
+class collection	{
+	init(string styp)	{	new string stype=styp;	}
+	public string type()	{	return stype;		}
+}
+
+class array : collection {
+	init(string styp, int idimens, int isiz)	{
+		collection::init(styp);
+		new int idim = idimens;
+		new int isize = isiz;
+		new vector vec;
+		vec.type(styp);
+		if( idimens<=0 || isiz<=0 )	return;
+		vec.resize( isiz.pow(isiz,idimens), 0 );
+	}
+	int getid()	{
+		int pos=0;
+		int dim=idim-1;
+		while(dim>0)	{
+			pos+=_;
+			pos*=isize;
+			dim--;
+		}
+		return pos+_;
+	}
+	public def get()	{	return vec.get( this.getid() );	}
+	public set(def svar)	{	vec.set( this.getid(), svar);	}
+	public int getsize()	{	return isize;			}
+	public int getdim()	{	return idim;			}
+}
+
+class stack : collection	{
+	init(string styp)	{
+		collection::init(styp);
+		new vector vec;
+		vec.type(styp);
+		new <styp> var;
+	}
+	public push(string svar){	vec.add(svar);		}
+	public def top()	{	return vec.last();	}
+	public def pop()	{
+		var = this.top();
+		vec.removeat( vec.size()-1 );
+		return var;
+	}
+}
+
+class map : collection	{
+	init(string styp)	{
+		collection::init(styp);
+		new int isize=0;
+	}
+	set(string svar, def val)	{
+		if( !this.hasvar(svar) )	this.add(svar);
+		<"v"+svar>.set(val);
+	}
+	add(string svar)	{	new <stype> <"v"+svar>;		}
+	def get(string svar)	{	return ["v"+svar];		}
+	remove(string svar)	{	delete <"v"+svar>;		}
+	bool contains(string svar){	return this.hasvar("v"+svar);	}
+}
+class map2 : collection	{
+	init(string styp)	{
+		collection::init(styp);
+		new vector vn;
+		vn.type("string");
+		new vector vec;
+		vec.type(styp);
+	}
+	add(string svar, def val)	{	vn.add(svar);	vec.add(val);	}
+	set(string svar, def val)	{	vec.set( vn.find(svar), val );	}
+	bool contains(string svar)	{	return vn.contains(svar);	}
+	def get(string svar)		{	return vec.get( vn.find(svar) );}
+	remove(string svar)	{
+		int id = vn.find(svar);
+		if( id>=0 )	{
+			vec.removeat( id );
+			vn.removeat(id);
+		}
+	}
+	free()	{	vn.free();	vec.free();	}
+}
+
+
+/***************************************************************************/
+class classgamemusic : classdbreader	{
+	init()	{
+		classdbreader::init();
+		new string smuspath = "";
+		new string sbgrpath = "";
+		new snd _sndbgr;
+		_sndbgr.addmethod("onfinish", "_stdsndloop");
+	}
+	reset()	{
+		gameapi.stopmusic();
+		this.stopbgr();
+	}
+	_stdsndloop()	{	this.play(); }
+	load(string sfile)	{	dbl.loadscript( sfile );	}
+	musicpath(string s)	{	smuspath = s;	}
+	sndbgrpath(string s)	{	sbgrpath=s;	}
+	_play(int ipos)	{
+		int i[3], string s[2];
+		i0 = 1;
+		i1 = dbl.getcolsno( ipos );
+		while( i0 < i1 )	{
+			s0 = dbl.get( ipos, i0 );	i0++;
+			if( s0 == "music" )	{
+				s1 = smuspath + dbl.get( ipos, i0 );
+				i0++;
+				if( i0 < i1 )	{
+					if( dbl.get( ipos, i0 )=="vol" )	{
+						i0++;
+						gameapi.setmusicvol( dbl.get( ipos, i0 ) );
+						i0++;
+					}
+				} else {
+					gameapi.setmusicvol( 100 );
+				}
+				gameapi.playmusic( s1 );
+			} else if (s0 == "bgr")	{
+				_sndbgr.load( sbgrpath + dbl.get( ipos, i0 ) );
+				i0++;
+				if( i0 < i1 )	{
+					if( dbl.get( ipos, i0 )=="vol" )	{
+						i0++;
+						_sndbgr.setvol( dbl.get( ipos, i0 ) );
+						i0++;
+					}
+				} else {
+					_sndbgr.setvol( 100 );
+				}
+				this.playbgr();
+			} else {	i0++;	}
+		}
+	}
+	play()	{
+		this.reset();
+		this.readrow( gameapi.getgamename(), "_play" );
+	}
+	playbgr()		{	_sndbgr.play();	}
+	stopbgr()	{	_sndbgr.stop(false);	}
+}
+
+/**************************************************************/
+	// zmienne globalna - stany gry
+new int igmstate;
+new int igmdebug;
+new int igmeasy;
+new int igmdemo;
+new int igmbegin;
+new string sgmfontfile = "configs/fonts/bold.ttf";
+
+new int iResX = 800;
+new int iResY = 600;
+
+/**************************************************************/
+	// standardowa klasa do tworzenia zmiennych
+class newvars		{
+	init()	{
+		new string _sclpath = "";
+		new string _sclwavpath = "";
+	}
+	string checkfont(string sfont, int isize)	{
+		if( sfont==null )	sfont=sgmfontfile;
+		if( sfont.contains(".ttf") )	{
+			new font _fnt;
+			_fnt.load( sfont, isize );
+			sfont = "_fnt";
+		}
+		sfont;
+	}
+	bool begingame()	{
+		igmbegin = !igmbegin;
+		!igmbegin;
+	}
+	newarray(string styp, string sbase, int size)	{
+		if( size<= 0 )	return;
+		size--;
+		while(size>=0)	{
+			new <styp> <sbase+size>;
+			size--;
+		}
+	}
+	setgraphpath(string spath)	{	_sclpath = spath;	}
+	setwavpath(string spath)	{ _sclwavpath = spath; }
+	string getgraphpath()	{	return _sclpath; }
+	string getsndpath()	{	return _sclwavpath; }
+	newanima(string sname, string sfile, int z)	{
+		new anima <sname>;
+		<sname>.load(this.getgraphpath() + sfile);
+		<sname>.setz(z);
+	}
+	newstdanima(string sname, string sfile, int z)	{
+		this.newanima(sname, sfile, z);
+		this.stdanaction(sname);
+	}
+	copyanimaactz(string ssrc, string sdest, string saction, int z)	{
+		this.copyanimaact(ssrc, sdest, saction);
+		<sdest>.setz(z);
+	}
+	copyanimaact(string ssrc, string sdest, string saction)	{
+		this.copyanima(ssrc, sdest);
+		<sdest>.setframe( saction, 0 );
+	}
+	copyanima(string ssrc, string sdest)	{
+		new anima <sdest>;
+		<sdest>.copy( ssrc );
+	}
+	copyanimas(string san, string sname, int istart, int ilosc)	{
+		if (ilosc<0)	return;
+		for(int i=0; i<ilosc; i++)	this.copyanima( san, sname + (istart + i)  );
+	}
+	newanimas(string sname, string sfile, int z, int ilosc)	{
+		if(ilosc<0) return; 
+		this.newanima(sname+"0", sfile, z);		// pierwsza load z zerem
+		this.copyanimas(sname+"0", sname, 1, ilosc-1);		// pozostale kopiowane z niej
+	}
+	int newanframesgr(string san, string sname, int iaction, string sgr)	{	// tworzy animacje z klatek
+		int ile = <san>.nofframes( iaction );
+		this.copyanimas( san, sname, 0, ile );
+		for(int i=0; i<ile; i++)	{
+			<sname+i>.setframe(iaction, i);
+			if( sgr!=null )	{	<sgr>.add( sname+i );	}
+		}
+		return ile;		// zwraca ilosc stworzonych animacji
+	}
+	int newanframes(string san, string sname, int iaction)	{	// tworzy animacje z klatek
+		return this.newanframesgr(san,sname,iaction,null);
+	}
+	newcanvas(string sname, int w, int h, int r, int g, int b, int a, int z)	{
+		new img <sname>;
+		<sname>.create(w,h,r,g,b,a);
+		<sname>.setz(z);
+	}
+	newimg(string sname, string sfile, int z)	{
+		new img <sname>;
+		<sname>.load(this.getgraphpath() + sfile);
+		<sname>.setz(z);
+	}
+	copyimg(string ssrc, string sdest)	{
+		new img <sdest>;
+		<sdest>.copy(ssrc);
+	}
+	playmusic(string sfile)	{gameapi.playmusic( this.getsndpath() + sfile );	}
+	newsndfree(string sname, string sfile)	{
+		new snd <sname>;
+		<sname>.setstartstopflag(false, true);
+		<sname>.load( this.getsndpath() + sfile);
+	}
+	snewsnd(string sname, string sfile)	{
+		this.newsnd(sname,sfile);
+		<sname>.addmethod("onfinish","__std_finish");
+	}
+	newsnd(string sname, string sfile)	{
+		new snd <sname>;
+		<sname>.load( this.getsndpath() + sfile);
+	}
+	newsndloop(string sname, string sfile)	{
+		this.newsnd(sname,sfile);
+		this.looponfinish1( sname );
+	}
+	looponfinish1( string sob )	{<sob>.addmethod("onfinish","_stdsndloop");	}
+	sndplayloop(string sob)	{
+		this.looponfinish1( sob );
+		<sob>.play();
+	}
+	newsnds(string sbase, int inamestart, string sfilebase, int ifilefrom, int ifileto)	{
+		string s;
+		int ile = ifileto-ifilefrom+1;
+		for(int i=0; i<ile; i++)	{
+			s = sbase + (inamestart + i);
+			new snd <s>;
+			<s>.load( this.getsndpath() + sfilebase + (ifilefrom+i) + ".wav" );
+		}
+	}
+	newtimer(string sname, int idelay, int iticks)	{
+		new timer <sname>;
+		<sname>.settick(iticks);
+		<sname>.delay(idelay);
+	}
+	newtimercycle(string sname, int icycle, int iticks)	{
+		new timer <sname>;
+		<sname>.settick(iticks);
+		<sname>.setcycle(icycle);
+	}
+	stdanaction(string san)	{
+		string s = <san>.actionname();
+		if( s.contains("L")  )	this.looponfinish(san);
+		else if( s.contains("H")  )	this.hideonfinish(san);
+		if( s.contains("P")  )	<san>.play(-1);
+	}
+	int newanactionsgr(string san, string sname, string sgr)	{
+		int ile = <san>.nofactions();
+		this.copyanimas( san, sname, 0, ile );
+		string s;
+		for(int i=0; i<ile; i++)	{
+			s = sname+i;
+			<s>.setframe(i,0);
+			this.stdanaction(s);
+			if( sgr!=null )	{<sgr>.add( s );}
+		}
+		return ile;
+	}
+	int newanactions(string san, string sname)	{return this.newanactionsgr(san,sname,null);	}
+	int newanfrbyactgr(string san, string sname, string sgr)	{
+		int ile = <san>.nofactions();
+		for( int i=0; i<ile; i++)	_ = this.newanframesgr(san, sname+i+"_", i, sgr);
+		return ile;
+	}
+	int newanfrbyact(string san, string sname)	{return this.newanfrbyactgr(san,sname,null);	}
+	int loadanfrbyact(string san, string sfile, int z)	{
+		string s = "_"+san;
+		this.newanima(s,sfile,z);
+		int ile = this.newanfrbyact(s, san);
+		<s>.hide();
+		return ile;
+	}
+	int loadanactions(string san, string sfile, int z)	{
+		string s = "_"+san;
+		this.newanima(s, sfile, z);
+		int ile = this.newanactions(s, san);
+		<s>.hide();
+		return ile;
+	}
+	int loadanframes(string san, string sfile, int iaction, int z)	{
+		string s = "_"+san;
+		this.newanima(s, sfile, z);
+		int ile = this.newanframes(s, san, iaction);
+		<s>.hide();
+		return ile;
+	}
+	newbutimg(string sbut, string sstd, string smov, string sclick, string smouse)	{
+		new button <sbut>;
+		<sbut>.set(sstd, smov, sclick);
+		<sbut>.setmouse(smouse);
+	}
+	newbutan(string sbut, string sanstd, string sanmov, string sanclick, string smouse)	{
+		new button <sbut>;
+		<sbut>.setan(sanstd, sanmov, sanclick);
+		<sbut>.setmouse(smouse);
+	}
+	/*****************************************************/
+	newdb(string sdb, string sfile)	{
+		new db <sdb>;
+		<sdb>.load( this.getgraphpath() + sfile );
+	}
+	newdbscript(string sdb, string sfile)	{
+		new db <sdb>;
+		<sdb>.loadscript( this.getgraphpath() + sfile );
+	}
+	vargmset(string svar, def val)	{
+		string sg = gameapi.getgamename();
+		if( !<sg>.hasvar(svar) )	<sg>.varnew( val.gettype(), svar );
+		<svar> = val;
+	}
+}
+
+/**************************************************************/
+new img imglobcurs;		// globalny kursor aktywnosci
+bsms.load("configs/kursorstd.png","configs/kursoract.png" );
+	// modul obslugi standardowych kursorow myszy
+module bsms {
+	init()	{
+		new img imgstd;
+		new img imgact;
+		new int msid = 0;		// 0- brak kursora 1-std lapka 2- active lapka 3- wlasny (wczytany w jakiejs grze)
+	}
+	load(string spath1, string spath2)	{
+		imgstd.load(spath1);
+		imgact.load(spath2);
+		imglobcurs.copy("imgact");
+		imglobcurs.hide();
+		imgstd.hide();
+		imgact.hide();
+		this.reset();
+		engine.stdbutcursor("imgstd");
+	}
+	setinitial()	{	mouse.stdcursor();	msid = 0;	}
+	setstd()	{
+		mouse.setcursor("imgstd");
+		engine.stdbutcursor("imgstd");
+		msid = 1;
+	}
+	setact()	{	mouse.setcursor("imgact");	msid = 2;	}
+	setown()	{	msid=3;	}
+	bool isinitial()	{	msid==0;	}
+	bool isstd()	{	msid==1;	}
+	bool isact()	{	msid==2;	}
+	bool isown()	{	msid==3;	}
+}
+
+module clsav	{
+	init()	{
+		new vector vqsav;		// quick save (prostszy)
+		vqsav.type("string");
+		new vector vvqsav;		// quick save (prostszy)
+		vvqsav.type("string");
+	}
+	free()	{
+		vqsav.free();	
+		vvqsav.free();	
+	}
+	load(string sfile)	{
+		this.free();		// jak bedzie potrzebne dopisac dalej
+	}
+	save(string sfile)	{}
+	qadd( string sname, string sval )	{
+		vqsav.add( sname );
+		vvqsav.add( sval );
+	}
+	qsave(string sname, string sval)	{
+		int pos = vqsav.find(sname);
+		if( pos < 0 )	{
+			this.qadd( sname, sval );
+		} else {
+			vvqsav.set( pos, sval );
+		}
+	}
+	string qload(string sname, string sstdval)	{
+		int pos = vqsav.find( sname );
+		if ( pos < 0 )	{
+			this.qadd( sname, sstdval );
+			return sstdval;
+		} else {
+			return vvqsav.get( pos );
+		}
+	}
+}
+
+class classquest	{
+	init()	{
+		new vector vqst;
+		vqst.type("string");
+	}
+	int isdone(string sqst)	{	return vqst.contains(sqst);	}
+	int notdone( string sqst )	{	return !vqst.contains(sqst);	}
+	done(string sqst)	{	if( !vqst.contains(sqst) )	vqst.add(sqst);		}
+	reset()	{	vqst.free();	}
+	save(string sfile)	{	vqst.save( sfile );	}
+	load(string sfile)	{	vqst.load( sfile );	}
+}
+
+new classquest clqs;
+/*module clqs : classquest	{		// globalny odpowiednik classquesta
+	init()	{	classquest::init();	}
+}*/
+
+/***************************************************************************/
+
+/*  klasa na load dostaje baze danych z wymienionymi grami do zapisu */
+class classeasysaver	{
+	init()	{
+		new int ilevel = -1;
+		new db dbl;
+		new string slevelfile;
+	}
+	getlevel()	{	return ilevel;	}
+	setlevel(int il)	{	ilevel=il;	}
+	getgame(int ig)	{	return dbl.get( ig, 0 );	}
+	load( string slevf, string sdbfile)	{
+		ilevel.load( slevf, -1 );
+		slevelfile = slevf;
+		dbl.load( sdbfile );
+	}
+	save()	{
+		int pos = dbl.findbyrow( gameapi.getgamename() );
+		if( pos>ilevel )	{
+			ilevel = pos;
+			ilevel.save( slevelfile );
+		}
+	}
+}
+
+class classfullsave	{
+	init()	{
+		new db dbsav;
+		new string sstdfile = "saves/save.txt";
+	}
+	public save(string sfile)	{	dbsav.save(sfile);	}
+	public load(string sfile)	{	dbsav.load(sfile);	}
+	public print()	{	dbsav.print();	}
+	public setfile(string sf)	{	sstdfile = sf;	}
+	public stdload()	{	this.load(sstdfile);	}
+	public stdsave()	{	this.save(sstdfile); }
+	public free()	{	dbsav.free();	}
+	public _set(string sname, string svar)	{
+		int id = dbsav.findbyrow(sname);
+		if( id>=0 )	{
+			dbsav.set(id,1,svar);
+		} else {
+			id = dbsav.addrow()-1;
+			dbsav.add( id, sname );
+			dbsav.add( id, svar );
+		}
+// 		this.stdsave();
+	}
+	public _bset(string sname)	{	this._set(sname,true);	}
+	public string _get(string sname)	{
+		int id = dbsav.findbyrow(sname);
+		return id>=0?dbsav.get(id,1):null;
+	}
+	public bool _is(string sname, string svar)	{
+		int i = dbsav.findbyrow(sname);
+  		return i>=0?dbsav.get(i,1)==svar:false;
+	}
+	public bool _isnt(string sname, string svar)	{
+		int i = dbsav.findbyrow(sname);
+		return i>=0?dbsav.get(i,1)!=svar:false;
+	}
+	public bool _bis(string sname)	{	return this._is(sname,true);	}
+	public gmset(string sgame, string sname, string svar)	{
+		this._set( sgame+sname, svar );
+	}
+	public string gmget(string sgame, string sname)	{
+		return this._get(sgame+sname);
+	}
+	public bool gmis(string sgame, string sname, string svar)	{
+		return this._is(sgame+sname,svar);
+	}
+	public set(string sname, string svar)	{
+		this._set( gameapi.getgamename()+sname, svar );
+	}
+	public string get(string sname)	{
+		return this._get( gameapi.getgamename()+sname);
+	}
+	public bool is(string sname, string svar)	{
+		return this._is(gameapi.getgamename()+sname,svar);
+	}
+	public bset(string sname)	{
+		this._set( gameapi.getgamename()+sname, true );
+	}
+	public string bget(string sname)	{
+		return this._is(gameapi.getgamename()+sname,true);
+	}
+	public bool bis(string sname)	{
+		return this._is(gameapi.getgamename()+sname,true);
+	}
+	/*** dodane przez andrzeja ****/
+	public string gbget(string sgame, string sname) {
+	 	return this._get( sgame+sname );
+	}
+	public bool gbis(string sgame, string sname)	{
+		return this._is(sgame+sname,true);
+	}
+}
+
+
+/***************************************************************************/
+
+module clsurf	{
+	init()	{}
+	bool isin(int x, int y, int x1, int y1, int x2, int y2)	{
+		x >= x1 && x<=x2 && y>=y1 && y<=y2;
+	}
+	bool inscreen(int x, int y, int dx, int dy)	{
+		this.isin( x, y, 0-dx, 0-dy, 800+dx, 600+dy );
+	}
+	bool insurf(int x, int y, string simg)	{
+		this.isin(x,y,<simg>.getpx(), <simg>.getpy(), <simg>.getex()-1, <simg>.getey()-1);
+	}
+	bool issurfin(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)	{
+		this.isin(x1,y1, x3,y3,x4,y4) || this.isin(x2,y1, x3,y3,x4,y4) ||
+				this.isin(x1,y2, x3,y3,x4,y4) || this.isin(x2,y2, x3,y3,x4,y4);
+	}
+	bool commonsurface(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)	{
+		this.issurfin(x1,y1,x2,y2, x3,y3,x4,y4) || 
+				this.issurfin(x3,y3,x4,y4, x1,y1,x2,y2);
+	}
+	bool commonimgs(string simg1, string simg2)	{
+		this.commonsurface(<simg1>.getpx(), <simg1>.getpy(), <simg1>.getex()-1, <simg1>.getey()-1,
+				<simg2>.getpx(), <simg2>.getpy(), <simg2>.getex()-1, <simg2>.getey()-1 );
+	}
+	bool surfwithinsurf(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)	{
+		this.isin(x1,y1, x3,y3,x4,y4) && this.isin(x2,y1, x3,y3,x4,y4) &&
+				this.isin(x1,y2, x3,y3,x4,y4) && this.isin(x2,y2, x3,y3,x4,y4);
+	}
+	bool imgwithinimg(string simg1, string simg2)	{
+		this.surfwithinsurf(<simg1>.getpx(), <simg1>.getpy(), <simg1>.getex()-1, <simg1>.getey()-1,
+				<simg2>.getpx(), <simg2>.getpy(), <simg2>.getex()-1, <simg2>.getey()-1 );
+	}
+}
+
+/* modul do obliczen odleglosci */
+
+module cllen	{
+	init()	{
+		new int il1;
+		new int ilx;
+		new int ily;
+	}
+	int ilenx()	{ return ilx; }
+	int ileny()	{ return ily; }
+	int ilen4(int x1, int x2)	{	return (x1-x2)->abs();	}
+	int ilen3(string simg1, string simg2)	{
+		return this.ilen( <simg1>.getcx(), <simg1>.getcy(), <simg2>.getcx(), <simg2>.getcy() );
+	}
+	int ilen5(string simg1, string simg2)	{
+		return this.ilen( <simg1>.getpx(), <simg1>.getpy(), <simg2>.getpx(), <simg2>.getpy() );
+	}
+	int ilen2(string simg1, int x, int y)	{return this.ilen( <simg1>.getcx(), <simg1>.getcy(), x,  y );	}
+	int ilen(int x1, int y1, int x2, int y2)	{
+		ilx = x1-x2;
+		ily = y1-y2;
+		return il1.length( ilx, ily );
+	}
+	int iclenx(string simg1, int x)	{	return <simg1>.getcx() - x;	}
+	int iclenx2(string simg1, string simg2)	{	return <simg1>.getcx() - <simg2>.getcx();	}
+	int icleny(string simg1, int y)	{	return <simg1>.getcy() - y;	}
+	int icleny2(string simg1, string simg2)	{	return <simg1>.getcy() - <simg2>.getcy();	}
+	int isbetween2(string simg1, string simg2, int x1, int y1, int x2, int y2)	{
+		return this.isbetween(simg1, <simg2>.getcx(), <simg2>.getcy(), x1, y1, x2, y2);
+	}
+	int isbetween(string simg1, int xx, int yy, int x1, int y1, int x2, int y2)	{
+		il1 = this.ilen( simg1, xx, yy );
+		return ilx>=x1 && ilx<=x2 && ily>=y1 && ily<=y2;
+	}
+	int ilodlen(string s1, string s2)	{	.ilen(<s1>.lodx,<s1>.lody, <s2>.lodx, <s2>.lody);	}
+	int iposlen(string simg1, string simg2)	{
+		.ilen( <simg1>.getpos, <simg2>.getpos );
+	}
+}
+
+/****************************************************/
+class classansearcher	{
+	init()	{}
+	def _findnotr(string san, int x, int y, int dx, int dy)	{
+		int ex = <san>.getex() , int ey = <san>.getey();
+		while( x!=ex && y!=ey )	{
+			if( <san>.isin(x,y,false,true) ) return x,y;
+			x+=dx;	y+=dy;
+		}
+		return -1,-1;
+	}
+	def firstnotrx1y(string san)	{	return ._findnotr(san,<san>.getpx(), <san>.getpy(), 1, 0);	}
+	def firstnotrexy1(string san)	{	return ._findnotr(san,<san>.getex()-1, <san>.getpy(), 0, 1);	}
+	def firstnotrxy1(string san)	{	return ._findnotr(san,<san>.getpx(), <san>.getpy(), 0, 1);	}
+	def firstnotrx1ey(string san)	{	return ._findnotr(san,<san>.getpx(), <san>.getey()-1, 1, 0);	}
+}
+
+class signal_pack	{
+	init()	{}
+	addsignals(string san)	{
+		<san>.addmethod("operator<", func { (string sfun) this.addmethod("onfinish", sfun ); } );
+	}
+}
+/***************************************************************************/
+	// rozszerzenia dla animcaji
+class anima_pack : signal_pack	{
+	init()	{}
+	public resizemethods(string san)	{
+		<san>.addmethod("_clanbuildpomvars", func { new int _ixp; new int _iyp; } );
+		<san>._clanbuildpomvars();
+		<san>.addmethod("setbpos", func {(int x, int y) this.setpos( x-this.lodx, y-this.lody ); });
+		<san>.addmethod("saverelpos", func {(int x,int y)_ixp=x-this.getpx;_iyp=y-this.getpy;} );
+		<san>.addmethod("setrelpos", func{(int x, int y) this.setbpos( x - _ixp, y - _iyp );});
+		<san>.addmethod("mssaverelpos", func {this.saverelpos( mouse.getpos );} );
+		<san>.addmethod("mssetrelpos", func {this.setrelpos( mouse.getpos );});
+		<san>.addmethod("rplay", func {(string sact)if( !this.isplaying(sact) ) this.play(sact);});
+		<san>.addmethod("setcpos", func {(int x, int y)this.setbpos( x-this.getw/2, y-this.geth/2 );});
+		<san>.addmethod("operator=", func { (string s) this.copy(s); } );
+		<san>.addmethod("operator==", func { (string s)
+			.actionnr==<s>.actionnr && .framenr==<s>.framenr; } );
+		this.addsignals(san);
+	}
+}
+
+class timer_pack : signal_pack	{
+	init()	{}
+	resizemethods(string sob)	{
+		this.addsignals(sob);
+	}
+}
+/***************************************************************************/
+class vector_pack	{
+	init()	{}
+	each(string sfun)	{	for( int i=0; i<.size; i++) this.<sfun>(.get(i));	}
+	resizemethods(string svec)	{
+		<svec>.addmethod("each", "each");
+		<svec>.addmethod("operator-", func { (def x) this.remove(x); this; } );
+		<svec>.addmethod("operator+", func { (def x) this.add(x); this; } );
+	}
+}
+
+/***************************************************************************/
+
+class classanfilter	{
+	init()	{}
+	buildanfilter()	{
+		new filter ft;
+		ft.link( this.getname() );
+		ft.setpivottype(1);
+	}
+	public build(string san)	{
+		<san>.addmethod("buildanfilter","buildanfilter");
+		<san>.buildanfilter();
+		<san>.addmethod("setopacity",	func {	(int iop) ft.setopacity(iop); }		);
+		<san>.addmethod("setzoom",		func {	(real r) ft.setzoom(r); }			);
+		<san>.addmethod("setangle",		func {	(real r) ft.setangle(r); }			);
+		<san>.addmethod("getangle",		func {	return ft.getangle; }			);
+		<san>.addmethod("rotate",		func {	(real r)	ft.rotate(r); }			);
+		<san>.addmethod("setpivottype",	func {	(int ityp) ft.setpivottype(ityp); }	);
+		<san>.addmethod("unlink",		func {	ft.unlink(); }					);
+		<san>.addmethod("link",			func {	ft.link(this); }					);
+		<san>.addmethod("blend",		func {	(string s) ft.blend(s); }			);
+		<san>.addmethod("mask",		func {	(string s) ft.mask(s); }			);
+	}
+}
+
+/***************************************************************************/
+
+class classancounter	{
+	init()	{
+		new int iile;
+		new int id;
+		new string _san;
+		new vector _vs;
+		new int _pos;
+	}
+	set(string sname, int ile)	{
+		_san = sname;
+		iile = ile;
+		id = 0;
+		_pos = sname.length();
+		_vs.resize( ile, false );
+	}
+	string get()	{
+		string s = _san+id;
+		id = (id+1)%iile;
+		return s;
+	}
+	string getf()	{
+		for(int i=0; i<iile; i++)	{
+			if( !_vs.get(i) )	{
+				_vs.set(i, true);
+				return _san+i;
+			}
+		}
+		return null;	// brak wolnych
+	}
+	retf(string s)	{	_vs.set( s.getb( _pos, 10 ), false );	}
+	isfree(int pos)	{	return _vs.get(pos);	}
+	int getile()	{	return iile;	}
+}
+
+/**************************************************************/
+	// operacje na obrazach, dzwiekach, timerach i animacjach
+class gmobjvec {
+	init()	{
+		new vector lsim;
+		lsim.type("string");
+	}
+	operator=(string sgr)	{
+		if( engine.varexist(sgr) )	{
+			match(<sgr>.gettype())	{
+				"vector" => this.copy(sgr);
+				"gmobjvec" => this.copy(sgr);
+				"gmimgvec" => this.copy(sgr);
+				? => {	this.free(); this.add(sgr); }
+			}
+		} else {
+			this.free();
+			this.add(sgr);
+		}
+	}
+	operator+(string sob)	{	this.add(sob);		return this;	}
+	operator-(string sob)	{	this.remove(sob);	return this;	}
+	addtogr(string sgr)	{	for( int i=0; i<this.size(); i++)	<sgr>.add(this.get(i));	}
+	addgr(string sgr)	{	for( int i=0; i< <sgr>.size(); i++)	this.add( <sgr>.get(i) );	}
+	copy(string sgr)	{
+		this.free();
+		this.addgr(sgr);
+	}
+	free()	{ lsim.free();	}
+	int size()	{ return lsim.size(); }
+	bool empty()	{	return this.size()==0;	}
+	hash()	{ lsim.hash(); }
+	string first()	{ return lsim.get(0); }
+	string last()	{ return lsim.get( lsim.size()-1 ); }
+	print()	{	lsim.print();	}
+	string get(int i)	{ return lsim.get(i); }
+	add(string simg)	{	lsim.add(simg);	}
+	addbegin(string simg)	{	lsim.addbegin(simg);	}
+	swap(int i, int j)	{	lsim.swap(i,j);	}
+	addonce(string simg)	{	if( !lsim.contains(simg) )	lsim.add(simg);	}
+	sepadd(string separator)	{
+		string s = _;
+		while( s!=separator )	{
+			this.addbegin(s);
+			s = _;
+		}
+	}
+	insertat(string sob, int pos)	{
+		@ile = .size;
+		if( pos<=0 )	.addbegin(sob);
+		else if (pos>=ile)	.add(sob);
+		else {
+			.add(null);
+			for( @i=ile; i>pos; i--)	.set( i, .get(i-1) );
+			.set(pos, sob );
+		}
+	}
+	remove(string simg)	{	lsim.remove(simg);	}
+	removeat(int pos)		{	lsim.removeat(pos);	}
+	removealloccurs(string simg)	{	while(this.contains(simg))	this.remove(simg);	}
+	removeif(string sfun)	{
+		for( int i=0; i<.size; i++)
+			if( <.get(i)>.<sfun>() )  .removeat(i);
+	}
+	int find(string simg)	{ return lsim.find(simg); }
+	int contains(string simg)	{ return lsim.contains(simg); }
+	addgroup(string sob, int ile)	{	this.addgroup2( sob, 0, ile-1 );	}
+	addgroup2(string sob, int ifrom, int ito)	{
+		while( ifrom <= ito )	{
+			this.add( sob+ifrom );
+			ifrom++;
+		}
+	}
+	string rand()	{
+		int ile = .size;
+		ile>0 ? .get(ile.rand(ile)) : null;
+	}
+	string randdiff(string s)	{
+		int ile = .size;
+		if( ile>0 )	{
+			int id = ile.rand(ile);
+			int i = id;
+			while( .get(id)==s )	{
+				id = (id+1)%ile;
+				if( id==i )	return null;
+			}
+			return .get(id);
+		}
+		null;
+	}
+	/******************* metody na obiektach grupy *****************************/
+	movefrom(string simg, int x, int y)	{
+		int i = this.find(simg);
+		if( i>=0 )	{
+			while( i<lsim.size() )	{
+				<lsim.get(i)>.move(x,y);
+				i++;
+			}
+		}
+	}
+	move(int x, int y)	{	this.eval2("move",x,y);	}
+	setpos(int x, int y)	{	this.eval2("setpos",x,y);	}
+	show()	{	this.eval("show");	}
+	hide()	{	this.eval("hide");	}
+	stop(int fin)	{	this.eval1("stop",fin);	}
+	play()	{	this.eval("play");	}
+	nplay(int iact)	{	this.eval1("nplay",iact);	}
+	splay(string sact)	{	this.eval1("splay",sact);	}
+	setdelay(int d)	{	this.eval1("setdelay",d);	}
+	graddmethod(string sdest, string ssrc)	{	this.eval2("addmethod",sdest,ssrc);	}
+	string getimg(int x, int y, int bignorehidden, int bignorealpha)	{
+		for( int i=lsim.size()-1; i>=0; i--)	{
+			if( <lsim.get(i)>.isin( x,y,bignorehidden,bignorealpha ) )	return lsim.get(i);
+		}
+		return null;
+	}
+	int isin(int x, int y, bool bignorehidden, bool bignorealpha)	{
+		for( int i=lsim.size()-1; i>=0; i--)	{
+			if( <lsim.get(i)>.isin( x,y,bignorehidden,bignorealpha ) )	return i+1;
+		}
+		return false;
+	}
+	ssetframe(string sac, int ifr)	{for(int i=0; i<lsim.size(); i++)	<lsim.get(i)>.setframe(sac, ifr);	}
+	isetframe(int iac, int ifr)	{	this.eval2("setframe",iac,ifr);	}
+	setz(int z)	{	this.eval1("setz",z);	}
+	/**************/
+	eval(string sfunc)	{
+		for(int i=0; i<lsim.size(); i++)	{<lsim.get(i)>.<sfunc>();	}
+	}
+	eval1(string sfunc, def darg)	{
+		for(int i=0; i<lsim.size(); i++)	{<lsim.get(i)>.<sfunc>(darg);}
+	}
+	eval2(string sfunc, def darg1, def darg2)	{
+		for(int i=0; i<lsim.size(); i++)	{<lsim.get(i)>.<sfunc>(darg1, darg2);}
+	}
+	eval3(string sfunc, def darg1, def darg2, def darg3)	{
+		for(int i=0; i<lsim.size(); i++)	{<lsim.get(i)>.<sfunc>(darg1, darg2, darg3);}
+	}
+	int _find(string sfun, def id)	{
+		for( int i=0; i<this.size; i++) if ( <this.get(i)>.<sfun>()==id ) return i;
+		-1;
+	}
+	int _find1(string sfun, @id)	{
+		for( int i=0; i<.size; i++) if ( <this.get(i)>.<sfun>(id) ) return i;
+		-1;
+	}
+	each(string sfun)	{	for( int i=0; i<.size; i++) <.get(i)>.<sfun>(i);	}
+	each1(string sfun, @d1)	{	for( int i=0; i<.size; i++) <.get(i)>.<sfun>(i, d1);	}
+	each2(string sfun, @d1, @d2)	{	for( int i=0; i<.size; i++) <.get(i)>.<sfun>(i, d1, d2);	}
+	bool ineach(string sfun)	{
+		for( int i=0; i<.size; i++) if( !<.get(i)>.<sfun>(i) )	return false;
+		true;
+	}
+	int find_closest(string sob, string sfun)	{
+		if( .empty ) return;
+		int id = 0, real il;
+		real ilen = <.get(0)>.<sfun>(sob);
+		for( int i=1; i<.size; i++)	{
+			il = <.get(i)>.<sfun>(sob);
+			if( il < ilen )	{
+				id = i;
+				il = ilen;
+			}
+		}
+		id;
+	}
+	/**************/
+	sortimgsfun(string sfun)	{	lsim.vecsort(sfun);	}
+	sortimgs()	{	// sortowanie od najmniejszych
+		lsim.vecsort("_scmpimg1");
+	}
+	bool _scmpimg1(string s0, string s1)	{
+		return ( <s0>.getz() < <s1>.getz() || ( <s0>.getz()==<s1>.getz() && <s0>.getidobj() < <s1>.getidobj() ) );
+	}
+}
+
+class gmimgvec : gmobjvec	{
+	init()	{
+		gmobjvec::init();
+		new int _ix = 0;
+		new int _iy = 0;
+		new int _iz = 0;
+		new int _ifound = -1;
+	}
+	_setpos(int x, int y)	{	|_ix, _iy| = x,y;	}
+	int lodx()	{0;}
+	int lody()	{0;}
+	int getposx()	{	return _ix;	}
+	int getposy()	{	return _iy;	}
+	int getpos()	{	return _ix, _iy;	}
+	int getpx() {	return _ix;	}
+	int getpy() {	return _iy;	}
+	int getw()	{	return this.getex()-this.getpx();	}
+	int geth()	{	return this.getey()-this.getpy();	}
+	int getcx() {	return this.getpx()+this.getw()/2;	}
+	int getcy() {	return this.getpy()+this.geth()/2;	}
+	int getz()	{	return _iz;	}
+	int getex()	{
+		int ile = this.size();
+		if( ile<=0 )	{	return _ix;	}
+		int x = <this.get(0)>.getex();
+		int x2;
+		for( int i=1; i<ile; i++)	{
+			x2 = <this.get(i)>.getex();
+			if( x2>x )	{	x=x2;	}
+		}
+		return x;
+	}
+	int getey()	{
+		int ile = this.size();
+		if( ile<=0 )	{	return _iy;	}
+		int y = <this.get(0)>.getey();
+		int y2;
+		for( int i=1; i<ile; i++)	{
+			y2 = <this.get(i)>.getey();
+			if( y2>y )	{	y=y2;	}
+		}
+		return y;
+	}
+	/*minx	{	.find_closest(null, func {(@s) .getpx; } );	}
+	miny	{	.find_closest(null, func {(@s) .getpy; } );	}
+	countborders	{
+		_ix = .minx;
+		_iy = .miny;
+	}*/
+	setz(int z)	{
+		_iz = z;
+		this.eval1("setz",z);
+	}
+	move(int x, int y)	{
+		_ix +=x;
+		_iy +=y;
+		this.eval2("move",x,y);
+	}
+	setpos(int x, int y)	{
+		_ix = x;
+		_iy = y;
+		this.eval2("setpos",x,y);
+	}
+	setpos2(int x, int y)	{
+		_ix = x;
+		_iy = y;
+		if( !.empty )	{
+			x -= <.get(0)>.getpx;
+			y -= <.get(0)>.getpy;
+			.move(-x,-y);
+		}
+	}
+	changeframe(int ifr) {
+		string s;
+		for( int i=0; i<.size; i++)	{
+			s = .get(i);
+			<s>.setframe( <s>.actionnr(-1), ifr );
+		}
+	}
+	anputgr()	{	this.eval("anputgr");	}
+	anputy(int ypos)	{	this.eval1("anputy", ipos);	}
+	int isin(int x, int y, bool bignorehidden, bool bignorealpha)	{
+		for( int i=lsim.size()-1; i>=0; i--)	{
+			if( <lsim.get(i)>.isin( x,y,bignorehidden,bignorealpha ) )	{
+				_ifound=i;
+				return i+1;
+			}
+		}
+		_ifound = -1;
+		return false;
+	}
+	int getfound()	{	return _ifound;	}
+	string getsfound()	{	return this.get(_ifound);	}
+	int findfr(int id)	{	._find("framenr", id);	}
+	int findac(int id)	{	._find("actionnr", id);	}
+	int findsac(string sac)	{	._find("actionname", sac);	}
+	int nearest_to(string sob)	{
+		//.find_closest(sob, func {(string s) 0->length( .getpx-<s>.getpx, .getpy-<s>.getpy ); } );
+		.find_closest(sob, func {(string s) cllen.ilen5(this,s); } );
+	}
+	/*def find_min(string s)	{
+		if( .empty ) return;
+		int x = <s>.getpx;
+		int y = <s>.getpy;
+		int id = 0, int il;
+		int ilen = id.length( <.get(0)>.getpx-x, <.get(0)>.getpy-y );
+		for( int i=1; i<.size; i++)	{
+			il = id.length( <.get(i)>.getpx-x, <.get(i)>.getpy-y );
+			if( il < ilen )	{
+				id = i;
+				il = ilen;
+			}
+		}
+	}*/
+	/****************************/
+	loadallan(string sname, string sfile, int z)	{
+		string s = gameapi.getgamename();
+		<s>.newanima(sname,sfile,z);
+		_ = <s>.newanfrbyactgr(sname, sname, this);
+		<sname>.hide();
+	}
+	operator*(string s)	{
+		string sg = gameapi.getgamename;
+		string san;
+		if ( s.contains(".pyz") ) {
+			san = "an" + s.strsubes(".pyz");
+			<sg>.newanima(san,s,0);
+		} else san = s;
+		_ = <sg>.newanactionsgr(san, san, this);
+		<san>.hide();
+	}
+	operator<(string s)	{
+		string sg = gameapi.getgamename;
+		string san;
+		if ( s.contains(".pyz") ) {
+			san = "an" + s.strsubes(".pyz");
+			<sg>.newanima(san,s,0);
+		} else san = s;
+		_ = <sg>.newanfrbyactgr(san, san, this);
+		<san>.hide();
+	}
+}
+
+class gmmaskvec : gmimgvec	{
+	init()	{
+		gmimgvec::init();
+	}
+	int isin(int x, int y, bool bigvis, bool bigalpha)	{
+		return gmimgvec::isin(x,y,false,bigalpha);
+	}
+}
+
+
+class classsound {
+	init()	{
+		new string _csplay = null;
+	}
+	creset()	{ _csplay = null; }
+	string cgetactsnd()	{ return _csplay; }
+	crselfplay(string ssnd)	{
+		if( !this.cisplaying() )	this.cbplay(ssnd);
+		else if ( this.cgetactsnd()!=ssnd )	this.cbplay(ssnd);
+	}
+	cbplay(string ssnd)	{
+		if(this.cisplaying())	<_csplay>.stop(true);
+		_csplay = ssnd;
+		if( ssnd!=null )	<ssnd>.play();
+	}
+	cbplay2(string ssnd)	{
+		if(this.cisplaying())	<_csplay>.stop(false);
+		_csplay = ssnd;
+		if( ssnd!=null )	<ssnd>.play();
+	}
+	crplay(string ssnd)	{
+		if(_csplay!=null && <_csplay>.isplaying() )	return;
+		_csplay = ssnd;
+		if( ssnd!=null )	<ssnd>.play();
+	}
+	crbgplay(string ssnd)	{	if( ssnd != null && !<ssnd>.isplaying() )	<ssnd>.play();	}
+	crandplay(string ssnd, int irand, string styp)	{
+		if( irand.rand( irand )==0 )	this.<"c"+styp+"play">( ssnd );
+	}
+	cplayf(string styp, string ssnd, string sfun)	{
+		this.<"c"+styp+"play">(ssnd);
+		if( <ssnd>.isplaying() && sfun!=null)	<ssnd>.addmethod("onfinish",sfun);
+	}
+	cactsndstop(bool bfin)	{	if(_csplay!=null)	<_csplay>.stop(bfin);	}
+	bool cisplaying()	{	_csplay!=null ? <_csplay>.isplaying() : false;	}
+}
+
+/***************************************************************************/
+class classsndbank	{
+	init()	{
+		new int itype;
+		new int ilicz = 0;
+		new int iile;
+		new string splay=null;
+		new string ssnd = "snd";
+	}
+	/********************************/
+	loadsingle(string sfile, int ile)	{
+		if( ile<=0)	{	iile=0;	return;	}
+		iile=ile;
+		itype=0;
+		for( int i=0; i<ile; i++)	newvars::newsnd( ssnd+i, sfile );
+	}
+	/********************************/
+	load(string sfilebase, int ifilefrom, int ifileto, int ityp, int itypstart)	{
+		iile = ifileto-ifilefrom+1;
+		if(iile<=0)	{
+			iile = 0;
+			return;
+		}
+		newvars::newsnds( ssnd, 0, sfilebase, ifilefrom, ifileto);
+		itype = ityp;			// 0 - po kolei, 1 - random
+		if(itypstart==1)	{	// 0 - od pierwszego, 1 - randomowy
+			ilicz = ilicz.rand( iile );
+		}
+	}
+	addmethod(string ssig, string sfunc)	{
+		for( int i=0; i<iile; i++)	<ssnd+i>.addmethod( ssig, sfunc );
+	}
+	stop(int ifin)	{	if(splay!=null)	<splay>.stop(ifin);	}
+	int isplaying()	{	splay!=null ? <splay>.isplaying() : false;	}
+	randplay( int irand )	{	if( irand.rand( irand )==0 )	this.play();	}
+	playid(int id)	{
+		ilicz=id%iile;
+		this.play();
+	}
+	play()	{
+		this.stop(false);
+		this.bgplay();
+	}
+	reset()	{	ilicz=0;	}
+	/************************************************/
+	rbgplay()	{	if( !this.isplaying() )	this.bgplay();	}
+	rplay()	{	if( !this.isplaying() )	this.play();	}
+	bgplay()	{
+		splay = ssnd + ilicz;
+		<splay>.play();
+		if( itype==0)	ilicz = (ilicz+1)%iile;
+		else if (itype==1)	ilicz = ilicz.rand( iile );
+	}
+	setvol(int vol)	{	for( int i=0; i<iile; i++)	<ssnd+i>.setvol( vol );	}
+}
+
+/**************************************************************/
+	// standardowe czynnosci przy grach, popakowane w metody
+class classgame : newvars , classsound {
+	init()	{
+		newvars::init();
+		classsound::init();
+		new int _iconstid;
+	}
+	/**************************************************************/
+	bkg=(@sfile)	{
+		if( sfile.contains(".pyz") ) .newanima("anbkg", sfile, 0);
+		else .newimg("imgbkg",sfile,0);
+	}
+	bgr=(@sfile)	{	this.csndplayloop("sndbgr",sfile);}
+	path=(@s)	{	.setgraphpath("scripts/"+s+"/");	}
+	cycle=(@stimer, @sfun)	{	.cnewtimercyclefin(stimer,1,1,sfun);	}
+	timer=(@stimer, @itime, @sfun) { .cnewtimerfin(stimer,itime,1,sfun);	}
+	img=(@sfile)	{
+		string sname = sfile.strsube(4);
+		if( sfile.contains(".pyz") ) .newanima("an"+sname, sfile, 0);
+		else .newimg("img"+sname,sfile,0);
+	}
+	list=(@sname)	{
+		@s=_;
+		new gmobjvec <sname>;
+		while(s!=A)	{
+			<sname>.add(s);
+			s = _;
+		}
+	}
+	debug=(@b)	{	engine.setdebugstate(b);	}
+	sfx=(string s)	{
+		@bloop = false;
+		if( s.contains("L") )	{
+			s.strremove("L");
+			bloop=true;
+		}
+		@bplay = false;
+		if( s.contains("P") )	{
+			s.strremove("P");
+			bplay=true;
+		}
+		@ivol = 100;
+		if( s.contains(" ") )	{
+			ivol = s.strgetfrom(" ");
+			s = s.strgetto(" ");
+		}
+		string sf = "fx"+s;
+		.newsnd(sf, "sfx/"+s+".wav");
+		<sf>.setvol( ivol );
+		if( bloop ) <sf>.addmethod("onfinish","_stdsndloop");
+		if( bplay ) <sf>.play;
+	}
+	sfxs=	{	.withlist("sfx=");	}
+	tickstart	{
+		if( !.hasvar("__timspeed") )	new TicksCounter __timspeed;
+		__timspeed.start;
+	}
+	tickstop	{	__timspeed.print("ticker: ");	}
+	/**************************************************************/
+	csetbkg(string sfile)	{	this.newimg("imgbkg",sfile, 0);	}
+	cstdbkg()	{	this.csetbkg("bkg.png");	}
+	bkgpyz()	{	this.newanima("anbkg", "bkg.pyz", 0 );	}
+	csndplayloop(string ssnd, string sfile)	{
+		this.newsndloop(ssnd,sfile);
+		<ssnd>.play();
+	}
+	csndbgr(string sfile)	{	this.csndplayloop("sndbgr",sfile);}
+	cloadcursor(string sfile)	{
+		if( sfile.contains(".") )	{
+			.newimg("imgkursor", sfile,0);
+			sfile = "imgkursor";
+		}
+		<sfile>.hide();
+		mouse.setcursor(sfile);
+		engine.stdbutcursor(sfile);
+		bsms.setown();
+	}
+	csavevar(string svar, string sval)	{
+		<svar> = sval;
+		clsav.varsave( gameapi.getgamename(), svar, sval);
+	}
+	cloadvar(string svar, string sstdval)	{	clsav.varload( gameapi.getgamename(), svar, sstdval );	}
+	/****************************************************************/
+	string newconst(string styp)	{
+		string s = "const"+styp+_iconstid;
+		new <styp> <s>;
+		_iconstid++;
+		return s;
+	}
+	string consttext(string stext, int x, int y, int isize, int r, int g, int b)	{
+		string s = this.newconst("text");
+		string sf = this.newconst("font");
+		<sf>.load( sgmfontfile, isize );
+		<s>.setfont(sf);
+		<s>.set(stext);
+		<s>.createtxt(r,g,b);
+		<s>.setpos(x,y);
+		return s;
+	}
+	/****************************************************************/
+	cfinmethod(string sobj, string sfuncfin)	{	<sobj>.addmethod("onfinish", sfuncfin);	}
+	cnewsndfin(string sname, string sfile, string sfunc)	{
+		this.newsnd(sname,sfile);
+		this.cfinmethod(sname,sfunc);
+	}
+	cnewsndsfin(string sbase, int inamestart, string sfilebase, int ifilefrom, int ifileto, string sfunc)	{
+		this.newsnds(sbase, inamestart, sfilebase, ifilefrom, ifileto);
+		this.caddobjsfunfin(sbase, inamestart, inamestart+( ifileto-ifilefrom), sfunc);
+	}
+	cnewsndfinbplay(string sname, string sfile, string sfunc)	{
+		this.cnewsndfin(sname,sfile,sfunc);
+		this.cbplay(sname);
+	}
+	cnewtimerfin(string sname, int idelay, int iticks, string sfunc)	{
+		this.newtimer(sname,idelay,iticks);
+		this.cfinmethod(sname,sfunc);
+	}
+	cnewtimercyclefin(string sname, int icycle, int iticks, string sfunc)	{
+		this.newtimercycle(sname,icycle,iticks);
+		this.cfinmethod(sname,sfunc);
+	}
+	/****************************************************************/
+	caddobjsfun(string ssnd, int ifrom, int ito, string ssig, string sfunc)	{
+		while( ifrom <= ito )	{
+			<ssnd+ifrom>.addmethod( ssig, sfunc+ifrom );
+			ifrom++;
+		}
+	}
+	caddobjsfunfin(string ssnd, int ifrom, int ito, string sfunc)	{
+		this.caddobjsfun( ssnd, ifrom, ito, "onfinish", sfunc );
+	}
+	/****************************************************************/
+	newancounter(string scounter, string sname, string sfile, int z, int ile)	{
+		this.newanimas( sname, sfile, z, ile);
+		new classancounter <scounter>;
+		<scounter>.set( sname, ile );
+	}
+	newancounterh(string scounter, string sname, string sfile, int z, int ile)	{
+		this.newancounter( scounter, sname, sfile, z , ile );
+		for( int i=0; i<ile; i++)	<sname+i>.hide();
+	}
+	newancounterf(string scounter, string sname, string sfile, int z, int ile, string sfun)	{
+		this.newancounter( scounter, sname, sfile, z , ile );
+		for( int i=0; i<ile; i++)	<sname+i>.addmethod("onfinish", sfun);
+	}
+	newancounterhf(string scounter, string sname, string sfile, int z, int ile, string sfun)	{
+		this.newancounter( scounter, sname, sfile, z , ile );
+		for( int i=0; i<ile; i++)	{
+			<sname+i>.addmethod("onfinish", sfun);
+			<sname+i>.hide();
+		}
+	}
+	cnewanimafin(string sname, string sfile, int z, string sfunc)	{
+		this.newanima(sname, sfile, z);
+		<sname>.addmethod("onfinish", sfunc );
+	}
+	ccopyanimafin(string sname, string snew, string sfunc)	{
+		this.copyanima(sname, snew);
+		<snew>.addmethod("onfinish", sfunc );
+	}
+	/****************************************************************/
+	cloadwavs(string sdb, string sfile)	{
+		this.newdb( sdb, sfile );
+		int id = 0;
+		int ile = <sdb>.getrowsno();
+		int i[6], string s[5];
+		while( id < ile )	{
+			i1 = <sdb>.getcolsno(id);
+			i2 = 0;
+			s1 = <sdb>.get( id, i2 );	i2++;
+			if( s1.getb(0,1)!="#" )	{
+				s3 = <sdb>.get( id, i2 );	i2++;
+				if( s1=="wav" || s1=="sfx" )	{
+					s2 = <sdb>.get( id, i2 );	i2++;
+					if( s1=="sfx")	{
+						this.newsnd( s3, "sfx/"+s2 );
+					} else { this.newsnd( s3, s2 ); }
+					if( i2 < i1 )	{
+						s1 = <sdb>.get( id, i2 );	i2++;
+						s2 = <sdb>.get( id, i2 );	i2++;
+						if( s1=="method" )	{
+							<s3>.addmethod("onfinish", s2 );
+						} else if (s1.gete(0,4)=="play")	{
+							this.<"c"+s1.gete(4,10)+"playonfin">(s3, s2);
+						} else if ( s1=="vol" )	{
+							<s3>.setvol( s2 );
+						}
+					}
+				} else if (s1=="group")	{
+					s2 = <sdb>.get( id, i2 );	i2++;
+					i3 = <sdb>.get( id, i2 );	i2++;
+					i4 = <sdb>.get( id, i2 );	i2++;
+					if( i2 < i1 )	{		// jest method
+						s1 = <sdb>.get( id, i2 );	i2++;
+						if( s1=="method" )	{
+							s4 = <sdb>.get( id, i2 );	i2++;
+							this.cnewsndsfin( s3, i3, s2, i3, i4, s4 );
+						}
+					} else {
+						this.newsnds( s3, i3, s2, i3, i4 );
+					}
+				} else if (s1=="bank")	{
+					s2 = <sdb>.get( id, i2 );	i2++;
+					i0 = <sdb>.get( id, i2 );	i2++;
+					i3 = <sdb>.get( id, i2 );	i2++;
+					i4 = <sdb>.get( id, i2 );	i2++;
+					i5 = <sdb>.get( id, i2 );	i2++;
+					new classsndbank <s3>;
+					<s3>.load( s2, i0, i3, i4, i5);
+					if( i2<i1)	{
+						s1 = <sdb>.get( id, i2 );	i2++;
+						if( s1=="method")	{
+							s4 = <sdb>.get( id, i2 );	i2++;
+							<s3>.addmethod( "onfinish", s4 );
+						} else if (s1=="vol")	{
+							<s3>.setvol( <sdb>.get( id, i2 ) );
+						}
+					}
+				} else if ( s1=="method" )	{
+					s2 = <sdb>.get( id, i2 );	i2++;
+					i3 = <sdb>.get( id, i2 );	i2++;
+					i4 = <sdb>.get( id, i2 );	i2++;
+					while( i3<=i4)	{
+						<s2+i3>.addmethod("onfinish", s3);
+						i3++;
+					}
+				} else if ( s1=="singlebank")	{
+					s2 = <sdb>.get( id, i2 );	i2++;
+					i3 = <sdb>.get( id, i2 );	i2++;
+					new classsndbank <s3>;
+					<s3>.loadsingle( s2, i3 );
+				} else if ( s1=="bgr" )	{
+					this.csndbgr( s3 );
+					if( i2 < i1 )	{
+						if( <sdb>.get( id, i2 )=="vol" )	{
+							i2++;
+							sndbgr.setvol( <sdb>.get( id, i2 ) );
+							i2++;
+						}
+					}
+				} else if ( s1=="music" )	{
+					this.playmusic( s3 );
+					if( i2 < i1 )	{
+						if( <sdb>.get( id, i2 )=="vol" )	{
+							i2++;
+							sndbgr.setvol( <sdb>.get( id, i2 ) );
+							i2++;
+						}
+					}
+				}
+			}
+			id++;
+		}
+	}
+	/****************************************************************/
+	crestart()	{	gameapi.play( gameapi.getgamename() );	}
+	/****************************************************************/
+	chideanimas(string san, int ile)	{	classevalfun::_eval0( san, 0, ile-1, "hide" );		}
+	cshowanimas(string san, int ile)	{	classevalfun::_eval0( san, 0, ile-1, "show" );		}
+}
+
+
+/***************************************************************************/
+
+class clfindfunc	{
+	init()	{}
+	int _stdfindfunc(string sobj, int ifirst, int ilast, string sname, string sfunc)	{	
+		while(ifirst<=ilast)	{
+			if( <sobj + ifirst>.<sfunc>()==sname)	{
+				return ifirst;
+			} else {
+				ifirst++;
+			}
+		}
+		return -1;
+	}
+	int _stdfindfunc2(string sobj, int iile, string sname, string sfunc)	{	
+		return this._stdfindfunc(sobj, 0, iile-1, sname, sfunc);
+	}
+	/****************************************************************/
+	cfindandeval2(string sobj, int iile, string sname, string sfunc, string seval)	{	
+		this.cfindandeval(sobj, 0, iile-1, sname, sfunc, seval);
+	}
+	cfindandeval(string sobj, int ifirst, int ilast, string sname, string sfunc, string seval)	{	
+		int pos = this._stdfindfunc(sobj, ifirst, ilast, sname, sfunc);
+		if(pos>=0)	{
+			<sobj+pos>.<seval>();
+		}
+	}
+	/****************************************************************/
+}
+
+class classevalfun	{
+	init()	{}
+	_eval0(string sob, int ifrom, int ito, string sfun){while( ifrom<=ito ){<sob+ifrom>.<sfun>(); ifrom++;}}
+	_eval1(string sob, int ifrom, int ito, string sfun, def sarg1){while( ifrom<=ito ){<sob+ifrom>.<sfun>(sarg1); ifrom++;}}
+	_eval2(string sob, int ifrom, int ito, string sfun, def sarg1, def sarg2)	{
+		while( ifrom<=ito ) { <sob+ifrom>.<sfun>(sarg1, sarg2); ifrom++; }
+	}
+	eval0(string sob, string sfun) {if( sfun != null ) ( sob==null ) ? this.<sfun>() : <sob>.<sfun>();}
+	eval1(string sob, string sfun, def sarg1) {if( sfun != null ) ( sob==null )?this.<sfun>(sarg1):<sob>.<sfun>(sarg1);}
+}
+
+
+/*****************************************************************/
+class classbutton 	{
+	init()	{
+		new string san = "anbut";
+		new string sbut = "but";
+		new int iilebut = 0;
+		new string sfxmon = null;
+	}
+	_cbuildbutname(string sname)	{	new string _sbutname=sname; }
+	string cgetbutname()	{ return _sbutname; }
+	build(string sfile, int z, string smouse)	{this.build2(sfile,z,smouse,null);	}
+	build2(string sfile, int z, string smouse, string sgrp)	{	// wczytuje animacje i buduje z niej przyciski
+		string smain = "_" + san;
+		new anima <smain>;
+		<smain>.load( sfile );
+		<smain>.setz(z);
+		int ile = <smain>.nofactions();
+		int j;	int k;
+		int iliczans = 0;
+		string sn1, string sn2, string sn3;
+		string spom;
+		for(int i=0; i<ile; i++)	{
+			sn1 = null;	sn2 = null;	sn3 = null;
+			j = <smain>.nofframes(i);
+			for(k=1; k<=j; k++)	{
+				spom = san + iliczans;
+				if(k==1)	{	sn1=spom; } 
+				else if (k==2)	{ sn2 = spom; }
+				else if (k==3)	{ sn3 = spom; }
+				newvars::copyanima( smain, spom );
+				<spom>.setframe( i, k-1 );
+				iliczans++;
+			}
+			if( sgrp!=null && <sgrp>.contains( <smain>.nameofaction(i)) ) {
+				<sn1>.setz(z-1);
+			} else this.addbut(sn1, sn2, sn3, smouse);
+		}
+		<smain>.hide();
+	}
+	/***************************** \/ \/ \/ \/ \/ wewnetrzne \/ \/ \/ \/ \/ *************************************************/
+	_buildfuncclick( string sname )	{	new string _sfunclick = sname; }
+	_stdbutclick()	{	this.<_sfunclick>( this.getbutname() );		}
+	_buildfuncrel( string sname )	{	new string _sfuncrel = sname; }
+	_stdbutrel()	{	this.<_sfuncrel>( this.getbutname() );	}
+	_buildfuncmovon( string sname )	{	new string _sfunmovon = sname; }
+	_stdbutmovon()	{
+		if( sfxmon!=null )	<sfxmon>.play();
+		this.<_sfunmovon>( this.getbutname() );
+	}
+	_buildfuncmovoff( string sname )	{	new string _sfunmovoff = sname; }
+	_stdbutmovoff()	{	this.<_sfunmovoff>( this.getbutname() );	}
+	butsigfun(string sb, string sfunc, string ssig, string sfun1, string sfun2)	{
+		if( sfunc==null )	return;
+		<sb>.addmethod(sfun1, sfun1);
+		<sb>.<sfun1>( sfunc );
+		<sb>.addmethod(ssig, sfun2);
+	}
+	sigfunc(string sfunc, string ssig, string sfun1, string sfun2)	{
+		for(int i=0; i<iilebut; i++)	this.butsigfun(sbut + i, sfunc, ssig, sfun1, sfun2);
+	}
+	print()	{for(int i=0; i<iilebut; i++)	engine.print( <sbut+i>.getbutname() );}
+	setrect()	{
+		string s;
+		for( int i=0; i<iilebut; i++)	{
+			s = <sbut+i>.getimg;
+			<sbut+i>.setrect( <s>.getpx, <s>.getpy, <s>.getex, <s>.getey );
+		}
+	}
+	setflags(bool bvis, bool balph)	{	for(int i=0; i<iilebut; i++)	<sbut+i>.setflags(bvis,balph);	}
+	/***************************** /\ /\ /\ /\ /\ wewnetrzne /\ /\ /\ /\ /\ ************************************************/
+	sfxonmovon(string ssnd)	{	sfxmon=ssnd;	}
+	clickfunc(string sfunc)	{this.sigfunc(sfunc,"onclick", "_buildfuncclick", "_stdbutclick");	}
+	relfunc(string sfunc)	{this.sigfunc(sfunc,"onrel", "_buildfuncrel", "_stdbutrel");	}
+	movonfunc(string sfunc)	{this.sigfunc(sfunc,"onmoveon", "_buildfuncmovon", "_stdbutmovon");	}
+	movofffunc( string sfunc)	{this.sigfunc( sfunc,"onmoveoff", "_buildfuncmovoff", "_stdbutmovoff");}
+	/*****************************************************************/
+	int ilebuts()	{	return iilebut;	}
+	/*****************************************************************/
+	int ifind(string sname)	{return clfindfunc::_stdfindfunc2(sbut, iilebut, sname, "getbutname");	}
+	string sfind(string sname)	{
+		int pos = clfindfunc::_stdfindfunc2(sbut, iilebut, sname, "getbutname");
+		return pos>=0 ? sbut+pos : null;
+	}
+	/*****************************************************************/
+	_cbutfun(string sname, string sfunc)	{
+		clfindfunc::cfindandeval2(sbut, this.ilebuts(), sname, "getbutname", sfunc );
+	}
+	_callbutfunc(string sfunc)	{	for(int i=0; i<iilebut; i++)	<sbut+i>.<sfunc>();	}
+	_cibutfunc(string sfunc, int ile)	{
+		if( ile > iilebut )	ile = iilebut;
+		for(int i=0; i<ile; i++)	<sbut+i>.<sfunc>();
+	}
+	ienable( int ile )	{	this._cibutfunc("enable", ile);	}
+	benableall()	{	this.resumeall();	this.enableall();	}
+	pauseall()	{	this._callbutfunc("pause");	}
+	resumeall()	{	this._callbutfunc("resume");	}
+	enableall()	{	this._callbutfunc("enable");	}
+	disableall()	{	this._callbutfunc("disable");	}
+	
+	benable(string sname)	{	this.resume(sname);	this.enable(sname);	}
+	disable(string sname)	{	this._cbutfun( sname, "disable");	}
+	enable(string sname)	{	this._cbutfun( sname, "enable");	}
+	pause(string sname)	{	this._cbutfun( sname, "pause");	}
+	resume(string sname)	{	this._cbutfun( sname, "resume");	}
+	/*****************************************************************/
+	string getimg(string sname)	{
+		string s= this.sfind(sname);
+		return s!=null ? <s>.getimg() : null;	
+	}
+	/*****************************************************************/
+	newmouse(string sname, string snewmouse)	{
+		string s = this.sfind(sname);
+		if(s!=null)	<s>.setmouse( snewmouse );
+	}
+	addbut(string san1, string san2, string san3, string smouse)	{
+		string spom = sbut + iilebut;
+		newvars::newbutan( spom, san1, san2, san3, smouse);
+		<spom>.addmethod("getbutname","cgetbutname");
+		<spom>._cbuildbutname( <san1>.actionname() );	// nazwa buttonu to nazwa akcji
+		iilebut++;
+	}
+	/*****************************************************************/
+	_addfunc(string s, string sfclick, string sfrel, string sfmvon, string sfmvoff)	{
+		if( s== null)	return;
+		this.butsigfun( s, sfclick, "onclick", "_buildfuncclick", "_stdbutclick");
+		this.butsigfun( s, sfrel, "onrel", "_buildfuncrel", "_stdbutrel");
+		this.butsigfun( s, sfmvon, "onmoveon", "_buildfuncmovon", "_stdbutmovon");
+		this.butsigfun( s, sfmvoff, "onmoveoff", "_buildfuncmovoff", "_stdbutmovoff");
+	}
+	addfuncto(string sname, string sfclick, string sfrel, string sfmvon, string sfmvoff)	{
+		this._addfunc( this.sfind(sname), sfclick, sfrel, sfmvon, sfmvoff);
+	}
+	addfunctolast(string sfclick, string sfrel, string sfmvon, string sfmvoff)	{
+		this._addfunc( sbut + (iilebut-1) , sfclick, sfrel, sfmvon, sfmvoff);
+	}
+	/*****************************************************************/
+	_transmet(string sob, string sfunc, string smet, string s)	{
+		new string <"_sob" + s> = sob;
+		new string <"_sf" + s> = sfunc;
+		this.<smet>( "_trf"+s );
+	}
+	transclickfunc(string sob, string sfunc)	{this._transmet( sob, sfunc, "clickfunc", "cl" );	}
+	transrelfunc(string sob, string sfunc)	{this._transmet( sob, sfunc, "relfunc", "rl" );	}
+	transmovonfunc(string sob, string sfunc){this._transmet( sob, sfunc, "movonfunc", "mn" );	}
+	transmovofffunc(string sob, string sfunc){this._transmet( sob, sfunc, "movofffunc", "mf" );	}
+	_trfcl(string s)	{	<_sobcl>.<_sfcl>(s);		}
+	_trfrl(string s)	{	<_sobrl>.<_sfrl>(s);		}
+	_trfmn(string s)	{
+		if( sfxmon!=null )	<sfxmon>.play();
+		<_sobmn>.<_sfmn>(s);
+	}
+	_trfmf(string s)	{	<_sobmf>.<_sfmf>(s);		}
+}
+
+class classsimplebutton	{
+	init()	{
+		new string simgob=null;
+		new gmimgvec grbut;
+	}
+	public stdbuild(string sfile, string smouse, int z)	{this.build(this.getgraphpath()+sfile, smouse, 0, 0, z, 0);	}
+	public getimgfunc(string sfunc)	{	simgob==null ? 0 : <simgob>.<sfunc>();	}
+	public setbutpos(int x, int y)	{	grbut.setpos(x,y);	}
+	public build(string sfile, string smouse, int x, int y, int z, int iact)	{
+		new button but1;
+		but1 (this.getname()) {(string s) new string sbut = s; };
+		but1.addmethod("onclick", func { this.<sbut+"_CLICK">(); });
+		but1.addmethod("onrel", func { this.<sbut+"_REL">(); } );
+		but1.addmethod("onmoveon", func { this.<sbut+"_MOVEON">(); });
+		but1.addmethod("onmoveoff", func { this.<sbut+"_MOVEOFF">(); });
+		
+		if( sfile.contains(".pyz") )	{
+			new anima anbut0;
+			anbut0.load( sfile );
+			anbut0.setpos(x,y);
+			anbut0.setz(z);
+			anbut0.setframe(iact,0);
+			simgob="anbut0";
+			grbut.add(simgob);
+			string s0="anbut0";
+			string s1=null;
+			string s2=null;
+			int ile = anbut0.nofframes(iact);
+			if( ile>1 )	{
+				new anima anbut1;
+				anbut1.copy("anbut0");
+				anbut1.setframe(iact,1);
+				s1 = "anbut1";
+				grbut.add(s1);
+			}
+			if (ile>2)	{
+				new anima anbut2;
+				anbut2.copy("anbut0");
+				anbut2.setframe(iact,2);
+				s1 = "anbut2";
+				grbut.add(s1);
+			}
+			but1.setan(s0,s1,s2);
+		} else {
+			new img imgbut;
+			simgob="imgbut";
+			grbut.add(simgob);
+			imgbut.load(sfile);
+			imgbut.setpos(x,y);
+			imgbut.setz(z);
+			but1.set("imgbut",null,null);
+		}
+		but1.setmouse(smouse);
+	}
+}
+
+/*****************************************************************/
+
+class classmask : classbutton	{
+	init()	{
+		classbutton::init();
+	}
+	buildmask(string sfile, string smouse)	{
+		this.build(sfile, 0, smouse);
+		int ile = this.ilebuts();
+		for(int i=0; i<ile; i++)	{
+			<sbut+i>.setflags(false, false);
+			<sbut+i>.hide();
+		}
+	}
+	buildmaskfunc(string sfile, string smouse, string sfunc)	{
+		this.buildmask(sfile, smouse);
+		this.clickfunc(sfunc);
+	}
+	addmask(string sanim, string sname, string smouse, int bhide)	{		// dodanie np. ludka jako maski
+		string spom = sbut + iilebut;
+		newvars::newbutan( spom, sanim, null, null, smouse);
+		<spom>.addmethod("getbutname","cgetbutname");
+		sname==null ? <spom>._cbuildbutname(<sanim>.actionname()) : <spom>._cbuildbutname(sname);
+		if(bhide)	{
+			<spom>.setflags(false, false);
+			<spom>.hide();
+		}
+		iilebut++;
+	}
+	addadvmask(string sanim, string sname, string smouse, string sfuncclick)	{
+		this.addmask( sanim, sname, smouse, false );
+		this.addfunctolast( sfuncclick, null, null, null);	
+	}
+}
+
+/*****************************************************/
+public callfun(string sob, string sfun)	{if( sfun!=null ) sob==null ? this.<sfun>() : <sob>.<sfun>();}
+public _stdanloop()	{	this.play(-1); }
+public _stdanhide()	{	this.hide();	}
+public _stdsndloop()	{	this.play(); }
+public __std_finish()	{	this.<this+"_FINISH">();	}
+public looponfinish(string san)	{	<san>.addmethod("onfinish", "_stdanloop");	}
+public hideonfinish(string san)	{	<san>.addmethod("onfinish", "_stdanhide");	}
+/*****************************************************/
+public string strsube(int ile)	{	return this.getb( 0, this.length()-ile );	}
+public string strsubb(int ile)	{	return this.getb( ile, this.length() - ile );	}
+public string strsubbs(string s)	{	return this.strsubb( s.length() );	}
+public string strsubes(string s)	{	return this.strsube( s.length() );	 }
+public string strgetto(string schar)	{	return this.getb(0, this.find(schar));	}
+public string strgetfromto(int ipos, string schar)	{	return this.getb(ipos, this.find(schar));	}
+public string strgetfrom(string schar)	{	return .getb(.find(schar)+schar.length, .length );	}
+public strremove(string s)	{	.set( .strgetto(s) + .strgetfrom(s) ); }
+/*****************************************************/
+public swap(string s1, string s2)	{
+	string s = [s1];
+	<s1> = [s2];
+	<s2> = s;
+}
+public bool stats(int ile)	{	(ile <= 0) ? false : ( ile.rand(100)<=ile );}
+public int between(int i1, int i, int i2)	{	( i < i1 ) ? i1 : (i>i2) ? i2 : i;}
+public def max(def val1, def val2)	{	val1>val2 ? val1 : val2;	}
+public def min(def val1, def val2)		{	val1<val2 ? val1 : val2;	}
+/*************** do wykorzystania na obiektach!! ***********************************/
+public anresizemets()	{	anima_pack::resizemethods(this.getname());	}
+public def anfirstnontr	{	classansearcher::firstnotrx1y(this);	}
+public anloopfin()	{	this.addmethod("onfinish", "_stdanloop");	}
+public anloopplay(int iact)	{	this.anloopfin();	this.play(iact);	}
+public anloopsplay(string sact)	{	this.anloopfin();	this.play(sact);	}
+public anhidefin()	{	this.addmethod("onfinish","_stdanhide");	}
+public anputgr()	{	this.setz( this.getey() );	}
+public anputy(int ypos)	{	this.move(0, ypos - this.geth() - this.getpy());	}
+public anputx(int xpos)	{	this.move(0, xpos - this.geth() - this.getpy());	}
+public ansetposgr(int x, int y)	{	this.setpos(x,y);	this.anputgr();	}
+public anplayz(int id, int z)	{	this.setz(z);	this.play(id);	}
+public anplaygr(int id)	{	this.play(id);	this.anputgr();	}
+public anplayzpos(int id, int z, int x, int y)	{	this.setpos(x,y);	this.anplayz(id,z);	}
+public anplaypos(int x, int y)	{	this.setpos(x,y);	this.play(-1);	}
+public anplayposgr(int x, int y)	{	this.ansetposgr(x,y);	this.play(-1);	}
+public anplaypos2(int x, int y, string sact)	{	this.setpos(x,y);	this.play(sact);	}
+public anplaypos3(int x, int y, int iact)	{	this.setpos(x,y);	this.play(iact);	}
+public anhide()	{	this.stop(false);	this.hide();	}
+public andownpos(int x, int y)	{	this.setpos( x, y-this.geth() );	}
+public ansetbpos(int x, int y)	{	this.setpos( x-this.lodx(), y-this.lody() );	}
+public ansetcpos(int x, int y)	{	.ansetbpos( x - .getw/2, y - .geth/2 );	}
+public ansetframe(int id)	{	this.setframe( this.actionnr(-1), id );	}
+public int anonscreen()	{	return clsurf.inscreen(this.getcx(), this.getcy(), this.getw()/2, this.geth()/2);	}
+public objplayfin(string sfun)	{	this.addmethod("onfinish", sfun);	this.play();	}
+public objplayloop()	{	this.addmethod("onfinish","_stdsndloop");		this.play();	}
+public anplayfin(int iact, string sfun)	{	this.addmethod("onfinish", sfun);	this.play(iact);	}
+public anytoz()	{	this.setz(this.getposy());	}
+public string annextaction(string sact)	{return this.nameofaction( (this.actionnr(sact)+1)%this.nofactions() );}
+public anaddfilter()	{	classanfilter::build(this.getname());	}
+public anputc(int x1, int y1, int x2, int y2)	{
+	.ansetbpos(x1,y1);
+	.move( (x2-x1-.getw)/2, (y2-y1-.geth)/2 );
+}
+public aninlod(int itoler)	{	itoler.length( .getpx - .lodx, .getpy - .lody ) <= itoler; }
+/***************** vector ****************/
+public vecinc(int pos)	{	this.set( pos, this.get(pos)+1 );	}
+public vecdec(int pos)	{	this.set( pos, this.get(pos)-1 );		}
+public vecnewint(int ile)	{
+	this.free();
+	if( ile>0 )	for( int i=0; i<ile; i++)	{	this.add(i);	}
+}
+public veccopy(string svec)	{
+	this.free();
+	for( int i=0; i< <svec>.size(); i++ )	this.add( <svec>.get(i) );
+}
+public int vecnextid(def val)	{
+	int id = .find(val);
+	if( id>=0 )	id = (id+1)%.size;
+	id;
+}
+public int vecprevid(def val)	{
+	int id = .find(val);
+	if( id>0 )	id--;
+	else if (id==0)	id = .size-1;
+	id;
+}
+public def vecget(int id)	{
+	( id>=0 && id<.size) ? .get(id) : null;
+}
+public def vecnext(def val)	{	.vecget( .vecnextid(val) );	}
+public def vecprev(def val)	{	.vecget( .vecprevid(val) );	}
+public def veclast()	{
+	int ile = this.size();
+	ile>0 ? this.get(ile-1) : null;
+}
+public def vecpop()	{
+	@x = .last;
+	.removeat( .size - 1 );
+	x;
+}
+public veclimes(int ile)	{	while( .size > ile )	_ = .vecpop;	}
+public def vecpopfront()	{
+	def x = this.get(0);
+	this.removeat( 0 );
+	return x;
+}
+public insertsort(int ile, string sgetfun, string scomparefun, string sswapfun)	{
+	if( ile<=1 )	{	return;	}
+	def s[2], int id, int i, int j;
+	for( i=0; i<ile; i++)	{
+		s0 = this.<sgetfun>(i);
+		id = i;
+		for( j=i+1; j<ile; j++)	{
+			s1 = this.<sgetfun>(j);
+			if( this.<scomparefun>(s1,s0) )	{
+				s0 = s1;
+				id = j;
+			}
+		}
+		this.<sswapfun>(i,id);
+	}
+}
+public obbuildfromstring(string s, string separator, string sfunadd)	{
+	int pos = s.find(separator);
+	while( pos>-1 )	{
+		this.<sfunadd>( s.getb(0,pos) );
+		s = s.strsubb(pos+1);
+		pos = s.find(separator);
+	}
+	if( s.length()>0 )	{	this.<sfunadd>(s);	}
+}
+public vecsort(string scomparefun)	{ .insertsort( .size, "get", scomparefun,"swap" ); }
+public string vecbuildfromstring(string s, string separator)	{
+	this.free();
+	this.obbuildfromstring(s,separator,"add");
+}
+public vecremoveto(int ito)		{	for( int i=0; i<ito; i++ ) this.removeat(0);		}
+public vecremovefrom(int ifrom)	{	while( ifrom<this.size() ) this.removeat(ifrom);	}
+public vecposfromto(int i1, int i2)	{
+	if( i1==i2 || .size==0 )	return;
+	def x = .get(i1);
+	if( i1>i2 )	for( int i=i1; i>i2; i--)	{	.set(i, .get(i-1));		}
+	else if (i1<i2)	for( int i=i1; i<i2; i++)	{	.set(i, .get(i+1));	}
+	.set(i2,x);
+}
+public vecposfirst( def x )	{
+	int id = .find(x);
+	if( id>=0 )	.vecposfromto(id, 0);
+	else	.addbegin(x);
+}
+public vecposlast( def x )	{
+	int id = .find(x);
+	if( id>=0 )	.vecposfromto(id, .size-1);
+	else	.addbegin(x);
+}
+public vecset(def x, def d2)	{
+	int id = .find(x);
+	if( id>=0 )	.set(id,d2);
+}
+/************** db ************************/
+public dbbuild(int icol)	{
+	if( icol<=0 )	return;
+	icol--;
+	string s = _, int id;
+	for( int i = 0; s!=A; )	{
+		if( i==0 )	id = this.addbeginrow() - 1;
+		this.addbegin(0,s);
+		s = _;
+		i = (i<icol)? i+1 : 0;
+	}
+}
+public dbremovelast()	{
+	.removerow( .getrowsno-1 );
+}
+public dbcuttosize(int isize)	{
+	if( isize>0 ) while( .getrowsno > isize )	.dbremovelast;
+	else	.free;
+}
+public dbaddlast(string svar)	{	this.add( this.getrowsno()-1, svar );	}
+public dbaddstringrow(string s, string separator)	{
+	_ = this.addrow();
+	this.obbuildfromstring(s,separator,"dbaddlast");
+}
+public dbaddrowfrom(string sdb, int irow, int icol)	{
+	if( <sdb>.rowinrange(irow) && icol>=0)	{
+		int id = this.addrow()-1;
+		int ile = <sdb>.getcolsno(irow);
+		while( icol < ile )	{
+			this.add( id, <sdb>.get( irow, icol ) );
+			icol++;
+		}
+	}
+}
+public string dbchecknext(int irow, int icol)	{
+	icol++;
+	icol < this.getcolsno(irow) ? this.get(irow,icol) : null;
+}
+public string dbgets(string s, int icol)	{return this.get( this.findbyrow(s), icol );}
+public int dbinsertless(int i1)	{
+	int id = this.addrow()-1;
+	this.add(id,i1);
+	this.dbsort("cmpless");
+	while( id>=0 )	{
+		if( i1==this.get(id,0) )	return id;
+		id--;
+	}
+	return -1;
+}
+public bool dbdelvar(int irow, string svar)	{return this.dbdelvarn(irow,svar,1);}
+public bool dbdelvarn(int irow, string svar, int n)	{
+	int id = this.dbfindinrow(irow,svar);
+	if( id>=0 )	{
+		this.removen(irow,id,n);
+		return true;
+	}
+	return false;
+}
+public int dbfindinrow(int irow, string svar)	{
+	if( this.rowinrange(irow) )	{
+		for( int i=0; i<this.getcolsno(irow); i++)	if( this.get(irow,i)==svar )	return i;
+	}
+	return -1;
+}
+public int dbfindbycol(int icol, string svar)	{
+	for( int i=0; i<this.getrowsno(); i++)	{if( this.get(i,icol)==svar ) return i;}
+	return -1;
+}
+public bool dbrowcontains(int irow, string svar)	{	return this.dbfindinrow(irow,svar)!=-1;	}
+public string dbfirst(int id)		{	return this.get(id,0);	}	
+public bool cmpless(int i1, int i2)	{	return i1<i2;	}
+public bool cmpabove(int i1, int i2)	{	i1>i2;	}
+public bool dbfirstless(int i1, int i2)	{	.get(i1,0) < .get(i2,0);	}
+public dbsort(string scomparefun)	{	.insertsort( .getrowsno, "dbfirst",scomparefun, "swap" ); }
+/************** int ************************/
+public int randdiff(int zakres, int odjakiej)	{
+	if( zakres<=1 )	{	return -1;	}
+	for( int i1 = odjakiej.rand(zakres); i1==odjakiej; i1=odjakiej.rand(zakres) )	{}
+	return i1;
+}
+
+/***************************************************************************/
+class classgamepause	{
+	init()	{
+		new button butpause;
+		butpause.setrect( 0, 0, 800, 600 );
+		butpause.addmethod("onclick", "resume");
+		butpause.disable();
+	}
+	resume()	{
+		butpause.disable();
+		gameapi.resume();
+	}
+	pause()	{
+		gameapi.pause();
+		butpause.enable();
+		butpause.resume();
+	}
+}
+
+class TicksCounter	{
+	init()	{
+		new int istart;
+	}
+	start()	{	istart = engine.getticks();	}
+	stop()	{	istart = engine.getticks() - istart;	}
+	get()		{	return istart;	}
+	int stopget()	{	this.stop();	return this.get();	}
+	print(string s)	{	engine.print(s+" delay: "+this.stopget()+" ms");	}
+	put()	{	.print("");	}
+}
+
+class ObjController	{
+	init()	{
+		new string _sme = this.getname();
+		<GAME>.addgmobj(_sme);
+	}
+}
+class LObjController : ObjController, classlocker	{
+	init()	{
+		ObjController::init;
+		classlocker::init;
+	}
+}
+
+class gmbankvec : gmobjvec	{
+	init()	{
+		new int iid=-1;
+	}
+	play()	{
+		this.stop(false);
+		int ile = this.size();
+		if( ile==0 ) return;
+		iid = (iid+1)%ile;
+		<this.get(iid)>.play();
+	}
+	onfinish()	{}
+	stop(bool bfin)	{
+		if( this.isplaying() )	{
+			<this.getplay()>.stop(bfin);
+			if( bfin ) this.onfinish();
+		}
+	}
+	isplaying()	{
+		if( iid>=0 )	return <this.getplay()>.isplaying();
+		return false;
+	}
+	getplay()	{	return this.get(iid);	}
+}
+
+class GameController : classlocker {
+	init(string ssndbase)	{
+		classlocker::init();
+		new gmobjvec __grobj;
+		
+		new db _dbsnd;
+		_dbsnd.setseparator("|");
+		new string _sndbase = ssndbase;
+		new string GAME = this;
+	}
+	public game_exit()	{
+		this.stdexportsnd();
+	}
+	/*************************************************/
+	public setsndbase(string sb)	{	_sndbase=sb;	}
+	public say(string styp, string stxt)	{	this.sayf(styp,stxt,null);	}
+	public sayf(string styp, string stxt, string sfun)	{
+		string s = this.getsndtxt(stxt);
+		<s>.setstartstopflag(false,true);
+		this.cplayf(styp, s, sfun);
+	}
+	public string getsndtxt(string stxt)	{
+		string ssnd = "snd" + _sndbase + _dbsnd.getrowsno();
+		this.addsnd( ssnd, stxt );
+		return ssnd;
+	}
+	_sndtimerstart()	{
+		int id = _dbsnd.dbfindbycol(1,this.getname());
+		if( id>=0 )	engine.print( _dbsnd.get( id,2) );
+		else 		engine.print( this.getname() + " not in _dbsnd");
+		engine.print("");
+	}
+	public addsndf(string ssnd, string stxt, string sfun)	{
+		this.addsnd(ssnd,stxt);
+		<ssnd>.addmethod("onfinish", sfun );
+	}
+	public asf(string ssnd, string stxt)	{	this.addsndff( "snd" + ssnd, stxt, "end" + ssnd);	}
+	public addsndff(string ssnd, string stxt, string sfun)	{
+		this.addsndf(ssnd,stxt,sfun);
+		<ssnd>.setstartstopflag(false,true);
+	}
+	public addsnd(string ssnd, string stxt)	{
+		int id = _dbsnd.addrow()-1;
+		string swav = _sndbase + id + ".wav";
+		string sg = gameapi.getgamename();
+		if( engine.fileexist( this.getsndpath() + swav ) )	{
+			<sg>.newsnd( ssnd, swav );
+		} else {
+			<sg>.newtimer( ssnd, stxt.length()*20, 1);
+			<ssnd>.addmethod("onstart", "_sndtimerstart");
+			<ssnd>.addmethod("setstartstopflag", func { (bool b1, bool b2) ; });
+		}
+		_dbsnd.add(id, swav);
+		_dbsnd.add(id, ssnd);
+		_dbsnd.add(id, stxt);
+	}
+	public addbank(string sbank)	{
+		new gmbankvec <sbank>;
+		string s = _;
+		while( s!=A )	{
+			<sbank>.addbegin( this.getsndtxt(s) );
+			s = _;
+		}
+	}
+	public exportsnd(string sfile)	{	if( igmdebug) _dbsnd.save(sfile);	}
+	public stdexportsnd()	{	this.exportsnd( "exports/" + _sndbase + ".dlg" );	}
+	public sounds=()	{	.buildsnds;	}
+	public buildsnds()	{
+		new db __dbsnd;
+		__dbsnd.dbbuild(3);
+		.buildfromdb("__dbsnd");
+		delete __dbsnd; 
+	}
+	public buildfromdb(string sdb)	{
+		for( int i=0; i< <sdb>.getrowsno; i++)	{
+			if( <sdb>.get(i,2) == null )	.addsnd( <sdb>.get(i,0), <sdb>.get(i,1) );
+			else	.addsndf( <sdb>.get(i,0), <sdb>.get(i,1), <sdb>.get(i,2) );
+// 			<sdb>.addbegin(i, sbase + i + ".wav");
+		}
+// 		if( igmdebug )	<sdb>.save( "exports/" + sbase + ".dlg" );
+	}
+	public importsnd(string sbase, string sfun)	{	this.importgroup(sbase, sfun, null );	}
+	public importgroup(string sbase, string sfun, string sgr)	{
+		new db tmpdb;
+		@stmpbase = _sndbase;
+		.setsndbase(sbase);
+		tmpdb.load("exports/"+sbase+".dlg");
+		_dbsnd.free();
+		if( sfun==null )	{
+			for( int i=0; i<tmpdb.getrowsno(); i++)	{
+				if( sgr==null || <sgr>.contains(tmpdb.get(i,1)) )
+					this.addsnd( tmpdb.get(i,1), tmpdb.get(i,2) );
+			}
+		} else {
+			for( int i=0; i<tmpdb.getrowsno(); i++)	{
+				if( sgr==null || <sgr>.contains(tmpdb.get(i,1)) )
+					this.addsndf( tmpdb.get(i,1), tmpdb.get(i,2), sfun );
+			}
+		}
+		_dbsnd.free();
+		tmpdb.free();
+		delete tmpdb;
+		.setsndbase(stmpbase);
+	}
+	public freesnd()	{	_dbsnd.free();	}
+	/*************************************************/
+	public addgmobj(string s)		{	__grobj.add(s);		}
+	public removegmobj(string s)	{	__grobj.remove(s);	}
+	public lockall()		{
+		__grobj.eval("lock");
+		this.lock();	
+	}
+	public unlockall()		{
+		__grobj.eval("unlock");
+		this.unlock();
+	}
+	mousemove()	{
+		__grobj.eval("onmousemove");
+		this.mouse_move();
+	}
+	mouselclick()	{
+		__grobj.eval("onmouselclick");
+		this.mouse_lclick();	
+	}
+	mouserclick()	{
+		__grobj.eval("onmouserclick");
+		this.mouse_rclick();
+	}
+	mouselrel()	{
+		__grobj.eval("onmouselrel");
+		this.mouse_lrel();
+	}
+	mouserrel()	{
+		__grobj.eval("onmouserrel");
+		this.mouse_rrel();
+	}
+	keydown()	{
+		__grobj.eval("onkeydown");
+		this.key_down();
+	}
+}
+
+/***************************************************************************/
+/* klasa do list dialogow */
+class classquickdialog	{
+	init()	{
+		new db dbl;
+		new int irow;
+		new int icol;
+		new string _sdialog = this.getname();
+		new bool _bloading = false;
+		new classsound clsnd;
+		new string _sgame = gameapi.getgamename();
+		new string _spref = this.getname();
+		new string _sprevdialog;
+	}
+	public load(string sdbfile)	{
+		dbl.loadscript(this.getgraphpath()+sdbfile);
+		_bloading=true;
+		for( irow=0; irow<dbl.getrowsno();irow++)	{
+			icol=0;
+			while(this._nextdial())	{}
+		}
+		_bloading=false;
+		irow = 0;
+		icol = 0;
+	}
+	public playlast()	{
+		_ = this._play(irow,icol);
+	}
+	public play(string sdialname)	{
+		irow = dbl.findbyrow(sdialname);
+		if( irow>= 0 )	{
+			this._callstartdial();
+		}
+		_sprevdialog = this.getdialog();
+		_ = this._play(irow,1);
+	}
+	public string getprevdialog()	{	return _sprevdialog;	}
+	public string getdialog()	{	return dbl.get(irow, 0);	}
+	bool _play(int ir, int ic)	{
+		irow = ir;	icol=ic;
+		if(irow<0 || irow>=dbl.getrowsno() )	return false;
+		if( icol>=dbl.getcolsno(irow) )	{
+			if( !_bloading )	this._callstopdial();
+			return false;
+		}
+		string s = dbl.get(irow,icol);
+		if( s=="an:" )	{
+			
+		} else {
+			if( _bloading )	{
+				if( !engine.varexist(_spref+s ) )	{
+					<_sgame>.newsndfree( _spref+s , s+".wav" );
+					s = _spref+s;
+					<s>.addmethod("onstart", func { this.<this.getname()+"_START">(); } );
+					<s>.addmethod("onfinish", func { this.<this.getname()+"_FINISH">();
+						_ = <_sdialog>._nextdial(); } );
+					<s>.addmethod("_buildvars", func { (string s) new string _sdialog=s; } );
+					<s>._buildvars(this.getname());
+				}
+			} else {
+				clsnd.cbplay(_spref+s);
+			}
+		}
+		return true;
+	}
+	public bool _nextdial()	{	return this._play(irow,icol+1);	}
+	_cqsndfinish()	{
+		this.<this.getname()+"_FINISH">();
+		_ = <_sdialog>._nextdial();
+	}
+	_callstopdial()	{	this.<_spref+dbl.get(irow,0)+"_FINISH">();	}	// finish dialog
+	_callstartdial()	{	this.<_spref+dbl.get(irow,0)+"_START">();	}	// start dialog
+	public stop(bool b)	{	clsnd.cactsndstop(b);	}
+	public bool isplaying()	{	return clsnd.cisplaying();	}
+	public stopdial(bool b)	{
+		this.stop(false);
+		if( b )	this._callstopdial();
+	}
+}
+
+/***************************************************************************/
+/* klasa do szybkiego czytania animacji i plikow graficznych */
+class classquickanloader	{
+	init()	{
+		new db dbl;
+		new string _sgame = gameapi.getgamename();
+	}
+	public load(string sfile)	{
+		dbl.loadscript(this.getgraphpath()+sfile);
+		int j, string s[3], int i[2];
+		for( int i=0; i<dbl.getrowsno(); i++ )	{
+			j=0;
+			s0 = dbl.get(i,j); j++;
+			if( s0=="bkg:" )	{
+				s0 = dbl.get(i,j); j++;
+				<_sgame>.newimg("imgbkg",s0,0);
+				this.analizeimgopts("imgbkg",i,j);
+			} else if (s0=="img:")	{
+				s0 = dbl.get(i,j); j++;
+				s1 = dbl.get(i,j); j++;
+				<_sgame>.newimg(s0,s1,0);
+				this.analizeimgopts(s0,i,j);
+			} else if (s0=="an:" )	{
+				s0 = dbl.get(i,j); j++;
+				s1 = dbl.get(i,j); j++;
+				if( s1.contains(".pyz") )	{
+					<_sgame>.newanima(s0,s1,0);
+				} else {
+					<_sgame>.copyanima(s1,s0);
+				}
+				this.analizeimgopts(s0,i,j);
+			} else if(s0=="anaac:" || s0=="anfac:")	{
+				s2=s0;
+				s0 = dbl.get(i,j); j++;
+				s1 = dbl.get(i,j); j++;
+				if( s1.contains(".pyz") )	{
+					<_sgame>.newanima("_"+s0,s1,0);
+					s1 = "_"+s0;
+					<s1>.hide();
+				}
+				<_sgame>.addmethod("_buildgroup","_buildgroup");
+				<_sgame>._buildgroup(s0);
+				if( s2=="anfac:")	{
+					i1 = dbl.get(i,j); j++;
+					i0 = <_sgame>.newanframesgr(s1, s0, i1, s0);
+				} else {
+					i0 = <_sgame>.newanactionsgr(s1, s0, s0);
+				}
+				this.analizeimgopts(s0,i,j);
+			} else if (s0=="path:")	{
+				s0 = dbl.get(i,j); j++;
+				<_sgame>.setgraphpath(s0);
+			} else if (s0=="snd:")	{
+				s0 = dbl.get(i,j); j++;
+				<_sgame>.newsnd("snd"+s0,s0+".wav");
+				<"snd"+s0>.addmethod("onfinish","__std_finish");
+			}
+		}
+	}
+	_buildgroup(string sname)	{	new gmimgvec <sname>;	}
+	_cqloadstdframe()	{	this.<this.getname()+"_ENDFRAME">();	}
+	analizeimgopts(string san, int i, int j)	{
+		string s[2], int i[2];
+		while( j<dbl.getcolsno(i) )	{
+			s0 = dbl.get(i,j); j++;
+			match(s0)	{
+				"-z"=>	{<san>.setz( dbl.get(i,j) ); j++;}
+				"-pos"=>	{	i0 = dbl.get(i,j); j++;
+					i1 = dbl.get(i,j); j++;
+					<san>.setpos(i0,i1);	}
+				"-hide" =>		<san>.hide();
+				"-show"=>	<san>.show();
+				"-play"=>	{	s0 = dbl.get(i,j); j++;
+					<san>.play(s0);}
+				"-nplay"=>{	i0 = dbl.get(i,j); j++;
+					<san>.play(i0);}
+				"-lplay"=>	{	s0 = dbl.get(i,j); j++;
+					<san>.anloopsplay(s0);}
+				"-frame"=>	{s0 = dbl.get(i,j); j++;
+					i0 = dbl.get(i,j); j++;
+					<san>.setframe(s0,i0);}
+				"-putgr"=>	<san>.anputgr();
+				"-mfin"=>		<san>.addmethod("onfinish","__std_finish");
+				"-mfr"=>		<san>.addmethod("onendframe","_cqloadstdframe");
+				? => ;
+			}
+		}
+	}
+}
+
+
+class StringChecker	{
+	init()	{}
+	bool isdigit(string s)	{	return s.to_i()!=0||s.getb(0,1)=="0";	}
+	int getint(string s)	{	return s.to_i();	}
+	real getreal(string s)	{	return s.to_r();	}	
+	bool isreal(string s)	{	return this.isdigit(s)&&s.contains(".");	}
+	bool isstring(string s) {	return s.getb(0,1)=="\"";	}
+	string getstring(string s)	{	return s.strsubb(1);	}
+}
+
+class Script	{
+	init(string sfile)	{
+		new db __dbcode;
+		new string __sdb;
+		new int __irow;
+		new int __icol;
+		new string __sreads;
+		
+		new vector __vec;
+		__vec.type("string");
+		
+		new string __sarg;
+		new int __iarg;
+		new real __rarg;
+		
+		new StringChecker __csc;
+		new map2 __mp("int");		// odnosniki do funkcji
+		
+		this.load(sfile);
+	}
+	public load(string sfile)	{
+		if( sfile==null )	return;
+		if( sfile.contains(".") )	{		// znaczy sie plik jest
+			__sdb = "__dbcode";
+			__dbcode.loadbeh(sfile);
+		} else {
+			__sdb = sfile;		// odwolanie przez inna baze
+		}
+		__mp.free();
+		for( int i=0; i < <__sdb>.getrowsno(); i++)	{
+			if( <__sdb>.get(i,0)=="func" )
+				__mp.add( <__sdb>.get(i,1), i );
+		}
+		this.call("init");
+	}
+	public def get(string svar)	{	return [svar];	}
+	bool isvar(string s)	{	return s.contains("$");	}
+	string getvar(string s)	{
+		s = s.strsubb(1);
+		if( !engine.varexist(s) )
+			new def <s>;
+		return s;
+	}
+	bool isfunc(string s)	{	return s.contains(".")&&!__csc.isreal(s);	}
+	getfunc(string sfun)	{
+		__vec.free();
+		__vec.add( sfun.strgetto(".") );
+		__vec.add( sfun.strgetfrom(".") );
+	}
+	string _get()	{
+		__icol++;
+		return <__sdb>.get(__irow,__icol-1);
+	}
+	bool isnext()	{
+		if( __icol < <__sdb>.getcolsno(__irow) )	{
+			__sreads=<__sdb>.get(__irow,__icol);
+			return true;
+		}
+		return false;
+	}
+	perror(bool expr, string sout)	{
+		if( expr )
+			engine.print("error: " + sout);
+	}
+	interpcall(string scal)	{
+		this.getfunc(scal);
+		string sob = __vec.get(0);
+		if( sob.getb(0,1)=="*" ) sob=[sob.strsubb(1)];
+		string sfun = __vec.get(1);
+		if( sfun.getb(0,1)=="*" ) sob=[sfun.strsubb(1)];
+		__vec.free();
+		__icol++;	// omin '('
+		string s = this._get();
+		while( s!=")" )	{
+			this.getexpr(s);	// odloz na stos argumenty
+			s = this._get();
+		}
+		if( sob=="this" ) sob=null;
+		this.callfun(sob,sfun);
+	}
+	string getvname(string s)	{
+		if( this.isvar(s) )	{
+			s=this.getvar(s);
+		} else if( __csc.isdigit(s) ) {
+			__iarg = s;
+			s = "__iarg";
+		} else if( __csc.isstring(s) ) {
+			__sarg = __csc.getstring(s);
+			s = "__sarg";
+		} else if(__csc.isreal(s))	{
+			__rarg = s.to_r();
+			s = "__rarg";
+		}
+		return s;
+	}
+	bool isscriptfun(string s)	{	return s.contains("->");	}
+	string getscriptfun(string s)	{	return s.strsubb(2);	}
+	getexpr(string sexpr)	{
+		if( __csc.isstring(sexpr) )	{
+			<this.getvname(sexpr)>.get();
+		} else if( this.isfunc(sexpr) )	{
+			this.interpcall(sexpr);
+		} else if(this.isscriptfun(sexpr))	{
+			int r = __irow;
+			int c = __icol;
+			this.call( this.getscriptfun(sexpr) );
+			__irow = r;
+			__icol = c;
+		} else {
+			<this.getvname(sexpr)>.get();
+		}
+	}
+	bool cmp()	{
+		bool bodp=false;
+		def d0 = this.getexpr(this._get());
+		string s2 = this._get();		// typ porownania
+		def d1 = this.getexpr( this._get() );
+		match(s2)	{
+			"==" =>	{	bodp = d0 == d1;	}
+			"!=" =>	{	bodp = d0 != d1;	}
+			"<" =>	{	bodp = d0 < d1;	}
+			">" =>	{	bodp = d0 > d1;	}
+			"<=" =>	{	bodp = d0 <= d1;	}
+			">=" =>	{	bodp = d0 >= d1;	}
+			? => ;
+		}
+		s2 = this._get();
+		if( s2=="||" )	return bodp || this.cmp();
+		else if (s2=="&&")	return bodp && this.cmp();
+		else return bodp;
+	}
+	public call(string sfun)	{
+		if( !__mp.contains(sfun) )	return;
+		
+		__irow = __mp.get( sfun );
+		__irow++;
+		__icol=0;
+		
+		bool bgo = true;
+		bool bif = false, bool bifexp, bool bwhile=false;
+		bool belif=false;
+		int iwhilerow;
+		string s[3], int i[3];
+		while( bgo )	{
+			__icol=0;
+			s0 = this._get();
+			match(s0)	{
+				"new"=>{	s0 = this._get();
+					s1 = this._get();
+					s1 = s1.strsubb(1);	// pozbadz sie $
+					if( this.isnext() )	{
+						if( __sreads=="[" )	{
+							__icol++;
+							i0 = this._get();
+							for(i1=0; i1<i0; i1++)	{
+								new <s0> <s1+i1>;
+							}
+						} else {		// powinien byc "(" dla konstruktora
+							__icol++;
+							while( this.isnext() && __sreads!=")" )	this.getexpr( this._get() );
+							new <s0> <s1>;
+						}
+					} else {
+						new <s0> <s1>;
+					}
+					__irow++;
+				}"delete" =>	delete <this.getvar(this.get())>;
+				(s0=="if" || belif || bwhile)?s0:"" => {
+	// 				belif ? this.perror(!bif,"else without if") : this.perror(bif,"if within if");
+					__icol++;		// '('
+					bifexp = this.cmp();
+					if(s0=="if") bif=true;
+					belif=false;
+					bwhile = false;
+					__irow++;
+					if( !bifexp )	{
+						i1=1;
+						while(i1)	{
+							s0 = <__sdb>.get(__irow,0);
+							if( s0=="else"||s0=="elif"||s0=="fi"||s0=="done") i1=0;
+							else	__irow++;
+						}
+					}
+				}"else" => { 	this.perror(!bif,"else without if");
+					__irow++;
+					if( bifexp )	{
+						while(<__sdb>.get(__irow,0)!="fi")
+							__irow++;
+					}
+				} "fi" =>	{	this.perror(!bif,"fi without if");
+					bif=false;
+					bifexp = false;
+					belif=false;
+					__irow++;
+				} "elif"=>	{
+					if( bifexp )	{
+						__irow++;
+						while(<__sdb>.get(__irow,0)!="fi")
+							__irow++;
+					} else {
+						belif = true;
+					}
+				} "end" =>	bgo=false;
+				"while" =>	{
+					iwhilerow = __irow;
+					bwhile = true;
+				}"done" =>	{
+					if( bifexp )	{
+						__irow = iwhilerow;
+					} else {
+						__irow++;
+					}
+				}"print" =>	{
+					s0 = "";
+					while( this.isnext() )
+						s0 += this.getexpr( this._get() ); 
+					engine.print( s0 );
+					__irow++;
+				}"return" => 	{
+					if( this.isnext() )	{
+						this.getexpr( __sreads );
+					}
+					return;
+				} ? => { 
+					if (s0.contains("$"))	{
+						s0 = this.getvar( s0 );
+						__icol++;		// olej <<
+						<s0> = this.getexpr(this._get());
+						while( this.isnext() )	{
+							__icol++;		// omin znak dzialania
+							def d2 = this.getexpr( this._get() );
+							match(__sreads)	{
+								"+"	=>	<s0> += d2;
+								"-"	=> 	<s0> -= d2;
+								"*"	=>	<s0> *= d2;
+								"/"	=>	<s0> /= d2;
+								"%"	=>	<s0> %= d2;
+								?	=>	;
+							}
+						}
+					} else
+						this.getexpr( s0 );
+					__irow++; 
+				}
+			}
+			if( __irow >= <__sdb>.getrowsno() )	{
+				this.perror(1,"function "+sfun+" not finished!");
+				bgo=false;
+			}
+		}
+	}
+}
+
+/* classadv : klasa do przygodowek	*/
+
+class classadv : classgame {
+	init()	{
+		classgame::init();
+	}
+	/**************************************************************************/
+	newclpathf(string spt, string san, string sfile, int x, int y, real rstep, int ityp)	{
+		new classpathf <spt>;
+		<spt>.build(san, this.getgraphpath() + sfile, x, y, rstep, ityp);
+	}
+	newclpathfcopy(string spt, string san, string sptf, real rstep)	{
+		new classpathf <spt>;
+		<spt>.buildfrom( san, sptf, rstep );
+	}
+	newpathf(string spathf, string sfile, int x, int y)	{
+		new path <spathf>;
+		<spathf>.build( this.getgraphpath() +sfile, x, y, 2.0, 1 );
+	}
+	/**************************************************************************/
+	newclbut(string sbut, string sfile, int z, string smouse)	{
+		new classbutton <sbut>;
+		<sbut>.build( this.getgraphpath() + sfile, z, smouse );
+	}
+	newclmask(string sm, string sfile, string smouse)	{
+		new classmask <sm>;
+		<sm>.buildmask( this.getgraphpath() + sfile, smouse );
+	}
+	newclmaskfunc(string sm, string sfile, string smouse, string sfunc)	{
+		new classmask <sm>;
+		<sm>.buildmaskfunc( this.getgraphpath() + sfile, smouse, sfunc );
+	}
+}
+
+/***************************************************************************/
+
+class classasker : newvars	{
+	init()	{
+		newvars::init();
+		new string sfuncyes = null;
+		new string sfuncno = null;
+		new string ssndask;
+		new string ssndyes;
+		new string ssndno;
+		new classsound clsnd;
+	}
+	reset()	{	sfuncyes=null;	sfuncno=null;	}
+	setfuncs(string syes, string sno)	{
+		sfuncyes = syes;
+		sfuncno = sno;
+	}
+	fxonmovon(string ssnd)	{	buts.sfxonmovon(ssnd);	}
+	setmouse(string smouse)	{
+		buts.newmouse("yes", smouse);
+		buts.newmouse("no", smouse);
+	}
+	load(string sfile, int z)	{
+		new classbutton buts;
+		buts.build(sfile, z, null);
+		buts.transclickfunc( engine.actclassname(), "butclick");
+		buts.transmovonfunc( engine.actclassname() , "butmovon");
+		buts.disableall();
+	}
+	ask( string sask, string syes, string sno, string sf1, string sf2 )	{
+		this.setfuncs(sf1,sf2);
+		this.ask2( sask, syes, sno );
+	}
+	ask2( string sask, string syes, string sno )	{
+		ssndask=sask;
+		ssndyes = syes;
+		ssndno = sno;
+		gameapi.pause();
+		buts.benableall();
+		buts.pause("bkg");
+		clsnd.creset();
+		clsnd.cbplay( sask );
+	}
+	/**********************************************/
+	butmovon(string sc)	{
+		/*if( ssndask!=null )	{
+			if( <ssndask>.isplaying()==true )	{
+				return;
+			}
+		}*/
+		if( sc=="yes" )	{
+			<ssndask>.stop(false);
+			clsnd.cbplay( ssndyes );
+		} else if (sc=="no")	{
+			<ssndask>.stop(false);
+			clsnd.cbplay( ssndno );
+		}
+	}
+	butclick(string sc)	{
+		if( sc=="bkg" )	{	return;	}
+		gameapi.resume();
+		buts.disableall();
+		clsnd.cactsndstop(false);
+		if( sc=="yes" && sfuncyes!=null)	{
+			this.<sfuncyes>();
+		} else if( sc=="no" && sfuncno!=null)	{
+			this.<sfuncno>();
+		}
+	}
+}
+
+/***************************************************************************/
+class classplacepointer	{
+	init()	{
+		new anima anpointer;
+		anpointer.addmethod("onfinish", func { this.play(-1); } );
+		new int _iz = 1000;
+	}
+	public load(string sfile)	{
+		anpointer.load(sfile);
+		this.setz(_iz);
+		anpointer.hide();
+	}
+	public setz(int iz)	{
+		_iz = iz;
+		anpointer.setz(iz);
+	}
+	public stop()	{	anpointer.stop(false);	}
+	public stoph()	{	anpointer.stop(false);	anpointer.hide();	}
+	public show(int x, int y, string sdir)	{
+		anpointer.setpos(x,y);
+		anpointer.play(sdir);
+	}
+	move(@x, @y)	{	anpointer.move(x,y);	}
+	public showob(string sob, string sdir)	{	this.show(<sob>.getcx(), <sob>.getcy(), sdir);	}
+	public showu(int x, int y)	{	this.show(x,y,"uu");	}
+	public showd(int x, int y)	{	this.show(x,y,"dd");	}
+	public showr(int x, int y)	{	this.show(x,y,"rr");	}
+	public showl(int x, int y)	{	this.show(x,y,"ll");	}
+	public showru(int x, int y)	{	this.show(x,y,"ru");	}
+	public showrd(int x, int y)	{	this.show(x,y,"rd");	}
+	public showld(int x, int y)	{	this.show(x,y,"ld");	}
+	public showlu(int x, int y)	{	this.show(x,y,"lu");	}
+}
+
+/***************************************************************************/
+
+class classfadeinout		{
+	init()	{
+		new timer timf;
+		new string _sob;
+		new int _istep;
+		new int _ival;
+		new int _ib1;
+		new int _ib2;
+		new string _sfun;
+		new string _sfunfin;
+		timf.addmethod("onfinish", "_ctimffin");
+	}
+	/***************\/\/\/\/\/ wewnetrzne \/\/\/\/\/\/************************************/
+	_cfinito(int v)	{
+		<_sob>.<_sfun>( v );
+		if( _sfunfin!=null)	this.<_sfunfin>();
+	}
+	_ctimffin()	{
+		_ival+=_istep;
+		if( _ival >= _ib2 )	{
+			this._cfinito( _ib2 );
+		} else if( _ival<=_ib1 )	{
+			this._cfinito( _ib1 );
+		} else {
+			<_sob>.<_sfun>( _ival );
+			this.play();
+		}
+	}
+	_play( int icycle, int istep, string sob, string sfun, int ib1, int ib2, string sfun2 )	{
+		_sfunfin = sfun2;
+		_ib1 = ib1;
+		_ib2 = ib2;
+		int i = istep.abs();
+		if( icycle <= 0 || i==ib1 || i>ib2 )	return;
+		_sfun = sfun;
+		timf.setcycle( icycle );
+		_sob = sob;
+		if( istep>0 )	_ival = _ib1;
+		else if( istep<0 )	_ival=_ib2;
+		else return;
+		<sob>.<sfun>( _ival );
+		_istep = istep;
+		timf.play();
+	}
+	/******************* /\/\/\/\/\/\/\ wewnetrzne /\/\/\/\ ****************************/
+	imgtransparency(int icycle, int istep, string simg, string sfun)	{
+		this._play( icycle, istep, simg, "transparency", 0, 255, sfun );
+	}
+	setopacity(int icycle, int istep, string simg, string sfun)	{
+		this._play( icycle, istep, simg, "setopacity", 0, 255, sfun );
+	}
+	sndvolume(int icycle, int istep, string ssnd, string sfun)	{
+		this._play( icycle, istep, ssnd, "setvol", 0, 100, sfun );
+	}
+	/***************************************************/
+}
+
+class SimpleCounter	{
+	init(int ilength)	{
+		.var2("length", ilength );
+		new int iid = 0;
+	}
+	int next()	{	iid = (iid+1)%length;		iid;	}
+	set(int i)	{	iid=i;	}
+	reset()	{	iid=0;	}
+	get()	{	iid;	}
+}
+
+/******************************************/
+
+module clstrdigit	{
+	init()	{}
+	public string getdigit(int idigit, int ilepozycji)	{
+		string s = idigit;
+		while( s.length() < ilepozycji )	s = "0" + s;
+		return s;
+	}
+	public string gettime(int itime, string smod)	{
+		return this.getstime( this.geth(itime), this.getm(itime), this.gets(itime), 
+			smod.contains("h"), smod.contains("m"), smod.contains("s") );
+	}
+	public string getstime(int ih, int im, int is, bool bh, bool bm, bool bs)	{
+		string s = "";
+		if( bh ) s+= ih;
+		if( bm ) s+= (bh?":":"") + this.getdigit(im,2);
+		if( bs ) s+= ((bh||bm)?":":"") + this.getdigit(is,2);
+		return s;
+	}
+	public int geth(int itime)	{	return itime/3600;	}
+	public int getm(int itime)	{	return (itime/60)%60;	}
+	public int gets(int itime)	{	return itime%60;	}
+	public string getns(int itime, int n)	{	return this.getdigit( this.gets(itime),n );	}
+	public string getnm(int itime, int n)	{	return this.getdigit( this.getm(itime),n );	}
+}
+
+class Text	{
+	init(string sfont, int ifontsize, int ifr, int ifg, int ifb, int x, int y, int z)	{
+		if( sfont==null )	sfont = sgmfontfile;
+		if( sfont.contains(".ttf") )	{
+			new font _fnt;
+			_fnt.load( sfont, ifontsize );
+			sfont = "_fnt";
+		}
+		new int iR = ifr;
+		new int iG = ifg;
+		new int iB = ifb;
+		new int iFontSize = ifontsize;
+		new text txt;
+		txt.setfont(sfont);
+		txt.setz(z);
+		txt.setpos(x,y);
+		txt.show;
+		
+		new text txtbg;
+		txtbg.hide();
+	}
+	public hide()	{	txt.hide;	}
+	public show()	{	txt.show;	}
+	public setpos(int x, int y)	{	txt.setpos(x,y);	}
+	public set(string s)	{
+		txt.set( s );
+		txt.createtxt( iR, iG, iB );
+	}
+	public string get()	{	return txt.get;	}
+	public setbg(int ir, int ig, int ib, int ia)	{
+		txtbg.setbkg(txt.getpx()-iFontSize/2, txt.getpy()-iFontSize/2,
+			txt.getw()+iFontSize, iFontSize*2, ir, ig, ib, ia );
+		txtbg.setborders(1,255,255,255,128);
+		txtbg.show();
+	}
+	operator=(string val)	{	this.set(val);	}
+}
+
+class Cypher : Text	{
+	init(string sfont, int ifontsize, int ifr, int ifg, int ifb, int x, int y, int z)	{
+		Text::init(sfont, ifontsize, ifr, ifg, ifb, x, y, z );
+		this.set(0);
+	}
+	add(int dt)	{	this.set( dt + this.get );	}
+	iget()		{	this.get->to_i;		}
+	operator+(int val)	{	this.add(val);	}
+	operator++()	{	this.add(1);	}
+	operator--()	{	this.add(-1);	}
+	operator-(int val)	{	this.add(-val);	}
+	operator=(int val)	{	this.set(val);	}
+	operator==(int val)	{	.get==val;	}
+	operator!=(int val)	{	.get!=val;	}
+	operator>(int val)	{	.get>val;	}
+	operator<(int val)	{	.get<val;	}
+}
+
+class SecCounter	{
+	init(string sdigits)	{
+		new string sdigit = sdigits;
+		new int itime;
+		this.reset();
+		this.cnewtimerfin("timcyk",1000,1, func { .update(1); .play; } );
+	}
+	public play()	{	timcyk.play();	}
+	public stop()	{	timcyk.stop(false);	}
+	public string sgettime()	{	return clstrdigit.gettime(itime, sdigit);	}
+	public int gettime()	{	return itime;	}
+	public reset()	{	this.update(-itime);	}
+	public update(int isec)	{	itime+=isec;	}
+}
+
+class TextTimeCounter : Text, SecCounter	{
+	init(string sfont, int ifontsize, int ifr, int ifg, int ifb, int x, int y, int z, string sdigits)	{
+		Text::init(sfont, ifontsize, ifr, ifg, ifb, x, y, z);
+		SecCounter::init(sdigits);
+		.reset;
+	}
+	public update(int isec)	{
+		SecCounter::update(isec);
+		this.set( this.sgettime() );
+	}
+}
+
+class TextTyper : classlocker {
+	init(string sfont, int isize, int ir, int ig, int ib, string schars, int ilimit)	{
+		classlocker::init();
+		sfont = .checkfont(sfont, isize);
+		new int iR = ir;
+		new int iG = ig;
+		new int iB = ib;
+		new int iFontSize = isize;
+		new string sChars = schars;
+		new int iLimit = ilimit;		// 0 - unlimited
+		
+		new text txt1;
+		txt1.setfont(sfont);
+		txt1.set("");
+		new text txt2;
+		txt2.setfont(sfont);
+		txt2.set("_");
+		txt2.createtxt(iR,iG,iB);
+		txt2.hide();
+		
+		new string _sob=null;
+		new string _sfun=null;
+		
+		this.cnewtimerfin("timcyk",300,1,"fintimcyk");
+	}
+	fintimcyk()	{
+		if( this.getlock() )	return;
+		this.updatecyk();
+		this.play();
+	}
+	updatecyk()	{
+		if( txt2.isvisible() )	{
+			txt2.hide();
+		} else {
+			txt2.setpos( txt1.getex(), txt1.getpy() );
+			txt2.show();
+		}
+	}
+	public enable()	{
+		this.unlock();
+		this.updatecyk();
+		timcyk.play();
+	}
+	public disable()	{
+		txt2.hide();
+		timcyk.stop(false);
+		this.lock();
+	}
+	public onenter(string sob, string sfun)	{	_sob=sob;	_sfun=sfun;	}
+	public setpos(int x, int y)	{	txt1.setpos(x,y);	}
+	public setz(int z)	{	txt1.setz(z);txt2.setz(z);	}
+	public get()	{
+		string s = txt1.get();
+		if( s.length()>0 )	return s;
+		return " ";
+	}
+	public set(string s)	{	txt1.set(s);	}
+	public onkeydown()	{
+		if( this.getlock() )	return;
+		if( keyboard.iskeydown("enter") )	{
+			this.disable();
+			this.callfun(_sob,_sfun);
+			return;
+		}
+		string s = keyboard.getkey();
+		string s2 = txt1.get();
+		if( ((keyboard.isalpha() && sChars.contains("a") ) || ( keyboard.isdigit() && sChars.contains("0") ) ||
+			(s==" " && sChars.contains(" ")) ) && (iLimit<=0 || iLimit>s2.length())  )	{
+			txt1.set( s2+s );
+			txt1.createtxt(iR,iG,iB);
+			this.updatecyk();
+		} else if (keyboard.iskey("backspace") && s2.length()>0)	{
+			txt1.set( s2.strsube(1) );
+			txt1.createtxt(iR,iG,iB);
+			this.updatecyk();
+		}
+	}
+}
+
+class ConTextTyper : TextTyper, ObjController	{
+	init()	{
+		TextTyper::init();
+		ObjController::init();
+	}
+}
+
+/****************************************************************/
+class DelayTaker	{
+	init()	{
+		new bool bonrel = false;
+		new bool bstart = false;
+		this.cnewtimerfin("timwez",300,1, func { bonrel=true; } );
+	}
+	public setdelay(int idelay)	{	timwez.delay(idelay);	}
+	public take()	{
+		timwez.play();
+		bstart=true;
+		bonrel=false;
+	}
+	public ret()	{
+		bonrel=false;
+		bstart=false;
+		timwez.stop(false);
+	}
+	public bool isonclick()	{
+		this.stoptimer();
+		( bstart && !bonrel );
+	}
+	public bool isonrel()	{
+		this.stoptimer();
+		( bstart && bonrel );
+	}
+	public bool istaken()	{	bstart;	}
+	public stoptimer()	{	timwez.stop(false);	}
+}
+
+
+class ImgMover	{
+	init()	{
+		new string smoved=null;
+		new int ilastx;
+		new int ilasty;
+		new int irelx;
+		new int irely;
+	}
+	public mssetobj(string s)	{	this.setobj(s,mouse.getpos);	}
+	public setobj(string s, int x, int y)	{	this.set(s,x,y,0,0);	}
+	public set(string s, int x, int y, int dx, int dy)	{
+		ilastx = <s>.getposx()-dx;
+		ilasty = <s>.getposy()-dy;
+		irelx = x-<s>.getpx();
+		irely = y-<s>.getpy();
+		smoved = s;
+	}
+	public msmove()	{	this.move(mouse.getpos);	}
+	public msftmove()	{	this.ftmove(mouse.getpos);	}
+	public move(int x, int y)	{
+		if( smoved!=null )	<smoved>.setpos( x-<smoved>.lodx()-irelx, y-<smoved>.lody()-irely );
+	}
+	public ftmove( int x, int y)	{	if( smoved!=null )	<smoved>.setpos( x, y );	}
+	public retobj()	{	this.ret(0,0);	}
+	public ret(int dx, int dy)	{
+		<smoved>.setpos(ilastx+dx, ilasty+dy);
+		this.free();
+	}
+	public put(int x, int y)	{
+		<smoved>.setpos(x,y);
+		this.free();
+	}
+	public free()	{	smoved=null;	}
+	public string getmover()	{	return smoved;	}
+	public bool moving()	{	return smoved!=null;	}
+}
+
+class ConImgMover : ImgMover, ObjController	{
+	init()	{
+		ImgMover::init();
+		ObjController::init();
+	}
+	onmousemove()	{	this.msmove();	}
+}
+
+class DelayMover : ImgMover, LObjController	{
+	init()	{
+		ImgMover::init();
+		LObjController::init();
+		new DelayTaker cldt; 
+	}
+	_put()	{
+		cldt.ret();
+		this.<_sme+"_PUT">();
+	}
+	set(string s, int x, int y, int dx, int dy)	{
+		ImgMover::set(s,x,y,dx,dy);
+		cldt.take;
+	}
+	onmousemove()	{	this.msmove();	}
+	onmouselclick()	{
+		if( this.getlock() ) return;
+		if( cldt.isonclick() )	this._put();
+		else if (!cldt.istaken())
+			this.<_sme+"_GET">();
+	}
+	onmouselrel()	{
+		if( this.getlock() ) return;
+		if( cldt.isonrel() )
+			this._put();
+	}
+}
+
+class Rewinder : classlocker	{
+	init()	{
+		classlocker::init();
+		new string sarrowdir;
+		new int ilenx;
+		new int ileny;
+		new string sgr;
+		new string sorientation;
+		new bool bvertical;
+		new bool bfilteritem = false;
+		
+		// clip obiektow
+		new int ibx1=0;
+		new int ibx2=800;
+		new int iby1=0;
+		new int iby2=600;
+		
+		new int iodleg = 2;	// odleglosc pomiedzy przedmiotami
+		
+		new ImgMover clmv;
+		
+		this.cnewtimercyclefin("timtick", 1, 1, "timfin");
+		
+		new snd fxrew;
+// 		fxrew.addmethod("onfinish", func { this.play(); } );
+	}
+	public movefilter()		{	bfilteritem=true;	}
+	public movenormal()	{	bfilteritem=false;	}
+	public setfxrew(string sfile)	{
+		fxrew.load(this.getsndpath()+sfile);
+	}
+	public getitem(string s, int x, int y)	{
+		/*clmv.set(s,x,y,<sgr>.getpx(),<sgr>.getpy());
+		<s>.clip(0,0,800,600);
+		<sgr>.movefrom(s, 0, -<s>.geth);
+		<sgr>.remove(s);*/
+		<s>.setz( <s>.getz+1 );
+		clmv.set(s,x,y,<sgr>.getpx(),<sgr>.getpy());
+		<s>.clip(0,0,800,600);
+		if( sorientation=="up" || sorientation=="down")	{
+			<sgr>.movefrom(s, -(<s>.getw+iodleg), 0 );
+			<s>.move( <s>.getw,0 );
+		} else {
+			<sgr>.movefrom(s, 0, -(<s>.geth+iodleg));
+			<s>.move(0, <s>.geth );
+		}
+		<sgr>.remove(s);
+	}
+	public bool pickup(int x, int y)	{
+		if( <sgr>.isin(x,y,true,true) )	{
+			this.getitem( <sgr>.getsfound(), x, y );
+			return true;
+		}
+		return false;
+	}
+	public bool mspickup()	{	return this.pickup(mouse.getpos );	}
+	public freeitem()	{	clmv.free();	}
+	public moveitem()	{
+		if( bfilteritem )		clmv.msftmove();
+		else		clmv.msmove();
+	}
+	public retitem()	{
+		string s = clmv.getmover();
+		clmv.ret(<sgr>.getpx(),<sgr>.getpy());
+		this.putitem(s);
+	}
+	public putitem(string s)	{
+		if( sorientation=="up" || sorientation=="down")	{
+			<s>.move( <sgr>.getex-<s>.getpx+iodleg, 0);
+		} else {
+// 			@dx = anupstd.getex - <s>.getw;
+// 			<s>.setpos( dx - <s>.lodx, <sgr>.getey-<s>.lody);
+			<s>.move( 0, <sgr>.getey-<s>.getpy+iodleg);
+		}
+		<sgr>.add(s);
+		<s>.setz( <s>.getz-1 );
+		<s>.clip(ibx1,iby1,ibx2,iby2);
+	}
+	public string getmoved()	{	return clmv.getmover();	}
+	public int getbutw()	{	return anupstd.getw();	}
+	public int getbuth()	{	return anupstd.geth();	}
+	public movearrows(int x, int y)	{	grarrows.move(x,y);	}
+	public build(string sfile, int z, string scursor, string sorient, int dt, string sgrelem)	{
+		sgr = sgrelem;
+// 		this.newanima("anupstd",sfile,z);
+		new anima anupstd;
+		anupstd.load(sfile);
+		anupstd.setz(z);
+		
+		anupstd.setframe("up",0);
+		this.copyanima("anupstd","anupact");
+		anupact.setframe("up",1);
+		this.copyanima("anupstd","andownact");
+		andownact.setframe("down",1);
+		this.copyanima("anupstd","andownstd");
+		andownstd.setframe("down",0);
+		this.newbutan("butup","anupstd","anupact",null,scursor);
+		this.newbutan("butdown","andownstd","andownact",null,scursor);
+		butup.addmethod("onmoveon","_rewbutmoveon");
+		butdown.addmethod("onmoveon","_rewbutmoveon");
+		butup.addmethod("onmoveoff","_rewstrzalkaoff");
+		butdown.addmethod("onmoveoff","_rewstrzalkaoff");
+		butup.addmethod("onclick","_rewbutclick");
+		butdown.addmethod("onclick","_rewbutclick");
+		butup.addmethod("onrel","_rewbutrel");
+		butdown.addmethod("onrel","_rewbutrel");
+		sorientation=sorient;
+		new gmimgvec grarrows;
+		_ = "grarrows" .+ "anupstd" .+ "anupact" .+ "andownact" .+ "andownstd";
+		
+		int dy, int dx, int ix, int iy;
+		if( sorientation=="up" || sorientation=="down")	{
+			bvertical = false;
+			ilenx = dt;
+			if( sorientation=="down")	{
+				anupstd.setpos(0,600-anupstd.geth());
+				anupact.setpos(0,600-anupact.geth());
+				andownstd.setpos(800-andownstd.getw(),600-andownstd.geth());
+				andownact.setpos(800-andownact.getw(),600-andownact.geth());
+				dy = andownstd.getey();
+			} else {
+				anupstd.setpos(0,0);
+				anupact.setpos(0,0);
+				andownstd.setpos(800-andownstd.getw(),0);
+				andownact.setpos(800-andownact.getw(),0);
+				dy = 0;
+			}
+			ibx1 = anupstd.getex()+iodleg;
+			ibx2 = andownstd.getpx()-iodleg;
+			dx = ibx1;
+		} else {
+			bvertical = true;
+			ileny = dt;
+			if( sorientation=="right")	{
+				anupstd.setpos(800-anupstd.getw(),0);
+				anupact.setpos(800-anupact.getw(),0);
+				andownstd.setpos(800-andownstd.getw(),600-andownstd.geth());
+				andownact.setpos(800-andownact.getw(),600-andownact.geth());
+				dx = anupstd.getex();
+			} else {
+				anupstd.setpos(0,0);
+				anupact.setpos(0,0);
+				andownstd.setpos(0,600-andownstd.geth());
+				andownact.setpos(0,600-andownact.geth());
+				dx = 0;
+			}
+			iby1 = anupstd.getey()+iodleg;
+			iby2 = andownstd.getpy()-iodleg;
+			dy = iby1;
+		}
+		butup._rewbuildbut(this.getname(),"up");
+		butdown._rewbuildbut(this.getname(),"down");
+		
+		int ile = <sgrelem>.size();
+		<sgrelem>._setpos(dx,dy);
+		new int ilimx = dx;
+		new int ilimy = dy;
+		string s;
+		for(int i=0; i<ile; i++)	{
+			s = <sgr>.get(i);
+			if( sorientation=="right")	{
+				<s>.setpos( dx - <s>.getw() - <s>.lodx(), dy - <s>.lody() );
+				dy += <s>.geth()+iodleg;
+			} else if (sorientation=="left")	{
+				<s>.setpos( dx - <s>.lodx(), dy - <s>.lody() );
+				dy += <s>.geth()+iodleg;
+			} else if (sorientation=="up")	{
+				<s>.setpos( dx - <s>.lodx(), dy - <s>.lody() );
+				dx += <s>.getw()+iodleg;
+			} else if (sorientation=="down")	{
+				<s>.setpos( dx - <s>.lodx(), dy - <s>.geth() - <s>.lody() );
+				dx += <s>.getw()+iodleg;
+			}
+			<s>.clip(ibx1,iby1,ibx2,iby2);
+		}
+	}
+	/*************************************/
+	_rewbuildbut(string s, string s2)	{
+		new string _sob = s;
+		new string _sdir;
+		if( s2=="up" )	{
+			if(bvertical==false)	{	_sdir = "left";	}
+			else {	_sdir = "up";	}
+		} else if (s2=="down")	{
+			if(bvertical==false)	{	_sdir = "right";	}
+			else {	_sdir = "down";	}
+		}
+	}
+	_rewbutmoveon()	{
+		//this.mstrzalkaon(_sdir);
+		this.<_sob+"_"+_sdir+"_MOVEON">();
+	}
+	_rewbutclick()	{
+		this.mstrzalkaon(_sdir);
+		this.<_sob+"_"+_sdir+"_CLICK">();
+	}
+	mstrzalkaon(string s)	{
+		sarrowdir=s;
+		timtick.play();
+	}
+	_rewbutrel	{
+		sarrowdir=null;
+		timtick.stop(false);
+		fxrew.stop(false);
+	}
+	_rewstrzalkaoff()	{
+		sarrowdir=null;
+		timtick.stop(false);
+		fxrew.stop(false);
+		this.<_sob+"_"+_sdir+"_MOVEOFF">();
+	}
+	timfin()	{
+		if( this.getlock() )	{	return;	}
+		bool bok = false;
+		if( sarrowdir!=null && !<sgr>.empty())	{
+			if( sarrowdir=="up")	{
+				if( <sgr>.getey() > andownstd.getpy() - ileny )	{
+					<sgr>.move(0,-ileny);
+					bok=true;
+				}
+			} else if (sarrowdir=="down") {
+				if( <sgr>.getpy() < ilimy )	{
+					<sgr>.move(0,ileny);
+					bok=true;
+				}
+			} else if (sarrowdir=="left")	{
+				if( <sgr>.getex() > andownstd.getpx() - ilenx )	{
+					<sgr>.move(-ilenx,0);
+					bok=true;
+				}
+			} else if (sarrowdir=="right") {
+				if( <sgr>.getpx() < ilimx )	{
+					<sgr>.move(ilenx,0);
+					bok=true;
+				}
+			}
+		}
+		if( bok )	{
+			if( !fxrew.isplaying() )	fxrew.play();
+		} else {
+			fxrew.stop(false);
+		}
+		this.play();
+	}
+}
+
+class ConRewinder : Rewinder, ObjController {
+	init()	{
+		Rewinder::init();
+		ObjController::init();
+		new DelayTaker cldt; 
+	}
+	public getitem(string s, int x, int y)	{
+		Rewinder::getitem(s,x,y);
+		cldt.take();
+	}
+	_put()	{
+		cldt.ret();
+		this.<_sme + "_PUT">();
+	}
+	onmousemove()	{	this.moveitem();	}
+	onmouselrel()	{
+		if( this.getlock() )	return;
+		if( cldt.isonrel() )	{	this._put();	}
+	}
+	onmouselclick()	{
+		if( this.getlock() ) return;
+		if( cldt.isonclick() )	{
+			this._put();
+		} else if ( !cldt.istaken() )	{
+			this.<_sme+"_GET">();
+		}
+	}
+}
+
+
+class Color	{
+	init	{
+		.vars(A,"r","g","b","a");
+	}
+	operator=(string scol)	{	this.set( <scol>.get() );	}
+	img=(@simg)	{
+		|r,g,b,a| = <simg>.getrgba( classansearcher::firstnotrx1y(simg) );
+	}
+	get			{	return r,g,b,a;	}
+	set(int r2, int g2, int b2, int a2)	{	|r,g,b,a| = r2,g2,b2,a2;	}
+	print	{	engine.print("Color::" + this + " (r,g,b,a) = ("+r+","+g+","+b+","+a+")");	}
+}
+
+/*************************************************************************/
+
+class classtriangle	{
+	init()	{
+		new real rdx;
+		new real rdy;
+	}
+	real getdx()	{	return rdx;	}
+	real getdy()	{	return rdy;	}
+	real talesxy(real x, real y, real destx, real desty, real rdistance)	{
+		destx -= x;	desty-=y;
+		if( destx==0 && desty==0 )	{
+			rdx = 0;
+			rdy = 0;
+			return 0;
+		} else {
+			x = x.length( destx, desty );
+			rdx = (destx/x)*rdistance;
+			rdy = (desty/x)*rdistance;
+			return x;
+		}
+	}
+}
+
+class classwalker : classtriangle {
+	init()	{
+		classtriangle::init();
+		new real rodleg;
+		new int _ix;
+		new int _iy;
+	}
+	real countsteps(int x, int y, int destx, int desty, real rstep )	{
+		this.setdest( destx, desty );
+		rodleg = this.talesxy( x, y, destx, desty, rstep );
+		//("pos "+destx+","+desty)->print;
+		return rodleg;
+	}
+	setdest(int x, int y)	{	_ix=x;	_iy=y;	}
+	getdestx()	{	return _ix;	}
+	getdesty()	{	return _iy;	}
+	int reached(int x, int y)	{
+		real r = r.length( x - _ix, y - _iy );
+		if( r >= rodleg )	{
+			return true;
+		} else {
+			rodleg = r;
+			return false;
+		}
+	}
+	int reached2(int x, int y)	{
+		real r = r.length( x - _ix, y - _iy );
+		if( r > rodleg )	{
+			return true;
+		} else {
+			rodleg = r;
+			return false;
+		}
+	}
+}
+
+class Buttons : LObjController	{
+	init(string sfile)	{
+		LObjController::init;
+		.unlock;
+		new gmimgvec grbuts;
+		new string sanbut = "anbut";
+		.newanima(sanbut, sfile, 10);
+		_ = .newanactionsgr(sanbut, sanbut, "grbuts");
+		anbut.hide;
+		grbuts.setz(10);
+		grbuts.removeif( func {
+			if( .actionname=="bkg" ) { .setz( .getz-1); true; }
+			else false; 
+			});
+		new string slastb = null;
+		.var2("sobject", null);
+	}
+	_release()	{
+		<slastb>.setframe(-1,0);
+		.copyobj;
+		.<this + "_moveoff">();
+		slastb = null;
+	}
+	onmousemove()	{
+		if( .getlock ) return;
+		grbuts.isetframe(-1,0);
+		def id =  grbuts.isin(mouse.getpos,true,true);
+		if( slastb!=null ) <slastb>.setframe(-1, 1);
+		if( id ) {
+			string s = grbuts.getsfound;
+			if( s!=slastb )	{
+				if( slastb!=null )	._release;
+				slastb = s;
+				<s>.setframe(-1,1);
+				.copyobj;
+				.<this + "_moveon">();
+			}
+		} else if( slastb!=null )	{
+			._release;
+		}
+		slastb==null ? bsms.setstd : bsms.setact;
+	}
+	copyobj()	{	sobject = <slastb>.actionname;	}
+	onmouselclick()	{
+		if( .getlock ) return;
+		if( slastb!=null )	{
+			.copyobj;
+			.<this + "_lclick">;
+		}
+	}
+}
+
+class Helper	{
+	init(string spath, string sfile)	{
+		new db dbh;
+		new @Path = spath;
+		new @sHelp = this;
+		dbh.loadscript(Path+sfile);
+		new db dbh2;
+		
+		new button buthelp	{
+			.setrect( 0, 0, 800, 600 );
+			.disable;
+		};
+		buthelp.addmethod("onclick", "helphide");
+		
+		new img imgtlo;
+		imgtlo.load( Path + .get("bkg:") );
+		imgtlo.setz(10000);
+		imgtlo.hide;
+		imgtlo.setpos( 400 - imgtlo.getw/2, 300 - imgtlo.geth/2 + .get("dy:")->to_i );
+		new gmimgvec grt;
+		
+		string sfont = "configs/fonts/" + .get("font:");
+		|int itit[4]| = .get("title:");
+		|int itxt[4]| = .get("text:");
+		new font fnttit;
+		fnttit.load(sfont,itit0);
+		new font fnttxt;
+		fnttxt.load(sfont,itxt0);
+	}
+	get(string s)	{
+		int id = dbh.findbyrow(s);
+		if( id>=0 )	{	for( int i=1; i<dbh.getcolsno(id); i++)	dbh.get(id,i);	}
+	}
+	show	{
+		@s = gameapi.getgamename;
+		if( s=="MenuPuzzle" )	{
+			dbh2.load( Path + ( iPuzzleTryb>2 ? "puzzle.db" : "wstaw.db" ) );
+		} else {
+			int id = dbh.findbyrow(gameapi.getgamename);
+			if( id<0 )	return;
+			dbh2.load( Path + dbh.get(id,1) + ".db" );
+		}
+		imgtlo.show;
+		
+		|int itit[4]| = .get("title:");
+		|int itxt[4]| = .get("text:");
+		new text txttit;
+		txttit.setfont("fnttit");
+		txttit.set( dbh2.get(0,0) );
+		txttit.createtxt(itit1,itit2,itit3);
+		@x = imgtlo.getcx;
+		//txttit.setpos( x - txttit.getw/2, imgtlo.getpy + .get("txtdy:") );
+		txttit.setpos( x - txttit.getw/2, 0 );
+		itxt0/=2;
+		grt.add("txttit");
+		txttit.setz( imgtlo.getz + 10 );
+		string s;
+		//int y = txttit.getpy + txttit.geth + itit0;
+		int y = txttit.geth + itit0;
+		for( int i=1; i<dbh2.getrowsno; i++)	{
+			s = "txt"+i;
+			new text <s>;
+			<s>.setfont("fnttxt");
+			<s>.set( dbh2.get(i,0) );
+			<s>.createtxt( itxt1, itxt2, itxt3 );
+			<s>.setpos( x - <s>.getw/2, y );
+			<s>.setz( imgtlo.getz + 10 );
+			y += <s>.geth + itxt0;
+			grt.add(s);
+		}
+		grt.move(0, imgtlo.getpy + (imgtlo.geth-y)/2 );
+		
+		gameapi.pause;
+		buthelp.enable;
+		buthelp.resume;
+	}
+	helphide		{
+		<sHelp>	{
+			imgtlo.hide;
+			string s;
+			for( int i=0; i<grt.size; i++)	{
+				s = grt.get(i);
+				delete <s>;
+			}
+			grt.free;
+			buthelp.disable;
+			gameapi.resume;
+		};
+	}
+}
+
+game Tclassmenu	{
+	init()	{
+		new db _dbl;
+		new gmobjvec gr1;
+		gr1.add("bkg");
+	}
+	public tload(string spath, string sbuts, string sdbfile)	{
+		this.setgraphpath(spath);
+		if( sdbfile!=null )	{
+			_dbl.loadscript(this.getgraphpath()+sdbfile);
+			for(int i=0; i<_dbl.getrowsno();i++)	{
+				this.newsnd("snd"+_dbl.get(i,0), _dbl.get(i,1)+".wav");
+			}
+		}
+		new classbutton _clb;
+		_clb.build2( this.getgraphpath() + sbuts, 10, "imglobcurs", "gr1" );
+		_clb.clickfunc("_gmbutclick");
+		_clb.movonfunc("_gmbutmove");
+		if(engine.varexist("sndintro"))	this.cbplay("sndintro");
+	}
+	mouselclick()	{
+		this.cactsndstop(true);
+	}
+	_gmbutmove(string s)	{
+		sndakskermovon.play();
+		if( engine.varexist("sndintro") && sndintro.isplaying() )	return;
+		if( engine.varexist("snd"+s) )	this.crselfplay("snd"+s);
+	}
+	_gmbutclick(string s)	{
+		this.<s+"_BUTCLICK">();
+	}
+}
+
+class TMenu : GameController	{
+	init()	{}
+	tinit(string sbase, string spath, string sbuts)	{
+		.setgraphpath(spath);
+		GameController::init(sbase);
+		new Buttons but1(sbuts);
+	}
+	mousel_click()	{
+		.cactsndstop(true);
+	}
+	but1_moveon	{
+		string s = but1.sobject;
+		sndakskermovon.play;
+		if( engine.varexist("sndintro") && sndintro.isplaying )	return;
+		if( engine.varexist("snd"+s) )	this.crselfplay("snd"+s);
+		.<s+"_MOVEON">;
+	}
+	but1_moveoff	{	.<but1.sobject + "_MOVEOFF">;	}
+	but1_lclick()	{
+		this.<but1.sobject+"_BUTCLICK">();
+	}
+}
+
+new int iMemoTryb=1;	// 0 - player na czas, 1 - player vs computer, 2 - player vs player
+new int iMemoW;
+new int iMemoH;
+new int iMemoAI = 0;	// poziom trudnosci
+
+class TMemo : GameController	{
+	init()	{}
+	public tinit(string sndbase, string spath, string sbkg, string stafle, string snakl, int dt)	{
+		.setgraphpath(spath);
+		GameController::init(sndbase);
+		
+		.newanima("anbkg", sbkg, 0);
+		.newanima("antaf", stafle, 10);
+		.newanima("annak", snakl, 20);
+		
+		new int ipredkosc = 25;
+		new gmimgvec grtaf;
+		new gmimgvec grnak;
+		new vector veci	{
+			.vecnewint( antaf.nofframes(0) );
+			.hash;
+		};
+		string s, int i[3], int j;
+		i0 = 0;
+		for( int i=0; i<iMemoW; i++)	{
+			for( j=0; j<iMemoH; j++)	{
+				new anima <"antaf"+i0>(i0) {
+					(int i)
+					.mresize;
+					this .= "antaf";
+					.setframe(0, veci.get(i/2));
+					.anaddfilter;
+					.unlink;
+					grtaf.add( this );
+				};
+				new anima <"annak"+i0> {
+					.mresize;
+					this .= "annak";
+					.anaddfilter;
+					grnak.add(this);
+				};
+				i0++;
+			}
+		}
+		antaf.hide;
+		annak.hide;
+		grtaf.hash;
+		i0=0;
+		i1 = antaf.getw + dt;
+		i2 = antaf.geth + dt;
+		for( i=0; i<iMemoW; i++)	{
+			for( j=0; j<iMemoH; j++)	{
+				<grtaf.get(i0)>.setbpos( i1*i, i2*j );
+				<grnak.get(i0)>.setbpos( i1*i, i2*j );
+				i0++;
+			}
+		}
+		grtaf.eval("link");
+		i1 = (800-grtaf.getw())/2;
+		i2 = (600-grtaf.geth())/2;
+		grtaf.move( i1, i2 );
+		grnak.move( i1, i2 );
+		new int iplayer=1;
+		new int icompplayer = 0;	// 1v2
+		new classfadeinout clfio;
+		new classfadeinout clfio2;
+		new int imemostate=0;
+		new string staf1;
+		new string staf2;
+		new string snak1;
+		new string snak2;
+		new int ileai = .between(1, .between(5, iMemoW*iMemoH*0.2, 10) + iMemoAI, 20);
+		new string sset1;
+		new string sset2;
+		new vector vecai	{
+			.mresize;
+			.type("string");
+		};
+		new int iaistate = 0;
+		.newtimer("timwait", 500, 1);
+		timwait.mresize;
+		.cnewtimerfin("timpoka", 500, 1, "endset22");
+	}
+	tstart()	{
+		imemostate = 1;
+		if( iMemoTryb==1 )	{
+			icompplayer=2;
+		}
+	}
+	/******************************************************/
+	aigo()	{
+		imemostate=11;
+		.tclicks( sset1 );
+	}
+	aigo2()	{
+		.tclicks( sset2 );
+	}
+	int aifind1(string sob, int i,  int ile)	{
+		if( sob==null )	return -1;
+		int ifr = <sob>.framenr;
+		string s;
+		for (; i<ile; i++)	{
+			s = .get(i);
+			if( s!=null && s!=sob && ifr==<s>.framenr && .tstats(i))	return i;
+		}
+		-1;
+	}
+	bool tstats(int id)	{	.stats(100-id*10);	}
+	startai(string sfun)	{
+		if( iplayer==icompplayer )	{
+			int ile = .min(vecai.size, ileai);
+			if( sfun=="aigo" )	{
+				imemostate = 11;
+				int i[3];
+				i2 = -1;
+				for(i0=0; i0<ile; i0++)	{
+					i2 = vecai.aifind1( vecai.get(i0), i0+1, ile );
+					if( i2>=0 && .tstats(i0))	{
+						i1 = i0;
+						i0 = ile;
+					} else
+						i2=-1;
+				}
+				if( i2>=0 )	{		// znalazl pare
+					sset1 = vecai.get(i1);
+					sset2 = vecai.get(i2);
+				} else {
+					sset1 = grtaf.rand;
+					sset2 = null;
+				}
+			} else {
+				if( sset2 == null )	{
+					int id = vecai.aifind1( sset1, 0, ile );
+					if (id>=0 && .tstats(id))	sset2 = vecai.get(id);
+					else 	sset2 = grtaf.randdiff( sset1 );
+				}
+			}
+			"timwait" ..< sfun;
+			timwait.play;
+		}
+	}
+	/******************************************************/
+	endset3()	{
+		imemostate=1;
+		if( iMemoTryb>0 )	{
+			.tnextplayer;
+			.startai("aigo");
+		}
+	}
+	endset2	{	timpoka.play;	}
+	endset22	{
+		imemostate=3;
+		<snak2>.hide;
+		if( <staf1>.framenr == <staf2>.framenr )	{
+			_ = "grnak" .- snak1 .- snak2;
+			_ = "grtaf" .- staf1 .- staf2;
+			vecai.set( vecai.find( staf1 ), null );
+			vecai.set( vecai.find( staf2 ), null );
+			if( grtaf.empty )	{
+				imemostate = 5;
+				clfio.setopacity(1, -ipredkosc, staf1, null );
+				clfio2.setopacity(1, -ipredkosc, staf2, null );
+				.tfinish;
+			} else {
+				clfio.setopacity(1, -ipredkosc, staf1, func {
+						<staf1>.hide;	<staf2>.hide;
+						if( iplayer!=icompplayer) imemostate=1;
+						.startai("aigo");
+					});
+				clfio2.setopacity(1, -ipredkosc, staf2, null );
+				.tpoint;
+			}
+		} else {
+			<snak1>.show;
+			<snak2>.show;
+			clfio.setopacity(1, ipredkosc, snak1, "endset3");
+			clfio2.setopacity(1, ipredkosc, snak2, null );
+			.terror;
+		}
+	}
+	tclicks(string sob)	{	.tclick(<sob>.getcx, <sob>.getcy);	}
+	tclick(int x, int y)	{
+		if( grnak.isin( x, y, true, true ) )	string s = grnak.getsfound;
+		else return;
+		.tchoose;
+		//engine.setdebugstate(true);
+		if( imemostate==1 || imemostate==11 ) {
+			imemostate--;
+			snak1 = s;
+			staf1 = grtaf.getimg(<s>.getcx, <s>.getcy, true, true );
+			vecai.vecset( staf1, null );
+			vecai.addbegin( staf1 );
+			vecai.veclimes(30);
+			clfio.setopacity(1, -ipredkosc, s, func {
+				<snak1>.hide;
+				imemostate+=2;
+				.startai("aigo2");
+				});
+		} else if (imemostate==2 || imemostate==12)	{
+			imemostate-=2;
+			snak2 = s;
+			staf2 = grtaf.getimg(<s>.getcx, <s>.getcy, true, true );
+			vecai.vecset(staf2,null);
+			vecai.addbegin( staf2 );
+			vecai.veclimes(30);
+			clfio.setopacity(1, -ipredkosc, s, "endset2");
+		}
+	}
+	mouselclick()	{
+		if( imemostate.in(A,1,2))	.tclick( mouse.getpos );
+		GameController::mouselclick;
+	}
+	tnextplayer	{	iplayer = iplayer==1 ? 2 : 1;	}
+	/*********************/
+	virtual tfinish	{}
+	virtual tpoint		{}
+	virtual terror		{}
+	virtual tchoose	{}
+}
+
+/************ template game Painter **************/
+class TPainter : GameController	{
+	init()	{}
+	tinit(string sndbase, string spath, string sfilebg, string sfilebrush, string sfile, string sfarby, @dir)	{
+		GameController::init(sndbase);
+		this.unlock();
+		this.setgraphpath(spath);
+		
+		this.newanima("anbkg",sfilebg,0);
+		this.newanima("anbrush1", sfilebrush, 3000);
+		this.copyanima("anbrush1","anbrush2");
+		anbrush2.setframe(0,1);
+		anbrush2.setz(anbrush1.getz+1);
+		anima_pack::resizemethods("anbrush1");		// galka
+		anima_pack::resizemethods("anbrush2");		// pedzel
+		int x, int y;
+		match( dir )	{
+			"ru" => { x = anbrush2.getex;
+				y = anbrush2.getpy; }
+			"rd" => { x = anbrush2.getex;
+				y = anbrush2.getey; }
+			"ld" => { x = anbrush2.getpx;
+				y = anbrush2.getey; }
+			? => { x = anbrush2.getpx;
+				y = anbrush2.getpy; }
+		}
+		anbrush1.saverelpos(x, y);	// lewy dolny rog - kursor myszy
+		anbrush2.saverelpos(x, y);	// lewy dolny rog - kursor myszy
+		mouse.hide();
+		
+		this.newanima("anfg", sfile, 100);
+		anfg.setframe("foreground",0);
+		
+		new gmimgvec grdraw;
+		_ = this.newanframesgr("anfg", "andraw", anfg.actionnr("draw"), "grdraw");
+		grdraw.setz(10);
+		
+		new gmimgvec grpaleta;
+		//_ = this.newanframesgr("anfg", "anpaleta", anfg.actionnr("paleta"), "grpaleta");
+		"grpaleta" ..< sfarby;
+		grpaleta.setz(20);
+		
+		new int _ibrx = anbrush2.getpx();
+		new int _ibry = anbrush2.getpy();
+		while( !anbrush2.isin(_ibrx, _ibry, false, true) )	{
+			_ibrx++;
+			if( _ibrx==anbrush2.getex() ) {
+				_ibrx = anbrush2.getpx();
+				_ibry++;
+			}
+		}
+		_ibrx-=anbrush2.getpx();
+		_ibry-=anbrush2.getpy();
+		TPainter::mouse_move;		// ustawienie pedzla w pozycji myszy
+	}
+	game_exit()	{
+		mouse.show();
+		GameController::game_exit();
+	}
+	mouse_move()	{
+		anbrush1.mssetrelpos();
+		anbrush2.mssetrelpos();
+	}
+	mouse_lclick()	{
+		if( !this.getlock() )	{
+			|int x, int y| = mouse.getpos();
+			if( grdraw.isin(x,y,true,true) )	{
+				<grdraw.getsfound()>.paint(
+					anbrush2.getrgba(anbrush2.getpx()+_ibrx,anbrush2.getpy()+_ibry), 0 );
+			} else if ( grpaleta.isin(x,y,true,true) )	{
+				|@c[4]| = <grpaleta.getsfound()>.getrgba(x,y);
+				c3 = 255;
+				anbrush2.paint( c0, c1, c2, c3, 0 );
+			}
+		}
+	}
+}
+
+
+class TRoznice : GameController	{
+	tinit(string sndbase, string spath, string sfilebg, string sfbgr1, string sfiler)	{
+		GameController::init(sndbase);
+		.unlock;
+		.setgraphpath(spath);
+		.newanima("anbkg",sfilebg,0);
+		.newanima("anbg1", sfbgr1, 10);
+		.copyanima("anbg1", "anbg2");
+		new gmimgvec gr1;
+		"gr1" .* sfiler;
+		new gmimgvec gr2;
+		int id;
+		string s[2];
+		for( int i=0; i<gr1.size; i++)	{
+			id = id.rand(2);
+			s0 = gr1.get(i);
+			<s0>.setframe(i, id);
+			s1 = "anel2_"+i;
+			.copyanima(s0, s1);
+			<s1>.setframe(i, (id+1)%2);
+			gr2.add(s1);
+		}
+		new gmimgvec gral;
+		_= "gral" .+ "gr1" .+ "gr2" .+ "anbg1" .+ "anbg2";
+		gral.move(-anbg1.getpx, -anbg1.getpy);
+		gral.move( (400-anbg1.getw)/2, 10 );
+		.with(A,"anbg2", "gr2", func { .move(400, 0); });
+		.with(A,"gr1", "gr2", func { .setz(20); } );
+	}
+	bool tremove(int id, int x, int y)	{
+		string s = "gr"+id;
+		if( <s>.isin(x,y,true,true) )	{
+			< <s>.getsfound()> {
+				.setframe( .actionnr(-1), (.framenr+1)%2);
+			};
+			int id2 = <s>.getfound;
+			<s>.removeat(id2);
+			<"gr" + ((id%2)+1)>.removeat(id2);
+			gr1.empty ? .tfinish : .tpoint;
+			true;
+		} else
+			false;
+	}
+	int remained	{	gr1.size;	}
+	mouselclick()	{
+		if( !.getlock )	{
+			|int x[2]| = mouse.getpos;
+			if( !.tremove(1,x0,x1) )	_ = .tremove(2,x0,x1);
+		}
+		GameController::mouse_lclick;
+	}
+	/***************************/
+	virtual tpoint		{}
+	virtual tfinish	{}
+}
+
+class classadvadamigo2 : classadv	{
+	init()	{
+		igmstate = 0;
+		classadv::init();
+		this.setwavpath("sounds/adamigo2/");
+		this.newsnd("sfxgetitem", "sfx/getitem.wav");
+		bsms.setstd();		// ustawia standardowo 
+		clmusic.play();
+		clbuts.reset();
+		//clesav.save();
+	}
+	loadzol(@s, @x, @y)	{
+		@s2 = "an"+s;
+		new anima <s2>;
+		<s2>.load("scripts/common/"+s+".pyz");
+		<s2>.setz( 200 );
+		<s2>.setframe( "stand", 0 );
+		<s2>.setdelay(2);
+		<s2>.setpos(x,y);
+	}
+	loadgeneral(@x, @y)	{
+		.loadzol("general", x, y);
+		angeneral.var2("bmow",true);
+		angeneral.addmethod("onfinish", func { if( .actionname=="talk" ) .play(-1); else bmow=true;} );
+		angeneral.addmethod("onendframe", func {
+			if(.framename=="bam" && engine.varexist("ansoldat") && bmow && !0->rand(4))	{
+				ansoldat.play("go"); bmow=false; } } );
+	}
+	loadsoldat(@x, @y)	{
+		.loadzol("soldat", x, y);
+		ansoldat.addmethod("onfinish", func { if( .actionname=="talk" ) .play(-1);
+			else if (.actionname=="go") .play("stand"); } );
+		.newsnd("fxsoldat", "sfx/soldat.wav");
+		ansoldat.addmethod("onstart", func { if( .actionname=="go" ) fxsoldat.play; } );
+	}
+	soldatstand	{
+// 		if( !ansoldat.isplaying("go") ) {
+			if( 0->rand(4)==0 ) ansoldat.play("go");
+			else ansoldat.play("stand");
+// 		}
+	}
+	soldattalk(string s)	{
+// 		if( !ansoldat.isplaying("go") )	{
+			classsound::cbplay2(s);
+			ansoldat.play("talk");
+// 		}
+	}
+	/***********************************************************/
+	exit()	{
+		bsms.setstd;
+		this.game_exit;
+	}
+	public askrestart()	{	claskexit.askrestart;	}
+	/***********************************************************/
+	advclick()	{
+		if( igmdebug && (igmstate==0 || igmstate==5) )	{
+			this.cactsndstop(true);
+		}
+	}
+	/***********************************************************/
+	keydown()	{
+		if( igmdebug==false )	{	return;	}
+		if( keyboard.iskey("p") )	{
+			clpause.pause();
+		} else if( keyboard.iskey("escape") )	{
+			claskexit.askexittomenu();
+		} else {
+// 			clnextgm.checkkey();
+		}
+	}
+	/***********************************************************/
+}
+
+
+
+new classgamepause clpause;
+new classgamemusic clmusic;
+clmusic.sndbgrpath("sounds/adamigo2/bgr/");
+clmusic.musicpath("sounds/music/");
+clmusic.load("sounds/musicadamigo2.db");
+
+new snd sndakskermovon;
+sndakskermovon.load("sounds/adamigo2/sfx/butmovon.wav");
+
+new Helper clhelp("scripts/help/", "helpcfg.db");
+
+module claskexit : classasker	{
+	init()	{
+		classasker::init();
+		
+		this.setwavpath("sounds/adamigo2/");
+		this.newsnd("sndaskexit", "nar07.wav");
+		this.newsnd("sndyes", "nar08.wav");
+		this.newsnd("sndno", "nar09.wav");
+		this.newsnd("sndaskrestart", "nar11.wav");
+		this.newsnd("sndaskrestart2", "nar14.wav");
+		this.load( "scripts/common/asker.pyz", 2000 );
+		this.fxonmovon("sndakskermovon");
+	}
+	askexittomenu()	{
+		this.ask( "sndaskexit", "sndyes", "sndno", "myestomenu", "mnotomenu");
+	}
+	askrestart()	{
+		this.ask( "sndaskrestart", "sndyes", "sndno", "myesrestart", "mnorestart");
+	}
+	askrestart2()	{
+		this.ask( "sndaskrestart2", "sndyes", "sndno", "myesrestart", "mnorestart");
+	}
+	mnotomenu()	{}
+	myestomenu()	{
+		match( gameapi.getgamename() )	{
+			"gamemenu" => "gameoutro";
+			"gamemodeldow" => "gamemenumodel";
+			"gamemodelproj" => "gamemenumodel";
+			"gamewstawianka" => "MenuPuzzle";
+			"gamewstawiankazgadanka" => "gamemenuwstaw";
+			"gamedopasowankamulti" => "gamemenudopas";
+			"gamedopasowankamonomenu" => "gamemenudopas";
+			"gamedopasowankamono" => "gamemenudopas";
+			"gamesubmenuwstaw" => "gamemenuwstaw";
+			"MenuMemo" => "gamemenu";
+			"Memo" => "MenuMemo";
+			"zgadnijmulti1" => "gamemenu";
+			"zgadnijmulti2" => "gamemenu";
+			"MenuKolorowanka" => "gamemenu";
+			"Kolorowanka" => "MenuKolorowanka";
+			"MenuPuzzleTryb" => "gamemenu";
+			"MenuPuzzle" => "MenuPuzzleTryb";
+			"Puzzle" => "MenuPuzzle";
+			"MenuRoznice" => "gamemenu";
+			"Roznice" => "MenuRoznice";
+			? => "gamemenu";
+		}
+		gameapi.play;
+	}
+	mnorestart()	{
+		match(gameapi.getgamename)	{
+			"Memo" => "gamemenu";
+			? => "gamemenu";
+		}
+		gameapi.play;
+	}
+	myesrestart()	{	this.crestart();	}
+}
+
+
+module clbuts	{
+	init()	{}
+	load()	{
+		new classbutton buts;
+		buts.build("scripts/common/buttons.pyz", 4000, "imglobcurs");
+		buts.transclickfunc( engine.actclassname(), "butclick");
+		buts.transmovonfunc( engine.actclassname(), "butmovon");
+		buts.transmovofffunc( engine.actclassname(), "butmovoff");
+		buts.disableall();
+		new db dbb;
+		dbb.load("scripts/common/buts.db");
+		new snd sndfxglobon;
+		sndfxglobon.load("sounds/adamigo2/sfx/globbutmovon.wav");
+		new @bvisible = true;
+		new img imgadamigo	{
+			.load("scripts/common/adamigo.png");
+			.setz(3900);
+			.setpos( 800 - .getw, 490 );
+			.hide;
+		};
+	}
+	reset()	{
+		buts.disableall();	
+		@sgame = gameapi.getgamename;
+		int pos = dbb.findbyrow( sgame );
+		if( pos>=0 )	{
+			int ile = dbb.getcolsno( pos );
+			for( int i=1; i<ile; i++)	{
+				buts.enable( dbb.get( pos, i ) );
+			}
+		}
+		if( sgame=="gameintro" || sgame=="gameoutro" )	imgadamigo.hide;
+		else imgadamigo.show;
+	}
+	enable(string sbu)	{
+		buts.enable( sbu );
+	}
+	/*****************************************/
+	butmovon(string sc)	{
+		sndfxglobon.play();
+		bvisible = mouse.isvisible;
+		mouse.show;
+	}
+	butmovoff(string sc)	{
+		if( !bvisible ) mouse.hide;
+	}
+	butclick(string sc)	{
+		match(sc)	{
+			"pause"	=>	clpause.pause();
+			"exit"	=>	claskexit.askexittomenu();
+			"restart"	=>	claskexit.askrestart();
+			"help"	=>	clhelp.show;
+			"helpmemo" => clhelp.show;
+			? => ;
+		}
+	}
+}
+
+class classplacepointer2 : classplacepointer    {
+        init()  {
+                classplacepointer::init();
+                this.load("scripts/common/strzalka.pyz");
+        }
+}
+
+/***************************************************/
+// new classnextgame clnextgm;
+igmstate = 0;
+|igmdebug, igmeasy, igmdemo, igmbegin| = false, false, false, true;
+
+bsms.setstd;
+
+//clnextgm.load("scripts/common/games.db");
+clbuts.load;
+
+	gameapi.play("gameintro");
+// 	gameapi.play("gameoutro");
+//gameapi.play("gamemenudopas");
+//  gameapi.play("MenuKolorowanka");
+//     gameapi.play("zgadnijmulti2");
+//    engine.printtypes;
+// engine.setdebugstate(1);
+//       gameapi.play("MenuMemo");
+//  gameapi.play("Roznice");
+//   gameapi.play("Puzzle");
+//   gameapi.play("gamemenu");
+//   gameapi.play("Kolorowanka");
+/***************************************************/
+/*game gameintro_old : classadvadamigo2 {
+	init()	{
+		classadvadamigo2::init;
+		.path = ("menus");
+		.bkg = ("introbkg.png");
+		.newimg("imgnapis","intronapis.png",10);
+		imgnapis.setpos(400-imgnapis.getw/2, 50);
+		.timer = ("timintro", 200, "fintim" );
+		timintro.play;
+	}
+	fintim		{	gameapi.play("gamemenu");	}
+	mouselclick	{	.fintim;	}
+}
+
+game gameintro2 : classadvadamigo2 {
+	init	{
+		classadvadamigo2::init;
+		new img imgbkg;
+		imgbkg.load("scripts/introm/tlointro.png");
+		new img imgtlo;
+		new int idscene = 1;
+		.showscene;
+		.cnewtimercyclefin("timintro", 1, 1, func { .showscene; .play; } );
+		timintro.play;
+	}
+	showscene	{
+		if( idscene==35 )	{
+			.endintro;
+		} else {
+			imgtlo.load("scripts/introm/intro" + clstrdigit::getdigit(idscene,4)+".png" );
+			imgtlo.hide;
+			imgtlo.show;
+			imgtlo.setpos( 400 - imgtlo.getw/2, 300 - imgtlo.geth/2 );
+			idscene++;
+		}
+	}
+	endintro		{	gameapi.play("gamemenu");	}
+	mouselclick	{	.endintro;	}
+}
+*/
+game gameintro : classadvadamigo2, GameController	{
+	init	{
+		classadvadamigo2::init;
+		GameController::init("intro");
+		.path = ("intro");
+		.newanima("anbkg","bkg.pyz",0);
+		.newanima("anob","obraz.pyz",10);
+		.buildsnds(A,
+			"sndintro", "Witamy w ¶wiecie gier i zabaw Adamigo; Nasza dewiza to edukacja poprzez zabawê", "endintro"
+			);
+		anob.setpos(394,212);
+		new filter fob;
+		.cnewtimercyclefin("timcyk", 1, 1, "fincyk");
+		new @blewo = true;
+		new @rrot = 0.0;
+		fob.link("anob");
+		fob.setpivottype(2);
+		.loadsoldat( 130, 573 );
+		.loadgeneral( 648, 574 );
+		.cbplay("sndintro");
+		new @rotstep = 3.0;
+		new @rbor = 22.0;
+		timcyk.play;
+	}
+	fincyk	{
+		@r2 = rrot;
+		if( blewo )	{
+			if( rrot<=0.0)	{
+				rrot+=.rotstep;
+				blewo=false;
+			} else {
+				rrot-=.rotstep;
+			}
+		} else {
+			if( rrot>=rbor )	{
+				blewo=true;
+				rrot-=.rotstep;
+			} else {
+				rrot+=.rotstep;
+			}
+		}
+		fob.rotate(rrot-r2);
+		.play;
+	}
+	rbetween(real r1, real r2)	{		rrot<=r1 || rrot>=r2;	}
+	real rotstep	{
+		if( .rbetween(3,rbor-3) )	{
+			1.0;
+		} else if( .rbetween(8,rbor-8) )	{
+			2.0;
+		} else rotstep;
+	}
+	endintro	{	gameapi.play("gamemenu");	}
+	mouselclick	{	.endintro;	}
+	cbplay(string s)	{
+		classsound::cbplay2(s);
+		angeneral.play("talk");
+	}
+}
+
+/*******************************************************/
+new bool StartAdamigo = true;
+game gamemenu : classadvadamigo2 , TMenu	{
+	init	{
+		classadvadamigo2::init;
+		.loadsoldat( 315, 591 );
+		.loadgeneral( 442, 588 );
+		
+		.sfxs = (A, "mysz1 50", "wlacznik 20", "blink 20");
+		new anima anblink {
+			.load("scripts/menus/bgblink.pyz");
+			.setz(10);
+			.hide;
+			.setdelay(4);
+			.addmethod("onfinish", func { .hide; } );
+		};
+		.timer = ("timblink", 500+0->rand(10)*100, func { .delay(500+0->rand(10)*600);
+			anblink.show; anblink.play(0); fxblink.play;	.play;	} );
+		timblink.play;
+		
+		.tinit("menug", "scripts/menus/", "menuglowne.pyz");
+		@sfun = func { angeneral.play("stand"); };
+		.buildsnds(A,
+			"sndintro", "Witamy w programie Edukacja z Adamigo! Wybierz grê", sfun,
+			"sndpuzzle", "puzzle i wstawianie",sfun,
+			"sndroznice", "ró¿nice",sfun,
+			"snddopas", "dopasowywanie elementów",sfun,
+			"sndkolorowanka", "kolorowanka", sfun,
+			"sndzagadki", "zagadki", sfun,
+			"sndmemo", "memo", sfun );
+		if(StartAdamigo)	{
+			StartAdamigo=false;
+			.cbplay("sndintro");
+		}
+		new gmimgvec grlamp;
+		"grlamp" .* "lamp.pyz";
+		anlamp0.setz(10);
+		anlamp1.setz(100);
+		anlamp2.setz(110);
+		anlamp2.hide;
+		
+		.newanima("anmysz", "myszka.pyz", 15);
+		new int imousestate = 0;
+		new int imyszspeed = -10;
+		new int imyszspeed2;
+		anmysz.move(1800, 0);
+		anmysz.addmethod("onfinish", "mousefin");
+		anmysz.play(0);
+		
+		/*new anima anpom {
+			.load("scripts/menus/lamp.pyz");
+			.setz(200);
+			.anaddfilter;
+			.mask("anlamp2");
+		};*/
+	}
+	cbplay(string s)	{
+		//.tickstart;
+		classsound::cbplay2(s);
+		angeneral.play("talk");
+	}
+	mousefin	{
+		match(imousestate)	{
+			0 => { if( .getpx<500 ) { imousestate=1; imyszspeed2=imyszspeed; fxmysz1.play;}
+				.move(imyszspeed,0); }
+			1 => { if ( imyszspeed2>=0 ) imousestate++;
+				else { imyszspeed2++; .move(imyszspeed2,0); } }
+			20 => { if( imyszspeed2==imyszspeed ) imousestate=21;
+				 else {.move( imyszspeed2, 0); imyszspeed2--; } }
+			21 => if( .getex < -100 ) { imousestate=0; .move( -(.getpx-1800), 0 ); }
+				else .move(imyszspeed,0); 
+			? => imousestate++;
+		}
+		.play(-1);
+	}
+	/*mouse_move()	{
+		anpom.unlink;
+		anpom.ansetbpos( mouse.getpos );
+		anpom.link;
+	}*/
+	mouse_lclick()	{
+		if( anlamp0.isin(mouse.getpos, true, true) )	{
+			if( anlamp0.framenr==0 )	{
+				anlamp0.setframe(0,1);
+				anlamp2.play(2);
+				fxwlacznik.play;
+			} else {
+				anlamp0.setframe(0,0);
+				anlamp2.anhide;
+				fxwlacznik.play;
+			}
+		}
+	}
+	puzzle_BUTCLICK		{	gameapi.play("MenuPuzzleTryb");	}
+	roznice_BUTCLICK	{	gameapi.play("MenuRoznice");	}
+	dopas_BUTCLICK		{	gameapi.play("gamemenudopas");	}
+	kolorowanka_BUTCLICK	{	gameapi.play("MenuKolorowanka");	}
+	zagadki_BUTCLICK	{	igmbegin=true; gameapi.play("zgadnijmulti1");	}
+	memo_BUTCLICK		{	gameapi.play("MenuMemo");	}
+}
+/*******************************************************/
+
+game gameoutro : classadvadamigo2 {
+	init	{
+		classadvadamigo2::init;
+		.path =("outro");
+		new gmimgvec grbg;
+		"grbg" ..< "bgs.pyz";
+		.img = ("titles.pyz");
+		new @idtit = 0;
+		new @Ile = 0;
+		new @Id = 0;
+		new gmimgvec grim;
+		string s;
+		for( int i=0; i<11; i++)	{
+			s = "img"+i;
+			new img <s>;
+			grim.add(s);
+		}
+		.newdb("dbl","pos.db");
+		new classfadeinout clf;
+		.cnewtimerfin("timcyk", 1000, 1, "fintim");
+		.view;
+	}
+	fintim	{
+		clf.imgtransparency(1, -5, "img"+Id, "next");
+	}
+	next	{
+		@s = "img"+Id;
+		<s>.transparency(255);
+		<s>.hide;
+		Id++;
+		if( Id==Ile )	.view;
+		else	timcyk.play;
+	}
+	view	{
+		if( idtit==antitles.nofframes(0) )	.endintro;
+		else {
+			grim.hide;
+			string s;
+			Ile = (dbl.getcolsno(idtit) - 1)/3;
+			Id = 0;
+			for( int i=0; i< Ile; i++)	{
+				s = "img"+i;
+				<s>.load("scripts/outro/o"+(idtit+1)+"_"+i+".png");
+				<s>.setpos( dbl.get(idtit, 3*i + 2), dbl.get(idtit, 3*i + 3) );
+				<s>.show;
+				<s>.setz(20-i);
+			}
+			antitles.setframe(0,idtit);
+			idtit++;
+			timcyk.play;
+		}
+	}
+	endintro		{	gameapi.play("exit");	}
+	mouselclick	{
+		.endintro;
+	}
+}
+
+
+new int iKolorowankaTryb = 1;	// 0 - dowolny, 1 - sterowany
+new vector vPostacie {
+	.type("string");
+	.beginadd("begin", "detektyw", "informatyk", "kwiaciarka", "kucharz", "fryzjerka", "malarz", 
+			"marynarz", "naukowiec", "policjant", "strazak", "nauczycielka");
+};
+new @KoloLudek = vPostacie.get(0);
+
+class Dymarka	{
+	init	{}
+	initdym	{
+		.sfxs = (A, "tykacz", "para 50");
+		new anima andym {
+			.load("scripts/puzzle/dym.pyz");
+			.setz(15);
+			.hide;
+			.addmethod("onfinish", func {	.hide;	timdym.play;	} );
+		};
+		.timer = ("timdym", 2000+0->rand(1000), func {
+			andym.play(-1);
+			fxpara.play;
+			.delay( 2000 + 0->rand(20)*500); } );
+		timdym.play;
+		
+		new anima anmano	{
+			.load( "scripts/kolorowanka/" + ( 0->rand(2) ? "manometr" : "manodrugi" ) + ".pyz");
+			.setz(11);
+			.addmethod("onstart", func { fxtykacz.playif; } );
+		};
+	}
+}
+
+game MenuKolorowanka : classadvadamigo2 , TMenu, Dymarka	{
+	init()	{
+		classadvadamigo2::init;
+		.loadsoldat( 0, 630 );
+		ansoldat.anaddfilter;
+		ansoldat.rotate( 315 );
+		.tinit("mkolorowanka", "scripts/kolorowanka/", "podmenu.pyz");
+		.buildsnds(A,
+			"sndintro", "Wybierz tryb kolorowania", "soldatstand",
+			"sndsterowany", "Pokoloruj postaæ jak na obrazku","soldatstand",
+			"snddowolny", "Pokoloruj postaæ dowolnie", "soldatstand"	);
+		
+		.initdym;
+		anmano.addmethod("onfinish", func { gameapi.play("Kolorowanka"); } );
+		.cbplay("sndintro");
+	}
+	cbplay(@s)	{ .soldattalk(s);	}
+	startgra(int id)	{
+		if( igmstate!=10)	{
+			igmbegin = true;
+			igmstate = 10;
+			iKolorowankaTryb = id;
+			anmano.play(-1);
+			andym.play(0);
+		}
+	}
+	sterowany_BUTCLICK	{	.startgra(1);  }
+	dowolny_BUTCLICK	{	.startgra(0);  }
+}
+
+game Kolorowanka : classadvadamigo2, TPainter	{
+	init()	{
+		classadvadamigo2::init;
+		.sfxs = (A, "pedzel 60", "pedzel2 60", "ikonka 70");
+		
+		if( iKolorowankaTryb==0 )	{
+			.tinit("paintdow", "scripts/kolorowanka/", "bgdowolny.pyz", "brush.pyz", KoloLudek+".pyz",
+				"coldowolny.pyz", "lu");
+			.sounds = (A, "sndintro", "Pokoloruj obrazek", null );
+			/*.newanima("anlewo", "strzaleczki.pyz", 200);
+			.copyanima("anlewo", "anprawo");
+			new gmimgvec strzalki;
+			_ = "strzalki" .+ "anlewo" .+ "anprawo";
+			anprawo.setframe(0,1);
+			strzalki.setpos( 400, 560 );*/
+			.newanima("anlewo", "strzalki2.pyz", 200);
+			.copyanima("anlewo", "anprawo");
+			anprawo.setframe("right", 0);
+			.copyanima("anlewo", "anbgstrz");
+			anbgstrz.setframe("bg", 0);
+			anbgstrz.setz( 190 );
+			new gmimgvec strzalki;
+			_ = "strzalki" .+ "anlewo" .+ "anprawo";
+			new string smoved = null;
+			grpaleta.each( func { (@id) .paint( .getrgba( .getcx, .getcy ), 0 ); } );
+			.unlock;
+		} else {
+			.tinit("paint", "scripts/kolorowanka/", "bkg.pyz", "brush.pyz", KoloLudek+".pyz",
+				KoloLudek+"kol.pyz", "lu");
+			.lockall;
+			new gmimgvec grmaly	{
+				this ..< (KoloLudek+"s.pyz");
+				.setz(10);
+				@s = .get( .findsac("foreground") );
+				.remove(s);
+				<s>.setz(11);
+			};
+			
+			new classplacepointer2 clp;
+			new classsimplebutton cbok;
+			cbok.build("scripts/menus/przycok.pyz", "imglobcurs", 0, 545, 100, 0);
+			
+			.list = (A, "detektyw", "informatyk", "kucharz", "malarz", "marynarz", "naukowiec",
+				"policjant", "strazak", "lmen");
+			.list = (A, "fryzjerka", "kwiaciarka", "nauczycielka", "lwomen");
+			
+			@sfunkol = func { .cbplay("snd" + KoloLudek); };
+			@sfunpostac = func { .cbplay( igmstate==2 ? "sndend" : "sndpowrot"+splec); };
+			@sfundali = func { .cbplay("snddalej2"); };
+			new @splec = lmen.contains(KoloLudek) ? "men" : "women";
+			new @sfunstart = func { .unlockall; igmstate=1; };
+			.sounds = ( A,
+				"sndintro", "Pokoloruj postaæ któr± widzisz na ¶rodku ekranu tak samo jak tê w rogu",
+					func { clp.show(cbok.getimgfunc("getcx"), cbok.getimgfunc("getcy"), "ld");
+						.cbplay("snddalej"); },
+				"snddalej", "Je¿eli uznasz ¿e postaæ pokolorowana jest prawid³owo wci¶nij przycisk sprawd¼",
+					func { clp.stoph; .cbplay("sndstart"); },
+				"sndstart", "Zaczynamy!", sfunstart,
+				"sndok", "Brawo! Idealnie", func { .cbplay( "snd" + splec ); },
+				"sndmen", "pokolorowany", sfunkol,
+				"sndwomen", "pokolorowana", sfunkol,
+				"snddetektyw", "detektyw", sfunpostac,
+				"sndinformatyk", "informatyk", sfunpostac,
+				"sndkucharz", "kucharz", sfunpostac,
+				"sndmalarz", "malarz", sfunpostac,
+				"sndmarynarz", "marynarz", sfunpostac,
+				"sndnaukowiec", "naukowiec", sfunpostac,
+				"sndpolicjant", "policjant", sfunpostac,
+				"sndstrazak", "stra¿ak", sfunpostac,
+				"sndfryzjerka", "fryzjerka", sfunpostac,
+				"sndkwiaciarka", "kwiaciarka", sfunpostac,
+				"sndnauczycielka", "nauczycielka", sfunpostac,
+				"sndend", "Kliknij aby przej¶æ do kolorowania nastêpnej postaci", func { igmstate=4; },
+				"sndnon", "Niestety", func { igmstate=3; .cbplay("snd" + KoloLudek); },
+				"sndpowrotmen", "nie jest tak samo pokolorowany jak ten w rogu", sfundali,
+				"sndpowrotwomen", "nie jest tak samo pokolorowana jak ta w rogu", sfundali,
+				"snddalej2", "Przypatrz siê uwa¿nie popraw b³êdy i kliknij przycisk sprawd¼ ponownie",
+					sfunstart );
+				
+				new vector vkolory;
+				grmaly.each( func { (@id)
+					//.framename->print;
+					vkolory.add(grpaleta._find1(func{ (@s) .framename->contains(s); }, .framename));
+					@s = grpaleta.get(vkolory.last);
+					.paint(<s>.getrgba(<s>.getcx, <s>.getcy), 0 );
+					} );
+// 			vkolory.print;
+			//grpaleta.each( func { (@id) .paint( .getrgba( .getcx, .getcy ), 0 ); } );	// jednolity kolor
+			}
+			new Color color {
+				.img = (grpaleta.get(0));
+				a = 255;
+				anbrush2.paint( .get, 0 );
+				.var2("framenr", <grpaleta.get(0)>.framenr );
+			};
+			grdraw.each( func { (@id) .var2("colored", -1); } );
+			if( iKolorowankaTryb==0 )	.loadgame;		// ostatni pokolorowany
+			if( igmbegin )	{
+				.cbplay("sndintro");
+				igmbegin=false;
+			} else {
+				if( iKolorowankaTryb==1 )	.cbplay("sndstart");
+			}
+	}
+	cbok_CLICK	{
+		if( igmstate!=1 ) return;
+		if( grdraw.ineach( func { (@id) colored==vkolory.get(id); } ) )	{
+			igmstate=2;
+			.cbplay("sndok");
+		} else {
+			igmstate = 3;
+			.cbplay("sndnon");
+		}
+	}
+	nextgame	{
+		KoloLudek = vPostacie.vecnext( KoloLudek );
+		gameapi.play( "Kolorowanka" );
+	}
+	prevgame	{
+		KoloLudek = vPostacie.vecprev( KoloLudek );
+		gameapi.play( "Kolorowanka" );
+	}
+	savegame	{
+		new vector vSave;
+		grdraw.each( func { (@id) vSave.add( colored ); } );
+		vSave.save( "saves/kolo" + vPostacie.find( KoloLudek ) + ".vec" );
+	}
+	loadgame		{
+		@sfile =  "saves/kolo" + vPostacie.find( KoloLudek ) + ".vec";
+		if( engine.fileexist( sfile ) )	{
+			new vector vLoad;
+			vLoad.load( sfile );
+			grdraw.each( func { (@id)
+				@idcol = vLoad.get(id);
+				if( idcol>=0 )	{
+					@s = grpaleta.get(idcol);
+					.paint(<s>.getrgba(<s>.getcx, <s>.getcy), 0 );
+				}
+				colored = idcol; } );
+		}
+	}
+	mouse_move	{
+		TPainter::mouse_move;
+		if( iKolorowankaTryb==0 )	{
+			 if (strzalki.isin(mouse.getpos,true,true) ) {
+				if( smoved!=strzalki.getsfound ) {
+					fxikonka.play;
+					if( smoved!=null )	<smoved>.setframe(-1, 0);
+					smoved = strzalki.getsfound;
+					<smoved>.setframe(-1, 1);
+				}
+			} else {
+				if( smoved!=null )	{
+					<smoved>.setframe(-1, 0);
+					smoved = null;
+				}
+			}
+		}
+	}
+	mouse_lclick	{
+		if( igmstate==4 )	{
+			.nextgame;
+			return;
+		}
+		//if( igmdebug ) .cactsndstop(true);
+		.cactsndstop(true);
+		if( !.getlock )	{
+			@s;
+			|int x, int y| = mouse.getpos;
+			if( grdraw.isin(x,y,true,true) )	{
+				s = grdraw.getsfound;
+				<s>.paint( anbrush2.getrgba(anbrush2.getpx+_ibrx,anbrush2.getpy+_ibry), 0 );
+				<s>.colored = (color.framenr);
+				fxpedzel2.play;
+			} else if ( grpaleta.isin(x,y,true,true) )	{
+				s = grpaleta.getsfound;
+				|@c[4]| = <s>.getrgba(x,y);
+				c3 = 255;
+				anbrush2.paint( c0, c1, c2, c3, 0 );
+				color.framenr = ( <s>.framenr );
+				fxpedzel.play;
+			} else if ( iKolorowankaTryb==0 && anlewo.isin(x,y,true,true) )	{
+				.savegame;
+				.prevgame;
+			} else if ( iKolorowankaTryb==0 && anprawo.isin(x,y,true,true) )	{
+				.savegame;
+				.nextgame;
+			}
+		}
+	}
+}
+
+/*game gamemenudopas : classadvadamigo2 , Tclassmenu	{
+	init()	{
+		classadvadamigo2::init();
+		Tclassmenu::init();
+		this.tload("scripts/dopasowanki/","wstawtryb.pyz","menubuts.db");
+		bgmwstaw=true;
+		bgmdopasbegin=true;
+	}
+	mono_BUTCLICK()	{	gameapi.play("gamedopasowankamonomenu");	}
+	multi_BUTCLICK()		{	gameapi.play("gamedopasowankamulti");	}
+}*/
+game gamemenudopas : classadvadamigo2 , TMenu	{
+	init()	{
+		classadvadamigo2::init;
+		.loadsoldat( 396, 600 );
+		.tinit("mdopas", "scripts/dopasowanki/", "menudopas.pyz");
+		.newanima("anpojed", "pojedyn.pyz", 100);
+		.buildsnds(A,
+			"sndintro", "Wybierz tryb gry i planszê", "soldatstand",
+			"sndall", "wszystkie elementy","soldatstand",
+			"sndlazienka", "³azienka", "soldatstand",
+			"sndsalon", "salon", "soldatstand",
+			"sndkuchnia", "kuchnia", "soldatstand",
+			"sndzabawowy", "pokój dzieciêcy", "soldatstand");
+		.cbplay("sndintro");
+		new int iZ = but1 { grbuts.getz; };
+	}
+	cbplay(@s)	{ .soldattalk(s);	}
+	playgame(string s)	{
+		sgmdopas=s;
+		bgmdopasbegin=true;
+		gameapi.play("gamedopasowankamono");
+	}
+	setact	{
+		but1 { <grbuts.getsfound>.setz( iZ+1 ); };
+		anpojed.setframe(0,1);
+	}
+	setstd	{
+		but1 { grbuts.setz(iZ);	};
+		anpojed.setframe(0,0);
+	}
+	all_BUTCLICK()	{	bgmdopasbegin=true; gameapi.play("gamedopasowankamulti");	}
+	lazienka_BUTCLICK()	{	.playgame("lazienka");	}
+	salon_BUTCLICK()	{	.playgame("salon");	}
+	zabawowy_BUTCLICK()	{	.playgame("zabawowy");	}
+	kuchnia_BUTCLICK()	{	.playgame("kuchnia");	}
+	lazienka_MOVEON	{	.setact;	}
+	lazienka_MOVEOFF	{	.setstd;	}
+	salon_MOVEON		{	.setact;	}
+	salon_MOVEOFF		{	.setstd;	}
+	kuchnia_MOVEON		{	.setact;	}
+	kuchnia_MOVEOFF	{	.setstd;	}
+	zabawowy_MOVEON	{	.setact;	}
+	zabawowy_MOVEOFF	{	.setstd;	}
+}
+
+new string sgmdopas;
+new bool bgmdopasbegin = true;
+game gamedopasowankamonomenu : classadvadamigo2	{
+	init()	{
+		classadvadamigo2::init();
+		string s = "scripts/dopasowanki/";
+		bgmdopasbegin=true;
+		this.setgraphpath(s);
+		this.csetbkg("bgmenu.png");
+		new classsimplebutton cb1;
+		cb1.build(s+"lazienka.png", "imglobcurs", 100, 0, 10, 0);
+		new classsimplebutton cb2;
+		cb2.build(s+"salon.png", "imglobcurs", 400, 0, 10, 0);
+		new classsimplebutton cb3;
+		cb3.build(s+"kuchnia.png", "imglobcurs", 100, 300, 10, 0);
+		new classsimplebutton cb4;
+		cb4.build(s+"zabawowy.png", "imglobcurs", 400, 300, 10, 0);
+		this.cloadwavs("dbwav","menuwavs.db");
+		this.cbplay("sndintro");
+	}
+	playgame(string s)	{
+		sgmdopas=s;
+		gameapi.play("gamedopasowankamono");
+	}
+	mmovon(string s)	{
+		sndakskermovon.play();
+		if( sndintro.isplaying()==false )	{
+			this.crselfplay("snd"+s);
+		}
+	}
+	cb1_CLICK()	{	this.playgame("lazienka");	}
+	cb2_CLICK()	{	this.playgame("salon");	}
+	cb3_CLICK()	{	this.playgame("kuchnia");	}
+	cb4_CLICK()	{	this.playgame("zabawowy");	}
+	cb1_MOVEON()	{	this.mmovon("lazienka");	}
+	cb2_MOVEON()	{	this.mmovon("salon");	}
+	cb3_MOVEON()	{	this.mmovon("kuchnia");	}
+	cb4_MOVEON()	{	this.mmovon("zabawowy");	}
+}
+
+game classgamedopasowanka : classadvadamigo2	{
+	init()	{
+		classadvadamigo2::init();
+		this.setgraphpath("scripts/dopasowanki/");
+		
+		new classplacepointer2 clp;
+		new classsimplebutton cbok;
+		cbok.build("scripts/menus/przycok.pyz", "imglobcurs", 0, 545, 1000, 0);
+		new int izlicz=30;
+		// przedmioty
+		new gmimgvec grel;
+		new gmimgvec grsprawdz;
+		new gmimgvec grpoprawne;
+		new int iToler = 10;
+		
+		this.newanima("anel","elementy.pyz",10);
+		int ile = this.newanfrbyactgr("anel", "anel", "grel");
+		anel.hide();
+		grel.hash();
+		new Rewinder clrew;
+		clrew.build("scripts/wstawianki/strzalki.pyz",5,"imglobcurs","right",10,"grel");
+		
+		grel.move((anel.getw()-clrew.getbutw())/2 - 120 ,0);
+		clrew.movearrows(-120, 0);
+		grel.eval("anaddfilter");
+		grel.eval1("setpivottype",1);
+		new int itafx = grel.getpx();
+		
+		this.newsnd("sfxmov","sfx/step.wav");
+		this.newsnd("sfxclick","sfx/getitem.wav");
+		this.newsnd("sfxrel","sfx/putpuz.wav");
+		
+		new int iletafli = grel.size();
+		for( int i=0; i<iletafli;i++)	{
+			<grel.get(i)>._buildtafel();
+		}
+		
+		new DelayTaker cldt;
+		
+		new DelayTaker cldt2;
+		new ImgMover clmv2;
+		
+		igmstate=0;
+		
+		new classfadeinout clfio;
+		new int iclfiov = -20;
+		new string sfiotaf;
+	}
+	loadmaski(string sfile, string sgrp)	{
+		new gmimgvec <sgrp>;
+		string san = "an" + sgrp;
+		this.newanima(san, sfile,100);
+		_ = this.newanfrbyactgr(san, san, sgrp);
+		<san>.hide();
+	}
+	int nextlicz()	{
+		izlicz++;
+		if( izlicz>900 )	{	izlicz=30;	}
+		return izlicz;
+	}
+	_buildtafel()	{
+		new int _iinx = this.getpx();
+		new int _iiny = this.getpy();
+	}
+	puttafel()	{
+		this.setpos(_iinx+grel.getpx()-this.lodx()-itafx,_iiny+grel.getpy()-this.lody());
+		this.setopacity(255);
+		this.link();
+	}
+	fintafel()	{
+		igmstate = 1;
+		<sfiotaf>.hide;
+	}
+	bool puttafel2(string sgm, string sgr)	{
+		this.setz(this.nextlicz());
+		string s = this.getname();
+		if( this.actionname()==sgm && clsurf.commonimgs( s, <sgr>.get( this.framenr() ) ) )	{
+			this.link();
+			igmstate = 0;
+			sfiotaf = s;
+			clfio.setopacity(1, iclfiov, s, "fintafel");
+			grpoprawne.add(s);
+			return true;
+		} else {
+			this.setopacity(128);
+			this.link();
+			return false;
+		}
+	}
+	mdali()	{
+		if( igmstate==0)	{
+			this.cbplay("sndintro2");
+			clp.show(cbok.getimgfunc("getcx"), cbok.getimgfunc("getcy"), "ld");
+		} else if (igmstate==2)	{
+			igmstate = 1;
+		}
+	}
+	cbok_MOVEON()	{	sndakskermovon.play();	}
+	mstart()	{
+		igmstate=1;
+		clrew.unlock();
+	}
+	mousemove()	{
+		clrew.moveitem();
+		clmv2.msmove();
+	}
+	mouselrel()	{
+		if( igmstate!=1 )	{	return;	}
+		if( cldt.isonrel() )	{
+			this.mwstaw();
+		} else if (cldt2.isonrel())	{
+			this.mwstaw2();
+		}
+	}
+	virtual stopsnd()	{
+		this.cactsndstop(true);
+	}
+	mouselclick()	{
+		if( igmdebug || sndbad.isplaying() || sndnotall.isplaying() )	{
+			this.stopsnd();
+		}
+		if( igmstate!=1 )	{	return;	}
+		int x, int y, string s, int id;
+		if( cldt.isonclick() )	{
+			this.mwstaw();
+		} else if (cldt2.isonclick())	{
+			this.mwstaw2();
+		} else if ( !cldt.istaken() )	{
+			x = mouse.getpx();
+			y = mouse.getpy();
+			s = grel.getimg(x,y,true,true);
+			if( s!=null && <s>.withincut(x,y) )	{
+				<s>.setz(1030);
+				<s>.unlink();
+				clrew.getitem(s,x,y);
+				cldt.take();
+				sfxclick.play();
+			} else {
+				this.msprawdzwstawione(x,y);
+			}
+		}
+	}
+	msprawdzwstawione(int x, int y)	{}
+	mnotall()	{	igmstate=1;	}
+	clrew_up_MOVEON()	{	sfxmov.play();	}
+	clrew_down_MOVEON()	{	sfxmov.play();	}
+}
+
+game gamedopasowankamono : classgamedopasowanka	{
+	init()	{
+		classgamedopasowanka::init();
+		this.setgraphpath("scripts/dopasowanki/");
+		clrew.setfxrew("sfx/przesun.wav");
+		this.buildobjects();	
+		this.cloadwavs("dbwav","wavsmono.db");
+		if( bgmdopasbegin )	{
+			bgmdopasbegin=false;
+			this.cbplay("sndintro");
+		} else {
+			this.mstart();
+		}
+	}
+	cbok_CLICK()	{
+		if( igmstate!=1 )	return;
+		grsprawdz .= "grpoprawne";
+		grsprawdz.addgr("grin");
+		int ile = grsprawdz.size();
+// 		if( ile==0 )	{	return;	}
+		igmstate=0;
+		for( int i=0; i<ile; i++)	{
+			if( <grsprawdz.get(i)>.actionname()!=sgmdopas )	{
+				this.cbplay("sndbad");
+				string s2 = grsprawdz.get(i);
+				<s2>.setopacity(255);
+				<s2>.setz( this.nextlicz() );
+				grin.sortimgs();
+				return;
+			}
+		}
+		if( ile < anel.nofframes(sgmdopas) )	{
+			this.cbplay("sndnotall");
+		} else {
+			this.cbplay("sndhura");
+		}
+		sfxmov.play();
+	}
+	msprawdzwstawione(int x, int y)	{
+		string s = grin.getimg(x,y,true,true);
+		if(s!=null)	{
+			<s>.setz(1030);
+			<s>.unlink();
+			grin.remove(s);
+			cldt2.take();
+			clmv2.setobj(s,x,y);
+			sfxclick.play();
+		}
+	}
+	mwstaw()	{
+		cldt.ret();
+		string s = clrew.getmoved();
+		int w = <s>.getw()/2;
+		int h = <s>.geth()/2;
+// 		if( clsurf.isin(<s>.getcx(), <s>.getcy(), 10+w, 10+h, 590-w, 590-h) )	{
+		if( clsurf.isin(<s>.getcx(), <s>.getcy(), w-iToler, h-iToler, 599+iToler-w, 599+iToler-h) )	{
+			if( !<s>.puttafel2(sgmdopas, "grpod") )	{
+				grin.add(s);
+			}
+			clrew.freeitem();
+		} else {
+			<s>.setz(10);
+			clrew.retitem();
+		}
+		sfxrel.play();
+	}
+	mwstaw2()	{
+		cldt2.ret();
+		string s = clmv2.getmover();
+		int w = <s>.getw()/2;
+		int h = <s>.geth()/2;
+		//if( clsurf.isin(<s>.getcx(), <s>.getcy(), 10+w, 10+h, 590-w, 590-h) )	{
+		if( clsurf.isin(<s>.getcx(), <s>.getcy(), w-iToler, h-iToler, 599+iToler-w, 599+iToler-h) )	{
+			if (!<s>.puttafel2(sgmdopas, "grpod") )
+				grin.add(s);
+			clmv2.free();
+		} else {
+			<s>.setz(10);
+			<s>.puttafel();
+			clrew.putitem(s);
+			clmv2.free();
+		}
+		sfxrel.play();
+	}
+	buildobjects()	{
+		this.csetbkg("bg"+sgmdopas+".png");
+		new gmimgvec grin;		// wstawione
+		this.loadmaski( sgmdopas+".pyz", "grpod");
+// 		grpod.move(25,25);
+		grpod.hide();
+	}
+	mintrofin()	{
+		this.cbplay("snd"+sgmdopas);
+	}
+	mbad()	{
+		igmstate=2;
+		this.cbplay("snd"+sgmdopas);
+	}
+	mhura()	{
+		igmstate=3;
+		sgmdopas = anel.annextaction(sgmdopas);
+		gameapi.play("gamedopasowankamono");
+	}
+	mintrofin2()	{
+		clp.stoph();
+		this.mstart();
+	}
+	virtual stopsnd()	{
+		if( sndbad.isplaying() )	{
+			this.cactsndstop(false);
+			igmstate=2;
+			this.mdali();
+		} else
+			this.cactsndstop(true);
+	}
+	mkuchnia()	{	this.mdali();	}
+	msalon()	{	this.mdali();	}
+	mlazienka()	{	this.mdali();	}
+	mzabawowy()	{	this.mdali();	}
+}
+
+/*************************************************************/
+
+game gamedopasowankamulti : classgamedopasowanka	{
+	init()	{
+		classgamedopasowanka::init();
+		clrew.setfxrew("sfx/przesun.wav");
+		this.cloadwavs("dbwav","wavsmulti.db");
+		new vector vecpom;
+		vecpom.type("string");
+		vecpom.beginadd("begin","lazienka","salon","kuchnia","zabawowy");
+		new int itafelgr;
+		new vector grpos;
+		//grpos.beginadd("begin",10,10,290,290, 310,10,590,290, 10,310,290,590, 310,310,590,590 );
+		grpos.beginadd("begin",1,1,299,299, 301,1,599,299, 1,301,299,599, 301,301,599,599 );
+		//engine.setdebugstate(true);
+		this.buildobjects();		// virtual
+		
+		new img imglicz {
+			.load("scripts/memo/licznik1.png");
+			.setpos( 800-.getw, 5 );
+			//.setz(0);
+		};
+		new TextTimeCounter cltc("configs/fonts/bold.ttf", 19, 250, 250, 250, 
+			imglicz.getpx+20, imglicz.getpy+13, 300, "hms");
+		//cltc.setbg(10,10,128,192);
+		
+		if( bgmdopasbegin )	{
+			bgmdopasbegin=false;
+			this.cbplay("sndintro");
+		} else {	this.mstart2();	}
+		
+		grel.move(23 ,0);
+		clrew.movearrows(23, 0);
+	}
+	cbok_CLICK()	{
+		if( igmstate!=1 )	return;
+		int ile = anel.nofframes(0);
+		igmstate=0;
+		
+		int i, int j, string s;
+		grsprawdz .= "grpoprawne";
+		for( j=1; j<=4; j++)	{
+			s = "grin"+j;
+			grsprawdz.addgr(s);
+			ile = <s>.size();
+			for( i=0; i<ile; i++)	{
+				if( <<s>.get(i)>.actionname()!=vecpom.get(j-1) )	{
+					//engine.print( <<s>.get(i)>.actionname() + " nie pasuje do " + vecpom.get(j-1) );
+					this.cbplay("sndbad");
+					string s2 = <s>.get(i);
+					<s2>.setopacity(255);
+					<s2>.setz( this.nextlicz() );
+					<s>.sortimgs();
+					return;
+				}
+			}
+		}
+		if( grsprawdz.size()<iletafli )	{
+			this.cbplay("sndnotall");
+			return;
+		}
+		this.cbplay("sndhura");
+		cltc.stop();
+		sfxmov.play();
+	}
+	msprawdzwstawione(int x, int y)	{
+		string s[2];
+		for( int i=1; i<=4; i++)	{
+			s0 = "grin"+i;
+			s1 = <s0>.getimg(x,y,true,true);
+			if(s1!=null)	{
+				<s1>.setz(1030);
+				<s1>.unlink();
+				<s0>.remove(s1);
+				cldt2.take();
+				clmv2.setobj(s1,x,y);
+				sfxclick.play();
+				itafelgr = i;
+				return;
+			}
+		}
+	}
+	mwstaw()	{
+		cldt.ret();
+		string s = clrew.getmoved();
+		int w = <s>.getw()/2;
+		int h = <s>.geth()/2;
+		string sg;
+		sfxrel.play();
+		int id = 0;
+		for( int i=1; i<=4; i++)	{
+			sg = "grin"+i;
+			if( clsurf.isin(<s>.getcx(), <s>.getcy(), grpos.get(id)+w,
+				grpos.get(id+1)+h, grpos.get(id+2)-w, grpos.get(id+3)-h) )	{
+				if( !<s>.puttafel2( vecpom.get(i-1), "grpod"+i) )
+					<sg>.add(s);
+				clrew.freeitem();
+				return;
+			}
+			id+=4;
+		}
+		<s>.setz(10);
+		clrew.retitem();
+	}
+	mwstaw2()	{
+		cldt2.ret();
+		string s = clmv2.getmover();
+		int w = <s>.getw()/2;
+		int h = <s>.geth()/2;
+		string sg;
+		sfxrel.play();
+		int id = 0;
+		for( int i=1; i<=4; i++)	{
+			sg = "grin"+i;
+			if( clsurf.isin(<s>.getcx(), <s>.getcy(), grpos.get(id)+w,
+				grpos.get(id+1)+h, grpos.get(id+2)-w, grpos.get(id+3)-h) )	{
+				if( !<s>.puttafel2(vecpom.get(i-1), "grpod"+i) )
+					<sg>.add(s);
+				clmv2.free();
+				return;
+			}
+			id+=4;
+		}
+		<s>.setz(10);
+		<s>.puttafel();
+		clrew.putitem(s);
+		clmv2.free();
+		
+		sfxrel.play();
+	}
+	buildobjects()	{
+		this.csetbkg("bgprj.png");
+		string s;
+		int id = 0;
+		for( int i=1; i<=4; i++)	{
+			new gmimgvec <"grin"+i>;
+			s = "grpod" + i;
+			this.loadmaski( vecpom.get(i-1)+"s.pyz", s);
+			<s>.move( grpos.get(id)-10, grpos.get(id+1)-10 );
+			<s>.hide;
+			id+=4;
+		}
+	}
+	mintrofin()	{
+		this.mdali();
+	}
+	mbad()	{
+		igmstate=1;
+	}
+	mhura1	{	<gameapi.getgamename>.mhura;	}
+	mhura()	{
+		new db dbrek;
+		dbrek.load("saves/rekordy.db");
+		int pos;
+		int itime = cltc.gettime();
+		
+		pos = dbrek.dbinsertless( itime );
+		dbrek.dbcuttosize(10);
+		
+		new int irekpos=pos;
+		if( pos>=10 )	{
+			this.cnewsndfin("sndrek","dopas23.wav","mfinnorek");
+			igmstate=3;
+		} else {
+			this.cnewsndfin("sndrek","dopas22.wav","mfinyesrek");
+			dbrek.getcolsno(pos)>1 ? dbrek.set( pos, 1, cltc.sgettime() ) : dbrek.add( pos, cltc.sgettime() );
+			igmstate = 5;
+		}
+		new font fnt1;
+		fnt1.load( "configs/fonts/VeraMono.ttf", 18 );
+		new text imgtxt;
+		imgtxt.setz(500);
+		imgtxt.setbkg( 200, 100, 350, 300, 128,128,192,192 );
+		imgtxt.setborders(2,10,10,10,128);
+		imgtxt.show();
+		string s;
+		int h = 25;
+		for( int i=0; i<10; i++)	{
+			s = "txtt"+i;
+			new text <s>;
+			<s>.setfont("fnt1");
+			<s>.set( i<dbrek.getrowsno() ? dbrek.get(i,1) : "99:59:59" );
+			<s>.setz(600);
+			<s>.setpos( 210, 120+(i*h) );
+			if( i==irekpos )	{
+				<s>.createtxt( 255,80,80 );
+				new TextTyper cltxt1("fnt1", 18, 255,80,80, "a0 ", 15);
+				cltxt1.setpos( 310, 120+i*h );
+				cltxt1.setz(600);
+				cltxt1.onenter(null,"writtenauthor");
+			} else {
+				<s>.createtxt( 220,220,220 );
+				s = "txtt2"+i;
+				new text <s>;
+				<s>.setfont("fnt1");
+				<s>.set( i<dbrek.getrowsno() ? dbrek.get(i,2) : "---------------" );
+				<s>.createtxt( 220,220,220 );
+				<s>.setpos( 310, 120+i*h );
+				<s>.setz(600);
+			}
+		}
+		this.cbplay("sndrek");
+	}
+	writtenauthor()	{
+		string s = cltxt1.get();
+		if( dbrek.getcolsno(irekpos)<3 )	{
+			dbrek.add(irekpos, s);
+		} else dbrek.set( irekpos, 2, s );
+		dbrek.save("saves/rekordy.db");
+		this.mfinnorek();
+	}
+	mfinyesrek()	{
+		cltxt1.enable();
+		igmstate = 4;
+	}
+	mfinnorek()	{
+		claskexit.askrestart();
+	}
+	keydown()	{
+		if( igmstate!=4 )	return;
+		cltxt1.onkeydown();
+	}
+	mouserclick()	{
+		if( igmdebug )	{
+			this.cactsndstop(false);
+			//this.mhura();
+			.cbplay("sndhura");
+		}
+	}
+	mintrofin2()	{
+		clp.stoph();
+		this.mstart2();
+	}
+	mstart2()	{
+		cltc.play();
+		this.mstart();
+	}
+	mkuchnia()	{}
+	msalon()	{}
+	mlazienka()	{}
+	mzabawowy()	{}
+}
+
+/*******************************************************/
+new string sgamewstaw;
+new int igmwstawtype;
+new bool bgmwstaw;
+game gamemenuwstaw : classadvadamigo2 , Tclassmenu	{
+	init()	{
+		classadvadamigo2::init();
+		Tclassmenu::init();
+		this.tload("scripts/wstawianki/","menubuts.pyz","menubuts.db");
+		bgmwstaw=true;
+	}
+	startgame(string sg)	{
+		sgamewstaw = sg;
+		gameapi.play("gamesubmenuwstaw");
+	}
+	wiosna_BUTCLICK()	{	this.startgame("wiosna");	}
+	lato_BUTCLICK()	{	this.startgame("lato");	}
+	jesien_BUTCLICK()	{	this.startgame("jesien");	}
+	zima_BUTCLICK()	{	this.startgame("zima");	}
+}
+
+game gamesubmenuwstaw : classadvadamigo2 , Tclassmenu	{
+	init()	{
+		classadvadamigo2::init();
+		Tclassmenu::init();
+		this.tload("scripts/wstawianki/","submenu.pyz","submenu.db");
+		bgmwstaw=true;
+	}
+	tryb1_BUTCLICK()	{
+		igmwstawtype = 1;
+		gameapi.play("gamewstawianka");
+	}
+	tryb2_BUTCLICK()	{
+		igmwstawtype = 2;
+		gameapi.play("gamewstawianka");
+	}
+	tryb3_BUTCLICK()	{
+		igmwstawtype = 3;
+		gameapi.play("gamewstawiankazgadanka");
+	}
+}
+
+game gamewstawianka : classadvadamigo2	{
+	init()	{
+		classadvadamigo2::init();
+		.path = ("wstawianki");
+		.bkg = ("bkgame.pyz");
+		
+		new int ilejest;
+		int ile;
+		string s, string s1;
+		int i1;
+		new gmimgvec gral;
+		
+		if( igmwstawtype==1 ){
+			this.newanima("anbg",sgamewstaw+".pyz",1);
+			this.newanima("anel","elementy.pyz",10);
+			ilejest = anel.nofframes(sgamewstaw);
+			ile = ilejest*2;
+		}else if( igmwstawtype==2 )	{
+			this.newanima("anbg",sgamewstaw+"2.pyz",1);
+			this.copyanima("anbg","anel");
+			anel.setz(10);
+			anel.setframe(1,0);
+			ilejest = anel.nofframes(1);
+			ile=ilejest;
+		}
+		
+		for( int i=0; i<ile; i++)	{
+			s = "anel"+i;
+			this.copyanima("anel",s);
+			if( i<ilejest )	{
+				if( igmwstawtype==1 )	<s>.setframe( sgamewstaw, i );
+				else if( igmwstawtype==2 )	<s>.setframe( 1, i );
+			} else {
+				i1 = i1.rand( <s>.nofactions() );
+				while(i1==anel.actionnr(sgamewstaw))	{
+					i1 = i1.rand( <s>.nofactions() );
+				}
+				<s>.setframe( i1, i1.rand( <s>.nofframes(i1) ) );
+			}
+			gral.add(s);
+			/*s1 = "butel"+i;
+			this.newbutan(s1, s, null, null, "imglobcurs");
+			<s1>.addmethod("onclick", "butclick");
+			<s1>.addmethod("onrel", "butrel");*/
+		}
+		new int imovy = 290-anbg.geth()/2;
+// 		anbg.move(0,imovy);
+		
+		gral.hash();
+		gral.sortimgs;
+		new Rewinder clrew;
+		clrew.build("scripts/wstawianki/strzalki.pyz",5,"imglobcurs","left",10,"gral");
+		clrew.setfxrew("sfx/przesun.wav");
+// 		gral.move(-100,0);
+// 		clrew.movearrows(-100,0);
+		anel.hide();
+		
+		new string smoved=null;
+		new int imovx= 769-anbg.getw;
+		new int idxmov = 15;
+		anbg.move(imovx, imovy);
+		
+		new DelayTaker cldt;
+		
+		this.newsnd("sfxmov","sfx/step.wav");
+		this.newsnd("sfxclick","sfx/getitem.wav");
+		this.newsnd("sfxrel","sfx/putpuz.wav");
+		
+		new vector vecgry;
+		vecgry.type("string");
+		vecgry.beginadd("begin", "wiosna", "lato", "jesien", "zima");
+		this.newsnd("sndend1", "wstaw"+( vecgry.find( sgamewstaw ) + 10 ) + ".wav" );
+		sndend1.addmethod("onfinish", "sndend1fin");
+		
+		this.cloadwavs("dbwav", "wavs.db");
+		igmstate=0;
+		if( bgmwstaw )	{
+			bgmwstaw=false;
+			this.cbplay("sndintro");
+		} else {
+			this.mintrofin();
+		}
+	}
+	mintrofin()	{
+		igmstate=1;
+		clrew.unlock();
+	}
+	mousemove	{	clrew.moveitem;	}
+	mouselrel	{	.butrel;	}
+	mouselclick	{
+		.butclick;
+	}
+	butclick()	{
+		this.mfinish();
+		if( igmstate!=1 )	return;
+		if( cldt.isonclick )	.mwstaw;
+		else if ( smoved==null )	{
+			int x = mouse.getpx();
+			int y = mouse.getpy();
+			string s = engine.getimg(x,y, true, true, 10 , 10 );
+			
+			if( s!=null && <s>.withincut(x,y) )	{
+				sfxclick.play;
+				clrew.getitem(s,x,y);
+				<s>.setz(20);
+				smoved = s;
+				cldt.take;
+			}
+		}
+	}
+	/*clrew_up_CLICK		{ "gora"->print;	}
+	clrew_down_CLICK	{ "gora"->print;	}*/
+	mwstaw()	{
+		cldt.ret();
+		sfxrel.play();
+		anel.setframe( <smoved>.actionname(), <smoved>.framenr() );
+		anel.setpos(imovx,imovy);
+		int i1 = cllen.ilen3("anel",smoved);
+		if( i1 < 30 && (igmwstawtype==2 || <smoved>.actionname()==sgamewstaw) )	{
+			clrew.freeitem();
+			<smoved>.setz(5);
+			<smoved>.setpos(imovx,imovy);
+			ilejest--;
+			if( ilejest<=0 )	{
+				this.mkoniec();
+			} else {	this.cbplay("cpok");	}
+		} else {
+			<smoved>.setz(11);
+			clrew.retitem();
+			this.cbplay("cpnon");
+		}
+		smoved=null;
+	}
+	butrel	{
+		if( igmstate!=1 )	return;
+		if( cldt.isonrel )	.mwstaw;
+	}
+	mkoniec	{
+		igmstate=0;
+		.cbplay("cpok");
+	}
+	_cpokfin()	{	if( ilejest<=0 )	.cbplay("sndend1");	}
+	sndend1fin()	{	this.cbplay("sndend");	}
+	mfinish()	{
+		if( igmstate!=2 )	return;
+		sgamewstaw = vecgry.get( (vecgry.find(sgamewstaw)+1)%vecgry.size );
+		gameapi.play("gamewstawianka");
+	}
+	mendfin()	{	igmstate=2;	}
+	clrew_up_MOVEON	{	sfxmov.play;	}
+	clrew_down_MOVEON	{	sfxmov.play;	}
+}
+
+
+
+class zgadnijplayer	{
+	init()	{
+		string s = gameapi.getgamename();
+		<s>.newanima("anp1", "players.pyz", 5);
+		<s>.copyanima("anp1", "anp2");
+		//<s>.newanima("anst1", "strzalki.pyz", 101);
+		//<s>.copyanima("anst1", "anst2");
+		//anst1.setframe("left",0);
+		//anst2.setframe("right",0);
+		
+		new int iactive;
+		new bool bstopped;
+		new bool bdis1;
+		new bool bdis2;
+		this.setstd();
+	}
+	putplayers(int x1, int x2)	{
+		anp1.setpos(x1,0);
+		anp2.setpos(x2,0);
+		this.putstrzalki();
+	}
+	putonkolo()	{	this.putplayers( 0, 0);	}
+	putstrzalki()	{
+ 		//anst1.setpos( anp1.getcx() - anst1.getw()/2 - anst1.lodx(), anp1.getey() - anst1.lody() );
+ 		//anst2.setpos( anp2.getcx() - anst2.getw()/2 - anst2.lodx(), anp2.getey() - anst2.lody() );
+	}
+	putonrogi()	{
+		anp1.setpos(0 - anp1.lodx(),0 - anp1.lody());
+		anp2.setpos(800-anp2.getw() - anp2.lodx(), 0 - anp2.lody());
+		this.putstrzalki();
+	}
+	setstd()	{
+		bstopped = false;
+		bdis1 = false;
+		bdis2 = false;
+		anp1.setframe("p1",0);
+		anp2.setframe("p2",0);
+		iactive=0;
+	}
+	setp(int id)	{
+		if( bstopped || id==["bdis"+id])	return;
+		iactive = id;
+		<"anp"+id>.ansetframe(1);
+	}
+	stop()	{	bstopped = true;	}
+	dyskwalifikuj(int id)	{	<"bdis"+id> = true;	}
+	getactive()	{
+		if( anp1.framenr()==1 && anp2.framenr()==1 ) return 3;
+		else return iactive;
+	}
+	next()	{
+		if( iactive==1 )	{
+			this.setstd();
+			this.setp(2);
+		} else if (iactive==2)	{
+			this.setstd();
+			this.setp(1);
+		} else {
+			engine.print("error! can't set next player");
+		}
+	}
+}
+
+module mzgad	{
+	init() {
+		new vector vecp1;	// klatki postaci
+		new vector vecp2;	// klatki postaci
+		vecp1.type("int");
+		vecp2.type("int");
+	}
+	starttryb1()	{	vecp1.free(); vecp2.free();	}
+	add1(string s)	{	vecp1.add(<s>.framenr() );	}
+	add2(string s)	{	vecp2.add(<s>.framenr() );	}
+	starttryb2()	{
+		vecp1.addtogamevars("vecp1");
+		vecp2.addtogamevars("vecp2");
+	}
+	print()	{
+		vecp1.print();
+		vecp2.print();
+	}
+}
+
+game zgadnijmulti1 : classadvadamigo2, GameController, Dymarka	{
+	init()	{
+		classadvadamigo2::init();
+		.sfxs=(A,"koloL", "kolostart", "silnik", "endmachine", "kolostop", "mikrofala", "getpuz", "putpuz",
+			"elektropik");
+		fxkolostart.addmethod("onfinish", func { fxkolo.play;	} );
+		GameController::init("zgmu1_");
+		this.setgraphpath("scripts/zgadnij/");
+		this.bkgpyz();
+		this.newanima("ankolo", "kolo.pyz", 1);
+		.newanima("anrama", "machine.pyz", 5);
+		.newanima("annakkolo", "nakladkakolo.pyz", 2);
+		.copyanima("anrama", "anmech");
+		anmech.setz(4);
+		anmech.setframe(1,0);
+		anmech.addmethod("onfinish", "checkkolo");
+		anmech.addmethod("onstart", func { fxsilnik.playif;	} );
+		ankolo.addmethod("onendframe", "frkolo");
+		ankolo.anloopfin;
+		new @lastframe = 0;
+		
+		new gmimgvec grel;
+		//grel.loadallan("anel", "pduze.pyz", 10);
+		grel.loadallan("anel", "pmale.pyz", 10);
+		string s;
+		for( int i=0; i<grel.size(); i++)	{
+			s = <grel.get(i)>.framename();
+			this.addsndf("snd"+s, s, "endpostac");
+		}
+		grel.hash();
+		
+		new ConRewinder clrew;
+		clrew.build("scripts/wstawianki/strzalki.pyz",5,"imglobcurs","right",10,"grel");
+		clrew.setfxrew("sfx/przesun.wav");
+		
+		new zgadnijplayer plr;
+		plr.putonkolo();
+		new classplacepointer2 clp1;
+		new classplacepointer2 clp2;
+		mzgad.starttryb1();
+		
+		new Cypher cyf1(null, 28, 250, 250, 250, anp1.getcx-10, anp1.getey-40, anp1.getz+1);
+		new Cypher cyf2(null, 28, 250, 250, 250, anp2.getcx-10, anp2.getey-40, anp2.getz+1);
+		//init(string sfont, int ifontsize, int ifr, int ifg, int ifb, int x, int y, int z)	{
+		
+		new classfadeinout clfio;
+		
+		this.newdbscript("dbzg", "zgadule.db");
+		new @timstate;
+		new @timtick;
+		
+// 		this.importsnd("liczby","endlicz");
+		this.addsndff("sndstart","Zaraz maszyna wprowadzi ko³o w ruch", "fin1");
+		this.addsndff("sndf1","Kiedy ko³o zatrzyma siê ten kto pierwszy naci¶nie przypisan± mu strza³kê", "fin2");
+		this.addsndff("sndf2","na podstawie atrybutów z ko³a", "fin3");
+		this.addsndff("sndf3","musi znale¼æ pasuj±c± postaæ st±d;", "fin4");
+		this.addsndff("sndf4","Uwaga! Dopóki nie skoñczê losowania wci¶niêcie strza³ki spowoduje falstart i dyskwalifikacjê!", "finintro");
+		this.addsndf("sndstartlos","Zaczynam losowanie", "startlos");
+		this.addsndf("sndrowno", "Klawisze zosta³y wci¶niête jednocze¶nie! Losujemy jeszcze raz; Uwaga","startlos");
+		this.addsndf("sndrownofall", "Klawisze zosta³y wci¶niête jednocze¶nie! Obaj gracze zdyskwalifikowani! Losujemy jeszcze raz; Uwaga","startlos");
+		this.addsndf("sndfall1","Gracz 1 fallstart!", "fall");
+		this.addsndf("sndfall2","Gracz 2 fallstart!", "fall");
+		this.addsndf("sndfall1end","Gracz 1 zosta³ zdyskwalifikowany; Ruch nale¿y do gracza numer 2", "finfall");
+		this.addsndf("sndfall2end","Gracz 2 zosta³ zdyskwalifikowany; Ruch nale¿y do gracza numer 1", "finfall");
+		this.addsndf("sndwinp1","Pierwszy wcisn±³ strza³kê gracz 1", "startzgaduj");
+		this.addsndf("sndwinp2","Pierwszy wcisn±³ strza³kê gracz 2", "startzgaduj");
+		
+		this.addsndf("sndbrawo", "Brawo!", "endbrawo");
+		//this.addsndf("sndnalezy", "nale¿y do pozycji numer", "endnalezy");
+		this.addsndf("sndnalezy", "wskazany poprawnie", "endnalezy");
+		this.addsndf("snddalej", "Gramy dalej", "enddalej");
+		
+		this.addsndf("sndniestety","Niestety!", "endniestety");
+		//this.addsndf("sndnienalezy","nie nale¿y do pozycji numer", "endnienalezy");
+		this.addsndf("sndnienalezy","wskazany niepoprawnie", "endnienalezy");
+		this.addsndf("sndszansa","Szansa dla drugiego gracza", "endszansa");
+		
+		this.addsndf("sndwsio","Doskonale! Wszystkie zadania rozwi±zane; przechodzimy do drugiego etapu gry", "endwsio");
+		
+		grel.move(-100,0);
+		clrew.movearrows(-100,0);
+		
+		.initdym;
+		anmano.setz(0);
+		anmano.anloopfin;
+		fxtykacz.addmethod("onfinish", func { anmano.stop(false); } );
+		andym.addmethod("onstart", func { if (!anmano.isplaying(-1)) anmano.play(-1); } );
+		
+		if( this.begingame() )	{
+			clp1.showob("anmech","ld");
+			this.cbplay("sndstart");
+		} else {
+			this.startlosowanie();
+		}
+	}
+	startlosowanie()	{
+		igmstate = 3;
+		this.cbplay("sndstartlos");
+	}
+	fin1()	{
+		clp1.showob("anp1","lu");
+		clp2.showob("anp2","ru");
+		this.cbplay("sndf1");
+	}
+	fin2()	{
+		clp2.stoph();
+		clp1.showob("ankolo", "ll");
+		clp1.move(0,100);
+		this.cbplay("sndf2");
+	}
+	fin3()	{
+		clp1.showob( grel.get(0), "rr" );
+		this.cbplay("sndf3");
+	}
+	fin4()	{
+		clp1.stoph();
+		this.cbplay("sndf4");
+	}
+	finintro()	{	this.startlosowanie();	}
+	startlos()	{
+		igmstate = 2;
+		timstate = 0;
+		timtick = 12;
+		plr.setstd;
+		ankolo.setdelay(timtick);
+		ankolo.play(-1);
+		fxkolostart.play;
+		ankolo.setframe(0,lastframe);
+		anmech.play(-1);
+	}
+	frkolo	{
+		match(timstate)	{
+			0 => {	timtick--;
+				if( timtick>0)	.setdelay(.between(1,timtick/4,timtick));
+				else {
+					timtick = 30 + 0->rand(50);
+					timstate=1;
+				}
+			}	1=>	{	timtick--;
+				if( timtick<=0 )	.finlos;
+			}	? => ;
+		}
+	}
+	checkkolo	{	if( ankolo.isplaying(-1) )	.play(-1); else {fxsilnik.stop(false);fxendmachine.play;}	}
+	finlos()	{
+		ankolo.stop(false);
+		fxkolostart.stop(false);
+		fxkolostop.play;
+		fxkolo.stop(false);
+		igmstate = 1;
+		int id = ankolo.framenr;
+		while( dbzg.getcolsno(id)==1 )	{	id = (id+1)%dbzg.getrowsno();	}
+		ankolo.setframe(0,id);
+		lastframe = id;
+	}
+	finfall()	{
+		//this.finlos();
+		igmstate=1;
+		this.startzgaduj();
+	}
+	clrew_GET	{	 _ = .mspickup;	fxgetpuz.play; }
+	endbrawo	{	.cbplay("snd" + <spostac>.framename );	}
+	endniestety	{	.cbplay("snd" + <spostac>.framename );	}
+	endpostac()	{
+		if( budalo )	this.cbplay("sndnalezy");
+		else this.cbplay("sndnienalezy");
+	}
+	endnalezy()	{
+		//this.cbplay("sndli"+(ankolo.framenr+2));
+		.endlicz;
+	}
+	endnienalezy()	{
+		//this.cbplay("sndli"+(ankolo.framenr+2));
+		.endlicz;
+		
+	}
+	endlicz()	{
+		if( budalo )	{
+			if( grel.size()==0 )	this.cbplay("sndwsio");
+			else this.cbplay("snddalej");
+		} else {
+			this.cbplay("sndszansa");
+		}
+	}
+	enddalej()	{	this.startlosowanie();	}
+	endszansa()	{
+		plr.next();
+		this.startzgaduj();
+	}
+	fintafel()	{
+		<spostac>.hide();
+	}
+	clrew_PUT()	{
+		string s = clrew.getmoved();
+		if( clsurf.imgwithinimg(s, "ankolo") )	{
+			string s2 = <s>.framename();
+			this.vargmset("spostac", s);
+			igmstate = 5;
+			this.lockall();
+			int id = ankolo.framenr;
+			if( dbzg.dbfindinrow( id, s2 )>=0 )	{
+				this.vargmset("budalo", true);
+				this.cbplay("sndbrawo");
+				clrew.freeitem();
+				classanfilter::build(s);
+				clfio.setopacity(1, -10, s, "fintafel");
+				mzgad.<"add"+plr.getactive()>( s );
+				<"cyf"+plr.getactive>.++;
+				_ = dbzg.dbdelvar(id, s2);
+				fxputpuz.play;
+			} else {
+				this.vargmset("budalo", false);
+				this.cbplay("sndniestety");
+				clrew.retitem();
+				fxelektropik.play;
+			}
+		} else {clrew.retitem();fxelektropik.play;}
+	}
+	startzgaduj()	{
+		igmstate = 4;
+		this.unlockall();
+		
+		/*string s;
+		int id = iliczba1+iliczba2-2;
+		for( int i=0; i<grel.size(); i++) 	{
+			s = grel.get(i);
+			if( dbzg.dbfindinrow( id, <s>.framename() )>=0 )	{
+				clrew.getitem(s, 0,0);
+				i = grel.size();
+			}
+		}
+		grel.print();
+		this.clrew_PUT();*/
+	}
+	mouse_lclick()	{
+		if( igmstate==0 )	{
+			clp1.stoph();
+			clp2.stoph();
+			this.cactsndstop(false);
+			this.finintro();
+		} else {
+// 			if( !.hasvar("timclick") )	.timer=("timclick",35, func { bprzewin=true; } );
+			.cactsndstop(true);
+		}
+	}
+	fall()	{
+		int id = plr.getactive();
+		plr.setstd();
+		plr.setp( id%2+1 );
+		this.cbplay("sndfall"+id+"end");
+	}
+	key_down()	{
+		if( !(igmstate==1 || igmstate==2) )	return;
+		if( keyboard.iskey("left") )	plr.setp(1);
+		if( keyboard.iskey("right") )	plr.setp(2);
+		int id = plr.getactive();
+		if( id )	{
+			fxmikrofala.play;
+			plr.stop();
+			if( igmstate==1 )	{
+				if( id==3 )	{
+					this.cbplay("sndrowno");
+				} else {
+					this.cbplay("sndwinp"+id);
+					igmstate = 3;
+				}
+			} else {
+				if( id==3 )	{
+					this.cbplay("sndrownofall");
+				} else {
+					this.finlos();
+					igmstate = 3;
+					this.cbplay("sndfall"+id);
+				}
+			}
+		}
+	}
+	endwsio()	{	gameapi.play("zgadnijmulti2");	}
+	mouserclick	{	if( igmdebug) .endwsio;	}
+}
+
+game zgadnijmulti2 : classadvadamigo2, GameController	{
+	init()	{
+		classadvadamigo2::init();
+		GameController::init("zgmu2_");
+		this.setgraphpath("scripts/zgadnij/");
+		this.newanima("anbkg", "bkgm2.pyz",0);
+		.sfxs=(A, "mikrofala", "elektropik");
+		new zgadnijplayer plr;
+		plr.putonrogi();
+		
+		mzgad.starttryb2();
+// 		vecp1.free();	vecp2.free();
+// 		vecp2.beginadd("begin", 0,1,2,3,4,5,6,7,8,9,10,11,23,12,13,14,15,16,17,18,19,20,21,22);
+		//vecp2.beginadd("begin", 12,13,14,15,16,17,18,19,20,21,22);
+		
+		//string s1 = this.consttext("Punkty gracza 1:", 110, 10, 20, 92, 92, 92);
+		//string s2 = this.consttext("Punkty gracza 2:", 450, 10, 20, 92, 92, 92);
+		new int iliczba1 = 0;
+		new int iliczba2 = 0;
+		new string slicz1 = this.consttext(iliczba1, anp1.getcx-10, anp1.getey-40, 28, 255, 255, 255);
+		new string slicz2 = this.consttext(iliczba2, anp2.getcx-10, anp2.getey-40, 28, 255, 255, 255);
+		<slicz1>.setz( anp1.getz+1 );
+		<slicz2>.setz( anp1.getz+1 );
+		this.printlicze();
+		
+		new classfadeinout clfio;
+		
+		new gmobjvec grludki;
+		new int ipostprior = 20;
+		int ile = this.loadanframes("anpost", "pmale.pyz", 0, ipostprior);
+		string s[2], int ile1=0, int ile2=0, int dx=60, int dy=110, int px=5, int py=130;
+		
+		for( int i=0; i<ile; i++)	{
+			s0 = "anpost" + i;
+			s1 = <s0>.framename();
+			grludki.add( "snd" + s1 );
+			if( vecp1.contains(i) )	{
+				<s0>.setpos( px + dx*(ile1%6) - <s0>.lodx(), py + dy*(ile1/6) - <s0>.lody() );
+				ile1++;
+			} else {
+				<s0>.setpos( 400 + px + dx*(ile2%6) - <s0>.lodx(), py + dy*(ile2/6) - <s0>.lody() );
+				ile2++;
+			}
+			classanfilter::build(s0);
+		}
+		
+		new vector veczag;
+		veczag.vecnewint(24);
+		veczag.hash();
+		new string smovedon = null;
+		new int izgadywan;
+		
+		this.importgroup("zgmu1_", "endpostac", "grludki");
+		this.importsnd("liczby","endlicz");
+		
+		this.addsndff("sndintro","Zaczynamy etap drugi; Przeczytam wam zagadkê dotycz±c± jednej z postaci; Kto pierwszy wci¶nie swoj± strza³kê bêdzie pierwszy wskazywa³ postaæ o któr± pytam; ale uwaga: je¿eli wci¶nie strza³kê w trakcie zadawania pytania przestanê czytaæ", "finintro");
+		this.addsndff("sndczytam","Czytam zagadkê", "czytaj");
+		this.addsndff("sndczytam2","Czytam kolejn± zagadkê", "czytaj");
+		this.addsndff("sndczytam3","Czytam ponownie zagadkê", "czytaj");
+		this.addsndff("sndbrawo","Brawo! Wszystkie zagadki rozwi±zane", "endbrawo");
+		this.addsndff("sndzaczyna1","Zaczyna gracz 1", "endzaczyna");
+		this.addsndff("sndzaczyna2","Zaczyna gracz 2", "endzaczyna");
+		this.addsndff("sndzgadl","Dobrze; Postaæ której dotyczy³a zagadka to ", "endzgadl");
+		this.addsndff("sndposiada","Kolejny punkt dodajemy za posiadanie postaci", "endposiada");
+		this.addsndff("sndniezgadl","Niestety to nie postaæ, której dotyczy zagadka", "endniezgadl");
+		this.addsndff("sndniezgadl1","Odejmujê punkt graczowi pierwszemu", "odpoczatku");
+		this.addsndff("sndniezgadl2","Odejmujê punkt graczowi drugiemu", "odpoczatku");
+		
+		this.addsndff("sndwin1","Zwyciê¿y³ gracz numer 1!", "endwin");
+		this.addsndff("sndwin2","Zwyciê¿y³ gracz numer 2!", "endwin");
+		this.addsndff("sndremis","Mamy remis! Có¿ za emocje", "endremis");
+		this.addsndff("sndkoniec","Kliknij myszk± aby powróciæ do menu g³ównego",
+			func { igmstate=13; } );
+		
+		new snd sndzagadka;
+		new bool bzgadl = false;
+		
+		this.cbplay("sndintro");
+	}
+	endzgadl()	{	this.cbplay("snd" + <"anpost"+izgadywan>.framename() );	}
+	endniezgadl()	{
+// 		this.cbplay("snd" + <"anpost"+izgadywan>.framename() );
+		this.endpostac();
+	}
+	endposiada()	{
+		if( veczag.size() == 0 )	{
+			this.cbplay("sndbrawo");
+			igmstate = 5;	// finish
+		} else {
+			this.cbplay("sndczytam2");
+		}
+	}
+	fintafel()	{
+		if( stafelhide!=null )	<stafelhide>.hide();
+		stafelhide = null;
+	}
+	endbrawo()	{
+		if( iliczba1>iliczba2 )	this.cbplay("sndwin1");
+		else if (iliczba2>iliczba1)	this.cbplay("sndwin2");
+		else	this.cbplay("sndremis");
+	}
+	endpostac()	{
+		int id = plr.getactive();
+		if( bzgadl )	{
+			veczag.removeat(0);
+			<"iliczba"+id>++;
+			if( <"vecp"+id>.contains(izgadywan) )	{<"iliczba"+id>++; this.cbplay("sndposiada");
+			} else {this.endposiada();}
+			<schosen>.setz( ipostprior + 1 );
+			this.vargmset("stafelhide", schosen);
+			clfio.setopacity(1, -10, schosen, "fintafel");
+		} else {
+			<"iliczba"+id>--;
+			this.cbplay("sndniezgadl"+id);
+		}
+		this.printlicze();
+	}
+	finintro()		{	this.cbplay("sndczytam");	}
+	odpoczatku()	{	this.cbplay("sndczytam3");	}
+	czytaj()	{
+		izgadywan = veczag.get(0);
+		sndzagadka.load( this.getsndpath() + "postac" + izgadywan + ".wav" );
+		plr.setstd();
+		this.cbplay("sndzagadka");
+		igmstate = 1;
+	}
+	endzaczyna()	{	igmstate = 4;	}
+	printlicze()	{
+		<slicz1>.set(iliczba1);
+		<slicz2>.set(iliczba2);
+		<slicz1>.createtxt(255, 255, 255);
+		<slicz2>.createtxt(255, 255, 255);
+	}
+	mouse_move()	{
+		|int pos[2]| = mouse.getpos();
+		string s = engine.getimg(pos0,pos1,true,true,ipostprior,ipostprior);
+		if( smovedon!=null )	{
+			<smovedon>.setopacity(255);
+			smovedon=null;
+		}
+		if( s!=null )	{
+			smovedon=s;
+			<smovedon>.setopacity(128);
+			bsms.setact();
+		} else bsms.setstd();
+	}
+	mouse_lclick()	{
+		if( igmstate==13 )	{	gameapi.play("gamemenu");	return;	}
+		if( igmstate==0 )	{
+			this.cactsndstop(false);
+			this.finintro();
+		} else if (igmstate==4)	{
+			|int p[2]| = mouse.getpos();
+			string s = engine.getimg(p0,p1,true,true,ipostprior,ipostprior);
+			if( s!=null )	{
+				this.vargmset("schosen",s);
+				igmstate = 2;
+				if( <s>.framenr() == izgadywan )	{
+					bzgadl = true;
+					this.cbplay("sndzgadl");
+					fxmikrofala.play;
+				} else {
+					bzgadl = false;
+					this.cbplay("sndniezgadl");
+					fxelektropik.play;
+				}
+			}
+		}
+	}
+	key_down	{
+		if( igmstate!=1 )	return;
+		if( keyboard.iskey("left") )	plr.setp(1);
+		if( keyboard.iskey("right") )	plr.setp(2);
+		int id = plr.getactive();
+		if( id )	{
+			fxmikrofala.play;
+			this.cactsndstop(false);
+			plr.stop();
+			if( id==3 ) {
+				engine.print("error");	id=id.rand(2)+1;
+				plr.setstd();	plr.setp(id);
+			}
+			igmstate = 3;
+			this.cbplay("sndzaczyna"+id);
+		}
+	}
+	endwin()		{	.askrestart2;	}
+	endremis()	{	.askrestart2;	}
+}
+
+|iMemoW, iMemoH| = 8, 6;
+|iMemoW, iMemoH| = 4, 4;
+iMemoTryb = 2;
+
+class Gracze	{
+	init(int imode)	{
+		new int idrugi = 1;
+		if( imode==1 )	idrugi=2;	// 1 - p vs comp, 2 - p vs p
+		new anima angracz1;
+		angracz1.load("scripts/memo/gracze.pyz");
+		.copyanima("angracz1", "anactive1");
+		anactive1.setframe(0,1);
+		.copyanima("angracz1", "angracz2");
+		angracz2.setframe(idrugi,0);
+		.copyanima("angracz1", "anactive2");
+		anactive2.setframe(idrugi,1);
+		.var("aktualny");
+		.set(1);
+		new gmimgvec gracz1;
+		_ = "gracz1" .+ "angracz1" .+ "anactive1";
+		new gmimgvec gracz2;
+		_ = "gracz2" .+ "angracz2" .+ "anactive2";
+		gracz1.addtogamevars("gracz1");
+		gracz2.addtogamevars("gracz2");
+	}
+	set(int id)	{
+		anactive1.setframe(0,1);
+		anactive2.setframe(idrugi,1);
+		if( id==1 )	anactive1.setframe(0,2);
+		else	anactive2.setframe(idrugi,2);
+	}
+}
+
+game MenuMemo	: classadvadamigo2	{
+	init()	{
+		classadvadamigo2::init;
+		.sfxs=(A,"ikonka 60", "getpuz", "przekladnia");
+		.setgraphpath("scripts/memo/");
+		.newanima("anbkg", "bgmenu.pyz", 0);
+		new gmimgvec grtryb;
+		"grtryb" .* "tryb.pyz";
+		new gmimgvec grhard;
+		"grhard" .* "trudnosc.pyz";
+		grhard.move( 9, 40 );
+		new gmimgvec grdim;
+		"grdim" .* "wymiar.pyz";
+		@xdim = -20;
+		@ydim = 270;
+		grdim.move( xdim, ydim );
+		.newanima("anreka", "reka.pyz", 15);
+		grdim.setz(10);
+		.newanima("anwajcha", "wajchabg.pyz", 5);
+		anwajcha.move( xdim, ydim);
+		anreka.move(xdim, ydim);
+		grhard.hide;
+		.newanima("anpoziom", "poziom.pyz",2);
+		.newanima("anplansza", "plansza.pyz",2);
+		anpoziom.hide;
+		new gmimgvec gral;
+		_ = "gral" .+ "grtryb" .+ "grhard" .+ "grdim";
+		_ = .set( "player" );
+		_ = .set( "4x4" );
+		_ = .set( 1 );
+		antrudnosc0.ansetframe(1);
+		anwymiar0.ansetframe(0);
+		antryb0.ansetframe(1);
+		new @slast = null;
+		new classsimplebutton cstart;
+		cstart.build("scripts/memo/start.pyz", "imglobcurs", 0, 0, 10, 0);
+	}
+	cstart_MOVEON	{	fxikonka.play;	}
+	cstart_CLICK	{	gameapi.play("Memo");	}
+	mousemove	{
+		if( gral.isin(mouse.getpos, true, true) )	{
+			@s = gral.getsfound;
+			if( !bsms.isact || (s=="grdim" && slast!="grdim") || (s!="grdim"&&slast!=<s>.getsfound)	) {
+				slast = s=="grdim" ? "grdim" : <s>.getsfound;
+				bsms.setact;
+				fxikonka.play;
+			}
+		} else {
+			bsms.setstd;
+			slast = null;
+		}
+	}
+	bool set(string s2)	{
+		match( s2 )	{
+			"player"	=> {	grhard.hide; anpoziom.hide;	iMemoTryb = 0;		}
+			"pvp"	=> {		grhard.hide;anpoziom.hide;	iMemoTryb = 2;	}
+			"pvc"	=> {		grhard.show;anpoziom.show;	iMemoTryb = 1;	}
+			? => if( s2.contains("x") )	{
+					int iw = s2.getb(0,1);
+					int ih = s2.gete(0,1);
+					if( iw==iMemoW && ih==iMemoH )	return false; 
+					iMemoW = iw;
+					iMemoH = ih;
+				} else iMemoAI = grhard.getfound;
+		}
+		true;
+	}
+	mouselclick()	{
+		if( gral.isin(mouse.getpos, true, true) )	{
+			string s0 = gral.getsfound;
+			string s = <s0>.getsfound;
+			string s2 = <s>.actionname;
+			@bplay = .set(s2);
+			<s0>.changeframe(0);
+			if( s0=="grdim" )	{anreka.setframe( 0, <s>.actionnr(-1) ); if( bplay) fxprzekladnia.play; }
+			else {<s>.setframe( s2, 1 );	fxgetpuz.play;	}
+		}
+	}
+}
+
+game Memo : classadvadamigo2, TMemo {
+	init()	{
+		classadvadamigo2::init;
+		
+		if( iMemoW > 6 )	.tinit("memo", "scripts/memo/", "bkgame.pyz", "tmale.pyz", "tafmaly.pyz", 2);
+		else	.tinit("memo", "scripts/memo/", "bkgame.pyz", "tduze.pyz", "tafduzy.pyz", 3);
+		@ymove = 65;
+		grtaf.move(0,ymove);
+		grnak.move(0,ymove);
+		
+		.sfxs = (A, "elektropik", "mikrofala", "brawo", "buu");
+		.buildsnds( A,
+			"sndintro0", "Znajd¼ wszystkie pary najszybciej jak potrafisz!", func { ttc.play; .tstart; },
+			"sndintro1", "Zaczyna gracz pierwszy", "tstart",
+			"sndwin1", "Zwyciê¿y³ Gracz pierwszy!", "askrestart2",
+			"sndwin2", "Zwyciê¿y³ Gracz drugi!", "askrestart2",
+			"sndwincomp", "Zwyciê¿y³ komputer!", "askrestart",
+			"sndremis", "Ale¿ zaciêty pojedynek! Mamy remis proszê pañstwa!", "askrestart2",
+			"sndrekord", "Brawo! Brawo! Rekord czasowy pobity!", "askrestart",
+			"sndnierekord", "Niestety nie uda³o siê pobiæ rekordu", "askrestart");
+		
+		if( iMemoTryb==0 )	{
+			//.newanima("anbgcnt", "counterbg.pyz", 0);
+			.newimg("anbgcnt", "licznik1.png", 0);
+			@skala = 0.75;
+			new TextTimeCounter ttc(null,skala*30, 220,220,220,
+				anbgcnt.getpx+15, anbgcnt.getpy+13,1000, "hms");
+			.cbplay("sndintro0");
+		} else {
+			new Cypher ct1(null,40, 255,210,210, 10,150, 1000);
+			new Cypher ct2(null,40, 210,210,255, 760,150, 1000);
+			.cbplay("sndintro1");
+			new Gracze gracze( iMemoTryb );
+			gracz2.setpos( 800-gracz2.getw, 0 );
+		}
+	}
+	tnextplayer	{
+		TMemo::tnextplayer;
+		gracze.set( iplayer );
+	}
+	askrestart2()	{
+		if( iMemoTryb==1 )		claskexit.askrestart;
+		else	claskexit.askrestart2;
+	}
+	tfinish()	{
+		if( iMemoTryb==0 )	{
+			ttc.stop;
+			int ile = ttc.gettime;
+			@sfile = "saves/memrek"+iMemoW+iMemoH;
+			int iczas;
+			if( engine.fileexist(sfile) )	{
+				iczas.load( sfile, 0 );
+				if (iczas>ile) {
+					.cbplay("sndrekord");
+					ile.save( sfile );
+				} else .cbplay( "sndnierekord" );
+				_ = .consttext("Dotychczasowy rekord na planszy: "+ clstrdigit::gettime(iczas,"hms"),
+					210, 20, 20, 242, 242, 242);
+			} else {
+				ile.save( sfile );
+				.cbplay("sndrekord");
+			}
+		} else {
+			<"ct" + iplayer>.++;
+			int c1 = ct1.get;
+			int c2 = ct2.get;
+			if( c1==c2 )	{.cbplay("sndremis"); fxbrawo.play;}
+			else if (c1>c2)	{.cbplay("sndwin1"); fxbrawo.play;	}
+			else	if( iMemoTryb==2)	{ .cbplay("sndwin2"); fxbrawo.play;	}
+			else {.cbplay("sndwincomp"); fxbuu.play;	}
+		}
+	}
+	tpoint()	{
+		if( iMemoTryb>0 )	{
+			<"ct" + iplayer>.++;
+		}
+		fxmikrofala.play;
+	}
+	tchoose	{	fxelektropik.play;	}
+	terror	{	}
+	mouse_lclick()	{
+	}
+}
+
+new string sRoznice = "jesien";
+game MenuRoznice : classadvadamigo2 , TMenu	{
+	init()	{
+		classadvadamigo2::init;
+		.loadsoldat( 88, 563 );
+		.tinit("mroznice", "scripts/roznice/", "menuroz.pyz");
+		@sfun = "soldatstand";
+		.buildsnds(A,
+			"sndintro", "Wybierz planszê", sfun,
+			"sndwiosna", "wiosna", sfun,
+			"sndlato", "lato", sfun,
+			"sndjesien", "jesien", sfun,
+			"sndzima", "zima", sfun );
+		.cbplay("sndintro");
+		igmbegin = true;
+	}
+	cbplay(@s)	{ .soldattalk(s);	}
+	startgame(string s)	{
+		sRoznice = s;
+		gameapi.play("Roznice");
+	}
+	wiosna_BUTCLICK()	{	.startgame("wiosna");	}
+	lato_BUTCLICK()	{	.startgame("lato");	}
+	jesien_BUTCLICK()	{	.startgame("jesien");	}
+	zima_BUTCLICK()	{	.startgame("zima");	}
+}
+
+game Roznice : classadvadamigo2, TRoznice	{
+	init	{
+		classadvadamigo2::init;
+// 		.debug = (true);
+		.sfxs= (A, "getitem");
+		.tinit("roznice", "scripts/roznice/", "bkgame.pyz", "bg" + sRoznice + ".pyz",
+			 "el" + sRoznice + ".pyz");
+		
+		/*string s;
+		s.load("scripts/roznice/napis1.txt", null);
+		string st = this.consttext(s, 50, 470, 30, 222, 222, 222);*/
+		.newanima("anzostalo", "pozostalo.pyz", 5);
+		anzostalo.ansetbpos( 400 - anzostalo.getw/2, 420 );
+		new Cypher cyf(null, 25, 255, 255, 250, anzostalo.getcx - 15, anzostalo.getcy+10, 10);
+		cyf .= .remained;
+		
+		.sounds = ( A,
+			"sndintro", "Znajd¼ wszystkie szczegó³y, którymi ró¿ni± siê obrazki", func { <GAME>.unlock; },
+			"sndend", "Brawo! Wszystkie ró¿nice znalezione!", func {
+				sRoznice = vecpory.vecnext( sRoznice );
+				.cnewtimerfin("timend", 1000, 1, "askrestart");
+				timend.play;
+			});
+		if( igmbegin )	{
+			igmbegin=false;
+			.lock;
+			.cbplay("sndintro");
+		}
+	}
+	tpoint	{	cyf .= .remained;	fxgetitem.play; }
+	tfinish	{
+		.tpoint;
+		.cbplay("sndend");
+	}
+}
+
+new int iPuzzleTryb = 1;
+new string sPuzzle = "jesien";
+new vector vecpory	{
+	.type("string");
+	.beginadd("begin", "wiosna", "lato", "jesien", "zima");
+};
+
+game MenuPuzzleTryb : classadvadamigo2 , TMenu	{
+	init()	{
+		classadvadamigo2::init;
+		.loadsoldat( 740, 440 );
+		ansoldat.anaddfilter;
+		ansoldat.rotate( 30 );
+		.tinit("mpuzzlet", "scripts/puzzle/", "menupuzt.pyz");
+		.buildsnds(A,
+			"sndintro", "Wybierz tryb gry", "soldatstand",
+			"sndwstawe", "wstawianie figur tryb ³atwy","soldatstand",
+			"sndwstawh", "wstawianie figur tryb zaawansowany", "soldatstand",
+			"sndpuzzlee", "puzzle tryb ³atwy", "soldatstand",
+			"sndpuzzleh", "puzzle tryb zaawansowany", "soldatstand"	);
+		.cbplay("sndintro");
+	}
+	cbplay(@s)	{ .soldattalk(s);	}
+	startgame(int i)	{
+		iPuzzleTryb = i;
+		gameapi.play("MenuPuzzle");
+	}
+	wstawe_BUTCLICK()	{	.startgame(1);	}
+	wstawh_BUTCLICK()	{	.startgame(2);	}
+	puzzlee_BUTCLICK()	{	.startgame(3);	}
+	puzzleh_BUTCLICK()	{	.startgame(4);	}
+}
+
+game MenuPuzzle : classadvadamigo2 , TMenu, Dymarka	{
+	init()	{
+		classadvadamigo2::init;
+		new anima anblink {
+			.load("scripts/puzzle/bgblink.pyz");
+			.setz(10);
+			.hide;
+			.setdelay(4);
+			.addmethod("onfinish", func { .hide; } );
+		};
+		.timer = ("timblink", 500+0->rand(10)*100, func { .delay(500+0->rand(10)*600);
+			anblink.show; anblink.play(0);	.play;	} );
+		timblink.play;
+		.tinit("mpuzzle", "scripts/puzzle/", "menupuz.pyz");
+		.buildsnds(A,
+			"sndintro", "Wybierz planszê", null,
+			"sndwiosna", "wiosna",null,
+			"sndlato", "lato", null,
+			"sndjesien", "jesieñ", null,
+			"sndzima", "zima", null );
+		.initdym;
+		anmano.addmethod("onfinish", "startuj" );
+		anmano.move(400-anmano.getw/2, -20);
+		.cbplay("sndintro");
+	}
+	startuj	{
+		if( iPuzzleTryb>2 )	gameapi.play("Puzzle");
+		else	gameapi.play("gamewstawianka");
+	}
+	startgame(string s)	{
+		if( .getlock ) return;
+		.lock;
+		if( iPuzzleTryb>2 )	{
+			sPuzzle = s;
+			anmano.play(-1);
+		} else {
+			igmwstawtype = iPuzzleTryb;
+			bgmwstaw = true;
+			sgamewstaw = s;
+			anmano.play(-1);
+		}
+	}
+	wiosna_BUTCLICK()	{	.startgame("wiosna");	}
+	lato_BUTCLICK()	{	.startgame("lato");	}
+	jesien_BUTCLICK()	{	.startgame("jesien");	}
+	zima_BUTCLICK()	{	.startgame("zima");	}
+}
+
+game Puzzle : classadvadamigo2, GameController	{
+	init()	{
+		new int iCols;
+		new int iRows;
+		if( iPuzzleTryb==3 )	|iCols, iRows| = 5,3;
+		else					|iCols, iRows| = 7,6;
+		
+		classadvadamigo2::init;
+		GameController::init("puzzle");
+		
+		.sfxs = (A, "getpuz 60", "putpuz 50", "koloL", "kolostop 50");
+		
+		.setgraphpath("scripts/puzzle/");
+		.newimg("imgbkg", "bgpuzle.png", 0);
+		new gmimgvec grel;
+		new gmimgvec grend;
+		"grel" ..< ("el" + (iPuzzleTryb-2)+ sPuzzle+".pyz");
+		grel.setz(10);
+		new int iid = 0;
+		new int iile = grel.size;
+		new real rspeed = 15;
+		new int ibadajl = 25;
+		
+		.cnewtimerfin("timstart", 3000, 1, func { itimstate=2; } );
+		igmstate=0;
+		.buildsnds( A,
+			"sndintro", "Rozpoczynam miesznie", func { <GAME>.buildcircle; },
+			"sndend", "Brawo! Obrazek idealnie u³o¿ony", func {
+				sPuzzle = vecpory.vecnext( sPuzzle );
+				.cnewtimerfin("timend", 3000, 1, "askrestart");
+				timend.play;
+			});
+		.cbplay("sndintro");
+		new DelayMover cmov;
+		new SimpleCounter cnt(200);
+		
+		new int iX = 79;
+		new int iY = 58;
+		grel.move( iX, iY );
+		
+	}
+	cmov_GET()	{
+		if( grel.isin( mouse.getpos, true, true ) )	{
+			string s = grel.getsfound;
+			<s>.setz(900);
+			.mssetobj( s );
+			fxgetpuz.play;
+		}
+	}
+	bool cwithin(string s)	{
+		int i;
+		if( .gettype!="anima" )	{
+			for( i=0; i < .size; i++)	{if( <.get(i)>.cwithin( s ) )	return true;}
+			return false;
+		} else {
+			if( <s>.gettype=="anima" )	{
+				int id = .framenr;
+				int im = id%iCols;
+				A;
+				if( im>0 )			id-1;
+				if( im<iCols-1 )	id+1;
+				im = id/iCols;
+				if( im>0 )			id-iCols;
+				if( im<iRows-1)	id+iCols;
+				return <s>.framenr->in;
+			} else {
+				for( i=0; i< <s>.size; i++)		{if( .cwithin( <s>.get(i) ) )	return true;}
+				return false;
+			}
+		}
+	}
+	cblit(string s)	{
+		if( <s>.gettype=="anima" )	{
+			<s> {
+				.setz(1);
+				.setpos(iX,iY);
+				int x = .getpx;
+				int y = .getpy;
+				.anaddfilter;
+				.setopacity(128);
+				.setpos(x,y);
+				imgbkg.blit( this );
+				.unlink;
+				.setpos(iX,iY);
+				.hide;
+			};
+		} else	for( int i=0; i< <s>.size; i++ )		.cblit( <s>.get(i) );
+	}
+	cmov_PUT()	{
+		<GAME>.cput;
+		fxputpuz.play;
+	}
+	cput()	{
+		string s = cmov.getmover;
+		<s>.setz(100+cnt.next);
+		cmov.free;
+		grel {
+			.sortimgs;
+			.each( func { (int i) .setz(10+i); } );
+		};
+		string s1 = s, string s2;
+		while(<s>.gettype != "anima")	s=<s>.get(0);
+		if( ibadajl.length( <s>.lodx+iX-<s>.getpx, <s>.lody+iY-<s>.getpy ) < ibadajl )	{
+			.cblit(s1);
+			grel.remove(s1);
+			grend.add(s1);
+			if( grel.empty )	{
+				grend.show;
+				.cbplay("sndend");
+			}
+		} else {
+			grel.remove(s1);
+			for( int i=0; i<grel.size; i++)	{
+				s = grel.get(i);
+				if( cllen.iposlen(s,s1)<ibadajl && <s1>.cwithin(s) )	{
+					|int x, int y| = <s>.getpos;
+					if( <s>.gettype=="anima")	{
+						if( <s1>.gettype=="anima" )	{
+							s2 = "gr" + s;
+							new gmimgvec <s2>;
+							<s2>.add(s);
+							<s2>.add(s1);
+						} else {
+							<s1>.add(s);
+							s2 = s1;
+						}
+						grel.remove(s);
+						grel.add(s2);
+					} else {
+						if( <s1>.gettype=="anima" )	{
+							<s>.add(s1);
+						} else {
+							<s>.addgr(s1);
+						}
+						s2 = s;
+					}
+					<s2>.setpos(x,y);
+					<s2>.setz( <s1>.getz );
+					grel.sortimgs;
+					return;
+				}
+			}
+			grel.add(s1);
+		}
+	}
+	mouse_rclick()	{
+//		if( igmdebug ) grel.print;
+	}
+	/********************************************/
+	cgetpos(int i)	{	return <grel.get(i)>.getcx, <grel.get(i)>.getcy;	}
+	cgetdest(int i)	{
+		i = ((i+iid)%iile)*2;
+		return vpos.get(i), vpos.get(i+1);
+	}
+	buildcircle()	{
+		real kat = 360/iile;
+		real r = 200.0;
+		real k = 0.0;
+		int x, int y;
+		new vector vpos;
+		vpos.type("int");
+		string s;
+		for( int i=0; i<iile; i++)	{
+			vpos.add(400 + r*k.cos );
+			vpos.add(300 - r*k.sin);
+			k+=kat;
+			s = "trl" + i;
+			new classwalker <s>;
+			_ = <s>.countsteps(.cgetpos(i), vpos.get(2*i), vpos.get(2*i+1), rspeed );
+		}
+		.cnewtimercyclefin("timhash", 1, 1, "fintim");
+		new int itimstate=0;
+		timhash.play;
+	}
+	bool allreached()	{
+		grel.ineach( func {(int i) <"trl"+i>.reached2( .cgetpos(i) ); } );
+	}
+	setallpos() {
+		string s;
+		for(int i=0; i<iile; i++)	{
+			s = "trl"+i;
+			if( !<s>.reached2( .cgetpos(i) ) )
+				<grel.get(i)>.move( <s>.getdx, <s>.getdy );
+		}
+	}
+	fintim()	{
+		int i;
+		if( itimstate==0)	{
+			if( .allreached )	{
+				itimstate=1;
+				timstart.play;
+				fxkolo.play;
+			}
+			.setallpos;
+		} else if (itimstate==1)	{
+			if( trl0.reached2( .cgetpos(0) ) )	{
+				iid = (iid+1)%iile;
+				for( i=0; i<iile; i++)	_ = <"trl"+i>.countsteps(.cgetpos(i), .cgetdest(i), rspeed );
+			}
+			.setallpos;
+		} else if (itimstate==2)	{
+			grel.each( func { (int i) .setz(10+i.rand(40)); } );
+			grel.sortimgs;
+			for( i=0; i<iile; i++)	{
+				_ = <"trl"+i>.countsteps(.cgetpos(i), 150+i.rand(500), 300+i.rand(200), rspeed );
+			}
+			fxkolo.stop(false);
+			fxkolostop.play;
+			itimstate = 3;
+			.setallpos;
+		} else if (itimstate==3)	{
+			if( .allreached )	{
+				igmstate = 1;
+				cmov.unlock;
+				return;
+			}
+			.setallpos;
+		}
+		.play;
+	}
+}
+

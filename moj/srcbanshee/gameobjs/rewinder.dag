@@ -1,0 +1,277 @@
+class Rewinder : classlocker	{
+	init(int x1, int y1, int x2, int y2)	{
+		classlocker::init();
+		new string sarrowdir;
+		new int ilenx;
+		new int ileny;
+		new string sgr;
+		new string sorientation;
+		new bool bvertical;
+		new bool bfilteritem = false;
+		
+		// clip obiektow
+		new int ibx1=0;
+		new int ibx2=iResX;
+		new int iby1=0;
+		new int iby2=iResY;
+		
+		new int iodleg = 2;	// odleglosc pomiedzy przedmiotami
+		
+		new ImgMover clmv;
+		
+		this.cnewtimercyclefin("timtick", 1, 1, "timfin");
+		
+		// granice
+		.vars2(A, "borx1", x1, "bory1", y1, "borx2", x2, "bory2", y2);
+		
+		new snd fxrew;
+// 		fxrew.addmethod("onfinish", func { this.play(); } );
+	}
+	public movefilter()		{	bfilteritem=true;	}
+	public movenormal()	{	bfilteritem=false;	}
+	public setfxrew(string sfile)	{
+		fxrew.load(this.getsndpath()+sfile);
+	}
+	public getitem(string s, int x, int y)	{
+		/*clmv.set(s,x,y,<sgr>.getpx(),<sgr>.getpy());
+		<s>.clip(0,0,800,600);
+		<sgr>.movefrom(s, 0, -<s>.geth);
+		<sgr>.remove(s);*/
+		<s>.setz( <s>.getz+1 );
+		clmv.set(s,x,y,<sgr>.getpx(),<sgr>.getpy());
+		<s>.clip(0,0,iResX,iResY);
+		if( sorientation=="up" || sorientation=="down")	{
+			<sgr>.movefrom(s, -(<s>.getw+iodleg), 0 );
+			<s>.move( <s>.getw,0 );
+		} else {
+			<sgr>.movefrom(s, 0, -(<s>.geth+iodleg));
+			<s>.move(0, <s>.geth );
+		}
+		<sgr>.remove(s);
+	}
+	public bool pickup(int x, int y)	{
+		if( <sgr>.isin(x,y,true,true) )	{
+			this.getitem( <sgr>.getsfound(), x, y );
+			return true;
+		}
+		return false;
+	}
+	public bool mspickup()	{	return this.pickup(mouse.getpos );	}
+	public freeitem()	{	clmv.free();	}
+	public moveitem()	{
+		if( bfilteritem )		clmv.msftmove();
+		else		clmv.msmove();
+	}
+	public retitem()	{
+		string s = clmv.getmover();
+		clmv.ret(<sgr>.getpx(),<sgr>.getpy());
+		this.putitem(s);
+	}
+	public putitem(string s)	{
+		if( sorientation=="up" || sorientation=="down")	{
+			<s>.move( <sgr>.getex-<s>.getpx+iodleg, 0);
+		} else {
+// 			@dx = anupstd.getex - <s>.getw;
+// 			<s>.setpos( dx - <s>.lodx, <sgr>.getey-<s>.lody);
+			<s>.move( 0, <sgr>.getey-<s>.getpy+iodleg);
+		}
+		<sgr>.add(s);
+		<s>.setz( <s>.getz-1 );
+		<s>.clip(ibx1,iby1,ibx2,iby2);
+	}
+	public string getmoved()	{	return clmv.getmover();	}
+	public int getbutw()	{	return anupstd.getw();	}
+	public int getbuth()	{	return anupstd.geth();	}
+	public movearrows(int x, int y)	{	grarrows.move(x,y);	}
+	public build(string sfile, int z, string scursor, string sorient, int dt, string sgrelem)	{
+		sgr = sgrelem;
+// 		this.newanima("anupstd",sfile,z);
+		new anima anupstd;
+		anupstd.load(sfile);
+		anupstd.setz(z);
+		
+		anupstd.setframe("up",0);
+		this.copyanima("anupstd","anupact");
+		anupact.setframe("up",1);
+		this.copyanima("anupstd","andownact");
+		andownact.setframe("down",1);
+		this.copyanima("anupstd","andownstd");
+		andownstd.setframe("down",0);
+		this.newbutan("butup","anupstd","anupact",null,scursor);
+		this.newbutan("butdown","andownstd","andownact",null,scursor);
+		butup.addmethod("onmoveon","_rewbutmoveon");
+		butdown.addmethod("onmoveon","_rewbutmoveon");
+		butup.addmethod("onmoveoff","_rewstrzalkaoff");
+		butdown.addmethod("onmoveoff","_rewstrzalkaoff");
+		butup.addmethod("onclick","_rewbutclick");
+		butdown.addmethod("onclick","_rewbutclick");
+		butup.addmethod("onrel","_rewbutrel");
+		butdown.addmethod("onrel","_rewbutrel");
+		sorientation=sorient;
+		new gmimgvec grarrows;
+		_ = "grarrows" .+ "anupstd" .+ "anupact" .+ "andownact" .+ "andownstd";
+		
+		int dy, int dx, int ix, int iy;
+		if( sorientation=="up" || sorientation=="down")	{
+			bvertical = false;
+			ilenx = dt;
+			if( sorientation=="down")	{
+				anupstd.setpos(borx1,bory2-anupstd.geth());
+				anupact.setpos(borx1,bory2-anupact.geth());
+				andownstd.setpos(borx2-andownstd.getw(),bory2-andownstd.geth());
+				andownact.setpos(borx2-andownact.getw(),bory2-andownact.geth());
+				dy = andownstd.getey();
+			} else {
+				anupstd.setpos(borx1,bory1);
+				anupact.setpos(borx1,bory1);
+				andownstd.setpos(borx2-andownstd.getw(),bory1);
+				andownact.setpos(borx2-andownact.getw(),bory1);
+				dy = bory1;
+			}
+			ibx1 = anupstd.getex()+iodleg;
+			ibx2 = andownstd.getpx()-iodleg;
+			dx = ibx1;
+		} else {
+			bvertical = true;
+			ileny = dt;
+			if( sorientation=="right")	{
+				anupstd.setpos(borx2-anupstd.getw(),bory1);
+				anupact.setpos(borx2-anupact.getw(),bory1);
+				andownstd.setpos(borx2-andownstd.getw(),bory2-andownstd.geth());
+				andownact.setpos(borx2-andownact.getw(),bory2-andownact.geth());
+				dx = anupstd.getex();
+			} else {
+				anupstd.setpos(borx1,bory1);
+				anupact.setpos(borx1,bory1);
+				andownstd.setpos(borx1,bory2-andownstd.geth());
+				andownact.setpos(borx1,bory2-andownact.geth());
+				dx = borx1;
+			}
+			iby1 = anupstd.getey()+iodleg;
+			iby2 = andownstd.getpy()-iodleg;
+			dy = iby1;
+		}
+		butup._rewbuildbut(this.getname(),"up");
+		butdown._rewbuildbut(this.getname(),"down");
+		
+		int ile = <sgrelem>.size();
+		<sgrelem>._setpos(dx,dy);
+		new int ilimx = dx;
+		new int ilimy = dy;
+		string s;
+		for(int i=0; i<ile; i++)	{
+			s = <sgr>.get(i);
+			if( sorientation=="right")	{
+				<s>.setpos( dx - <s>.getw() - <s>.lodx(), dy - <s>.lody() );
+				dy += <s>.geth()+iodleg;
+			} else if (sorientation=="left")	{
+				<s>.setpos( dx - <s>.lodx(), dy - <s>.lody() );
+				dy += <s>.geth()+iodleg;
+			} else if (sorientation=="up")	{
+				<s>.setpos( dx - <s>.lodx(), dy - <s>.lody() );
+				dx += <s>.getw()+iodleg;
+			} else if (sorientation=="down")	{
+				<s>.setpos( dx - <s>.lodx(), dy - <s>.geth() - <s>.lody() );
+				dx += <s>.getw()+iodleg;
+			}
+			<s>.clip(ibx1,iby1,ibx2,iby2);
+		}
+	}
+	/*************************************/
+	_rewbuildbut(string s, string s2)	{
+		new string _sob = s;
+		new string _sdir;
+		if( s2=="up" )	{
+			if(bvertical==false)	{	_sdir = "left";	}
+			else {	_sdir = "up";	}
+		} else if (s2=="down")	{
+			if(bvertical==false)	{	_sdir = "right";	}
+			else {	_sdir = "down";	}
+		}
+	}
+	_rewbutmoveon()	{
+		//this.mstrzalkaon(_sdir);
+		this.<_sob+"_"+_sdir+"_MOVEON">();
+	}
+	_rewbutclick()	{
+		this.mstrzalkaon(_sdir);
+		this.<_sob+"_"+_sdir+"_CLICK">();
+	}
+	mstrzalkaon(string s)	{
+		sarrowdir=s;
+		timtick.play();
+	}
+	_rewbutrel	{
+		sarrowdir=null;
+		timtick.stop(false);
+		fxrew.stop(false);
+	}
+	_rewstrzalkaoff()	{
+		sarrowdir=null;
+		timtick.stop(false);
+		fxrew.stop(false);
+		this.<_sob+"_"+_sdir+"_MOVEOFF">();
+	}
+	timfin()	{
+		if( this.getlock() )	{	return;	}
+		bool bok = false;
+		if( sarrowdir!=null && !<sgr>.empty())	{
+			if( sarrowdir=="up")	{
+				if( <sgr>.getey() > andownstd.getpy() - ileny )	{
+					<sgr>.move(0,-ileny);
+					bok=true;
+				}
+			} else if (sarrowdir=="down") {
+				if( <sgr>.getpy() < ilimy )	{
+					<sgr>.move(0,ileny);
+					bok=true;
+				}
+			} else if (sarrowdir=="left")	{
+				if( <sgr>.getex() > andownstd.getpx() - ilenx )	{
+					<sgr>.move(-ilenx,0);
+					bok=true;
+				}
+			} else if (sarrowdir=="right") {
+				if( <sgr>.getpx() < ilimx )	{
+					<sgr>.move(ilenx,0);
+					bok=true;
+				}
+			}
+		}
+		if( bok )	{
+			if( !fxrew.isplaying() )	fxrew.play();
+		} else {
+			fxrew.stop(false);
+		}
+		this.play();
+	}
+}
+
+class ConRewinder : Rewinder, ObjController {
+	init()	{
+		Rewinder::init();
+		ObjController::init();
+		new DelayTaker cldt; 
+	}
+	public getitem(string s, int x, int y)	{
+		Rewinder::getitem(s,x,y);
+		cldt.take();
+	}
+	_put()	{
+		cldt.ret();
+		this.<this + "_PUT">();
+	}
+	onmousemove()	{	this.moveitem();	}
+	onmouselrel()	{
+		if( this.getlock() )	return;
+		if( cldt.isonrel() )	{	this._put();	}
+	}
+	onmouselclick()	{
+		if( this.getlock() ) return;
+		if( cldt.isonclick() )	{
+			this._put();
+		} else if ( !cldt.istaken() )	{
+			this.<this+"_GET">();
+		}
+	}
+}

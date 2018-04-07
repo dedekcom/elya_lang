@@ -1,0 +1,514 @@
+
+game Intro : StdGame	{
+	init	{
+		StdGame::init("intro");
+		
+		.imgs = (A, "intro1.png 5", "intro2.png", "napis1tyt.pyz 10", "napis2tyt.pyz 10", "napis3kk.pyz 15", "autorzy.pyzH 20");
+		
+		new int icycnapis = 20;
+		new int ilennapis1 = -((iResX-annapis1tyt.getpx)+icycnapis)/icycnapis;
+		annapis1tyt.move( -icycnapis*ilennapis1, 0 );
+		new int ilennapis2 = (annapis2tyt.getex+icycnapis)/icycnapis;
+		annapis2tyt.move( -icycnapis*ilennapis2, 0 );
+		new int inapisycnt = icycnapis;
+		
+		new int inapiskkcnt = icycnapis/2;
+		new int ilenapiskk = (annapis3kk.getey+inapiskkcnt)/inapiskkcnt;
+		annapis3kk.move(0, -inapiskkcnt*ilenapiskk);
+		
+		.cycle = ("timnapiskk", func {
+			inapiskkcnt--;
+			annapis3kk.move(0, ilenapiskk);
+			if( inapiskkcnt<=0 )	{
+				annapis3kk.play(0);
+				timtytul1.play;
+			} else
+				.play;
+			} );
+		.cycle = ("timtytul1", func {
+			inapisycnt--;
+			annapis1tyt.move(ilennapis1,0);
+			annapis2tyt.move(ilennapis2,0);
+			if( inapisycnt<=0 )	{
+				annapis1tyt.play(0);
+				annapis2tyt.play(0);
+				anautorzy.play(0);
+				.mkkgo;
+			} else
+				.play;
+			} );
+		
+		anautorzy.addmethod("onfinish", "mend");
+		
+		new classfadeinout ctbg;
+		
+		.timer = ("timwiocha", 1000, "mwiochago" );
+		.timer = ("timkkgo", 1000, "mkkgo" );
+		
+		ccs.enter( func {
+			timnapiskk.play;
+			} );
+	}
+	mkkgo		{ ctbg.imgtransparency(1, -1, "imgintro1", func { timwiocha.play; } ); }
+	mwiochago	{ ctbg.imgtransparency(1, 1, "imgintro1", func { timkkgo.play; } ); }
+	mend	{
+		if( igmstate!=0 ) return;
+		igmstate=1;
+		ccs.close( func { gameapi.play("MainMenu"); } );
+	}
+	mouse_lclick	{
+		.mend;
+	}
+}
+
+
+new bool bModeEasy = false;
+new bool bOutroExit = true;
+game MainMenu : StdGame	{
+	init	{
+		PrzygodaMode = false;
+		
+		AdventureGame = false;
+		modadvglob.delheros;
+		clsave.free;
+		
+		if( .checktouchpad ) {
+			new classfullsave clsavglob("saves/padsav.txt");
+			clsavglob.stdload;
+			new int localsubtitle = clsavglob.get("igmsubtitle");
+			igmsubtitle = true;
+		}
+		
+		StdGame::init("mainmenu");
+		
+		.imgs = (A, "bg1.pyz", "sky.pyz 3", "chmura1.pyz 5", "chmura2.pyz 5", "chmura3.pyz 5", "bg2.pyz 10",
+			"tytul.pyz 100", "tytulodc"+igmkikpart+".pyz 100", "partkik.pyz 100",
+			"butnew.pyz 20", "maskakrzaki.pyz 30", "oferma.pyz 15", "kapral.pyz 15", "strzalka.pyz 17");
+		
+		anpartkik.setframe(igmkikpart,0);
+		
+		.copyanima("ansky", "ansky2");
+		ansky2.setpos(ansky.getex,0);
+		
+		SetAnMover::setas("ansky", -0.14, 0);
+		SetAnMover::setas("ansky2", -0.14, 0);
+		
+		.msetchmura("anchmura1", -0.4);
+		.msetchmura("anchmura2", -0.9);
+		.msetchmura("anchmura3", -0.27);
+		
+		.cycle = ("timchmury", func {
+			ansky.sam_move; ansky2.sam_move;
+			if( ansky.getex<0 )	{
+				ansky.setpos(0, 0);
+				ansky2.setpos(ansky.getex,0);
+			}
+			anchmura1.mmove;
+			anchmura2.mmove;
+			anchmura3.mmove;
+			.play;
+			} );
+		timchmury.play;
+		
+		new string slastsnd = null;
+		new Button but1;
+		anbutnew {
+			.addmethod("isbutin", func { (@x, @y)
+				@idf = .framenr;
+				@ida = .actionnr(-1);
+				.setframe(0,0);
+				.isin(x,y,1,1);
+				.setframe(ida,idf);
+				} );
+			.addmethod("butmoveon", func {
+				if( igmstate!=1 ) return;
+				advmouse.setbut;
+				@s = "sndgra";
+				if( .mreadysnd(s) )	{
+					.mplay(s);
+				}
+				.setframe(0,1);
+				} );
+			.addmethod("butmoveoff", func {
+				if( igmstate!=1 ) return;
+				advmouse.setstd;
+				.setframe(0,0);
+				} );
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				igmstate = 2;
+				.setframe(1,0);
+				timgo.play;
+				} );
+			but1.add(this);
+		};
+		anoferma.mmode;
+		ankapral.mmode;
+		
+		new string sgotogame;
+		.timer= ("timgo", 500, func { .mgotogame("MenuLoad"); } );
+		
+		.sounds = (A, "sndgra", "Rozpocznij lub wczytaj grê", null,
+			":kapral1", "Poziom trudno¶ci mini gier normalny!", func { .mstop("ankapral"); },
+			":oferma1", "Poziom trudno¶ci mini gier ³atwy", func { .mstop("anoferma"); }
+			);
+		
+		mus.playstr("sunrise.ogg bgrlas1.ogg -l -v 80");
+		
+		.msetmode( ( bModeEasy ? "oferma" : "kapral" ) );
+		
+		.sfxs = (A, "closedoor");
+		
+		if( .checktouchpad ) {
+			igmsubtitle = localsubtitle;
+			but1.bcheck2klik=(true);
+			.imgs = (A, "butcredits.pyz 50", "butsubs.pyz 50");
+			.timer = ("timpadbut", 1000, func {
+				if( spadbut!=null )
+					<spadbut>.setframe(-1,0);
+				} );
+			timpadbut.var2("spadbut", null);
+			
+			anbutcredits {
+				.Button_isinalpha;
+				.addmethod("butmoveon", func {
+					if( igmstate!=1 ) return;
+					.mclickpadbut;
+					bOutroExit = false;
+					.mgotogame("Outro"); 
+					} );
+				but1.add(this);
+			};
+			.copyanima("anbutsubs", "ansubskresl");
+			ansubskresl.setframe(1,0);
+			if( igmsubtitle ) ansubskresl.hide;
+			anbutsubs {
+				.Button_isinalpha;
+				.addmethod("butmoveon", func {
+					if( igmstate!=1 ) return;
+					.setframe(-1,1);
+					} );
+				.addmethod("butmoveoff", func {
+					if( igmstate!=1 ) return;
+					.setframe(-1,0);
+					} );
+				.addmethod("butclick", func {
+					if( igmstate!=1 ) return;
+					igmsubtitle = !igmsubtitle;
+					if( !igmsubtitle ) {
+						subtitle.stop;
+						ansubskresl.show;
+					} else {
+						ansubskresl.hide;
+					}
+					clsavglob.set("igmsubtitle", igmsubtitle);
+					} );
+				but1.add(this);
+			};
+		}
+		
+		ccs.enter( "mgo" );
+	}
+	mclickpadbut	{
+		timpadbut.spadbut = (this);
+		.setframe(-1,1);
+		timpadbut.play;
+	}
+	mgotogame(string s)	{
+		sgotogame=s;
+		igmstate=2;
+		mus.fadeout(1000);
+		ccs.close( func { gameapi.play(sgotogame); } );
+	}
+	mplay(string s)	{
+		.cbplay(s);
+		slastsnd = s;
+	}
+	mreadysnd(string s)	{
+		slastsnd!=s && ( !.cisplaying || .cgetactsnd!=s);
+	}
+	mmode	{
+		.var2("isactive", false);
+		.addmethod("isbutin", func { (@x, @y)
+			@idf = .framenr;
+			@ida = .actionnr(-1);
+			.setframe(0,0);
+			.isin(x,y,1,1);
+			.setframe(ida,idf);
+			} );
+		.addmethod("butmoveon", func {
+			if( igmstate!=1 ) return;
+			advmouse.setbut;
+			isactive = true;
+			string ssnd = this->strsubbs("an")+"1";
+			if( .mreadysnd(ssnd) )	{
+				.mplay(ssnd);
+				.play(1);
+			}
+			anstrzalka.setframe(-1,1);
+			} );
+		.addmethod("butmoveoff", func {
+			if( igmstate!=1 ) return;
+			advmouse.setstd;
+			isactive = false;
+			if( .actionnr(-1)==2 )	{
+				.setframe(0,0);
+				anstrzalka.setframe(-1,0);
+			}
+			} );
+		.addmethod("butclick", func {
+			if( igmstate!=1 ) return;
+			fxclosedoor.play;
+			.msetmode(this->strsubbs("an"));
+			} );
+		but1.add(this);
+	}
+	mstop(string s)	{
+		if( <s>.isactive )	{
+			<s>.play(2);
+		} else {
+			<s>.setframe(0,0);
+			anstrzalka.setframe(-1,0);
+		}
+	}
+	mgo	{
+		igmstate = 1;
+	}
+	msetchmura(string s, real rx)	{
+		SetAnMover::setas(s, rx, 0);
+		<s>.sam_speed = (0.7);
+		<s>.addmethod("mmove", func {
+			.sam_move;
+			if( .getex < 0 )
+				.ansetbpos( iResX, .getpy );
+			} );
+	}
+	msetmode(string s)	{
+		if( s=="kapral" )	{
+			bModeEasy = false;
+			anstrzalka.setframe("kapral",1);
+		} else {
+			bModeEasy = true;
+			anstrzalka.setframe("oferma",1);
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug )	{
+			modadvglob.print;
+		}
+	}
+}
+
+game MenuLoad : StdGame	{
+	init	{
+		StdGame::init("menuload");
+		
+		.imgs = (A, "bkg.pyz", "sloty.pyzG 5", "loadstart.pyzG 10");
+		
+		new Button but1;
+		if( .checktouchpad ) but1.bcheck2klik=(true);
+		new vector vecloads;
+		vecloads.beginadd("begin",-1, 0, 0, 0, 0);
+		
+		.sounds = (A, "sndraz", "Czy chcesz rozegraæ przygodê od nowa i usun±æ dotychczas zapisany stan gry?", null,
+			"sndyesraz", "Tak; Gram od nowa", null,
+			"sndnoraz", "Nie", null,
+			"sndnowa", "Rozegraj grê od pocz±tku", null,
+			"sndload", "Wczytaj ostatnio zapisan± grê", null
+			);
+		
+		grloadstart.eval( func {
+			@s = .actionname;
+			string styp = s.getb(0,4);
+			new int idloadstart = ( styp == "load" ? s.strsubbs("load") : s.strsubbs("start") );
+			if( styp=="load" )	{
+				@sfile = .getsavepath + "slot"+idloadstart+".bmp";
+				if( !engine.fileexist(sfile) )
+					.hide;
+				else {
+					s = "imgslot"+idloadstart;
+					<GAME>.newimg(s, "$"+sfile, 10);
+					string s1 = grsloty.get(idloadstart-1);
+					<s>.setpos( <s1>.getpx+12, <s1>.getpy+13 );
+					vecloads.set(idloadstart,1);
+				}
+			}
+			.Button_isinalpha;
+			.Button_moveoff;
+			if( styp == "load" )	{
+				.addmethod("butmoveon", func {
+					if( igmstate!=1 ) return;
+					advmouse.setbut;
+					.setframe(-1,1);
+					.cbselfplay("sndload");
+					} );
+				.addmethod("butclick", func {
+					if( igmstate!=1 ) return;
+					igmstate = 2;
+					PrzygodaNumer = idloadstart;
+					PrzygodaMode = true;
+					classadvstdgame::advload_game;
+					} );
+			} else {
+				.addmethod("butmoveon", func {
+					if( igmstate!=1 ) return;
+					advmouse.setbut;
+					.setframe(-1,1);
+					.cbselfplay("sndnowa");
+					} );
+				.addmethod("butclick", func {
+					if( igmstate!=1 ) return;
+					PrzygodaNumer = idloadstart;
+					if( vecloads.get(PrzygodaNumer) )	{
+						claskexit.ask( "sndraz", "sndyesraz", "sndnoraz", "mplaynew", null );
+					} else {
+						.mplaynew;
+					}
+					} );
+			}
+			but1.add(this);
+			} );
+		mus.playstr("marsz.ogg -v 70 -l");
+		igmstate = 1;
+	}
+	mplaynew	{
+		igmstate = 3;
+		.cactsndstop(false);
+		mus.fadeout(1000);
+		ccs.close( func {
+			PrzygodaMode = true;
+			
+			match(igmkikpart)	{
+				2 => "Cs10Chapter2";
+				3 => "Cs30Chapter3";
+				? => "Cs1Panorama";
+			}
+			
+			gameapi.play;
+			} );
+	}
+}
+
+game Outro : StdGame	{
+	init	{
+		StdGame::init("outro");
+		
+		if( .checktouchpad )	{
+			.imgs = (A, "bkg.pyz", "bgmask.pyzG 10", "chm.pyzG 15", "scena.pyz 20",
+				"ludki.pyzG 25", "tytul.pyz 30", "napisypad.pyzG 7", "copyright.pyz 40");
+			grnapisypad.addtogamevars("grnapisy");
+		} else {
+			.imgs = (A, "bkg.pyz", "bgmask.pyzG 10", "chm.pyzG 15", "scena.pyz 20",
+				"ludki.pyzG 25", "tytul.pyz 30", "napisy.pyzG 7", "copyright.pyz 40");
+		}
+		
+		antytul.setframe(0, igmkikpart);
+		<grnapisy.first>.setframe(0, igmkikpart);
+		
+		grludki.nplay(-1);
+		
+		new vector vchm; vchm.type("real");
+		vchm.beginadd("begin", 0.17, 0.23, 0.28, 0.42, 0.35, 0.58);
+		real r = 1.0;
+		for( int i=0; i<grchm.size; i++)	{
+			SetAnMover::setas(grchm.get(i), vchm.get(i)*r, 0);
+		}
+		.cycle = ("timchm", func {
+			grchm.eval( func {
+				.sam_move;
+				if( .getpx > iResX )
+					.ansetbpos(-.getw, .getpy);
+				} );
+			.play;
+			} );
+		.cycle = ("timnapisy", func {
+			grnapisy.move(0, -1);
+			if( <grnapisy.last>.getey < iResY/2-80 )
+				timend.play;
+			else .play;
+			} );
+
+		int y = <grbgmask.get(0)>.getey - 100;
+		for( int i=0; i < grnapisy.size; i++)	{
+			@s = grnapisy.get(i);
+			<s>.ansetbpos( <s>.getpx, y );
+			y += <s>.geth + 50;
+		}
+		
+		timchm.play;
+		timnapisy.play;
+		
+		.timer = ("timend", 5000, "mend");
+		
+		mus.playstr("farma.ogg");
+		
+		ccs.enter( null );
+	}
+	mend	{
+		if( igmstate!=0 ) return;
+		igmstate=1;
+		mus.fadeout(1000);
+		ccs.close( func {
+			if( !bOutroExit )	{
+				bOutroExit = true;
+				gameapi.play("MainMenu");
+			} else {
+				gameapi.exit;
+			}
+			} );
+	}
+	mouse_lclick	{
+		.mend;
+	}
+}
+
+game Introb : StdGame	{
+	init	{
+		StdGame::init("introb");
+		
+		if( .checktouchpad )	{
+			.imgs = (A, "ludki.pyzH 10", "bkg.pyz");
+			.newanima("annapisy", "napisy_pad.pyz", 10);
+		} else {
+			.imgs = (A, "napisy.pyz 10", "ludki.pyzH 10", "bkg.pyz");
+		}
+		.newanima("antytul", "tytul"+igmkikpart+".pyz", 10);
+		antytul.hide;
+		.copyanima("anludki", "anludki2");
+		anludki.addmethod("onfinish", func {
+			@id = .actionnr(-1) + 2;
+			if( id < .nofactions )	{
+				.mshow(id);
+			} else	{
+				.mend;
+			}
+			} );
+		annapisy.addmethod("onfinish", func {
+			.hide;
+			if( .actionnr(-1)==0 )	{
+				antytul.play(0);
+			} else {
+				.mshow(0);
+			}
+			} );
+		antytul.addmethod("onfinish", func {
+			.hide;
+			annapisy.play(1);
+			} );
+		ccs.enter( func {
+			annapisy.play(0);
+			mus.playstr("farma.ogg");
+			} );
+	}
+	mend	{
+		if(igmstate!=0) return;
+		igmstate=1;
+		mus.fadeout(1000);
+		ccs.close( func { gameapi.play("MainMenu"); } );
+	}
+	mshow(int id)	{
+		anludki.play(id);
+		anludki2.play(id+1);
+	}
+	mouse_lclick	{	.mend;	}
+}

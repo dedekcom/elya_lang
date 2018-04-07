@@ -1,0 +1,264 @@
+
+game mg25_lustro :Banshee {
+	init{
+    Banshee::init("mg25_lustro");
+     
+    .imgs = (A,"bkg.jpg 1" , "popup_bkg.pyz 2","lustro_cale_first.pyzH 4",   "lips.pyzH 7","mirror_part_1.pyzH 8", "mirror_part_2.pyzH 9","mirror_part_3.pyzH 10","mirror_part_4.pyzH 11", "mirror_part_5.pyzH 12","lustro_cale.pyzH  13", "kinnat.pyzH 14", "lustro_duch.pyzH 15", "barghest.pyzH 17","arat.pyzH 18",  "ramka.pyz 22", "popexit.pyz 23"  );
+    .butpopexit;
+	  .butpopexitisinramka;
+	   if (!clsave.bis("e1_mg25_lustro_anmirror_part_1_inserted"))
+    {
+       anmirror_part_1{
+    			.button_isin;
+    			.addmethod("butmoveon", func {
+    			if( !.advstdstate || clsave.bis("e1_mg25_lustro_anmirror_part_1_inserted")|| !clsave.bis("e1_mg25_lustro_after_intro")) return;
+    			   advmouse.set("use");  
+          } );
+    			.addmethod("butmoveoff", func {
+    				if( !.advstdstate ) return;
+    				  advmouse.setstd;
+    				} ); 
+    			 butgame.add(this);
+  		  };
+    }
+    else if (!clsave.bis("e1_mg25_lustro_szklo_scalone"))
+      anmirror_part_1.show();    
+    
+    if (!clsave.bis("e1_mg25_lustro_anmirror_part_2_inserted"))
+    {
+      anmirror_part_2{
+  			.button_isin;
+  			.addmethod("butmoveon", func {
+  			if( !.advstdstate || clsave.bis("e1_mg25_lustro_anmirror_part_2_inserted")|| !clsave.bis("e1_mg25_lustro_after_intro")) return;
+  				  advmouse.set("use");  
+        } );
+  			.addmethod("butmoveoff", func {
+  				if( !.advstdstate ) return;
+  				  advmouse.setstd;
+  				} ); 
+  			 butgame.add(this);
+		  };
+    }
+    else if(!clsave.bis("e1_mg25_lustro_szklo_scalone"))
+      anmirror_part_2.show();  
+       
+    if (!clsave.bis("e1_mg25_lustro_anmirror_part_3_inserted"))
+    {
+      anmirror_part_3{
+  			.button_isin;
+  			.addmethod("butmoveon", func {
+  			if( !.advstdstate || clsave.bis("e1_mg25_lustro_anmirror_part_3_inserted")|| !clsave.bis("e1_mg25_lustro_after_intro")) return;
+  				  advmouse.set("use");  
+        } );
+  			.addmethod("butmoveoff", func {
+  				if( !.advstdstate ) return;
+  				  advmouse.setstd;
+  				} ); 
+  			 butgame.add(this);
+		  };
+    }
+    else if(!clsave.bis("e1_mg25_lustro_szklo_scalone"))
+      anmirror_part_3.show();  
+    
+    if (!clsave.bis("e1_mg25_lustro_anmirror_part_4_inserted"))
+    {   
+      anmirror_part_4{
+  			.button_isin;
+  			.addmethod("butmoveon", func {
+  			if( !.advstdstate || clsave.bis("e1_mg25_lustro_anmirror_part_4_inserted")|| !clsave.bis("e1_mg25_lustro_after_intro")) return;
+  				  advmouse.set("use");  
+        } );
+  			.addmethod("butmoveoff", func {
+  				if( !.advstdstate ) return;
+  				  advmouse.setstd;
+  				} ); 
+  			 butgame.add(this);
+		  };
+     }
+    else if (!clsave.bis("e1_mg25_lustro_szklo_scalone"))
+      anmirror_part_4.show();  
+    
+    if (!clsave.bis("e1_mg25_lustro_anmirror_part_5_inserted"))
+    {   
+      anmirror_part_5{
+  			.button_isin;
+  			.addmethod("butmoveon", func {
+  			if( !.advstdstate || clsave.bis("e1_mg25_lustro_anmirror_part_5_inserted")|| !clsave.bis("e1_mg25_lustro_after_intro")) return;
+  				  advmouse.set("use");  
+        } );
+  			.addmethod("butmoveoff", func {
+  				if( !.advstdstate ) return;
+  				  advmouse.setstd;
+  				} ); 
+  			 butgame.add(this);
+		  };                  
+     }
+    else if (!clsave.bis("e1_mg25_lustro_szklo_scalone"))
+      anmirror_part_5.show(); 
+    
+    .stdstart;  
+    if (!clsave.bis("e1_mg25_lustro_after_intro") ) {
+      anlustro_cale_first.show;
+      ankinnat.show;
+      .newsnd("snd_intro", "lustro_c3d3_12");
+      snd_intro.addmethod("onfinish", func { anlips.stop(false); anlips.hide;ankinnat.hide;anlustro_cale_first.hide; anbarghest.play(0);.advsetstate("state_talk"); clsave.bset("e1_mg25_lustro_after_intro"); });
+     
+      anlustro_duch.anfadein(1000,func{anlips.play(0);.cbplay("snd_intro");.advsetstate("state_talk");});
+      
+      .newsnd("snd_intro2", "kinnat_c3d3_12a");
+      snd_intro2.addmethod("onfinish", func {.advsetstdstate;  });
+      
+    }
+    .newsnd("snd_final", "kinnat_c3d3_12b");
+     snd_final.addmethod("onfinish", func {.advsetstdstate; anarat.anfadeout(1500,null); .timfinito; });
+    
+    
+    anbarghest.addmethod("onfinish",func{anbarghest.hide;anlustro_cale.hide; anlustro_duch.hide; .cbplay("snd_intro2");.advsetstdstate; });
+  
+  if (clsave.bis("e1_mg25_lustro_szklo_scalone"))
+  {
+    anlustro_cale.show;
+    ankinnat.show;
+  }
+  
+  
+  }// koniec init 
+ 
+   mouse_lclick {
+     if( sgmstate=="state_talk" ) .cactsndstop(true);
+    }
+    
+    USE_mirror_part_1	{
+		.advsetstdstate();
+    
+    if(anmirror_part_1.isin(mouse.getpos,0,0))	{
+		  .removefrompck("mirror_part_1");
+      anmirror_part_1.anfadein(500,null); 
+      clsave.bset("e1_mg25_lustro_anmirror_part_1_inserted");
+      advmouse.setstd;
+      .check_all_inserted;
+    }
+    else
+    {
+      .item_gotopck;
+    }  
+  }
+  USE_mirror_part_2	{
+		.advsetstdstate();
+    
+    if(anmirror_part_2.isin(mouse.getpos,0,0))	{
+		  .removefrompck("mirror_part_2");
+      anmirror_part_2.anfadein(500,null); 
+      clsave.bset("e1_mg25_lustro_anmirror_part_2_inserted");
+      advmouse.setstd;
+      .check_all_inserted;
+    }
+    else
+    {
+      .item_gotopck;
+    }  
+  } 
+  USE_mirror_part_3	{
+		.advsetstdstate();
+    
+    if(anmirror_part_3.isin(mouse.getpos,0,0))	{
+		  .removefrompck("mirror_part_3");
+      anmirror_part_3.anfadein(500,null); 
+      clsave.bset("e1_mg25_lustro_anmirror_part_3_inserted");
+      advmouse.setstd;
+      .check_all_inserted;
+    }
+    else
+    {
+      .item_gotopck;
+    }  
+  } 
+  USE_mirror_part_4	{
+		.advsetstdstate();
+    
+    if(anmirror_part_4.isin(mouse.getpos,0,0))	{
+		  .removefrompck("mirror_part_4");
+      anmirror_part_4.anfadein(500,null); 
+      clsave.bset("e1_mg25_lustro_anmirror_part_4_inserted");
+      advmouse.setstd;
+      .check_all_inserted;
+    }
+    else
+    {
+      .item_gotopck;
+    }  
+  } 
+  USE_mirror_part_5	{
+		.advsetstdstate();
+   
+    if(anmirror_part_5.isin(mouse.getpos,0,0))	{
+		  .removefrompck("mirror_part_5");
+      anmirror_part_5.anfadein(500,null); 
+      clsave.bset("e1_mg25_lustro_anmirror_part_5_inserted");
+      advmouse.setstd;
+      .check_all_inserted;
+    }
+    else
+    {
+      .item_gotopck;
+    }  
+  } 
+  
+  check_all_inserted
+  {
+    if (!clsave.bis("e1_mg25_lustro_anmirror_part_1_inserted"))
+      return;
+    else if (!clsave.bis("e1_mg25_lustro_anmirror_part_2_inserted"))
+      return;
+     else if (!clsave.bis("e1_mg25_lustro_anmirror_part_3_inserted"))
+      return;
+     else if (!clsave.bis("e1_mg25_lustro_anmirror_part_4_inserted"))
+      return;
+     else if (!clsave.bis("e1_mg25_lustro_anmirror_part_5_inserted"))
+      return;
+    else
+    {
+       anlustro_cale.anfadein(800,null);
+       .set_mg_finished;
+       anlustro_duch.anfadein(800,func{anarat.anfadein(1500,func{ankinnat.anfadein(1500,func{anlustro_duch.anfadeout(1000,func{ .cbplay("snd_final");}); });});});
+       clsave.bset("e1_mg25_lustro_szklo_scalone");
+      
+    }
+  }  
+ 
+  mend	{
+    .stdexitdefadv("ad25a_lustro", "gamead25a_lustro0"); 
+  }
+  
+  HINT_CLICK {
+    if (clsave.bis("ma_mirror_part_1"))
+    {
+       .showhintitem("mirror_part_1");
+       .showhint("anmirror_part_1");
+    }
+    else if (clsave.bis("ma_mirror_part_2"))
+    {
+       .showhintitem("mirror_part_2");
+       .showhint("anmirror_part_2");
+    }
+    else if (clsave.bis("ma_mirror_part_3"))
+    {
+       .showhintitem("mirror_part_3");
+       .showhint("anmirror_part_3");
+    }
+    else if (clsave.bis("ma_mirror_part_4"))
+    {
+       .showhintitem("mirror_part_4");
+       .showhint("anmirror_part_4");
+    }
+     else if (clsave.bis("ma_mirror_part_5"))
+    {
+       .showhintitem("mirror_part_5");
+       .showhint("anmirror_part_5");
+    }
+    else 
+      .showhint("anpopexit");
+  } 
+ 
+}
+ 

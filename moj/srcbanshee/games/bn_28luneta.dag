@@ -1,0 +1,442 @@
+
+game mg28_luneta :Banshee {
+	init{
+    Banshee::init("mg28_luneta");
+    //.addtopck("fragment_lunety1");
+   //  .addtopck("fragment_lunety2");
+    // .addtopck("fragment_lunety3");
+    .imgs = (A,"bkg.jpg 1" , "popup_bkg.pyz 2","luneta_base.pyz 3","focus_raczka.pyz 4","luneta_nad.pyz 5","obiektyw.pyzH 6","pokretlo_zoom.pyzH 7","zoom.pyzH 8","focus.pyzH 9","blik.pyzH 10","fragment_3.pyzH 10","przepis.pyzH 12","water.pyzH 13","fluid.pyzH 14","seeds.pyzH 15","frog_leg.pyzH 16","arat.pyzH 17","arat_glow.pyzH 18","ron.pyzH 19","ron_glow.pyzH 20",  "ramka.pyz 22","popexit.pyz 23"  );
+    .sfxs = (A, " bgrwiatr2N 30", "las_nocN 10", "przekladnia1", "szufladaklik" );
+	.butpopexit;
+	  .butpopexitisinramka;
+    new bool focus_raczka_move_backward = true;
+    new int act_focus = 20; 
+    new int act_zoom = 0;
+    new bool zoom_raczka_move_forward = true;
+    
+     
+	.askopis("mg28");
+	anaskopis.hide;	
+	anaskopis.ansetbpos( anpopexit.getcx + anaskopis.getw, anpopexit.getcy - anaskopis.geth/2);
+	
+    if (!.check_all_inserted)
+    {
+       .newsndfree("snd_obiektyw", "kinnat_c3d3_18");
+        snd_obiektyw.addmethod("onfinish", "advsetstdstate");
+    }
+	else
+	{
+		guihint.switchtoskip;
+		anaskopis.show;	
+	}
+    
+    if (!clsave.bis("e1_mg28_zoom_set"))
+    {
+      .newsndfree("snd_focus", "kinnat_c3d3_20");
+      snd_focus.addmethod("onfinish", "advsetstdstate");
+      
+      .newsndfree("snd_almost_zoom", "kinnat_c3d3_19");
+       snd_almost_zoom.addmethod("onfinish", "advsetstdstate");
+       
+    }
+	else
+	{
+		anfocus.show;
+	}
+	
+    
+    if (!clsave.bis("e1_mg28_focus_set"))
+    {
+      .newsndfree("snd_zoom_final", "kinnat_c3d3_21");
+       snd_zoom_final.addmethod("onfinish", "advsetstdstate");
+    }
+	
+	.newsndfree("snd_braki", "kinnat_c3d3_17a");
+    snd_braki.addmethod("onfinish", "advsetstdstate");
+	 
+    
+    .timer = ("tim_check_focus", 500, func { 
+        if (act_focus == 9)
+        { 
+            clsave.bset("e1_mg28_focus_set");
+            .advsetstate("blik"); 
+             anblik.play(0);
+            .set_mg_finished(); 
+            .cbplay("snd_zoom_final");
+			.show_przepis;
+            
+        }; 
+		} );
+    
+    .timer = ("tim_check_almost_zoom", 500, func { 
+        if ( act_zoom < 14)
+        { 
+          .cbplay("snd_almost_zoom");            
+        }; 
+		} );
+    
+    .timer = ("tim_check_zoom", 500, func { 
+        if (act_zoom == 14)
+        { 
+            clsave.bset("e1_mg28_zoom_set");
+            anfocus.anfadein(1500,null); 
+            .cbplay("snd_focus");
+            advmouse.setstd;             
+        }; 
+		} );  
+    
+    anobiektyw{
+        .addmethod("isbutin", func { (int x, int y)
+			    .isin(x,y,0,1)  ;
+				} ); 
+			.addmethod("butmoveon", func {
+		 	    if (!clsave.bis("e1_mg28_luneta_obiektyw_used"))
+					advmouse.set("use");
+				else
+					advmouse.setstd; 
+			 } );
+			.addmethod("butmoveoff", func {
+			   advmouse.setstd;
+			} );
+			
+			.addmethod("butclick", func {
+				if( !.advstdstate || clsave.bis("e1_mg28_luneta_obiektyw_used")) return;
+					.cbplay("snd_braki");
+			} );  
+			
+			 
+      butgame.add(this);
+    };
+	
+	anprzepis{
+        .addmethod("isbutin", func { (int x, int y)
+			   .advstdstate && .isin(x,y,1,1)  ;
+				} ); 
+			.addmethod("butmoveon", func {
+		 	    if (.is_mg_finished())
+					advmouse.set("take");
+				else
+					advmouse.setstd; 
+			 } );
+			.addmethod("butmoveoff", func {
+			   advmouse.setstd;
+			} );
+			
+			.addmethod("butclick", func {.hide_przepis; .timfinito;});
+			
+      butgame.add(this);
+    };
+     
+    anblik {
+      .addmethod("onfinish", func {
+    	   .advsetstdstate;  
+         .hide;
+      } );
+    }; 
+    
+    anfocus_raczka{
+      .setframe(-1,19);
+      anfocus.setframe(-1,19);   
+      .addmethod("isbutin", func { (int x, int y)
+			   .isin(x,y,0,0) && clsave.bis("e1_mg28_zoom_set") ;
+				} ); 
+			.addmethod("butmoveon", func {
+           if (!clsave.bis("e1_mg28_focus_set"))
+            advmouse.set("take");   
+			 } );
+			.addmethod("butmoveoff", func {
+			   advmouse.setstd;
+				 
+			 } );
+       
+       .addmethod("butclick", func { 
+        if(!.advstdstate || clsave.bis("e1_mg28_focus_set") || !.check_all_inserted || !clsave.bis("e1_mg28_zoom_set")) return;       
+          if (focus_raczka_move_backward)
+          { 
+               
+              act_focus--;
+              if (act_focus <=0)
+              {    
+                act_focus = 0;
+                focus_raczka_move_backward = false;
+              }
+              
+          }    
+          else
+          {
+            act_focus++;
+            if (act_focus >=19)
+            {    
+              act_focus = 19;
+              focus_raczka_move_backward = true;
+            }
+               
+          }
+          if (act_focus == 9)
+          {
+            tim_check_focus.play();
+          }  
+          .setframe(-1,act_focus);    
+          anfocus.setframe(-1,act_focus); 
+			fxprzekladnia1.play;	
+      });  
+      butgame.add(this);
+    }; 
+     
+    anpokretlo_zoom{
+      .setframe(-1,act_zoom); 
+      anzoom.setframe(-1,act_zoom);  
+      .addmethod("isbutin", func { (int x, int y)
+			   .isin(x,y,0,0) && !clsave.bis("e1_mg28_zoom_set") ;
+				} ); 
+			.addmethod("butmoveon", func {
+		 	     if (clsave.bis("e1_mg28_zoom_set"))
+              advmouse.setstd;
+          else if (clsave.bis("e1_mg28_luneta_pokretlo_zoom_used"))
+          {  
+              if (!clsave.bis("e1_mg28_zoom_set"))
+               advmouse.set("take"); 
+              else
+                advmouse.setstd;
+          }
+          else  
+               advmouse.set("use");   
+			 } );
+			.addmethod("butmoveoff", func {
+			   advmouse.setstd;
+				 
+			 } );
+       
+       .addmethod("butclick", func { 
+        
+		if(!clsave.bis("e1_mg28_luneta_pokretlo_zoom_used"))
+		{
+			.cbplay("snd_braki");
+			return; 
+		}
+		 
+		
+		if(!.advstdstate || clsave.bis("e1_mg28_zoom_set")|| !.check_all_inserted) return;       
+          if (zoom_raczka_move_forward)
+          { 
+            act_zoom++;
+            if (act_zoom >=14)
+            {    
+              act_zoom = 14;
+              zoom_raczka_move_forward = false;
+            }
+            
+          }    
+          else
+          {
+            act_zoom--;
+            if (act_zoom <=0)
+            {    
+              act_zoom = 0;
+              zoom_raczka_move_forward = true;
+              
+            }
+          }
+          if (act_zoom < 14)
+          { 
+            tim_check_almost_zoom.play();           
+          } else if (act_zoom == 14)
+          { 
+             tim_check_zoom.play();
+          }
+          .setframe(-1,act_zoom);    
+          anzoom.setframe(-1,act_zoom); 
+		  fxprzekladnia1.play;
+      });
+      
+       
+			 
+			butgame.add(this);
+     };   
+      
+    anfragment_3{
+        .addmethod("isbutin", func { (int x, int y)
+			   .advstdstate && .isin(x,y,0,1)  ;
+				} ); 
+		.addmethod("butmoveon", func {
+		 	    if (!clsave.bis("e1_mg28_luneta_fragment_3_used"))
+              advmouse.set("use");
+			else
+				advmouse.setstd; 
+			 } );
+			.addmethod("butmoveoff", func {
+			   advmouse.setstd;
+		} );
+		.addmethod("butclick", func { 
+			if(!clsave.bis("e1_mg28_luneta_fragment_3_used"))
+			{
+				.cbplay("snd_braki");
+				return; 
+			}
+		 });
+      butgame.add(this);
+    };
+     
+    anblik {
+    .addmethod("onfinish", func {
+  	   .advsetstdstate;  
+       .hide;	    
+      } );
+    };  
+  
+  if (clsave.bis("e1_mg28_luneta_obiektyw_used"))
+  {
+    anobiektyw.show;
+  }
+  
+  if (clsave.bis("e1_mg28_luneta_pokretlo_zoom_used"))
+  {
+    anpokretlo_zoom.show;
+  }
+  if (clsave.bis("e1_mg28_luneta_fragment_3_used"))
+  {
+    anfragment_3.show;
+    if (clsave.bis("e1_mg28_luneta_obiektyw_used"))
+        anzoom.show;
+  }
+  
+  .stdstart;     
+  
+  }// koniec init 
+ 
+  mend	{
+   // .set_mg_finished();
+    .stdexitdefadv("ad28_balkon", "gamead28_balkon0"); 
+  }
+  USE_fragment_lunety1	{
+	   .advsetstdstate(); 
+     if(anobiektyw.isin(mouse.getpos,0,0) )	{
+        anobiektyw.anfadein(500,null);
+        if (clsave.bis("e1_mg28_luneta_fragment_3_used"))
+            anzoom.anfadein(500,null); 
+        .removefrompck("fragment_lunety1");
+		fxszufladaklik.play;
+        clsave.bset("e1_mg28_luneta_obiektyw_used");
+       if (.check_all_inserted)
+		{
+        .cbplay("snd_obiektyw"); 
+		guihint.switchtoskip;
+		anaskopis.show;	
+		}
+      } else  
+	   .item_gotopck;
+  }
+  
+  USE_fragment_lunety2	{
+	   .advsetstdstate(); 
+     if(anpokretlo_zoom.isin(mouse.getpos,0,0) )	{
+      anpokretlo_zoom.anfadein(500,null);
+      .removefrompck("fragment_lunety2");
+	  fxszufladaklik.play;
+      clsave.bset("e1_mg28_luneta_pokretlo_zoom_used");
+      if (.check_all_inserted)
+		{
+        .cbplay("snd_obiektyw"); 
+		guihint.switchtoskip;
+		anaskopis.show;	
+		}
+      } else  
+	   .item_gotopck;
+  }
+  
+  USE_fragment_lunety3	{
+	   .advsetstdstate(); 
+     if(anfragment_3.isin(mouse.getpos,0,0) )	{
+      anfragment_3.anfadein(500,null);
+      .removefrompck("fragment_lunety3");
+	  fxszufladaklik.play;
+      if (clsave.bis("e1_mg28_luneta_obiektyw_used"))
+        anzoom.anfadein(500,null);
+      clsave.bset("e1_mg28_luneta_fragment_3_used");
+		if (.check_all_inserted)
+		{
+        .cbplay("snd_obiektyw"); 
+		guihint.switchtoskip;
+		anaskopis.show;	
+		}
+      } else  
+	   .item_gotopck;
+  }
+  
+  check_all_inserted{
+    if (clsave.bis("e1_mg28_luneta_obiektyw_used") && clsave.bis("e1_mg28_luneta_pokretlo_zoom_used") && clsave.bis("e1_mg28_luneta_fragment_3_used") )
+      return true;
+    else
+      return false;
+  
+  }
+  show_przepis{
+    anprzepis.anfadein(800,null);
+    if( clsave.bis("e1_mg22_palenisko_woda_dodana"))
+      anwater.anfadein(800,null); 
+    if( clsave.bis("e1_mg22_palenisko_fluid_dodany"))
+      anfluid.anfadein(800,null);
+    if( clsave.bis("e1_mg22_palenisko_ziarna_dodane"))
+      anseeds.anfadein(800,null);
+    if( clsave.bis("e1_mg22_palenisko_frog_leg_dodana"))
+      anfrog_leg.anfadein(800,null);
+	
+	if (clsave.bis("e1_mg25_lustro_finished"))
+		anarat.anfadein(800, null);  
+	anron.anfadein(800, null);
+    anron_glow.anfadein(1500,func{anron_glow.anfadeout(1500,null);});
+  }
+  
+  hide_przepis{
+    advmouse.setstd; 
+	anprzepis.anfadeout(800,null);
+    if( clsave.bis("e1_mg22_palenisko_woda_dodana"))
+      anwater.anfadeout(800,null); 
+    if( clsave.bis("e1_mg22_palenisko_fluid_dodany"))
+      anfluid.anfadeout(800,null);
+    if( clsave.bis("e1_mg22_palenisko_ziarna_dodane"))
+      anseeds.anfadeout(800,null);
+    if( clsave.bis("e1_mg22_palenisko_frog_leg_dodana"))
+      anfrog_leg.anfadeout(800,null);
+	
+	if (clsave.bis("e1_mg25_lustro_finished"))
+		anarat.anfadeout(800, null);  
+	anron.anfadeout(800, null);
+     
+  }
+   
+   SKIP_CLICK	{
+		if( .advstdstate )	{
+			 clsave.bset("e1_mg28_focus_set");
+			 clsave.bis("e1_mg28_zoom_set");
+            .advsetstate("blik"); 
+            .set_mg_finished(); 
+            .cbplay("snd_zoom_final");
+			advmouse.setstd; 
+			guihint.switchtohint; 
+			anfocus.setframe(-1,9); 
+			anfocus.anfadein(800,func{ anblik.play(0);.show_przepis;});
+		}
+	}     
+  
+  HINT_CLICK {
+    if(clsave.bis("ma_fragment_lunety1") )	{
+			.showhint("anobiektyw");
+			.showhintitem("fragment_lunety1");
+		}else if(clsave.bis("ma_fragment_lunety2") )	{
+			.showhint("anpokretlo_zoom");
+			.showhintitem("fragment_lunety2");
+	  }else if(clsave.bis("ma_fragment_lunety3") )	{
+			.showhint("anfragment_3");
+			.showhintitem("fragment_lunety3");
+		}else if(.check_all_inserted && !clsave.bis("e1_mg28_zoom_set")) 
+			 .showhint("anpokretlo_zoom");
+    else if(.check_all_inserted && !clsave.bis("e1_mg28_focus_set")) 
+			 .showhint("anfocus_raczka");
+    else 
+      .showhint("anpopexit");  
+    
+  } 
+ 
+}
+ 

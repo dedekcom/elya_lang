@@ -1,0 +1,85 @@
+/***************************************************************************/
+class collection	{
+	init(string styp)	{	new string stype=styp;	}
+	public string type()	{	return stype;		}
+}
+
+class array : collection {
+	init(string styp, int idimens, int isiz)	{
+		collection::init(styp);
+		new int idim = idimens;
+		new int isize = isiz;
+		new vector vec;
+		vec.type(styp);
+		if( idimens<=0 || isiz<=0 )	return;
+		//vec.resize( isiz.pow(isiz,idimens), 0 );
+		vec.resize( isiz.pow(idimens), 0 );
+	}
+	int getid()	{
+		int pos=0;
+		int dim=idim-1;
+		while(dim>0)	{
+			pos+=_;
+			pos*=isize;
+			dim--;
+		}
+		return pos+_;
+	}
+	public def get()	{	return vec.get( this.getid() );	}
+	public set(def svar)	{	vec.set( this.getid(), svar);	}
+	public int getsize()	{	return isize;			}
+	public int getdim()	{	return idim;			}
+}
+
+class stack : collection	{
+	init(string styp)	{
+		collection::init(styp);
+		new vector vec;
+		vec.type(styp);
+		new <styp> var;
+	}
+	public push(string svar){	vec.add(svar);		}
+	public def top()	{	return vec.last();	}
+	public def pop()	{
+		var = this.top();
+		vec.removeat( vec.size()-1 );
+		return var;
+	}
+	public free	{	vec.free;	}
+}
+
+class map : collection	{
+	init(string styp)	{
+		collection::init(styp);
+		new int isize=0;
+	}
+	set(string svar, def val)	{
+		if( !this.hasvar("v"+svar) )	this.add(svar);
+		<"v"+svar>.set(val);
+	}
+	add(string svar)	{	new <stype> <"v"+svar>;		}
+	def get(string svar)	{	return ["v"+svar];		}
+	remove(string svar)	{	delete <"v"+svar>;		}
+	bool contains(string svar){	return this.hasvar("v"+svar);	}
+}
+class map2 : collection	{
+	init(string styp)	{
+		collection::init(styp);
+		new vector vn;
+		vn.type("string");
+		new vector vec;
+		vec.type(styp);
+	}
+	add(string svar, def val)	{	vn.add(svar);	vec.add(val);	}
+	set(string svar, def val)	{	vec.set( vn.find(svar), val );	}
+	bool contains(string svar)	{	return vn.contains(svar);	}
+	def get(string svar)		{	return vec.get( vn.find(svar) );}
+	remove(string svar)	{
+		int id = vn.find(svar);
+		if( id>=0 )	{
+			vec.removeat( id );
+			vn.removeat(id);
+		}
+	}
+	free()	{	vn.free();	vec.free();	}
+}

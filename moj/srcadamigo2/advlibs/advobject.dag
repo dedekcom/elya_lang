@@ -1,0 +1,20 @@
+class classadvobject	{
+	init()	{
+		this.addasadvobject();
+	}
+	addasadvobject()	{
+		string s = this.getname();
+		grmsmove.add(s);
+		grmslrel.add(s);
+		grmslclick.add(s);
+	}
+	removefromadvobjs()	{
+		string s = this.getname();
+		grmsmove.remove(s);
+		grmslrel.remove(s);
+		grmslclick.remove(s);
+	}
+	virtual onmousemove(int x, int y)	{}
+	virtual onmouselclick(int x, int y)		{}
+	virtual onmouselrel(int x, int y)		{}
+}

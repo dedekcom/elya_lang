@@ -1,0 +1,191 @@
+
+game mg43_poduszki :Banshee {
+	init{
+		Banshee::init("mg43_poduszki");
+		.imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2",  "eliksir_niebiesko_zielony.pyzH 3","eliksir_shine.pyzH 4", "poduszka1.pyzH 5", "poduszka1_moved.pyzH 6",
+		"poduszka2.pyzH 7", "poduszka2_moved.pyzH 8","zaslona.pyzH 9", "zaslona_moved.pyzH 10",
+		"ramka.pyz 17","popexit.pyz 18" );
+		.butpopexit;
+		.butpopexitisinramka; 
+		.sfxs = (A,"bgrsala2N 10", "skrzypienie_podlogiN 10", "ubranie 30", "hofound 40") ;
+		
+		if (!clsave.bis("taken_eliksir_niebiesko_zielony") )
+		{
+			aneliksir_shine.anopacityframe; 
+			//aneliksir_shine.play(0);
+			.setasitemtopck("aneliksir_niebiesko_zielony");
+			//aneliksir_niebiesko_zielony.show();
+			aneliksir_niebiesko_zielony.butdisable;  
+		} 
+		
+		if (!clsave.bis(save_prefix+"intro_spoken"))
+		{
+			.newsndfree("snd_intro", "kinnat_c4d4_38b");
+			snd_intro.addmethod("onfinish", "advsetstdstate");  
+			 	
+		 }  
+		
+		 
+
+		if (! clsave.bis("e1_mg43_poduszki_poduszka1_moved"))
+		{
+			 
+			anpoduszka1{
+				.show;	
+				.Button_isinvis;
+				.addmethod("butmoveon", func {
+					if( !.advstdstate || clsave.bis("e1_mg43_poduszki_poduszka1_moved")) return;
+					  
+					if(!clsave.bis("e1_mg43_poduszki_poduszka1_moved") )
+						 advmouse.set("take");
+					 
+				} );
+				.addmethod("butmoveoff", func {
+				 
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+					if( !.advstdstate || clsave.bis("e1_mg43_poduszki_poduszka1_moved") ) return;
+					clsave.bset("e1_mg43_poduszki_poduszka1_moved");
+					.anfadeout(500,null);
+					anpoduszka1_moved.anfadein(500,null);
+					butgame.removebut(this);
+					fxubranie.play();
+					if (!clsave.bis(save_prefix+"intro_spoken"))
+					{
+						.cbplay("snd_intro"); 
+						clsave.bset(save_prefix+"intro_spoken");			
+					}  
+					
+					if(.is_all_moved())
+						.enable_eliksir();
+				} );
+				butgame.add(this);
+			};   	
+			
+		}
+		else
+			anpoduszka1_moved.show;
+			
+		if (! clsave.bis("e1_mg43_poduszki_poduszka2_moved"))
+		{
+			anpoduszka2{
+				.show;	
+				.Button_isinvis;
+				.addmethod("butmoveon", func {
+					if( !.advstdstate || clsave.bis("e1_mg43_poduszki_poduszka2_moved")) return;
+					  
+					if(!clsave.bis("e1_mg43_poduszki_poduszka2_moved") )
+						 advmouse.set("take");
+					 
+				} );
+				.addmethod("butmoveoff", func {
+					 
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+					if( !.advstdstate || clsave.bis("e1_mg43_poduszki_poduszka2_moved") ) return;
+					clsave.bset("e1_mg43_poduszki_poduszka2_moved");
+					.anfadeout(500,null);
+					anpoduszka2_moved.anfadein(500,null);
+					butgame.removebut(this);
+					fxubranie.play();
+					if (!clsave.bis(save_prefix+"intro_spoken"))
+					{
+						.cbplay("snd_intro"); 
+						clsave.bset(save_prefix+"intro_spoken");			
+					}  		
+					if(.is_all_moved())
+						.enable_eliksir();
+				} );
+				butgame.add(this);
+			};   	
+		}
+		else
+			anpoduszka2_moved.show;	
+			
+		if (! clsave.bis("e1_mg43_poduszki_zaslona_moved"))
+		{
+			anzaslona{
+				.show;	
+				.Button_isinvis;
+				.addmethod("butmoveon", func {
+					if( !.advstdstate || clsave.bis("e1_mg43_poduszki_zaslona_moved")) return;
+					  
+					if(!clsave.bis("e1_mg43_poduszki_zaslona_moved") )
+						 advmouse.set("take");
+					 
+				} );
+				.addmethod("butmoveoff", func {
+					 
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+					if( !.advstdstate || clsave.bis("e1_mg43_poduszki_zaslona_moved") ) return;
+					clsave.bset("e1_mg43_poduszki_zaslona_moved");
+					.anfadeout(500,null);
+					anzaslona_moved.anfadein(500,null);
+					butgame.removebut(this);
+					fxubranie.play();
+					if (!clsave.bis(save_prefix+"intro_spoken"))
+					{
+						.cbplay("snd_intro"); 
+						clsave.bset(save_prefix+"intro_spoken");			
+					}  	
+					if(.is_all_moved())
+						.enable_eliksir();
+					 
+				} );
+				butgame.add(this);
+			};   	
+		}
+		else
+			anzaslona_moved.show;	
+			
+		if(.is_all_moved())
+			.enable_eliksir();
+			
+		 
+		 
+		.stdstart;  
+		 
+		}// koniec init 
+		
+	is_all_moved{
+		return clsave.bis("e1_mg43_poduszki_poduszka1_moved") && clsave.bis("e1_mg43_poduszki_poduszka2_moved") && clsave.bis("e1_mg43_poduszki_zaslona_moved"); 
+	}	
+	
+	enable_eliksir()
+	{
+		aneliksir_shine.play(0);
+		aneliksir_niebiesko_zielony.show();
+		aneliksir_niebiesko_zielony.butenable; 
+		clsave.bset("e1_mg43_poduszki_enable_eliksir");
+		fxhofound.play();
+	}
+	
+		
+	aneliksir_niebiesko_zielony_TAKE	{	
+		aneliksir_shine.stop(true);
+		aneliksir_shine.hide;
+		.set_mg_finished;
+		.popitem_gotocenter("eliksir_niebiesko_zielony");	
+	}
+	
+	aneliksir_niebiesko_zielony_INPCK {
+      .addtopck("eliksir_niebiesko_zielony");
+	  .timfinito;
+    } 	
+  
+	mend	{
+		.stdexitdefadv("ad43_pokoj", "gamead43_pokoj0"); 
+	}
+  
+	HINT_CLICK {
+		if (!clsave.bis("taken_eliksir_niebiesko_zielony"))
+			.showhint("aneliksir_niebiesko_zielony");
+		else
+			.showhint("anpopexit");   
+	}
+}
+ 

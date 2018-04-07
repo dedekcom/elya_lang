@@ -1,0 +1,108 @@
+
+game HO07_Gruz : HOBanshee	{
+	init	{
+		new anima ankrasy;
+		ankrasy.load("scripts/ho07_gruz/krasy.pyz");
+		ankrasy.hide;
+		
+		HOBanshee::init("ho07_gruz");
+		
+		mus.playstr("banshee2.ogg -v 70 -l");
+		
+		.imgs = (A, "bkg.jpg", "puszka.pyz 600");
+		//anpuszka.anopacityframe;
+		anpuszka.addmethod("onfinish", "mend");
+		.setasitemtopck("anpuszka");
+		
+		.mmasks;
+		
+		new DelayMover cmov; cmov.unlock;
+		new string scmov = null;
+		new bool bignoremsclick = false;
+		
+		ankrasy.addmethod("onfinish", func {
+			.setframe(0,0);
+			igmstate = 1;
+			.mho_click;
+			} );
+		
+		.mtoloupe("ho_shovel"); 
+		
+		ccs.enter( func {
+			igmstate = 1;
+			.advsetstdstate;
+			} );
+	}
+	ho_shovel_click	{
+		.show;
+		.remove_from_loupe(this);
+	}
+	ho_dwarf_preclick	{	.dwarfcrown_preclick;	}
+	ho_crown_preclick	{	.dwarfcrown_preclick;	}
+	dwarfcrown_preclick	{
+		@s = cmov.getfree;
+		if( s!=null )	{
+			scmov = null;
+			.hide;
+			<s>.hide;
+			butgame.removebut(this);
+			ankrasy.play(1);
+			ankrasy.setz(610);
+			ankrasy.ansetbpos(.getpx, .getpy);
+		} else {
+			scmov = this;
+			bignoremsclick = true;
+			igmstate = 6;
+			.setz(600);
+			.setframe(-1,0);
+			cmov.mssetobj( scmov );
+			butgame.removebut( scmov );
+		}
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			igmstate = 20;
+			anpuszka.play(0); 
+			grgwiazdki1.setpos( anpuszka.getcx, anpuszka.getcy );
+			grgwiazdki1.setz(600);
+			grgwiazdki1.nplay(-1);
+		}
+	}
+	mend	{
+		.saveitemtopck("puszka");
+		.stdexitdefadv("ad03_placglowny", "gamead03_placglowny0"); 
+	}
+	mouse_lclick	{
+		if( bignoremsclick )	{
+			bignoremsclick = false;
+		} else if( scmov!=null )	{
+			// tu trzeba zrobic jakis efekt powrotu na miejsce
+			_ = cmov.getfree;
+			igmstate = 1;
+			<scmov>.setpos(0,0);
+			<scmov>.setframe(-1,1);
+			<scmov>.setz(<scmov>.myz);
+			butgame.add(scmov);
+			scmov = null;
+		}
+	}
+	mouse_rclick	{
+		if( .isvisible_itempopup("puszka") )
+			.hide_itempopup("puszka");
+		else .show_itempopup("puszka", "anpuszka");
+	}
+	popup_puszka_in	{
+		/*anpuszka.hide;
+		clsave.bset("taken_puszka");
+		.hideitempopupshadow("puszka");*/
+	}
+	popup_puszka_out	{
+		anpuszka.show;
+	}
+	HINT_CLICK	{
+		Hidden::HINT_CLICK;
+		if( !angwiazdkif.isplaying(-1) )	{
+			.mhintonobj( .mgetel( 2->rand ? "ho_dwarf" : "ho_crown" ) );
+		}
+	}
+}

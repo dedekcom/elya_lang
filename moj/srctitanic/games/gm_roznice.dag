@@ -1,0 +1,34 @@
+
+game Roznice : StdGame	{
+	init	{
+		StdGame::init("roznice");
+		
+		.imgs = (A, "bkg.pyz", "lewa.pyz 10", "prawaP.pyz 10" );
+		.newgrimg("grels", "els", 20);
+		.sounds = (A, ":kokosz1", "Och takie same!", func { .cbplay("kajko1"); },
+			":kajko1", "Nie; Przypatrz siê uwa¿nie; Niektóre kolory obrazka na kuferku s± inne ni¿ te padaj±ce przez witra¿; Spróbujê je wcisn±æ", func { igmstate=1; },
+			":kajko2", "Ha! Zamek pu¶ci³; Ale chwila; W ¶rodku jest drugi kufer!", func { ccs.close( func {
+				.gotoadv("adpokojkk", "gameadpokojkk0");
+				} ); }
+			);
+		.cbplay("kokosz1");
+		
+		.sfxs = (A, "ogien2N 40", "founditem2", "klamka");
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+		if( igmstate==1 && grels.isin(mouse.getpos,1,1) )	{
+			@s = grels.getsfound;
+			<s>.hide;
+			fxfounditem2.play;
+			grels.remove(s);
+			if( grels.empty )	{
+				anbkg.setframe(0,1);
+				fxklamka.play;
+				.timer = ("timgo", 1000, func {
+					.cbplay("kajko2"); } );
+				timgo.play;
+			}
+		}
+	}
+}

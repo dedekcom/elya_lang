@@ -1,0 +1,178 @@
+
+class GraczeMemo	{
+	init(int imode)	{
+		new int idrugi = 1;
+		if( imode==1 )	idrugi=2;	// 1 - p vs comp, 2 - p vs p
+		new anima angracz1;
+		angracz1.load("scripts/memo/gracze.pyz");
+		.copyanima("angracz1", "angracz2");
+		angracz1.addtogamevars("angracz1");
+		angracz2.addtogamevars("angracz2");
+		.var("aktualny");
+		.set(1);
+	}
+	set(int id)	{
+		aktualny = id;
+		if( id==1 )	{
+			angracz1.setframe(0,1);
+			angracz2.setframe(1,0);
+		} else {
+			angracz1.setframe(0,0);
+			angracz2.setframe(1,1);
+		}
+	}
+	next	{
+		if(aktualny==1) .set(2);
+		else .set(1);
+	}
+}
+
+iMemoW = 6;
+iMemoH = 5;
+iMemoTryb = 1;
+
+game Memo : Kajuta, TMemo {
+	init()	{
+		Kajuta::init("memo");
+		
+		.tinit("$scripts/25kotlypalacz/25kotlypalacz.jpg", "tmale.pyz", "tafmaly.pyz", 2);
+		
+		.path = ("25kotlypalacz");
+		.imgs = (A, "palacz.pyz 3", "deska.pyz 1", "memo.pyz 2");
+		.path = ("memo");
+		
+		.tfitinsurf( 720, 510 );
+		@dy = -15;
+		grnak.move( 0, dy );
+		grtaf.move( 0, dy );
+		
+		.sfxs = (A, "memo1", "memo2", "brawo", "buu");
+		
+		new GraczeMemo gracze( iMemoTryb );
+		new Cypher ct1(null,40, .white, angracz1.getcx-10, angracz1.getey+3, 500);
+		new Cypher ct2(null,40, .white, angracz2.getcx-10, angracz2.getey+3, 500);
+		//gracz2.setpos( iResX-gracz2.getw, 0 );
+		
+		if( igmdebug )	.mbutnext;
+		.mskipminigame;
+		.match3but;
+		
+		ccs.enter( "tm_start" );
+	}
+	tm_start	{
+		igmstate = 1;
+		TMemo::tm_start;
+	}
+	tnextplayer	{
+		TMemo::tnextplayer;
+		gracze.set( iplayer );
+	}
+	askrestart2()	{
+		if( iMemoTryb==1 )		claskexit.askrestart;
+		else	claskexit.askrestart2;
+	}
+	tfinish()	{
+		<"ct" + iplayer>.++;
+		int c1 = ct1.get;
+		int c2 = ct2.get;
+		if( c1==c2 )	{ .memrestart;}
+		else if (c1>c2)	{ .mend; }
+		else { .memrestart; }
+	}
+	mend	{
+		if( AdventureMode )
+			.mprzejdz("Kotlypalacz");
+		else .mprzejdz("MainMenu");
+	}
+	match3_won	{	.mend;	}
+	skip_minigame	{	.mend;	}
+	memrestart	{	.mprzejdz("Memo");	}
+	tpoint()	{
+		if( iMemoTryb>0 )	{
+			<"ct" + iplayer>.++;
+		}
+		fxmemo2.play;
+	}
+	tchoose	{	fxmemo1.play;	}
+	terror	{	}
+	tit_lclick()	{
+		.tm_mouselclick;
+	}
+	anbutnext_click	{
+		.mend;
+	}
+}
+
+game Kolkokrzyz : Kajuta {
+	init	{
+		Kajuta::init("kolkokrzyz");
+		.imgs = (A, "bg.jpg", "pola.pyzGH", "ramka.pyz 5", "kolo.pyzGH 10", "krzyz.pyzGH 10", "kreski.pyzH 20");
+		
+		new GraczeMemo gracze( 1 );
+		gracze.set( 2->rand+1 );
+		
+		.sfxs = (A, "kreska", "putznak");
+		mus.playstr("maszynownia.ogg -l -v 30");
+		
+		new vector vgracz1;
+		new vector vgracz2;
+		
+		grpola.each( func { (@id) .var2("myid",id); } );
+		
+		.timer = ("timpalacz", 1000, func {
+			@id = grpola.size->rand;
+			@pos = <grpola.get( id )>.myid;
+			grpola.removeat(id);
+			vgracz2.add(pos);
+			<grkrzyz.get(pos)>.show;
+			fxputznak.play;
+			if( .mwin("vgracz2") || grpola.empty )	{
+				timrepeat.play;
+			} else {
+				igmstate=1;
+				gracze.next;
+			}
+			} );
+		.timer = ("timrepeat", 1000, func { .mprzejdz("Kolkokrzyz"); });
+		.timer = ("timwin", 1000, func { .mprzejdz("Kotlypalacz"); });
+		
+		if( gracze.aktualny == 2 )
+			.mpalacz;
+		else igmstate = 1;
+	}
+	mpalacz	{ igmstate=0; timpalacz.play; }
+	tit_lclick	{
+		if( igmstate==1 && grpola.isin(mouse.getpos,0,1) )	{
+			igmstate=0;
+			@id = grpola.getfound;
+			@pos = <grpola.get(id)>.myid;
+			grpola.removeat(id);
+			vgracz1.add(pos);
+			<grkolo.get(pos)>.show;
+			fxputznak.play;
+			if( .mwin("vgracz1") )	{
+				timwin.play;
+			} else if ( grpola.empty )	{
+				timrepeat.play;
+			} else {
+				gracze.next;
+				timpalacz.play;
+			}
+		}
+	}
+	mwin(string s)	{
+		if( <s>.size>=3 )	{
+			for(int i=0; i<ankreski.nofactions; i++)	{
+				ankreski.setframe(i,0);
+				fxkreska.play;
+				string sac = ankreski.actionname;
+				if( <s>.contains( sac.getb(0,1) ) && <s>.contains( sac.getb(1,1) )
+					&& <s>.contains( sac.getb(2,1) ) )	{
+					ankreski.show;
+					return 1;
+				}
+			}
+		}
+		0;
+	}
+}

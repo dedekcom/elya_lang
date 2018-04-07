@@ -1,0 +1,69 @@
+/***************************************************************************/
+
+class classbgmover	{
+	init()	{
+		new string sim1;
+		new string sim2;
+	}
+	_load(string stype, string sfunc, string sfile,  int z)	{
+		newvars::<sfunc>("im1", sfile, z);
+		new <stype> im2;
+		im2.copy( "im1" );
+	}
+	loadimg(string sfile, int z)	{	this._load( "img", "newimg", sfile, z);	}
+	loadan(string sfile, int z)	{	this._load("anima", "newanima", sfile, z);	}
+	_set(string stype, string simg)	{
+		new <stype> im1;
+		new <stype> im2;
+		im1.copy( simg );
+		im2.copy( simg );
+	}
+	setimg(string simg)	{	this._set( "img", simg);	}
+	setan(string simg)	{	this._set( "anima", simg);	}
+	setdir(string sdir)	{
+		if( sdir=="up" || sdir=="down")	{
+			im1.setpos(0,0);
+			im2.setpos(0,im1.getey());
+			sim1 = "im1";
+			sim2 = "im2";
+		} else if (sdir=="left" || sdir=="right")	{
+			im1.setpos(0,0);
+			im2.setpos(im1.getex(), 0);
+			sim1 = "im1";
+			sim2 = "im2";
+		}
+	}
+	/*****************************************/
+	movup(int dy)	{
+		im1.move(0,dy);
+		im2.move(0,dy);
+		if( <sim2>.getey() < 600 )	{
+			<sim1>.setpos( 0, <sim2>.getey() );
+			newvars::swap("sim1", "sim2");
+		}
+	}
+	movdown(int dy)	{
+		im1.move(0,dy);
+		im2.move(0,dy);
+		if( <sim1>.getpy() > 0 )	{
+			<sim2>.setpos( 0, <sim1>.getpy()-<sim2>.geth() );
+			newvars::swap("sim1", "sim2");
+		}
+	}
+	movleft(int dx)	{
+		im1.move(dx, 0);
+		im2.move(dx, 0);
+		if( <sim2>.getex() < 800 )	{
+			<sim1>.setpos( <sim2>.getex(), 0);
+			newvars::swap("sim1", "sim2");
+		}
+	}
+	movright(int dx)	{
+		im1.move(dx, 0);
+		im2.move(dx, 0);
+		if( <sim1>.getpx() > 0 )	{
+			<sim2>.setpos( <sim1>.getpx() - <sim2>.getw(), 0);
+			newvars::swap("sim1", "sim2");
+		}
+	}
+}

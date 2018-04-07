@@ -1,0 +1,3 @@
+./kompiluj ./srcsfighter/sfighter.prj
+#cp ./srcsfighter/sfighter.odd /home/dedek/projekty/rysunki_gimp/sfighter/project/scripts/
+awk -f optimize.awk ./srcsfighter/sfighter.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/sfighter/project/scripts/sfighter.odd

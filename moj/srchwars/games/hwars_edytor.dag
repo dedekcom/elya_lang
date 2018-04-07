@@ -1,0 +1,889 @@
+
+game HWarsEdytor : HwarsStd	{
+	init	{
+		HwarsStd::init("hwars");
+		// 1. mapa rozdzielona od scenariusza - wczytywana w scenario, w ktorym sa podane jednostki
+		// 2. jednostki w boxach czytane z db
+		//.debug = (1);
+		new int ifontgui = 15;
+		new GUI gui("butgui", ifontgui);
+		gui.calcmonowidth;
+		gui.unlock;
+		
+		new int iterrainz = 25;
+		new int iterobjz = 40;
+		new int iunitz = 45;
+		new int ipanelz = 50;
+		new int iguiz = 100;
+		new string sactcolor = "red";
+		
+		clsave.saveonset = (true);
+		clsave.stdload;
+		
+		new img imgbg;
+		imgbg.create(igmappw, igmapph, .white, 255);
+		
+		.imgs = (A, "hexy.pyz 5", "ramka.pyz 6", "hexyfunc.pyzH", "iko_field.pyzH");
+		anhexyfunc.setz( iterrainz -1 );
+		.copyanima("anhexyfunc", "anselecthex");
+		anselecthex.setz( iterobjz - 1 );
+		anselecthex.vars2(A, "selected",null);
+		anselecthex.setframe("frame",0);
+		aniko_field.setz( iunitz );
+		
+		new DelayMover cmov;
+                cmov.b2clicks = (true);
+                cmov.unlock;
+		
+		@dx = 3;
+		new int yhexy = anhexy.geth+dx;
+		new int hhex = (3*anhexy.geth)/4;
+		new int xstarthex = -anhexy.getw/2;
+		
+		new gmimgvec grels;
+		new gmimgvec grhex;
+		new gmimgvec gramka;
+		new gmimgvec grobs;
+		new gmimgvec grunits;
+		new gmimgvec grikounits;
+		new gmimgvec grhexfunc;
+		
+		new int iminrows = 9;
+		new int imincols = 11;
+		new int iilerows = iminrows;
+		new int iilecols = imincols;
+		for( int row=0; row<iilerows; row++ )	{
+			for( int col=0; col<iilecols; col++ )	{
+				.mbuildhex(row,col);
+			}
+		}
+		anramka.hide;
+		
+		//gui.newbutton("butwyslij", dbtx.dbget("wyslij"), w, h);
+		//butwyslij.setpos( butzrob.getex + dx, 0 );
+		@w = 100;
+		@h = 20;
+		
+		.mvec("begin","File","Terrains", "Units", "Map", "Scenario" ,"vm1");
+		.mvec("begin","Save Map","Load Map", "Bg Map", "Quit" ,"vfile");
+		.mvec("begin", "brzegi", "drzewa", "drogi", "rzeki", "krawedzie",
+			"bld1","bld2","bld3","bld4", "vter");
+		.mvec("begin", "ancient", "vunit");
+		.mvec("begin", "Grid on/off","Add Rows","Add Cols","Show miniature", "vmap");
+		.mvec("begin", "Set Red", "Set Blue", "Set City", "vscen");
+		
+		gui.newsubmenu("menu1", w, h, "vm1", "vertical");
+		menu1.setz( iguiz );
+		menu1.hide;
+		
+		gui.newbutton("butshowmenu", "menu on/off", 80, 30);
+		butshowmenu.setpos(dx, dx);
+		menu1.move( dx, butshowmenu.geth + dx );
+		butshowmenu.setz(iguiz);
+		
+		gui.addsubmenu("menu1", 0, "menufile", "vfile");
+		gui.addsubmenu("menu1", 1, "menuterrains", "vter");
+		gui.addsubmenu("menu1", 2, "menuunits", "vunit");
+		gui.addsubmenu("menu1", 3, "menumap", "vmap");
+		gui.addsubmenu("menu1", 4, "menuscen", "vscen");
+		
+		new img imleftpanel;
+		imleftpanel.create( w + 2*dx, yhexy, .grey(236),255 );
+		
+		grels.add("grhex");
+		grels.add("gramka");
+		grels.add("grobs");
+		grels.add("grunits");
+		grels.add("grikounits");
+		grels.add("grhexfunc");
+		grels.add("anselecthex");
+		grels.move(0, yhexy);
+		
+		imleftpanel.setz(ipanelz);
+		new img imupanel;
+		imupanel.create( igmappw-imleftpanel.getw, yhexy, .white, 255);
+		imupanel.move(imleftpanel.getw,0);
+		imupanel.setz(ipanelz);
+		
+		new gmimgvec grall;
+		for( int i=0; i<vter.size; i++ )	{
+			@s = "ter_"+vter.get(i);
+			@s2 = "gr" + s;
+			if( engine.fileexist(.getgraphpath+s+".pyz") )	{
+				new gmimgvec <s2>;
+				s2 ..< (s+".pyz");
+				grall.add(s2);
+				if( !vter.get(i)->getb(0,4)->moneonly )	{
+					<s2>.each( func { (@id)
+						.hide;
+						.setpos( imupanel.getpx + 5 + id*(anhexy.getw+3), anhexy.geth/2 );
+						.mterpanel;
+						.vars2(A, "imyposx",.getposx,"imyposy",.getposy);
+						} );
+				} else {
+					<s2>.each( "msetaspanelobj" );
+				}
+			}
+		}
+		
+		for( int i=0; i<vunit.size; i++ )	{
+			@s = "uni_"+vunit.get(i);
+			@s2 = "gr" + s;
+			if( engine.fileexist(.getgraphpath+s+".pyz") )	{
+				new gmimgvec <s2>;
+				s2 ..< (s+".pyz");
+				grall.add(s2);
+				<s2>.each( "msetaspanelobj" );
+			}
+		}
+		
+		new string sactterrainunit = null;
+		
+		butgui.sort;
+		
+		new int irewspeed = 20;
+		.cycle = ("timkeyboard", func {
+			if( .advstdstate )	{
+				if( .misinpanel )	{
+					if( keyboard.iskeydown("left") )	{
+						if( sactterrainunit !=null && < <sactterrainunit>.first>.getpx < imleftpanel.getex )
+							<sactterrainunit>.move( irewspeed, 0 );
+					} else if( keyboard.iskeydown("right") )	{
+						if( sactterrainunit !=null && < <sactterrainunit>.last>.getex > igmappw )
+							<sactterrainunit>.move( -irewspeed, 0 );
+					}
+				} else {
+					int x=0;
+					int y=0;
+					if( keyboard.iskeydown("left") )	{
+						x=irewspeed;
+					} else if( keyboard.iskeydown("right") )	{
+						x=-irewspeed;
+					}
+					if( keyboard.iskeydown("up") )	{
+						y=irewspeed;
+					} else if( keyboard.iskeydown("down") )	{
+						y=-irewspeed;
+					}
+					if( x||y )
+						.movemap(x,y);
+				}
+			}
+			.play;
+			} );
+		timkeyboard.play;
+		
+		new gmimgvec grmap;
+		new int iidterrain = 0;
+		new int ilasterrainx;
+		new int ilasterrainy;
+		
+		h = 40;
+		gui.newtextline("ttfile", "0a._", 300, h);
+		ttfile.mttpos;
+		if( clsave.has("edytor_filemap") )
+			ttfile.txtset( clsave.get("edytor_filemap") );
+		gui.newtextline("ttfilebg", "0a._", 300, h);
+		ttfilebg.mttpos;
+		if( clsave.has("edytor_filebgmap") )
+			ttfilebg.txtset( clsave.get("edytor_filebgmap") );
+		gui.newtextline("ttrows", "0a._", 80, h);
+		ttrows.mttpos;
+		gui.newtextline("ttcols", "0a._", 80, h);
+		ttcols.mttpos;
+		ttcols.winmove(0, h+dx);
+		.msetttsize;
+		
+		new string shexex = .mfindhexex;
+		
+		new img imgmap;
+		new img imgminimap;
+		imgminimap.create( igmappw, igmapph, .black, 192 );
+		imgminimap.hide;
+		
+		new img imgbgmap;
+		grels.add("imgbgmap");
+		
+		/*int w=(<grhex.last>.getex-<grhex.first>.getpx);
+		h= (<grhex.last>.getey-<grhex.first>.getpy);
+		new img imex;
+		imex.create(w,h,.transparent);
+		imex.setpos( <grhex.first>.getpx, <grhex.first>.getpy );
+		gramka.blitto("imex");
+		imex.save( .getgraphpath + "mapa.png" );*/
+		
+		.advsetstdstate;
+	}
+	msetaspanelobj(int id)	{
+		.hide;
+		.move( imupanel.getpx + 5 + id*(anhexy.getw+3), 0 );
+		.mterpanel;
+		.vars2(A, "imyposx",.getposx,"imyposy",.getposy);
+	}
+	msetttsize	{
+		ttrows.txtset(iilerows);
+		ttcols.txtset(iilecols);
+	}
+	mttpos	{
+		insystem=true;
+		.winmove( (igmappw-<this+"wnd">.getw)/2, 0.33*igmapph );
+		.winsetz( iguiz );
+		.winhide;
+		.disable;
+	}
+	mfindhexex	{
+		(<grhex.last>.getex < <grhex.get(grhex.size-iilecols-1)>.getex ?
+			grhex.last : grhex.get(grhex.size-iilecols-1));
+	}
+	mkmap	{ <GAME> {
+		new img imgpomap;
+		@sf = grhex.first;
+		@sl = grhex.last;
+		int x = <sf>.getpx;
+		int y = <sf>.getpy + hhex;
+		imgpomap.create( <shexex>.getex - x, <sl>.getpy+hhex - y, .black, 255 );
+		imgpomap.setpos(x,y);
+		
+		grhex.blitto("imgpomap");
+		grhexfunc.blitto("imgpomap");
+		grobs.blitto("imgpomap");
+		grunits.blitto("imgpomap");
+		
+		real r = .min((0.7*igmappw)/imgpomap.getw, (0.7*igmapph)/imgpomap.geth);
+		imgmap.imgclonezoom("imgpomap", r);
+		imgmap.setz( iguiz + 10 );
+		imgminimap.setz( imgmap.getz-1 );
+		imgminimap.show;
+		
+		imgpomap.delete_internals;
+		delete imgpomap;
+	}; }
+	movemap(int x, int y)	{
+		@sf = grhex.first;
+		@sl = grhex.last;
+		grels.move(x,y);
+		int dx = 0;
+		int dy = 0;
+		if( x>0 )	{
+			if( <sf>.getpx > 0 )
+				dx = -<sf>.getpx;
+		} else {
+			if( <shexex>.getex < igmappw )
+				dx = igmappw-<shexex>.getex;
+		}
+		if( y>0 )	{
+			if( <sf>.getpy > yhexy-hhex )
+				dy = yhexy-hhex-<sf>.getpy;
+		} else {
+			if( <sl>.getpy+hhex < igmapph )
+				dy = igmapph-(<sl>.getpy+hhex);
+		}
+		if(dx || dy)
+			grels.move(dx,dy);
+	}
+	mvec(string svec)	{
+		new vector <svec>;
+		<svec>.type("string");
+		<svec>.beginadd;
+	}
+	mterpanel	{
+		.setz(ipanelz);
+		.clip( imupanel.getpx,0,igmappw,imupanel.getey );
+	}
+	mtercopy(string san)	{
+		string s;
+		if( san.misunit )
+			s = "imguni"+iidterrain;
+		else s = "imgter"+iidterrain;
+		iidterrain++;
+		//new img <s>;
+		//<s>.imgclone(san);
+		.copyanima(san, s);
+		<s>.setframe( <san>.actionnr(-1), <san>.framenr );
+		<s>.vars2(A,"sanima",san, "shex",null);
+		s;
+	}
+	cmov_GET	{
+		if( .advstdstate && !gui.isstdclicked && 
+			sactterrainunit!=null && <sactterrainunit>.isincut(mouse.getpos,1,0))       {
+			string s = <sactterrainunit>.getsfound;
+			ilasterrainx = <s>.getposx;
+			ilasterrainy = <s>.getposy;
+			<s>.setz(500);
+			<s>.anclipscreen;
+			.mssetobj( s );
+		}
+	}
+	misinpanel	{	mouse.getpy < imupanel.getey;	}
+	cmov_PUT	{
+		if( .advstdstate )	{
+			if( .misinpanel )	{
+				@s = .getfree;
+				//<s>.setpos(<s>.imyposx+<sactterrainunit>.getposx,<s>.imyposy+<sactterrainunit>.getposy);
+				<s>.mobrettopanel;
+				<s>.mterpanel;
+			} else {
+				if( (.getmover->mismultiply && grhex.isin(<.getmover>.getposx,<.getmover>.getposy,1,1)) ||
+					grhex.isin(mouse.getpos,1,1) )	{
+					if( .getmover->misunit )
+						<GAME>.mputunit(grhex.getsfound, .getmover, sactcolor);
+					else
+						<GAME>.mputobj(grhex.getsfound, .getmover);
+				}
+			}
+		}
+	}
+	mismultiply	{	.getb("anter_"->length,4)->mmultiply;	}
+	moneonly	{	!.mmultiply;	}
+	mmultiply	{	.get == "drze" || .getb(0,3)=="bld";	}
+	munikopos	{
+		int x = .getposx;
+		int y = .getposy;
+		@s = this + "iko_";
+		<s+"at">.setpos( x, y );
+		<s+"de">.setpos( x, y );
+		<s+"st">.setpos( x, y );
+	}
+	mshowuniko	{
+		@s = this + "iko_";
+		<s+"at">.show;
+		<s+"de">.show;
+		<s+"st">.show;
+	}
+	msetactcolor(string scolor)	{	sactcolor=scolor;	}
+	mputunit(string shex, string sunit, string scolor)	{
+		.msetactcolor(scolor);
+		.mputobj(shex,sunit);
+		string sim = grunits.last;
+		.mcopyikounit(sim,"attack");
+		.mcopyikounit(sim,"defense");
+		.mcopyikounit(sim,scolor);
+	}
+	mcopyikounit(string sim, string sac)	{
+		string s = sim + "iko_" + (sac=="red"||sac=="blue" ? "st" : sac.getb(0,2));
+		.copyanima("aniko_field", s);
+		<s>.setframe(sac,0);
+		<s>.setpos( <sim>.getposx, <sim>.getposy );
+		<s>.show;
+		grikounits.add(s);
+	}
+	mputobj(string shex, string sobj)	{
+		bool bunit = sobj.misunit;
+		string sgr = (bunit ? "grunits" : "grobs");
+		@s = sobj.getb("anter_"->length, 4);
+		if( s.moneonly || bunit )	{
+			for( int i=0; i< <sgr>.size; i++ )	{
+				@s2 = <sgr>.get(i);
+				if( <s2>.shex==shex && <s2>.sobtyp==s && 
+				<s2>.iaction==<sobj>.actionnr(-1) && <s2>.iframe==<sobj>.framenr )
+					return;
+			}
+			<sobj>.setpos( <shex>.getposx, <shex>.getposy );
+		} else <sobj>.setpos( <sobj>.getposx, <sobj>.getposy );
+		
+		@sim = .mtercopy(sobj);
+		<sim>.vars2(A, "sobject",sobj, "shex",shex, "sobtyp",s, 
+			"iaction",<sobj>.actionnr(-1), "iframe",<sobj>.framenr, "posy",<sobj>.getposy);
+		<sgr>.add(sim);
+		if( sobj.misunit )	{
+			<sim>.vars2(A, "scolor", sactcolor, "iliczebnosc",10, "iatak", 50, "idefense",50, "ipanzer",0, 
+				"iwykterenu",20, "iszarza",0, "iostrzal",0, "izasieg",1,
+				"izmeczenie",0, "iruch",2, "idoswiadczenie",0,
+				"imorale",0, "ifort",0, "iatakowal",0, "iruszal",0, "iconstliczebnosc",10,
+				"iilezniszczyl",0, "iilestracil",0, "isupply",0, "iconstsupply",0);
+			iunitz;
+		} else {
+			match(s)	{
+				"kraw" => iterrainz;
+				"brze" => iterrainz+2;
+				"rzek" => iterrainz+1;
+				"drog" => iterrainz+3;
+				"drze", "bld1" => iterobjz;
+				? => iterrainz;
+			}
+		}
+		<sim>.setz;
+		<sim>.show;
+	}
+	misunit	{	.getb(0,5)=="anuni";	}
+	butshowmenu_lclick	{
+		butshowmenu.unclick;
+		if( .advstdstate )	{
+			if( menu1.isvisible )
+				menu1.hide;
+			else menu1.show;
+		}
+	}
+	menufile_lclick	{
+		if( .advstdstate )	{
+			@s = vfile.get(menufile.idclicked);
+			match(s)	{
+				"Save Map"=> .mopensave;
+				"Load Map" => .mopenload;
+				"Bg Map" => {
+					.advsetstate("state_loadbgmap");
+					ttfilebg.winshow;
+					ttfilebg.enable;
+				}
+				"Quit" => gameapi.exit;
+				? => ;
+			}
+		}
+	}
+	mputcity(string shex, string scol)	{
+		@s = shex + "city";
+		if( .hasvar(s) )
+			<s>.setframe(scol,0);
+		else {
+			.copyanima("anhexyfunc", s);
+			<s>.vars2(A,"shex",shex);
+			<s>.setframe(scol,0);
+			<s>.setpos( <shex>.getpx, <shex>.getpy );
+			grhexfunc.add(s);
+			<s>.show;
+		}
+	}
+	menuscen_lclick	{
+		match(menuscen.idclicked)	{
+			// "Set Red", "Set Blue", "Set City"
+			0 => sactcolor = "red";
+			1 => sactcolor = "blue";
+			2 => if( anselecthex.selected !=null )
+				<GAME>.mputcity( anselecthex.selected, sactcolor );
+			? => ;
+		}
+	}
+	mopenload	{
+		.advsetstate("state_loadmap");
+		ttfile.winshow;
+		ttfile.enable;
+	}
+	mopensave	{
+		.advsetstate("state_savemap");
+		ttfile.winshow;
+		ttfile.enable;
+	}
+	menumap_lclick	{
+		if( .advstdstate )	{
+			match(menumap.idclicked)	{
+				0 => {
+					if( gramka.isvisible )	{
+						gramka.hide;
+					} else gramka.show;
+				}
+				1 => {
+					.advsetstate("state_resizemaprows");
+					ttrows.winshow;
+					.msetttsize;
+					ttrows.enable;
+				}
+				2 => {
+					.advsetstate("state_resizemapcols");
+					ttcols.winshow;
+					.msetttsize;
+					ttcols.enable;
+				}
+				3 => {
+					.mminiature;
+				}
+				? => ;
+			}
+		}
+	}
+	mminiature	{
+		.advsetstate("state_showminiaturemap");
+		.mkmap;
+		imgmap.show;
+		imgmap.ancenterscreen;
+	}
+	menuterrains_lclick	{
+		if( .advstdstate )	{
+			.mshowterrainunit("grter_" + vter.get(menuterrains.idclicked));
+		}
+	}
+	mshowterrainunit(string s)	{
+		if( sactterrainunit!=null )
+			<sactterrainunit>.hide;
+		sactterrainunit = s;
+		<sactterrainunit>.show;
+	}
+	menuunits_lclick	{
+		if( .advstdstate )	{
+			.mshowterrainunit("gruni_" + vunit.get(menuunits.idclicked));
+		}
+	}
+	mbuildhex(int row, int col)	{
+		int x = ( row%2 ? xstarthex + col*anhexy.getw : col*anhexy.getw );
+		int y = row*hhex - hhex;
+		
+		string shex = "anhexy"+row+"_"+col;
+		.copyanima("anhexy",shex);
+		<shex>.vars2(A,"irow",row,"icol",col);
+		<shex>.show;
+		<shex>.setpos(x,y);
+		<shex>.setz(5);
+		@s2 = "anrama"+row+"_"+col;
+		.copyanima("anramka",s2);
+		gramka.add(s2);
+		<s2>.setpos(x, y);
+		if( gramka.isvisible )
+			<s2>.show;
+		else <s2>.hide;
+		
+		grhex.add(shex);
+		/*<shex>.Button_isinalpha;
+		<shex>.addmethod("butrclick", func {
+			if( .advstdstate )	{
+				if( grobs.isin(mouse.getpos,1,1) )	{
+					@s = grobs.getsfound;
+					grobs.remove(s);
+					<GAME>.vardel(s);
+				} else
+					.ansetnextact;
+			}
+			} );
+		butgui.add(shex);*/
+	}
+	msavemap(string sfile)	{
+		new db dbsav;
+		
+		grhexfunc.eval( func {
+			dbsav.dbaddrow(A, "vpoint:",sobject,saction,<shex>.irow,<shex>.icol,"name:","city");
+			} );
+		grunits.eval( func {
+			dbsav.dbaddrow(A, "unit:",sobject,iaction,iframe,<shex>.irow,<shex>.icol);
+			.withlist(A, "scolor", "iliczebnosc", "iatak","idefense","ipanzer","iwykterenu",
+				"iszarza","iostrzal","izasieg","izmeczenie","iruch","idoswiadczenie",
+				"imorale","ifort","iatakowal","iruszal", "iconstliczebnosc",
+				"iilezniszczyl","iilestracil","isupply","iconstsupply",
+				func { (string svar) 
+					dbsav.dbaddlast( svar + ":" );
+					dbsav.dbaddlast( [svar] );
+					} );
+			} );
+		if( sfile.miscenario )	{
+			string sf = sfile.strsube(3)+"map";
+			dbsav.dbaddrow(A, "map:", sf );
+			dbsav.save(.getgraphpath + "scenarios/" + sfile );
+			sfile = sf;
+		} else {
+			dbsav.dbaddrow(A, "map:", sfile );
+			dbsav.save(.getgraphpath + "scenarios/auto_" + sfile.strsube(3)+"scn" );
+		}
+		dbsav.free;
+		
+		dbsav.dbaddrow( A, "size:", iilerows, iilecols );
+		grhex.eval( func {
+			dbsav.dbaddrow(A,"hex:",irow,icol,.actionnr(-1));
+			} );
+		
+		grobs.eval(func {
+			if( sobtyp.mmultiply )	{
+				.setz( iterobjz+posy);
+			}
+			} );
+		grobs.sortimgs;
+		grobs.eval(func {
+			if( sobtyp.mmultiply )	{
+				.setz( iterobjz );
+				dbsav.dbaddrow(A, "obj:",sobject,iaction,iframe,.getpx-grels.getpx,.getpy-grels.getpy);
+			} else {
+				dbsav.dbaddrow(A, "obj:",sobject,iaction,iframe,<shex>.irow,<shex>.icol);
+			}
+			} );
+		dbsav.save(.getgraphpath + "maps/" + sfile);
+		
+		delete dbsav;
+	}
+	miscenario	{	.gete(0,3)=="scn";	}
+	mloadmap(string sfile)	{
+		grobs.deleteallgm;
+		grobs.free;
+		grunits.deleteallgm;
+		grunits.free;
+		grikounits.deleteallgm;
+		grikounits.free;
+		grhexfunc.deleteallgm;
+		grhexfunc.free;
+		grhex.deleteallgm;
+		grhex.free;
+		gramka.deleteallgm;
+		gramka.free;
+		grels.setpos(0,0);
+		anselecthex.hide;
+		
+		if( sfile.miscenario )	{
+			@s = .getgraphpath+ "scenarios/" + sfile;
+			if( !engine.fileexist(s) )	{
+				s = .getgraphpath+ "scenarios/auto_" + sfile;
+				if( !engine.fileexist(s) )
+					return;
+			}
+			new db dblodsc;
+			dblodsc.load(s);
+			int id = dblodsc.findbyrow("map:");
+			sfile = dblodsc.get(id,1);
+		}
+		
+		@s = .getgraphpath+ "maps/" + sfile;
+		if( !engine.fileexist(s) )	{
+			.vardelif("dblodsc");
+			return;
+		}
+		new db dblod;
+		dblod.load(s);
+		
+		int id = dblod.findbyrow("size:");
+		iilerows = dblod.get(id,1);
+		iilecols = dblod.get(id,2);
+		id = dblod.findbyrow("hex:");
+		for( int row=0; row<iilerows; row++ )	{
+			for( int col=0; col<iilecols; col++ )	{
+				.mbuildhex(row,col);
+				<"anhexy"+row+"_"+col>.setframe(dblod.get(id,3)->to_i,0);
+				id++;
+			}
+		}
+		id = dblod.findbyrow("obj:");
+		if( id>=0 )	{
+			while( id<dblod.getrowsno && dblod.getcolsno(id)>0 && dblod.get(id,0) == "obj:" )	{
+				s = dblod.get(id,1);
+				<s>.setframe(dblod.get(id,2)->to_i, dblod.get(id,3));
+				if( s.mismultiply )	{
+					<s>.ansetbpos(dblod.get(id,4), dblod.get(id,5));
+					@shex = null;
+				} else {
+					@shex = "anhexy"+dblod.get(id,4)+"_"+dblod.get(id,5);
+					<s>.setpos( <shex>.getposx, <shex>.getposy );
+				}
+				.mputobj(shex, s);
+				<s>.setpos(<s>.imyposx,<s>.imyposy);
+				id++;
+			}
+		}
+		if( .hasvar("dblodsc") )	{
+			id = dblodsc.findbyrow("unit:");
+			if( id>=0 )	{
+				while( id<dblodsc.getrowsno && dblodsc.get(id,0) == "unit:" )	{
+					s = dblodsc.get(id,1);
+					<s>.setframe(dblodsc.get(id,2)->to_i, dblodsc.get(id,3));
+					@shex = "anhexy"+dblodsc.get(id,4)+"_"+dblodsc.get(id,5);
+					<s>.setpos( <shex>.getposx, <shex>.getposy );
+					int idcol = dblodsc.dbfindinrow(id,"scolor:");
+					string scol;
+					if( idcol>=0 ) {
+						scol = dblodsc.get( id, idcol+1 );
+					} else {
+						("unit "+s+" has no color!")->print;
+						scol = sactcolor;
+					}
+					.mputunit(shex, s, scol);
+					<s>.setpos(<s>.imyposx,<s>.imyposy);
+					string sim = grunits.last;
+					<sim>.var2("irowload", id);
+					<sim>.withlist(A, "iliczebnosc", "iatak","idefense","ipanzer","iwykterenu",
+						"iszarza","iostrzal","izasieg","izmeczenie","iruch","idoswiadczenie",
+						"imorale","ifort","iatakowal","iruszal", "iconstliczebnosc",
+						"iilezniszczyl","iilestracil","isupply","iconstsupply",
+						func { (string svar) 
+							int icol = dblodsc.dbfindinrow(irowload, svar+":");
+							if( icol>=0 )	{
+								//.var2( svar, dblodsc.get( irowload, icol+1 ) );
+								<svar> = dblodsc.get( irowload, icol+1 );
+							} else {
+								("couldn't find "+svar+" in scenario")->print;
+								<svar> = 0;
+							}
+							} );
+					id++;
+				}
+			}
+			delete dblodsc;
+		}
+		delete dblod;
+		grels.move(0, yhexy);
+	}
+	mobrettopanel	{
+		.setpos(imyposx+<sactterrainunit>.getposx,imyposy+<sactterrainunit>.getposy);
+	}
+	ttrows_onenter	{
+		int irows = .between(iminrows,.get->to_i,30);
+		if( irows > iilerows )	{
+			for( int rows=iilerows; rows<irows; rows++ )	{
+				for( int cols=0; cols<iilecols; cols++ )	{
+					<GAME>.mbuildhex(rows,cols);
+					<"anhexy"+rows+"_"+cols>.move(grhex.getpx, grhex.getpy);
+					<"anrama"+rows+"_"+cols>.move(grhex.getpx, grhex.getpy);
+				}
+			}
+			iilerows=irows;
+			.msorthexs;
+		}
+		.mttexit;
+	}
+	msorthexs	{
+		grhex.sortimgsfun( func { (string s0, string s1)
+			( <s0>.irow < <s1>.irow || (<s0>.irow==<s1>.irow && <s0>.icol < <s1>.icol) );
+			} );
+		shexex = .mfindhexex;
+	}
+	ttcols_onenter	{
+		int icols = .between(imincols,.get->to_i,30);
+		if( icols > iilecols )	{
+			for( int rows=0; rows<iilerows; rows++ )	{
+				for( int cols=iilecols; cols<icols; cols++ )	{
+					<GAME>.mbuildhex(rows,cols);
+					<"anhexy"+rows+"_"+cols>.move(grhex.getpx, grhex.getpy);
+					<"anrama"+rows+"_"+cols>.move(grhex.getpx, grhex.getpy);
+				}
+			}
+			iilecols=icols;
+			.msorthexs;
+		}
+		.mttexit;
+	}
+	ttfile_onenter	{
+		if( .advisstate("state_savemap") )	{
+			<GAME>.msavemap(.get);
+		} else if( .advisstate("state_loadmap") )	{
+			<GAME>.mloadmap(.get);
+		}
+		clsave.set("edytor_filemap",.get);
+		.mttexit;
+	}
+	ttfilebg_onenter	{
+		if( .advisstate("state_loadbgmap") )	{
+			<GAME>.mloadbgmap(.get);
+		}
+		clsave.set("edytor_filebgmap",.get);
+		.mttexit;
+	}
+	mloadbgmap(string sfile)	{
+		@s = .getgraphpath+ "tmp/" + sfile;
+		if( !engine.fileexist(s) )	{
+			imgbgmap.hide;
+			return;
+		}
+		new img imgtmp;
+		imgtmp.load( s );
+		
+		@sf = grhex.first;
+		@sl = grhex.last;
+		int x = <sf>.getpx;
+		int y = <sf>.getpy + hhex;
+		imgbgmap.create( <shexex>.getex - x, <sl>.getpy+hhex - y, .transparent );
+		
+		imgtmp.anzoomxy( imgbgmap.getw->to_r / imgtmp.getw->to_r, imgbgmap.geth->to_r / imgtmp.geth->to_r );
+		//imgtmp.ansetopacity(32);
+		imgbgmap.setpos(imgtmp.getpx,imgtmp.getpy);
+		imgbgmap.blit("imgtmp");
+		imgbgmap.setpos(x,y);
+		imgbgmap.show;
+		.msetbgop(1);
+		
+		imgbgmap.setz(iguiz + 10);
+		
+		imgtmp.delete_internals;
+		delete imgtmp;
+	}
+	msetbgop(int id)	{
+		if( id )	{
+			imgbgmap.show;
+			imgbgmap.transparency( 32*id );
+		} else imgbgmap.hide;
+	}
+	mttexit	{
+		.disable;
+		.winhide;
+		.advsetstdstate;
+	}
+	key_down	{
+		if( .advisstate("state_savemap") )	{
+			if( keyboard.iskey("escape") )	{
+				ttfile.mttexit;
+			}
+		} else if( .advisstate("state_loadmap") )	{
+			if( keyboard.iskey("escape") )	{
+				ttfile.mttexit;
+			}
+		} else if( .advisstate("state_loadbgmap") )	{
+			if( keyboard.iskey("escape") )	{
+				ttfilebg.mttexit;
+			}
+		} else if( .advisstate("state_resizemaprows") )	{
+			if( keyboard.iskey("escape") )	{
+				ttrows.mttexit;
+			}
+		} else if( .advisstate("state_resizemapcols") )	{
+			if( keyboard.iskey("escape") )	{
+				ttcols.mttexit;
+			}
+		} else if( .advstdstate )	{
+			if( keyboard.iskeydown("lctrl") )	{
+				if( keyboard.iskey("l") )	{
+					.mopenload;
+				} else if( keyboard.iskey("s") )	{
+					.mopensave;
+				} else if( keyboard.iskey("m") )	{
+					.mminiature;
+				} else if( keyboard.iskey("0") )	{
+					.msetbgop(0);
+				} else if( keyboard.iskey("1") )	{
+					.msetbgop(1);
+				} else if( keyboard.iskey("2") )	{
+					.msetbgop(2);
+				} else if( keyboard.iskey("3") )	{
+					.msetbgop(3);
+				} else if( keyboard.iskey("4") )	{
+					.msetbgop(4);
+				} else if( keyboard.iskey("5") )	{
+					.msetbgop(5);
+				} else if( keyboard.iskey("6") )	{
+					.msetbgop(6);
+				} 
+			}
+		}
+	}
+	mdelikounit(string s)	{
+		s = this + "iko_" + s;
+		grikounits.remove(s);
+		<GAME>.vardel(s);
+	}
+	mdelunit(string s)	{
+		grunits.remove(s);
+		<s>.mdelikounit("at");
+		<s>.mdelikounit("de");
+		<s>.mdelikounit("st");
+		<GAME>.vardel(s);
+	}
+	mouse_rclick	{
+		if( .advstdstate )	{
+			|int x, int y| = mouse.getpos;
+			if( .misinpanel )	{
+			} else if( grunits.isin(x,y,1,1) )	{
+				.mdelunit( grunits.getsfound );
+			} else if( grobs.isin(x,y,1,1) )	{
+				@s = grobs.getsfound;
+				grobs.remove(s);
+				<GAME>.vardel(s);
+			} else if( grhex.isin(x,y,1,1) )	{
+				<grhex.getsfound>.ansetnextact;
+			}
+		} else if( .advisstate("state_showminiaturemap") )	{
+			imgmap.hide;
+			imgminimap.hide;
+			.advsetstdstate;
+		}
+	}
+	mouse_lclick	{
+		if( .advstdstate )	{
+			if( .misinpanel )	{
+			} else if( grhex.isin(mouse.getpos,1,1) )	{
+				@s = grhex.getsfound;
+				anselecthex.selected = (s);
+				anselecthex.show;
+				anselecthex.setpos( <s>.getpx, <s>.getpy );
+			}
+		}
+	}
+}

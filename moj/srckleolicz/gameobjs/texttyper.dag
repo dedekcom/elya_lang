@@ -1,0 +1,85 @@
+class TextTyper : classlocker {
+	init(string sfont, int isize, int ir, int ig, int ib, string schars, int ilimit)	{
+		classlocker::init();
+		sfont = .checkfont(sfont, isize);
+		new int iR = ir;
+		new int iG = ig;
+		new int iB = ib;
+		new int iFontSize = isize;
+		new string sChars = schars;
+		new int iLimit = ilimit;		// 0 - unlimited
+		
+		new text txt1;
+		txt1.setfont(sfont);
+		txt1.set("");
+		new text txt2;
+		txt2.setfont(sfont);
+		txt2.set("_");
+		txt2.createtxt(iR,iG,iB);
+		txt2.hide();
+		
+		new string _sob=null;
+		new string _sfun=null;
+		
+		this.cnewtimerfin("timcyk",300,1,"fintimcyk");
+	}
+	fintimcyk()	{
+		if( this.getlock() )	return;
+		this.updatecyk();
+		this.play();
+	}
+	updatecyk()	{
+		if( txt2.isvisible() )	{
+			txt2.hide();
+		} else {
+			txt2.setpos( txt1.getex(), txt1.getpy() );
+			txt2.show();
+		}
+	}
+	public enable()	{
+		this.unlock();
+		this.updatecyk();
+		timcyk.play();
+	}
+	public disable()	{
+		txt2.hide();
+		timcyk.stop(false);
+		this.lock();
+	}
+	public onenter(string sob, string sfun)	{	_sob=sob;	_sfun=sfun;	}
+	public setpos(int x, int y)	{	txt1.setpos(x,y);	}
+	public setz(int z)	{	txt1.setz(z);txt2.setz(z);	}
+	public get()	{
+		string s = txt1.get();
+		if( s.length()>0 )	return s;
+		return " ";
+	}
+	public set(string s)	{	txt1.set(s);	}
+	public onkeydown()	{
+		if( this.getlock() )	return;
+		if( keyboard.iskeydown("enter") )	{
+			this.disable();
+			this.callfun(_sob,_sfun);
+			return;
+		}
+		string s = keyboard.getkey();
+		string s2 = txt1.get();
+		if( ((keyboard.isalpha() && sChars.contains("a") ) || ( keyboard.isdigit() && sChars.contains("0") ) ||
+			(s==" " && sChars.contains(" ")) ) && (iLimit<=0 || iLimit>s2.length())  )	{
+			txt1.set( s2+s );
+			txt1.createtxt(iR,iG,iB);
+			this.updatecyk();
+		} else if (keyboard.iskey("backspace") && s2.length()>0)	{
+			txt1.set( s2.strsube(1) );
+			txt1.createtxt(iR,iG,iB);
+			this.updatecyk();
+		}
+	}
+}
+
+class ConTextTyper : TextTyper, ObjController	{
+	init()	{
+		TextTyper::init();
+		ObjController::init();
+	}
+}

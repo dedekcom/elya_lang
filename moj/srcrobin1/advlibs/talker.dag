@@ -1,0 +1,289 @@
+/*
+	klasa obslugujaca "rozmawianie" postaci
+	Dominik Dagiel	3 III 2006
+*/
+
+class classtalker : classadvhero	{
+	init()	{
+		classadvhero::init();
+		this._setbase( "talk:" );
+		
+		new snd sndtalk;
+		sndtalk.setstartstopflag(false, true);
+		sndtalk.addmethod("onfinish", "_ctalkfin");
+		
+		new timer timtalk;
+		timtalk.settick(1);
+		new real rdelay = 1.0;
+		timtalk.addmethod("onfinish","_ctalkfin");
+		
+		new gmimgvec txttalk;
+		new int _iletxt=10;
+		string s;
+		for( int i=0; i<_iletxt; i++ )	{
+			s = "txttalk"+i;
+			new text <s>;
+			txttalk.add(s);
+		}
+		new font fonttalk;
+		txttalk.hide();
+		new vector vecpom;
+		vecpom.type("string");
+		new int iTxtLim = 30;
+		new int irtxt;
+		new int igtxt;
+		new int ibtxt;
+		new string stextdb;		// baza z tekstem do mowienia
+		new string _swav;
+		
+		this.buildfullname();
+		
+		new string stalktype;
+		this.settalktype("snd");	// typ: (snd, txt, film) -> kombinacje
+	}
+	public set(string san)	{
+		this.link(san);
+	}
+	public settextdb(string s)	{	stextdb=s;	}
+	public setfont(string sfile, int size)	{
+		fonttalk.load(sfile,size);
+		txttalk.eval1("setfont","fonttalk");
+	}
+	public setsnd(string sfile)	{
+		if( !sfile.contains(".wav") )	{
+			_swav = sfile;
+			sfile+=".wav";
+		} else {
+			_swav = sfile.strsubes(".wav");
+		}
+		sndtalk.load( this.getsndpath() + sfile );
+	}
+	public herosay1(string sfinfun)	{
+		this.herosay(1, true, true, null, sfinfun );
+	}
+	public herosay(int itypsort, bool bstart, bool bstop, string sobfin, string sfinfun)	{
+		this.herosaydir( itypsort, bstart, bstop, sobfin, sfinfun, this.getdir() );
+	}
+	public herosaydir(int itypsort, bool bstart, bool bstop, string sobfin, string sfinfun, string sdir)	{
+		<_sanim>.thisfinish(false);
+		if( !bstart )	{
+			<_sanim>.playspec(_sbase, this.nofpiecesdir(sdir), itypsort, bstart, null, null,
+					bstop, sobfin, sfinfun, sdir);
+			this.<stalktype>();
+		} else {
+			<_sanim>.playspec(_sbase, this.nofpiecesdir(sdir), itypsort, bstart, this.getfullname(), "_ctalkstart",
+					bstop, sobfin, sfinfun, sdir);
+		}
+	}
+	public thisfinish(bool bthisfin)	{	<_sanim>.thisfinish(bthisfin);	}
+	public stop(bool b)	{
+		if( stalktype.contains("snd") )	{
+			sndtalk.stop(b);
+			timtalk.stop(false);
+		} else {
+			timtalk.stop(b);
+		}
+	}
+	public settalktype(string stype)	{
+		stalktype = "_cplay";
+		if( stype.contains("snd") )	stalktype += "snd";
+		if( stype.contains("txt") )		stalktype += "txt";
+		if( stype.contains("film") )	stalktype += "film";
+	}
+	_csay()	{
+		if( stextdb!=null )	{
+			int id = <stextdb>.findbyrow(_swav);
+			if( id<0 )	{	return;	}
+			
+			vecpom.vecbuildfromstring( <stextdb>.get(id,2), " " );
+			string s="", int itlk=0, int x, int y;
+			if( stalktype.contains("txt") )	{
+				x = <_sanim>.getcx();
+				y = <_sanim>.getpy();
+			} else {
+				x = 400;
+				y = 590;
+			}
+			int x1=0, int x2=800, int y1=0, int y2=600;
+			string s1;
+			for( int i=0; i<vecpom.size(); i++)	{
+				s+=vecpom.get(i)+" ";
+				if( s.length()>iTxtLim )	{
+					s1 = "txttalk"+itlk;
+					<s1>._cprinttxt(s,x,y,itlk);
+					if( <s1>.getpx() < x1 )	{	x1=<s1>.getpx();	}
+					if( <s1>.getex() > x2 )	{	x2=<s1>.getex();	}
+					if( <s1>.getpy() < y1 )	{	y1=<s1>.getpy();	}
+					if( <s1>.getey() > y2 )	{	y2=<s1>.getey();	}
+					s="";
+					itlk++;
+				}
+			}
+			if( s.length()>0 )	{
+				s1 = "txttalk"+itlk;
+				<s1>._cprinttxt(s,x,y,itlk);
+				if( <s1>.getpx() < x1 )	{	x1=<s1>.getpx();	}
+				if( <s1>.getex() > x2 )	{	x2=<s1>.getex();	}
+				if( <s1>.getpy() < y1 )	{	y1=<s1>.getpy();	}
+				if( <s1>.getey() > y2 )	{	y2=<s1>.getey();	}
+				itlk++;
+			}
+			x2-=800;
+			y2-=600;
+			if( x1>0 )	{	x1=0;	}
+			if( y1>0 )	{	x1=0;	}
+			txttalk.move(0-x1+x2, -itlk*txttalk0.geth()-y1+y2 );
+			if( txttalk0.getpy()<0 )	{
+				txttalk.move(0,-txttalk0.getpy());
+			}
+			timtalk.delay( rdelay*500*vecpom.size() );
+		}
+	}
+	_cprinttxt(string s, int x, int y,int id)	{
+		this.set(s);
+		this.createtxt(irtxt,igtxt,ibtxt);
+		this.setpos( x-this.getw()/2, y+id*this.geth() );
+		this.setz(2000);
+		this.show();
+	}
+	public _cplaysnd()	{
+		sndtalk.play();
+	}
+	public _cplaysndtxt()	{
+		sndtalk.play();
+		this._csay();
+	}
+	public _cplaysndtxtfilm()	{
+		sndtalk.play();
+		this._csay();
+	}
+	public _cplaysndfilm()	{
+		this._csay();
+	}
+	public _cplaytxt()	{
+		this._csay();
+		timtalk.play();
+	}
+	public _cplaytxtfilm()	{
+		this._csay();
+		timtalk.play();
+	}
+	public _cplayfilm()	{
+		this._csay();
+		timtalk.play();
+	}
+	/******  do tekstu pisanego ****************************/
+	public setdelay(real r)	{	rdelay=r;	}
+	public settxtcolor(int r, int g, int b)	{
+		irtxt=r;	igtxt=g;	ibtxt=b;
+	}
+	/**********************************/
+	_ctalkstart()	{
+		this.<stalktype>();
+	}
+	_ctalkfin()	{
+		txttalk.hide();
+		<_sanim>.herostop();
+	}
+	/**********************************/
+}
+
+class classtxttalker : classadvhero	{
+	init()	{
+		classadvhero::init();
+		this._setbase( "talk:" );
+		
+		new int iR;
+		new int iG;
+		new int iB;
+		new int ibR;
+		new int ibG;
+		new int ibB;
+		new int ibA;
+		new int ibrr;
+		new int ibrg;
+		new int ibrb;
+		new int ibra;
+		new int ibw;
+		new db dbtxt;
+		new int iSize;
+		new gmimgvec grtxt;
+		new gmimgvec grtxt2;
+		string s;
+		for( int i=0; i<25; i++ )	{
+			s = "txt"+i;
+			new text <s>;
+			grtxt.add(s);
+			<s>.hide();
+		}
+		new text imgtxt;
+		imgtxt.hide();
+		
+		new bool bplaying = false;
+		
+		new string slang;
+		this.setlang("pol");
+	}
+	public setlang(string s)	{	slang = s;	}
+	public bool isplaying()	{	return bplaying;	}
+	public setfont(string sfont)	{
+		grtxt.eval1("setfont",sfont);
+		iSize = <sfont>.getsize();
+	}
+	public setfontcolor(int ir, int ig, int ib)	{
+		iR=ir; iG=ig; iB=ib;
+	}
+	public setfontbg(int ibr, int ibg, int ibb, int iba)	{
+		ibR=ibr; ibG=ibg; ibB=ibb; ibA=iba;
+	}
+	public setbgframe(int iw, int ir2, int ig2, int ib2)	{
+		ibrr = ir2; ibrg = ig2; ibrb = ib2; ibra=255; ibw=iw;
+	}
+	public set(string san, int iz)	{
+		this.link(san);
+		grtxt.setz(iz);
+		imgtxt.setz(iz-1);
+	}
+	public herosay(string sfile, int x, int y)	{
+		this.herosaydir(sfile,x,y,this.getdir());
+	}
+	public herosaydir(string sfile, int x, int y, string sdir)	{
+		if( sdir=="auto")	{	sdir=this.getdir();	}
+		bplaying = true;
+		dbtxt.load( this.getgraphpath() + sfile + "." + slang);
+		string s;
+		grtxt2.free();
+		int iw=0;
+		int ile = dbtxt.getrowsno();
+		for( int i=0; i<ile; i++)	{
+			s = "txt"+i;
+			<s>.set( dbtxt.get(i,0) );
+			<s>.createtxt(iR, iG, iB);
+			<s>.setpos(x,y);
+			y+=iSize;
+			<s>.show();
+			if( <s>.getw()>iw)	{	iw=<s>.getw();	}
+			grtxt2.add(s);
+		}
+		imgtxt.setbkg(txt0.getpx()-iSize/2, txt0.getpy()-iSize/2, iw+iSize, iSize*(ile+1), ibR, ibG, ibB, ibA );
+		imgtxt.setborders(ibw,ibrr,ibrg,ibrb,ibra);
+		imgtxt.show();
+		if( _sanim!=null )	{
+			<_sanim>.thisfinish(false);
+			<_sanim>.playspec(_sbase, 0, 0, false, null, null,
+					false, null, null, sdir);
+		}
+	}
+	public stop()	{
+// 		if( bplaying==false )	{	return;	}
+		bplaying = false;
+		grtxt2.hide();
+		imgtxt.hide();
+		if( _sanim!=null )	{
+			<_sanim>.thisfinish(true);
+			<_sanim>.play("stand" + this.getdir());
+		}
+	}
+}
+
+

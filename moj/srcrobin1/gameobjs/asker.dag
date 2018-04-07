@@ -1,0 +1,70 @@
+/***************************************************************************/
+
+class classasker : newvars	{
+	init()	{
+		newvars::init();
+		new string sfuncyes = null;
+		new string sfuncno = null;
+		new string ssndask;
+		new string ssndyes;
+		new string ssndno;
+		new classsound clsnd;
+	}
+	reset()	{	sfuncyes=null;	sfuncno=null;	}
+	setfuncs(string syes, string sno)	{
+		sfuncyes = syes;
+		sfuncno = sno;
+	}
+	fxonmovon(string ssnd)	{	buts.sfxonmovon(ssnd);	}
+	setmouse(string smouse)	{
+		buts.newmouse("yes", smouse);
+		buts.newmouse("no", smouse);
+	}
+	load(string sfile, int z)	{
+		new classbutton buts;
+		buts.build(sfile, z, null);
+		buts.transclickfunc( engine.actclassname(), "butclick");
+		buts.transmovonfunc( engine.actclassname() , "butmovon");
+		buts.disableall();
+	}
+	ask( string sask, string syes, string sno, string sf1, string sf2 )	{
+		this.setfuncs(sf1,sf2);
+		this.ask2( sask, syes, sno );
+	}
+	ask2( string sask, string syes, string sno )	{
+		ssndask=sask;
+		ssndyes = syes;
+		ssndno = sno;
+		gameapi.pause();
+		buts.benableall();
+		buts.pause("bkg");
+		clsnd.creset();
+		clsnd.cbplay( sask );
+	}
+	/**********************************************/
+	butmovon(string sc)	{
+		/*if( ssndask!=null )	{
+			if( <ssndask>.isplaying()==true )	{
+				return;
+			}
+		}*/
+		if( sc=="yes" )	{
+			<ssndask>.stop(false);
+			clsnd.cbplay( ssndyes );
+		} else if (sc=="no")	{
+			<ssndask>.stop(false);
+			clsnd.cbplay( ssndno );
+		}
+	}
+	butclick(string sc)	{
+		if( sc=="bkg" )	{	return;	}
+		gameapi.resume();
+		buts.disableall();
+		clsnd.cactsndstop(false);
+		if( sc=="yes" && sfuncyes!=null)	{
+			this.<sfuncyes>();
+		} else if( sc=="no" && sfuncno!=null)	{
+			this.<sfuncno>();
+		}
+	}
+}

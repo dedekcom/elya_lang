@@ -1,0 +1,11 @@
+path:
+	srceltest/
+
+src:
+	src/test1.dag
+
+all:
+	dd1.dag
+
+out:
+	srceltest/eltest.odd

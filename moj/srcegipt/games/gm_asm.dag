@@ -1,0 +1,734 @@
+KomputroMode=3;
+class Asm : Komputro	{
+	init(string sp)	{
+		new @spref = sp;
+		Komputro::init("asm");
+		.path = ("asm");
+		.imgs=(A,"bkg.pyz", "strzalH.pyz 10", "monitor.Hpyz 10", "zarowkaH.pyz 10", "klawH.pyz 10");
+		.copyanima("anmonitor", "anmo2");
+		anmo2.setframe(1,0);
+		.copyanima("anzarowka", "anzar2");
+		anzar2.setframe(1,0);
+		anzar2.hide;
+		new classplacepointer2 clp;
+		new classsimplebutton cbok;
+		cbok.build("scripts/common/butok.pyz", "imglobcurs", 0,525, 100, 0);
+		.sounds = (A,
+			"sndintro", "W tej lekcji dowiesz siê czym jest jêzyk asembler", func { .cbplay("snd1"); },
+			"snd1", "Przed sob± widzisz prosty komputer zbudowany z",
+				func { .cbplay("snd2"); clp.show(139,139,"ll"); },
+			"snd2", "procesora który czyta rozkazy z pamiêci", func { .cbplay("snd3"); clp.show(350,124,"rd"); },
+			"snd3", "oraz pamiêci", func { .cbplay("snd4"); clp.show(643,94,"rr"); },
+			"snd4", "Tutaj natomiast znajduje siê specjalny notatnik który przesy³a pisane programy wprost do pamiêci",
+				func { .cbplay("snd5"); .cshowbut("dd"); },
+			"snd5", "Tutaj bêdziesz w³±cza³ uk³ad", func { .cbplay("snd6"); clp.showob("gsh","rd"); },
+			"snd6", "Tutaj jest opis rozkazów które wykonuje procesor",
+				func { clp.stoph; .cbplay("sndgo1"); .viewhelp; },
+			"sndnoins", "Nieprawid³owa instrukcja; Popraw b³±d i skompiluj ponownie", "dali",
+			"sndpoza", "Zabrak³o pamiêci! Usuñ zbêdne instrukcje", "dali",
+			"sndbrak", "Brak programu","dali",
+			"sndok", "Dobrze! Przeanalizuj przyk³ad i kliknij aby przej¶æ do kolejnego zadania lub w³±cz program ponownie", "nextzad",
+			"sndnon", "Program nie zadzia³a³ poprawnie; Trzeba co¶ zmieniæ", "dali",
+			"sndnext", "Kolejne zadanie", "showzad",
+			"snddig", "Dozwolone s± tylko liczby w zapisie dwójkowym zapisane przy pomocy 0 i 1", "dali",
+			"sndwkod", "Stary hakerski trik chcia³e¶ wpisaæ instrukcjê w kod programu; niestety procesor pracuje w trybie chronionym i nie pozwala na takie sytuacje", "dali",
+			"sndmov1", "Odwo³a³e¶ siê do adresu spoza zakresu pamiêci", "dali",
+			"sndmov2", "Liczba nie mie¶ci siê w pamiêci", "dali"
+		);
+		new db dbcode;
+		new vector veccode;
+		veccode.type("string");
+		new @ileram;
+		new @sdigram;
+		new @iledigram;
+		new @proglen;
+		new @proglen2;
+		new @progid;
+		new @levlen = 4;
+		new @Good;
+		new @Binary;
+		new @Zaduza;
+		new @Level = 1;
+		new @HelpLevel = 1;
+		new @ZadLevel = 1;
+		new @ileramu = 21;
+		new @codeline;
+		new @codeid = 0;
+		new string Code;
+		Lexer::setas("Code");
+		new @stdfnt = .stdfont(12);
+		.newimgarray("grram", "text", "txtr", ileramu);
+		.newimgarray("grins", "text", "txti", ileramu);
+		.newimgarray("grpod", "text", "txtp", ileramu);
+		new @ifontsize = 14;
+		.monofont("fnkod", ifontsize);
+		grram.each( func { (@id)
+			.setfont("fnkod");
+			@y = 112+id*(ifontsize+4);
+			.setpos( 320, y );
+			<"txtp"+id>.setfont("fnkod");
+			<"txtp"+id>.setpos( 480, y );
+			<"txtp"+id>.createtxt(240,240,20);
+			} );
+		grins.each( func { (@id)
+			.setfont("fnkod");
+			.setpos( 410, 112+id*(ifontsize+4) );
+			} );
+		new img imgerror {
+			.create(160,ifontsize,.red,128);
+			.setz(0);
+			.hide;
+		};
+		new gfxSquare gsh(553,384,220,190);
+		gsh.set(.grey(240), 192);
+		gsh.build;
+		gsh.shadow(2,2,128);
+		.newimgarray("grhelp", "text", "txth", 15);
+		.newimgarray("grhelp2", "text", "txth2", 15);
+		grhelp.each( func {(@id)
+			<"txth2"+id>.setfont(stdfnt);
+			<"txth2"+id>.setz(10);
+			.setfont(stdfnt);
+			.setpos(gsh.getpx+7, gsh.getpy+10+id*15);
+			.setz(10);
+			} );
+		new db dbhelp;
+		.newtext("txtzad", "0", stdfnt, 255,250,250);
+		.newdb("dbzad", spref + "zadania.db");
+		.newdb("dbexp", spref + "expect.db");
+		txtzad.anposz( 80, 555, 260);
+		.newtext("txtzad2", "0", stdfnt, 255,250,250);
+		txtzad2.anposz( 80, 575, 260);
+		txtzad2.hide;
+		txtzad.hide;
+		.newtext("txtram", "0", stdfnt, 255,250,250);
+		txtram.anposz( 282,502, 260);
+		.loadlekcja;
+		
+		new classsimplebutton cbhelp;
+		cbhelp.build("scripts/common/help.pyz", "imglobcurs", 0,100, 100, 0);
+		new TextBoxTyper ttb("fnkod", ifontsize, 0.6*ifontsize, .black, "a0 ,[]", 602,65, 160,280, 3);
+		ttb.enumerate(5);
+		.newimgarray("grhm", "text", "txthm", ttb.size);
+		grhm.each( func { (@id)
+			.setpos( 602, 65+id*(ifontsize+3) );
+			.setfont("fnkod");
+			} );
+		
+		tdmikro.napisshow(135 - tdmikro.getw/2,60);
+		tdram.napisshow(384 - tdram.getw/2,60);
+		tdproc.napisshow( tdmikro.getpx+(tdmikro.getw-tdproc.getw)/2,80);
+		tdadres.napisshow(304,85);
+		tdvar.napisshow(400,85);
+		
+		new vector veckod;
+		veckod.type("string");
+		new vector vecpom;
+		vecpom.type("string");
+		new vector vecinstr;
+		
+		.timer = ("timgo", 1000, "fintimgo");
+		
+		.newimgarray("grkable", "img", "imgk", 3);
+		imgk0.create(60,2,.colkabel);
+		imgk0.setpos(206,97);
+		imgk2.create( txtr0.getpx-imgk0.getex, 2, .colkabel );
+		.setkable(0);
+		
+		.linkmonitor;
+		grmon.hide;
+	}
+	fintimgo	{
+		if( progid==proglen )	{
+			anmo2.hide;
+			anzar2.hide;
+			if( Good )	<GAME>.cbplay("sndok");
+			else <GAME>.cbplay("sndnon");
+		} else {
+			.play;
+			.setkable(vecinstr.get(progid));
+			.setinstr;
+		}
+	}
+	setkable(int id)	{
+		int y = <"txtr"+id>.getpy+5;
+		imgk1.create(2,y-imgk0.getpy,.colkabel);
+		imgk1.setpos(imgk0.getex, imgk0.getpy);
+		imgk2.setpos(imgk1.getpx, imgk1.getey);
+	}
+	dali	{
+		igmstate = 1;
+		ttb.enable;
+	}
+	viewhelp	{
+		grhelp.hide;
+		grhelp2.hide;
+		dbhelp.load( .getgraphpath + spref +"help" + HelpLevel + ".db" );
+		string s[2];
+		for( int i=0; i<dbhelp.getrowsno; i++)	{
+			s0 = "txth"+i;
+			s1 = "txth2"+i;
+			<s1>.txtsetcol( dbhelp.get(i,1), .grey(64) );
+			<s1>.show;
+			if( dbhelp.get(i,0)->length>0 )	{
+				<s0>.txtsetcol( dbhelp.get(i,0), .red );
+				<s0>.show;
+				<s1>.setpos( <s0>.getpx + <s0>.getw + 4, <s0>.getpy );
+			} else {
+				<s0>.hide;
+				<s1>.setpos( gsh.getpx+7, gsh.getpy+10+i*15);
+			}
+		}
+	}
+	showzad	{
+		.viewzad;
+		@id = Level-1;
+		ttb.clear;
+		.clearram;
+		.setkable(0);
+		id = id*levlen+3;
+		grhm.each( func { (@id) .txtset(""); } );
+		if( Level>2 && KomputroMode<3 ) id--;
+		for( int i=1; i<dbexp.getcolsno(id); i++)	{
+			<"txthm"+(i-1)>.txtsetcol( dbexp.get(id,i), .grey(128) );
+		}
+		grhm.hide;
+	}
+	viewzad	{
+		@id = ZadLevel-1;
+		txtzad.txtset( dbzad.get(id,0) );
+		txtzad.txtshadow(2,stdfnt);
+		txtzad.show;
+		if( dbzad.getcolsno(id) > 1 )	{
+			txtzad2.txtset( dbzad.get(id,1) );
+			txtzad2.txtshadow(2,stdfnt);
+			txtzad2.show;
+		} else txtzad2.txthides;
+	}
+	colkabel	{	return 226,239,221,255;	}
+	clearram	{
+		for( int i=0; i<ileramu; i++)	{
+			if( i<ileram )	{
+				<"txtr"+i>.txtsetcol( i.getbindigit(iledigram), .black );
+				<"txti"+i>.txtsetcol( sdigram, .black );
+			} else {
+				<"txtr"+i>.txtset( "" );
+				<"txti"+i>.txtset( "" );
+			}
+			<"txtp"+i>.txtset("");
+		}
+		imgerror.hide;
+	}
+	cbhelp_MOVEON	{
+		if( igmstate!=1 ) return;
+		grhm.show;
+		ttb.hide;
+	}
+	cbhelp_MOVEOFF	{
+		grhm.hide;
+		if( igmstate==1 )	{
+			ttb.show;
+		}
+	}
+	cbok_CLICK	{
+		if( !(igmstate==1 || igmstate==10) ) return;
+		.clearram;
+		igmstate = 2;
+		veckod.free;
+		ttb.disable;
+		string s;
+		for( int i=0; i < ttb.Rows; i++)	{
+			s = ttb.getid(i);
+			s.clear;
+			veckod.add(s);
+		}
+		Good = true;
+		Binary = false;
+		Zaduza=false;
+		@id = (Level-1)*levlen;
+		proglen=0;
+		proglen2=0;
+		progid = 0;
+		vecinstr.free;
+		.setkable(0);
+		for( i=0; i<veckod.size; i++)	{
+			s = veckod.get(i);
+			codeline = "";
+			if( s.length>0 )	{
+				if( proglen2>=ileram) {
+					.cbplay("sndpoza");
+					return;
+				} else if( .wronginstr(id,s) )	{
+					.cbplay("sndnoins");
+					imgerror.show;
+					imgerror.setpos( 602, 65+i*(ifontsize+3) );
+					return;
+				} else if (Level<3 && (proglen+1>=dbexp.getcolsno(id+2)) || s!=dbexp.get(id+2,proglen+1)){
+					Good = false;
+				}
+				.insertorder(s);
+				
+				if( Level>2 ) {
+					if (Binary||Zaduza) 	{
+						if( Binary )	.cbplay("snddig");
+						else if( Zaduza )	.cbplay("sndmov"+Zaduza);
+						imgerror.show;
+						imgerror.setpos( 602, 65+i*(ifontsize+3) );
+						return;
+					}
+					Good = ( Good && proglen < veccode.size && codeline==veccode.get(proglen) );
+					/*if( proglen<veccode.size)	{
+						"**************"->print;
+						codeline.print;
+						veccode.get(proglen)->print;
+						"**************"->print;
+					} */
+				}
+				proglen++;
+			}
+		}
+		if( Level<3 )	{if( Good && proglen+1<dbexp.getcolsno(id+2) ) Good=false;}
+		else	{	Good = (Good && proglen==veccode.size);	}
+		if( proglen==0 )	.cbplay("sndbrak");
+		else timgo.play;
+	}
+	linkmonitor	{
+		@dy = 7;
+		.newimgarray("grmon", "img", "imgm", 4);
+		imgm0.create(imgk0.getw, 2, .colkabel);
+		imgm1.create(2, txtr15.getpy - txtr14.getpy, .colkabel);
+		imgm1.setpos( imgk0.getex, txtr14.getpy + dy );
+		imgm0.setpos( imgm1.getpx - imgm0.getw, imgm1.getcy );
+		@w = txtr14.getpx - imgm1.getex;
+		imgm2.create(w, 2, .colkabel);
+		imgm3.create(w, 2, .colkabel);
+		imgm2.setpos( imgm1.getex, imgm1.getpy );
+		imgm3.setpos( imgm1.getex, imgm1.getey-imgm3.geth );
+	}
+	startzad	{
+		.showzad;
+		igmstate = 1;
+		ttb.activate(0);
+	}
+	nextzad	{	igmstate=10;	}
+	setram(int iler, int iledig, string sdr)	{
+		|ileram,iledigram,sdigram| = iler,iledig,sdr;
+		txtram.txtset( "RAM: "+ileram+" komorek "+sdigram.length + "-bitowych");
+		txtram.txtshadow(1,stdfnt);
+	}
+}
+
+game AsmEasy : Asm {
+	init	{
+		Asm::init("");
+		.setsndbase("asmeasy");
+		
+		.sounds = (A,
+			"sndgo1", "Nasz procesor obs³uguje 3 rozkazy On zapalenie ¿arówki Off zgaszenie ¿arówki oraz Stop czyli zakoñczenie pracy",
+				func { .cbplay("sndg2"); .showzad; },
+			"sndg2", "Napisz program którego tre¶æ widzisz na dole", func { igmstate=1; ttb.activate(0); },
+			"sndzad1", "A teraz wska¿ komórkê w pamiêci RAM w której znajduje siê kod instrukcji ON",
+				func { igmstate=3; clp.stoph; },
+			"sndok1", "¦wietnie to jest w³a¶nie instrukcja ON; kolejne zadanie", "viewnext",
+			"sndnon1", "Niestety to jest instrukcja STOP a nie ON", "daliclick",
+			"sndnieokreslona", "W tej komórce nie ma ¿adnej instrukcji", "daliclick",
+			"sndok2", "¦wietnie to jest instrukcja mov", "nextshow",
+			"sndok3", "Tak to jest adres pod który instrukcja mov wpisze liczbê", "nextshow",
+			"sndok4", "Dobrze to jest liczba któr± mov wpisze pod adres; jak widzisz instrukcja mov zajmuje a¿ 3 komórki pamiêci", "nextshow",
+			"sndok5", "Brawo pod tym adresem znajduje siê instrukcja STOP", func { .cbplay("sndproc3"); },
+			"sndnonall", "Niestety wskaza³e¶ b³êdn± komórkê pamiêci", "daliclick",
+			"sndnoad", "Niestety wskaza³e¶ z³y adres", "daliclick",
+			"sndnextproc", "Teraz zmienimy procesor na bardziej z³o¿ony podobny do prawdziwych procesorów w komputerach; Na pocz±tek wyposa¿ony w dwie instrukcje MOV i STOP", "startproc2",
+			"sndproc3", "Kolejny procesor ma a¿ 16 komórek pamiêci i wiêcej rozkazów", "startproc3",
+			"sndp4", "Teraz dodajê kolejn± instrukcjê ADD", "startproc4",
+			"sndp5", "Add podobnie jak Mov ma równie¿ drug± formê", "startproc5",
+			"sndp6", "Teraz pod³±czymy do uk³adu monitor",
+				func { .cbplay("sndp61"); clp.showpob("txti14","rr"); grmon.show; anmonitor.show;},
+			"sndp61", "Z tej komórki monitor odczytuje stan",
+				func { .cbplay("sndp62"); clp.showpob("txti15","rr"); },
+			"sndp62", "A z tej kolor jaki ma wy¶wietliæ na ekranie; Zaczynamy", func { clp.stoph; .startproc6; },
+			"sndend", "Gratulujê! Rozwi±za³e¶ wszystkie zadania; Przeczytaj i zastanów siê nad tekstem a potem kliknij aby przej¶æ do nastêpnej lekcji",
+				func { igmstate=11; <GAME>.showend;	}
+		);
+		.setram(8,3,"00");
+		.clearram;
+		anzarowka.show;
+		
+		new @smoved = null;
+		new @Level2 = 1;
+		new Color scol;
+		
+ 		.cbplay("sndintro");
+		
+		//Level=3;
+		/*Level=7;
+		Level2 = 5;
+		//ZadLevel = 8;
+		ZadLevel = 12;
+		//HelpLevel = 2;
+		HelpLevel = 5;
+		
+		dbcode.dbbuild(A,
+			"mov", "[", "$int", "]", ",", "$int",
+			"stop", "", "", "", "", "",
+			6);
+		//.cbplay("sndok5");
+		dbcode.dbaddstringrow("mov|[|$int|]|,|[|$int|]","|");
+		Code.consts = (A,"mov",",","[","]", "add", "stop");
+		.setram(16,4,"0000");
+		.cbplay("sndp6");
+		.viewhelp;*/
+// 		.showend;
+	}
+	nextshow	{
+		igmstate=3;
+		ZadLevel++;
+		.viewzad;
+		Level2++;
+	}
+	daliclick	{	igmstate=3;	}
+	wronginstr(int id, string s)	{
+		match(Level)	{
+			1,2 => !dbexp.dbrowcontains(id,s);
+			3,4,5,6,7,8 => {
+				Code.start(s);
+				codeid = Code.expectdb("dbcode", 0);
+				codeid < 0;
+			}
+			? => ;
+		}
+	}
+	nextzadl	{
+		match(Level)	{
+			1 => {
+				clp.show(425,157,"dd");
+				igmstate=4;
+				ZadLevel++;
+				.viewzad;
+				.cbplay("sndzad1");
+			}
+			2 => {
+				if( KomputroMode==1 )	.cbplay("sndend");
+				else .cbplay("sndnextproc");
+			}
+			3 => .nextshow;
+			4 => {
+				veccode.free;
+				veccode.beginadd("begin",
+					"mov [ 1101 ] , 0001 ",
+					"mov [ 1101 ] , 0010 ",
+					"mov [ 1110 ] , 0111 ",
+					"mov [ 1111 ] , [ 0010 ] ",
+					"stop ");
+				.viewnext;
+			}
+			5 => .cbplay("sndp4");
+			6 => .cbplay("sndp5");
+			7 => .cbplay("sndp6");
+			8 => .cbplay("sndend");
+			? => ;
+		}
+	}
+	startproc6	{
+		veccode.free;
+		//mov [1110],1|mov [1111],10|mov [1111],1|mov [1111],11|stop|
+		veccode.beginadd("begin",
+			"mov [ 1110 ] , 0001 ",
+			"mov [ 1111 ] , 0010 ",
+			"mov [ 1111 ] , 0001 ",
+			"mov [ 1111 ] , 0011 ",
+			"stop ");
+		.viewnext;
+	}
+	startproc5	{
+		HelpLevel++;
+		.viewhelp;
+		veccode.free;
+		
+		veccode.beginadd("begin",
+			"mov [ 1100 ] , [ 0000 ] ",
+			"add [ 1100 ] , [ 0001 ] ",
+			"add [ 1100 ] , [ 0010 ] ",
+			"stop ");
+		dbcode.dbaddstringrow("add|[|$int|]|,|[|$int|]","|");
+		.viewnext;
+	}
+	startproc4	{
+		HelpLevel++;
+		.viewhelp;
+		veccode.free;
+		//mov [1110],0011|add [1110],0010|mov [1111],[1110]|stop|
+		veccode.beginadd("begin",
+			"mov [ 1110 ] , 0011 ",
+			"add [ 1110 ] , 0010 ",
+			"mov [ 1111 ] , [ 1110 ] ",
+			"stop ");
+		Code.consts = (A,"mov",",","[","]", "add", "stop");
+		dbcode.dbaddstringrow("add|[|$int|]|,|$int","|");
+		.viewnext;
+	}
+	startproc2	{
+		HelpLevel++;
+		.viewhelp;
+		.setram(8,3,"000");
+		Code.consts = (A,"mov",",","[","]", "stop");
+		dbcode.dbbuild(A,
+			"mov", "[", "$int", "]", ",", "$int",
+			"stop", "", "", "", "", "",
+			6);
+		veccode.free;
+		veccode.beginadd("begin",
+			"mov [ 110 ] , 010 ",
+			"stop ");
+		anzarowka.hide;
+		anzar2.hide;
+		.viewnext;
+	}
+	startproc3	{
+		HelpLevel++;
+		.viewhelp;
+		.setram(16,4,"0000");
+		Code.consts = (A,"mov",",","[","]", "stop");
+		dbcode.dbaddstringrow("mov|[|$int|]|,|[|$int|]","|");
+		veccode.free;
+		veccode.beginadd("begin",
+			"mov [ 1100 ] , 1111 ",
+			"mov [ 1110 ] , [ 1100 ] ",
+			"stop ");
+		.viewnext;
+	}
+	viewnext	{
+		Level++;
+		ZadLevel++;
+		<GAME>.startzad;
+	}
+	insertorder(string s)	{
+		@id = (Level-1)*levlen;
+		vecinstr.add( proglen2 );
+		string s2;
+		match(Level)	{
+			1,2 => {
+				<"txti"+proglen2>.txtset( dbexp.get(id+1,dbexp.dbfindinrow(id, s)) );
+				<"txtp"+proglen2>.txtset( s );
+				proglen2++; }
+			3,4,5,6,7,8 => {
+				Code.id = (0);
+				Code.gettoken("vecpom",true);
+				for( int i=0; i< vecpom.size; i++)	{
+					s2 = vecpom.get(i);
+					match( s2 )	{
+						// mov [ $int ? ] , $int ?
+						"mov", "add" => { 
+							if( codeid==0 || codeid==3 )	{
+								<"txti"+proglen2>.txtset( .ordkod(s2+codeid) );
+								<"txtp"+proglen2>.txtset(s2);
+								<"txtp"+(proglen2+1)>.txtset("[adress]");
+								<"txtp"+(proglen2+2)>.txtset("value");
+								proglen2++;
+								codeline = s2 + " ";
+								if( !vecpom.get(3)->strisbin ) {
+									Binary=true;
+								} else {
+									id = vecpom.get(3);
+									s = id.getdigit(3);
+									codeline+=("[ " + s + " ] , ");
+									if( id.bin_to_i >= ileram ) Zaduza=1;
+									else <"txti"+proglen2>.txtset(s);
+									proglen2++;
+									if( !vecpom.get(7)->strisbin ) {
+										Binary=true;
+									} else {
+										id = vecpom.get(7);
+										s = id.getdigit( sdigram.length );
+										codeline+=(s+" ");
+										if( s.length>sdigram.length ) Zaduza=2;
+										else <"txti"+proglen2>.txtset(s);
+										proglen2++;
+									}
+								}
+							} else {	// 0mov 1[ 2$int 3? 4] 5, 6[ 7$int 8? 9]
+								<"txti"+proglen2>.txtset( .ordkod(s2+codeid) );
+								<"txtp"+proglen2>.txtset(s2);
+								<"txtp"+(proglen2+1)>.txtset("[adress 1]");
+								<"txtp"+(proglen2+2)>.txtset("[adress 2]");
+								proglen2++;
+								codeline = s2 + " ";
+								if( !vecpom.get(3)->strisbin ) {
+									Binary=true;
+								} else {
+									id = vecpom.get(3);
+									s = id.getdigit(3);
+									codeline+=("[ " + s + " ] , [ ");
+									if( id.bin_to_i >= ileram ) Zaduza=1;
+									else <"txti"+proglen2>.txtset(s);
+									proglen2++;
+									if( !vecpom.get(8)->strisbin ) {
+										Binary=true;
+									} else {
+										id = vecpom.get(8);
+										s = id.getdigit( sdigram.length );
+										codeline+=(s+" ] ");
+										if( s.length>sdigram.length ) Zaduza=1;
+										else <"txti"+proglen2>.txtset( s );
+										proglen2++;
+									}
+								}
+							}
+						}
+						"stop" => {
+							<"txti"+proglen2>.txtset(111->getdigit(iledigram));
+							<"txtp"+proglen2>.txtset("stop");
+							proglen2++;
+							codeline = "stop ";
+						}
+						? => ;
+					}
+				}
+			}
+			? => ;
+		}
+	}
+	string ordkod(string s)	{
+		match(s)	{
+			"mov0" =>	1;
+			"mov2" =>	10;
+			"add3" =>		11;
+			"add4" =>		100;
+			? => ;
+		}
+		int id = _;
+		id.getdigit(iledigram);
+	}
+	setinstr	{
+		if( Level==1||Level==2 )	{
+			match( <"txti"+progid>.get )	{
+				"01" => { anzar2.show; progid++; }
+				"10" => { anzar2.hide; progid++; }
+				"11" => { progid=proglen; }
+				? => { "error!"->print; }
+			}
+		} else {
+			int id = vecinstr.get(progid);
+			string s = <"txti"+id>.get;
+			match( s )	{
+				"001", "0001", "0010", "0011", "0100" => {
+					int i = <"txti"+(id+1)>.get;
+					i = i.bin_to_i;
+					if( i<proglen2 ) {
+						//(""+i+" "+proglen2)->print;
+						.cbplay("sndwkod");
+						timgo.stop(false);
+						return;
+					} else if (i>=ileram)	{
+						.cbplay("sndmov1");
+						timgo.stop(false);
+						return;
+					}
+					match(s)	{
+						//"0010" => <"txti"+i>.txtset( <"txti" + <"txti"+(id+2)>.get->to_i->bin_to_i >.get );
+						"0010" => <"txti"+i>.txtset( <"txti" + .gettxtint(id+2) >.get );
+						"001", "0001" => <"txti"+i>.txtset( <"txti"+(id+2)>.get );
+						//"0011" => <"txti"+i>.txtset( ( <"txti"+(id+2)>.get->to_i->bin_to_i +
+						//	<"txti"+i>.get->to_i->bin_to_i)->getbindigit(iledigram) );
+						"0011" => <"txti"+i>.txtset( (.gettxtint(id+2)+.gettxtint(i))->cgetbound );
+						"0100" => <"txti"+i>.txtset( (.gettxtadr(id+2)+.gettxtint(i))->cgetbound );
+						? => ;
+					}
+					if( Level>7)	{
+						if( i==14 )	{
+							if (txti14.get->to_i==1) {
+								anmo2.show;
+								.viewmon;
+							} else anmo2.hide;
+						} else if (i==15)	.viewmon;
+					}
+					progid++;
+					//.debug = (true);
+				}
+				"111", "0111" => progid=proglen;
+				? => {
+					.cbplay("sndwkod");
+					timgo.stop(false);
+				}
+			}
+		}
+	}
+	showend	{
+		.printend( ( KomputroMode==1 ? "zastanow" : "zastanow2" ) + ".db" );
+	}
+	viewmon	{
+		match(txti15.get->to_i)	{
+			1 => anmo2.setframe(1,1);
+			10 => anmo2.setframe(1,2);
+			11 => anmo2.setframe(1,3);
+			? => anmo2.setframe(1,0);
+		}
+	}
+	string cgetbound	{	.getbindigit(iledigram)->gete(0,iledigram);	}
+	int gettxtint(int id)	{	<"txti"+id>.get->to_i->bin_to_i;	}
+	int gettxtadr(int id)	{	<"txti" + .gettxtint(id)>.get->to_i->bin_to_i;	}
+	mouse_move	{
+		if( igmstate!=3 ) return;
+		string s;
+		match( Level2 )	{
+			1,2,3,4 => { s = "grins"; scol.rgb = ( .black ); }
+			5 => { s = "grram"; scol.rgb = ( .black ); }
+			? => return;
+		}
+		if( <s>.isin(mouse.getpos,1,0) )	{
+			.setcol(s);
+		} else .retcol;
+	}
+	retcol	{
+		if( smoved!=null )	{
+			<smoved>.createtxt( scol.rgb );
+			smoved = null;
+		}
+	}
+	setcol(string s)	{
+		if( smoved!=null && smoved!=<s>.getsfound )	{
+			<smoved>.createtxt( scol.rgb );
+		}
+		smoved = <s>.getsfound;
+		<smoved>.createtxt( .red );
+	}
+	mouse_lclick	{
+		if( igmstate==11 )	.finito;
+		else if( igmstate==10 )	{
+			igmstate = 2;
+			.nextzadl;
+			return;
+		} else if( igmstate!=4 )	.cactsndstop(true);
+		if( igmstate!=3 ) return;
+		string s = ( Level2 < 5 ) ? "grins" : "grram";
+		@b = <s>.isin(mouse.getpos,1,0);
+		if( b ) {
+			igmstate = 2;
+			.setcol(s);
+			s = < <s>.getsfound >.get;
+		}
+		match( Level2 )	{
+			1 => if( b )	{
+				match(s)	{
+					"01" => .cbplay("sndok1");
+					"11" => .cbplay("sndnon1");
+					? => .cbplay("sndnieokreslona");
+				}
+			}
+			2 => if (b)	{s=="001" ? .cbplay("sndok2") : .cbplay("sndnonall");}
+			3 => if (b)	{s=="110" ? .cbplay("sndok3") : .cbplay("sndnonall");}
+			4 => if (grins.getfound==2)	.cbplay("sndok4");
+				else if (b) .cbplay("sndnonall");
+			5 => if( grram.getfound==3 )	{
+				//Level++;
+				igmstate=2;
+				.retcol;
+				.cbplay("sndok5");
+				} else if (b) .cbplay("sndnoad");
+			? => ;
+		}
+	}
+	finito	{
+		gameapi.play("Liczy");
+	}
+}

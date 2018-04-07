@@ -1,0 +1,169 @@
+
+game mg18_lew :Banshee {
+	init{
+    Banshee::init("mg18_lew");
+    .imgs = (A,"bkg.jpg 1", "popup_bkg.pyz 2","lew.pyzH 3",  "lew_mruzy.pyzH 6","lew_glowa.pyzH 7","lew_je.pyzH 8", "lew_spi.pyzH 9","medalion.pyzH 10","medalion_anim.pyzH 11", "anim_poswiata.pyzH 10","anim_stars.pyzH 11","lew_ogien.pyzH 12","nalewanie.pyzH 12",  "maska_popup.pyz 14", "ramka.pyz 30", "szkielko_bkg.pyzH 30", "popexit.pyz 32");
+	.sfxs = (A, "bgrszumN 40", "wiatr3N 40", "gargulec_ogien 40", "diamenty", "showdemon", "blyskotkiN 15"); 
+	.butpopexit;
+	// .addtopck("winogrona"); //testy
+	// clsave.bset("e1_ad18_szklarnia_all_inserted"); //testy
+   
+    new Film filmb;
+    	filmb.musicclass = ("mus");
+    	filmb.addmethod("onfinish", func {
+    		   .timfinito;
+      } );
+    	filmb.load("scripts/cs18_szkielko/", "film");
+    	filmb.showfirstframe;
+    	filmb.setz(50);
+    	filmb.setpos(anszkielko_bkg.getpx - 80,anszkielko_bkg.getpy);
+    	filmb.hide; 
+       
+	.newsndfree("snd_note", "kinnat_c2d2_8f");
+	snd_note.addmethod("onfinish", "advsetstdstate");   
+    
+	imgbkg {
+		.addmethod("isbutin", func { (@x, @y)
+			!anpopup_bkg.isin(x,y,0,0);
+			} ); 
+		.addmethod("butclick", func {
+			if( !.advstdstate ) return;
+			.mend;
+			} );
+  		butgame.add(this);
+  	};       
+    
+   if (!clsave.bis("e1_ad18_szklarnia_all_inserted"))
+   { 
+      anlew_ogien.setdrawmode(1);  
+      anlew_ogien.play(0);
+    }
+   
+   if (!clsave.bis("e1_ad18_szklarnia_medalion_wziety"))
+   {
+		anmedalion.show();
+		anmedalion_anim.play(0);
+		anmedalion
+		{
+		 .addmethod("isbutin", func { (int x, int y)
+			  .advstdstate && .isin(x,y,1,1)  ;
+				} ); 
+			.addmethod("butmoveon", func {
+				 if (!clsave.bis("e1_ad18_szklarnia_medalion_wziety") &&  clsave.bis("e1_mg18_lew_winogrona_uzyte"))
+				advmouse.set("take"); 
+			 } );
+			.addmethod("butmoveoff", func {
+			   advmouse.setstd;
+				 
+			 } );
+		 .addmethod("butclick", func {
+					if( !.advstdstate ) return;
+			 if (!clsave.bis("e1_ad18_szklarnia_medalion_wziety") &&  clsave.bis("e1_mg18_lew_winogrona_uzyte"))
+			 {
+				anszkielko_bkg.anfadein(400,null); 
+				advmouse.setstd;
+				filmb.play; 
+				clsave.bset("e1_ad18_szklarnia_medalion_wziety");
+				clsave.bset("e1_ad18_szklarnia_lew_schowany");
+				.hide;
+				
+			 }    
+		  } );
+			 
+			butgame.add(this);
+				  
+		};
+   
+   }
+   
+   
+   if (clsave.bis("e1_ad18_szklarnia_all_inserted")) 
+   {  
+		if (clsave.bis("e1_mg18_lew_winogrona_uzyte"))
+			anlew_spi.play(0);  
+		else
+		{
+			if (!clsave.bis("e1_ad18_szklarnia_bylo_mruganie"))
+			{
+			anlew_mruzy.play(0);
+			clsave.bset("e1_ad18_szklarnia_bylo_mruganie");
+			}
+			else
+			{
+			anlew_mruzy.play(1);  
+			}
+		}
+		
+		 
+		ananim_poswiata.play(0);
+		ananim_stars.play(0);
+		
+		if (!clsave.bis("e1_mg18_lew_winogrona_uzyte"))
+			anlew_glowa
+			{
+				.Button_isinvis;  
+				.addmethod("butmoveon", func {
+					  
+						if (!clsave.bis("e1_mg18_lew_winogrona_uzyte") && clsave.bis("e1_ad18_szklarnia_all_inserted"))
+							advmouse.set("use");   
+						else
+							advmouse.setstd;
+				} );
+				.addmethod("butmoveoff", func {
+					 
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+						if(!.advstdstate) return;
+							if (!clsave.bis("e1_mg18_lew_winogrona_uzyte") && clsave.bis("e1_ad18_szklarnia_all_inserted"))
+								.cbplay("snd_note");
+					} );	
+				butgame.add(this);
+					  
+			};
+        
+        anlew_je.addmethod("onfinish", func{anlew_spi.play(0);}); 
+    }
+	else
+		fxblyskotki.stop(true);
+    
+   
+  
+	  .stdstart;
+  } // koniec init
+  
+  USE_winogrona	{
+		.advsetstdstate();
+    if(anlew_glowa.isin(mouse.getpos,0,1) && clsave.bis("e1_ad18_szklarnia_all_inserted"))	{
+			.removefrompck("winogrona");
+      annalewanie.play(0);
+      anlew_je.play(0);
+      anlew_ogien.stop(false);
+      anlew_ogien.hide();
+      clsave.bset("e1_mg18_lew_winogrona_uzyte");
+      advmouse.setstd; 
+	   
+		} else {
+			 .item_gotopck;
+		}
+    
+  }
+  mend	{ 
+    .stdexitdefadv("ad18_szklarnia", "gamead18_szklarnia0");
+	}
+  
+  HINT_CLICK {
+    if (clsave.bis("taken_winogrona") && !clsave.bis("e1_mg18_lew_winogrona_uzyte"))
+    {
+      .showhint("anlew_glowa");
+      .showhintitem("winogrona");  
+    }
+    else if (clsave.bis("e1_mg18_lew_winogrona_uzyte") && !clsave.bis("e1_ad18_szklarnia_medalion_wziety"))
+    {
+      .showhint("anmedalion");  
+    }
+    else
+		.showhint("anpopexit");   
+  }
+}
+ 

@@ -1,0 +1,132 @@
+
+/***************************************************************************/
+class classgamemusic : classdbreader	{
+	init()	{
+		classdbreader::init();
+		new string smuspath = "";
+		new string sbgrpath = "";
+		new snd _sndbgr;
+		_sndbgr.addmethod("onfinish", "_stdsndloop");
+	}
+	reset()	{
+		gameapi.stopmusic();
+		this.stopbgr();
+	}
+	_stdsndloop()	{	this.play(); }
+	load(string sfile)	{	dbl.loadscript( sfile );	}
+	musicpath(string s)	{	smuspath = s;	}
+	sndbgrpath(string s)	{	sbgrpath=s;	}
+	_play(int ipos)	{
+		int i[3], string s[2];
+		i0 = 1;
+		i1 = dbl.getcolsno( ipos );
+		while( i0 < i1 )	{
+			s0 = dbl.get( ipos, i0 );	i0++;
+			if( s0 == "music" )	{
+				s1 = smuspath + dbl.get( ipos, i0 );
+				i0++;
+				if( i0 < i1 )	{
+					if( dbl.get( ipos, i0 )=="vol" )	{
+						i0++;
+						gameapi.setmusicvol( dbl.get( ipos, i0 ) );
+						i0++;
+					}
+				} else {
+					gameapi.setmusicvol( 100 );
+				}
+				gameapi.playmusic( s1 );
+			} else if (s0 == "bgr")	{
+				_sndbgr.load( sbgrpath + dbl.get( ipos, i0 ) );
+				i0++;
+				if( i0 < i1 )	{
+					if( dbl.get( ipos, i0 )=="vol" )	{
+						i0++;
+						_sndbgr.setvol( dbl.get( ipos, i0 ) );
+						i0++;
+					}
+				} else {
+					_sndbgr.setvol( 100 );
+				}
+				this.playbgr();
+			} else {	i0++;	}
+		}
+	}
+	play()	{
+		this.reset();
+		this.readrow( gameapi.getgamename(), "_play" );
+	}
+	playbgr()		{	_sndbgr.play();	}
+	stopbgr()	{	_sndbgr.stop(false);	}
+}
+
+class Music	{
+	init	{
+		new vector vmus;
+		vmus.type("string");
+		new int ilastid;
+		//onmusicfin      {       mus.play;       }
+	}
+	playdb(string s, int row, int icol)	{
+		vmus.free;
+		while (icol < <s>.getcolsno(row) )	{
+			vmus.add( <s>.get(row, icol) );
+			icol++;
+		}
+		ilastid = 0;
+		.play;
+	}
+	playvec(string s, int id)	{
+		vmus.free;
+		while( id< <s>.size )	{
+			vmus.add( <s>.get(id) );
+			id++;
+		}
+		ilastid = 0;
+		.play;
+	}
+	playstr(string s)	{
+		vmus.vecbuildfromstring(s, " ");
+		ilastid = 0;
+		.play;
+	}
+	play	{
+		if( ilastid >= vmus.size ) return;
+		@s = MUSICPATH + vmus.get(ilastid);
+		ilastid++;
+		bool bloop=false;
+		int fin=0;
+		int fout = 0;
+		int vol = 100;
+		for( int i=ilastid; i<vmus.size; i++)	{
+			@s1 = vmus.get(i);
+			match(s1)	{
+				"-l" => bloop = true;
+				"-v" => { i++; vol = vmus.get(i); }
+				"-fin" => { i++; fin = vmus.get(i); }
+				"-fout" => { i++; fout = vmus.get(i); }
+				"-p" => ;
+				? => { ilastid=i; i = vmus.size; }
+			}
+		}
+		gameapi.setmusicvol(vol);
+		if( bloop ) {
+			gameapi.playmusic(s);
+			ilastid = vmus.size;
+			return;
+		}
+		gameapi.loadmusic(s);
+		if (fin) gameapi.fadeinmusic(fin);
+		else gameapi.startmusic;
+		if (fout) gameapi.fadeoutmusic(fout);
+	}
+	fadeout(int ms)	{
+		if( gameapi.ismusicplaying ) {
+			gameapi.fadeoutmusic(ms);
+			ilastid=vmus.size;
+		}
+	}
+	isplaying	{	gameapi.ismusicplaying;	}
+	stop	{
+		gameapi.endmusic(false);
+	}
+}

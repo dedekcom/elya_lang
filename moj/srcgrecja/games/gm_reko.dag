@@ -1,0 +1,141 @@
+
+new int iRekoLevel = 1;
+game Reko : DziejeGame	{
+	init	{
+		DziejeGame::init("reko");
+		
+		.sfxs = (A, "getpuz 60", "putpuz 60", "zwiazuje 60");
+		
+		.subgamebg;
+		.imgs = (A, "belka.pyz", "help.pyz");
+		if( iRekoLevel==5 )	.img = ("els5start.pyz");
+		.newgrimg("grels", "els" + iRekoLevel, 10);
+		
+		new bool bcanrotate = true;
+		new img im1;
+		@s = grels.rand;
+		.copyanima(s, "anpom");
+		im1.create(<s>.getw, <s>.geth, 0,0,0,0);
+		im1.setpos(<s>.getpx, <s>.getpy);
+		new filter ft1;
+		ft1.link("anpom");
+		ft1.setopacity(128);
+		anpom.setz(1);
+		
+		new int sortbase = 200;
+		grels.hash;
+		grels.sortz(sortbase);
+		new Rect rec1( iResX/2+10,Y1, X2-(iResX/2)-10, Y2-Y1-10);
+		rec1.fitgrouprand("grels");
+		new Rect rec2(60,70,1024-120,768-140);
+		
+		grels.eval( func {
+			new filter ft;
+			ft.setsmooth(0);
+			.vars2(A, "iangle", 4->rand, "ilodx", .lodx, "ilody", .lody, "ilodx2", .lodx, "ilody2", .lody);
+			ft.link(this);
+			.addmethod("next", func { iangle = (iangle+1)%4; .frot; } );
+			.addmethod("frot", func {
+				@x = .getposx;
+				@y = .getposy;
+				ft.unlink;
+				.setpos(0,0);
+				ft.link(this);
+				ft.setsmooth(0);
+				ft.setrotate( iangle * 90 );
+				ilodx = .getpx;
+				ilody = .getpy;
+				.setpos(x,y);
+				} );
+			.frot;
+			.addmethod("funlink", func { ft.unlink; });
+			.addmethod("flink", func { ft.link(this); .frot; });
+			.addmethod("inlod", func { (@z)
+				z.length(imov.getpx-.ilodx2, imov.getpy-.ilody2) <= z;
+				});
+			.addmethod("put", func { ft.unlink; .setpos(0,0); .setz(5); });
+			} );
+		
+		new img imov;
+		new string selem = null;
+		new int igmx;
+		new int igmy;
+		
+		new classplacepointer2 clp;
+		new DelayMover cmov;
+		
+		.sounds = (A, "sndintro", "W tej grze zobaczysz jak trudny jest zawód archeologa; W czasie prac wykopaliskowych uda³o siê odnale¼æ i skompletowaæ fragmenty staro¿ytnego przedmiotu" , func { clp.showob("anpom", "ld"); .cbplay("sndgo"); },
+			"sndgo", "Z³ó¿ go w ca³o¶æ wiedz±c ¿e jeden z elementów powinien zostaæ ustawiony w tym miejscu",
+				func { clp.showob("anhelp", "ru"); .cbplay("sndrot"); },
+			"sndrot", "Uwa¿aj; Elementy s± poobracane w losowych kierunkach; Aby obróciæ wybran± czê¶æ chwyæ j± i wci¶nij prawy przycisk myszy lub przesuñ na ten przycisk", func { igmstate = 1; cmov.unlock; clp.stoph; },
+			"sndok1", "Rze¼ba u³o¿ona poprawnie", "mend",
+			"sndok2", "¦wietnie! To zadanie wymaga³o nie lada wysi³ku", "mend",
+			"sndok3", "Brawo! To by³o bardzo trudne zadanie; Upora³e¶ siê z nim znakomicie", "mend"
+			);
+		.cbplay("sndintro");
+	}
+	mend	{	igmstate=111; }
+	cmov_GET	{
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxgetpuz.play;
+			@s = grels.getsfound;
+			.copyrot(s);
+			imov.setz(900);
+			.mssetobj( "imov" );
+			grels.remove(s);
+			<s>.hide;
+			selem = s;
+		}
+	}
+	copyrot(string s)	{
+		imov.create( <s>.getw, <s>.geth, 0,0,0,0);
+		imov.setpos(<s>.getpx, <s>.getpy);
+		imov.show;
+		imov.blit(s);
+	}
+	cmov_PUT	{
+		fxputpuz.play;
+		cmov.free;
+		<selem>.setpos(imov.getpx-<selem>.ilodx, imov.getpy-<selem>.ilody);
+		<selem>.show;
+		imov.hide;
+		
+		if( <selem>.iangle==0 && <selem>.inlod(20) )	{
+			<selem>.put;
+			if( grels.empty )	{
+				.lock;
+				if( iRekoLevel>2 ) .cbplay("sndok3");
+				else .cbplay("sndok"+iRekoLevel);
+			}
+		} else {
+			rec2.fit(selem);
+			grels.add(selem);
+			grels.sortz(sortbase);
+		}
+	}
+	mouse_lclick	{
+		if( igmstate==0)	.cactsndstop(true);
+		else if (igmstate==111)	gameapi.play("SubMenu");
+	}
+	mouse_rclick	{
+		if( cmov.moving )	{
+			fxzwiazuje.play;
+			<selem>.next;
+			.copyrot(selem);
+			cmov.msmove;
+		}
+	}
+	mouse_move	{
+		if( anhelp.isin(mouse.getpos,0,0) )	{
+			if( cmov.moving && bcanrotate )	{
+				bcanrotate = false;
+				.mouse_rclick;
+			}
+		} else {
+			bcanrotate = true;
+		}
+	}
+	exit_click	{	.askfor("SubMenu");	}
+}
+
+

@@ -1,0 +1,140 @@
+
+class Gracze	{
+	init(int imode)	{
+		new int idrugi = 1;
+		if( imode==1 )	idrugi=2;	// 1 - p vs comp, 2 - p vs p
+		new anima angracz1;
+		angracz1.load("scripts/memo/gracze.pyz");
+		.copyanima("angracz1", "anactive1");
+		anactive1.setframe(0,1);
+		.copyanima("angracz1", "angracz2");
+		angracz2.setframe(idrugi,0);
+		.copyanima("angracz1", "anactive2");
+		anactive2.setframe(idrugi,1);
+		.var("aktualny");
+		.set(1);
+		new gmimgvec gracz1;
+		_ = "gracz1" .+ "angracz1" .+ "anactive1";
+		new gmimgvec gracz2;
+		_ = "gracz2" .+ "angracz2" .+ "anactive2";
+		gracz1.addtogamevars("gracz1");
+		gracz2.addtogamevars("gracz2");
+	}
+	set(int id)	{
+		anactive1.setframe(0,1);
+		anactive2.setframe(idrugi,1);
+		if( id==1 )	anactive1.setframe(0,2);
+		else	anactive2.setframe(idrugi,2);
+	}
+}
+
+|iMemoW, iMemoH| = 4, 4;
+iMemoTryb = 1;
+new int iMemoLevel = 3;
+
+game Memo : Jogi, TMemo {
+	init()	{
+		Jogi::init("memo");
+		
+		//iMemoH = 3;
+		//iMemoW = 3 + iMemoLevel;
+		
+		.tinit("bkgame.pyz", "tmale.pyz", "tafmaly.pyz", 2);
+		
+		.imgs = (A, "belka.pyz");
+		
+		.tfitinsurf( 600, 500 );
+		
+		.sfxs = (A, "elektropik", "mikrofala", "brawo", "buu");
+		.sounds = ( A,
+			"sndintro0", "Znajd¼ wszystkie pary najszybciej jak potrafisz!", func { ttc.play; .tm_start; },
+			"sndintro1", "Zaczyna gracz pierwszy", "tm_start",
+			"sndwin1", "Zwyciê¿y³ Gracz pierwszy!", "askrestart2",
+			"sndwin2", "Zwyciê¿y³ Gracz drugi!", "askrestart2",
+			"sndwincomp", "Zwyciê¿y³ komputer!", "askrestart",
+			"sndremis", "Ale¿ zaciêty pojedynek! Mamy remis proszê pañstwa!", "askrestart2",
+			"sndrekord", "Brawo! Brawo! Rekord czasowy pobity!", "askrestart",
+			"sndnierekord", "Niestety nie uda³o siê pobiæ rekordu", "askrestart"
+			);
+		
+		if( iMemoTryb==0 )	{
+			//.newanima("anbgcnt", "counterbg.pyz", 0);
+			.newimg("anbgcnt", "licznik1.png", 0);
+			@skala = 0.75;
+			new TextTimeCounter ttc(null,skala*30, 220,220,220,
+				anbgcnt.getpx+15, anbgcnt.getpy+13,1000, "hms");
+			.cbplay("sndintro0");
+		} else {
+			new Cypher ct1(null,40, .black, 10,150, 1000);
+			new Cypher ct2(null,40, .black, 760,150, 1000);
+			.cbplay("sndintro1");
+			new Gracze gracze( iMemoTryb );
+			gracz2.setpos( iResX-gracz2.getw, 0 );
+		}
+	}
+	angoleft_click	{
+		if(iMemoTryb==1)	{
+			gameapi.play("Lada");
+		} else {
+			|iMemoW, iMemoH| = 6, 3;
+			iMemoTryb = 1;
+			gameapi.play("Memo");
+		}
+	}
+	angoright_click	{
+		if(iMemoTryb==1)	{
+			|iMemoW, iMemoH| = 6, 5;
+			iMemoTryb = 2;
+			gameapi.play("Memo");
+		} else {
+			gameapi.play("Tasma");
+		}
+	}
+	tnextplayer	{
+		TMemo::tnextplayer;
+		gracze.set( iplayer );
+	}
+	askrestart2()	{
+		if( iMemoTryb==1 )		claskexit.askrestart;
+		else	claskexit.askrestart2;
+	}
+	tfinish()	{
+		if( iMemoTryb==0 )	{
+			ttc.stop;
+			int ile = ttc.gettime;
+			@sfile = "saves/memrek"+iMemoW+iMemoH;
+			int iczas;
+			if( engine.fileexist(sfile) )	{
+				iczas.load( sfile, 0 );
+				if (iczas>ile) {
+					.cbplay("sndrekord");
+					ile.save( sfile );
+				} else .cbplay( "sndnierekord" );
+				_ = .consttext("Dotychczasowy rekord na planszy: "+ clstrdigit::gettime(iczas,"hms"),
+					210, 20, 20, 242, 242, 242);
+			} else {
+				ile.save( sfile );
+				.cbplay("sndrekord");
+			}
+		} else {
+			<"ct" + iplayer>.++;
+			int c1 = ct1.get;
+			int c2 = ct2.get;
+			if( c1==c2 )	{.cbplay("sndremis"); fxbrawo.play;}
+			else if (c1>c2)	{.cbplay("sndwin1"); fxbrawo.play;	}
+			else	if( iMemoTryb==2)	{ .cbplay("sndwin2"); fxbrawo.play;	}
+			else {.cbplay("sndwincomp"); fxbuu.play;	}
+		}
+	}
+	tpoint()	{
+		if( iMemoTryb>0 )	{
+			<"ct" + iplayer>.++;
+		}
+		fxmikrofala.play;
+	}
+	tchoose	{	fxelektropik.play;	}
+	terror	{	}
+	mouse_lclick()	{
+		.tm_mouselclick;
+	}
+}

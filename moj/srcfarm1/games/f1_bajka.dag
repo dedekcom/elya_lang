@@ -1,0 +1,64 @@
+
+new string sBajkaName = "kot";
+
+game Bajka : BajkaStd {
+	init	{
+		BajkaStd::init("mg_bajka");
+		
+		.cloadboki(1);
+		
+		.imgs = (A, "butnext.pyz 10", "butprev.pyz 10");
+		anbutnext.Button_addstd;
+		anbutprev.Button_addstd;
+		if( !igmandroid )	{
+			anbutnext.imgbuildoverlay(.white,64,1500);
+			anbutprev.imgbuildoverlay(.white,64,1500);
+		}
+		
+		.sfx = ("pageflip1");
+		
+		.newanima("anbgtxt", "txt_"+sBajkaName+".pyz", 0);
+		anbgtxt.hide;
+		
+		.lang_db("dbaj", sBajkaName);
+		new int iBajkaPage = 1;
+		new int iBajkaIle = dbaj.getrowsno - 1;
+		new img imgbg;
+		
+		new string sbajfont = .stdfont(22->igetsc);
+		new img imtxt;
+		.newtext("txtbaj", "", sbajfont, .black );
+		
+		.mnext(0);
+		
+		//.stdenter;
+	}
+	mnext(int id)	{
+		iBajkaPage = .between( 1, iBajkaPage + id, iBajkaIle );
+		if( iBajkaPage==1 )	{
+			sgmstate = "state_hidebut";
+			anbutprev.anfadeout(300,"refreshstdstate");
+			if( !igmandroid )	anbutprev.imgstopoverlay;
+		} else if ( !anbutprev.isvisible )	{
+			anbutprev.anfadein(300,"advsetstdstate");
+			if( !igmandroid )	anbutprev.imgstartoverlay;
+		}
+		if( iBajkaPage==iBajkaIle )	{
+			sgmstate = "state_hidebut";
+			anbutnext.anfadeout(300,"refreshstdstate");
+			if( !igmandroid )	anbutnext.imgstopoverlay;
+		} else if ( !anbutnext.isvisible )	{
+			anbutnext.anfadein(300,"advsetstdstate");
+			if( !igmandroid )	anbutnext.imgstartoverlay;
+		}
+		.mload;
+	}
+	mload	{
+		imgbg.load( .getgraphpath + sBajkaName + "/" + sBajkaName + iBajkaPage + ".jpg" );
+		anbgtxt.setframe( iBajkaPage-1, 0 );
+		imtxt.imgfittxt( dbaj.get(iBajkaPage, 1), "anbgtxt", "txtbaj", <sbajfont>.getsize + 2, true );
+	}
+	butclick_anbutexit	{	if( .advstdstate ) .stdexit("MenuBajka");	}
+	butclick_anbutnext	{	if( .advstdstate ) { fxpageflip1.play; .mnext(1); }	}
+	butclick_anbutprev	{	if( .advstdstate ) { fxpageflip1.play; .mnext(-1); }	}
+}

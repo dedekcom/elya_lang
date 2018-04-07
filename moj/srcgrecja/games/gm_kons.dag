@@ -1,0 +1,210 @@
+
+new string sArcheo = "lew";
+game Archeo : DziejeGame	{
+	init	{
+		DziejeGame::init("archeo");
+		
+// 		byk.pyz  glowa.pyz  lew.pyz  rydwan.pyz
+		.subgamebg;
+		.img = ("$scripts/menus/belka"+sSubMenu+".pyz");
+		.sfxs = (A, "getpuz 60", "putpuz 60");
+		
+		new gmimgvec grels;
+		"grels" ..< (sArcheo+".pyz");
+		new string slastob = grels.last;
+		grels.removelast;
+		<slastob>.hide;
+		<slastob>.setpos( iResX/2, 0 );
+		if( <slastob>.getex > 1024 ) <slastob>.move(1024-<slastob>.getex - 3, 0);
+		grels.hash;
+		grels.sortz(10);
+		int id = grels.size->rand;
+		new string srand = grels.get(id);
+		grels.removeat(id);
+		<srand>.setz(5);
+		<srand>.setpos(0,0);
+		
+		new Rect rec1( iResX/2+10,Y1, X2-(iResX/2)-10, Y2-Y1-10);
+		rec1.fitgrouprand("grels");
+		
+		new classplacepointer2 clp;
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		.sounds = (A,
+			"snd1", "Archeolodzy znale¼li staro¿ytny przedmiot; Z³ó¿ go w ca³o¶æ wiedz±c ¿e", func { .cbplay("snd2"); clp.showob(srand,"ld"); },
+			"snd2", "ta czê¶æ le¿y ju¿ na swoim miejscu", func { clp.stoph; igmstate = 1; },
+			"sndbyk", "Z³o¿yli¶my tabliczkê z bykiem z g³ow± cz³owieka", null,
+			"sndglowa", "Zrekonstruowali¶my kamienny pos±g", null,
+			"sndlew", "Po ciê¿kiej pracy zrekonstruowali¶my przepiêkn± mozaikê", null,
+			"sndrydwan", "Z tej kamiennej tabliczki dowiadujemy siê jakie budowano rydwany", null
+			);
+		.cbplay("snd1");
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxgetpuz.play;
+			@s = grels.getsfound;
+			<s>.setz(300);
+			.mssetobj(s);
+			grels.remove(s);
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		fxputpuz.play;
+		if( <s>.aninlod(20) )	{
+			<s>.setz(5);
+			<s>.setpos(0,0);
+			if( grels.empty )	{
+				igmstate = 2;
+				<slastob>.show;
+				if( sArcheo=="lew" )	{
+					<slastob>.setpos(0,0);
+					<slastob>.setz(100);
+					<slastob>.setpos( <slastob>.getex-<slastob>.lodx-200, <slastob>.getey-<slastob>.lody-170);
+					grels.move(-10,0);
+				}
+				.cbplay("snd"+sArcheo);
+			}
+		} else {
+			grels.add(s);
+			grels.sortz(10);
+		}
+	}
+	mouse_lclick	{
+		if( igmstate==0 ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) {
+			grels.setpos(0,0);
+			<slastob>.show;
+		}
+	}
+}
+
+game Bizuteria : DziejeGame	{
+	init	{
+		DziejeGame::init("bizuteria");
+		.path = ("archeo");
+		
+		.subgamebg;
+		.img = ("$scripts/menus/belka"+sSubMenu+".pyz");
+		.sfxs = (A, "getpuz 60", "putpuz 60");
+		
+		new gmimgvec grels;
+		"grels" ..< "bizuteria.pyz";
+		grels.removefirst;
+		
+		grels.hash;
+		grels.sortz(10);
+		
+		new Rect rec1( iResX/2+10,Y1, X2-(iResX/2)-10, Y2-Y1-10);
+		rec1.fitgrouprand("grels");
+		
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		.sounds = (A,
+			"snd1", "W staro¿ytnym grobowcu archeolodzy odnale¼li ozdoby królowej Ur; Ubierz w nie modelkê", func { igmstate=1; },
+			"sndend", "Brawo; Niejedna dama chcia³aby wybraæ siê z takimi ozdobami na bal", null
+			);
+		.cbplay("snd1");
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxgetpuz.play;
+			@s = grels.getsfound;
+			<s>.setz(300);
+			.mssetobj(s);
+			grels.remove(s);
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		fxputpuz.play;
+		if( <s>.aninlod(20) )	{
+			<s>.setz(5);
+			<s>.setpos(0,0);
+			if( grels.empty )	{
+				igmstate = 2;
+				.cbplay("sndend");
+			}
+		} else {
+			grels.add(s);
+			grels.sortz(10);
+		}
+	}
+	mouse_lclick	{
+		if( igmstate==0 ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}
+
+new int MuzeumLevel = 1;
+game Muzeum : DziejeGame	{
+	init	{
+		DziejeGame::init("muzeum");
+		
+		.subgamebg;
+		.img = ("$scripts/menus/belka"+sSubMenu+".pyz");
+		.sfxs = (A, "getpuz 60", "putpuz 60", "ok 70");
+		.img = ("licznik.pyz");
+		if( MuzeumLevel==2 ) .img = ("wiatrakP.pyz 5");
+		
+		new gmimgvec grels;
+		"grels" ..< ("muz"+MuzeumLevel+".pyz");
+		grels.hide;
+		<grels.first>.show;
+		grels.removefirst;
+		new gmimgvec grlapy;
+		anlicznik.setframe(0, anlicznik.nofframes(-1)-grels.size/2 );
+		grels.eval( func {
+			if ( .actionnr(-1)==2 ) {
+				.setz(10);
+				grlapy.add(this);
+			}
+			} );
+		grels.sortimgs;
+		
+		.sounds = (A,
+			"snd1", "G³ówny kurator starego muzeum postanowi³ zbudowaæ wystawê sztuki i rzemios³a staro¿ytnej Mezopotamii; Pomó¿ pracownikom muzeum znale¼æ mezopotamskie dzie³a w magazynie", func { igmstate=1; },
+			"sndend1", "¦wietnie; Przejd¼my do kolejnego magazynu", func { MuzeumLevel++; gameapi.play("Muzeum"); },
+			"sndend", "Wspaniale! Mamy ju¿ wszystkie potrzebne dzie³a; Kliknij aby wróciæ do menu", func { igmstate=3; }
+			);
+		if( MuzeumLevel==1 )
+			.cbplay("snd1");
+		else igmstate = 1;
+	}
+	mouse_lclick	{
+		if( igmstate==0 ) .cactsndstop(true);
+		else if( igmstate==1 )	{
+			if( grels.isin(mouse.getpos,0,0) )	{
+				string s = grels.getsfound;
+				if( <s>.actionnr(-1)==1 )	{
+					@id = grels.getfound;
+					grels.removeat( id );
+					<grlapy.get(id)>.show;
+					grlapy.removeat(id);
+					fxok.play;
+					if( anlicznik.nofframes(-1) == anlicznik.framenr + 1 )	{
+						igmstate = 2;
+						anlicznik.hide;
+						if( MuzeumLevel<3 )
+							.cbplay("sndend1");
+						else .cbplay("sndend");
+					} else anlicznik.ansetnextfr;
+				}
+			}
+		} else if (igmstate==3 )	{
+			gameapi.play("MenuGry");
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend1");
+	}
+}

@@ -1,0 +1,113 @@
+
+game mg43_klapa :Banshee {
+	init{
+		Banshee::init("mg43_klapa");
+		.imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2", "maszyna_mask.pyzH 3", "maszyna_broken.pyz 4","maszyna_move.pyzH 5","popup_mask.pyz 6", "ramka.pyz 7","popexit.pyz 8" );
+		.butpopexit;
+		.butpopexitisinramka; 
+		.sfxs = (A,"bgrsala2N 10", "skrzypienie_podlogiN 10", "openwindow", "opendoor") ;
+		// .addtopck("kolko");  //testy
+		
+		anmaszyna_move.addmethod("onfinish", func {
+					.timfinito;
+				} ); 
+				
+		if (clsave.bis("e1_mg43_klapa_kolko_zalozone"))
+		{
+			anmaszyna_broken.hide;
+			anmaszyna_move.show;
+			 
+			 
+		}	
+		 
+		.newsndfree("snd_cantmove", "kinnat_c4d4_37");
+		snd_cantmove.addmethod("onfinish", "advsetstdstate"); 
+		
+		.newsndfree("snd_can_move", "kinnat_c4d4_37c");
+		snd_can_move.addmethod("onfinish", "advsetstdstate"); 
+ 
+		
+		anmaszyna_mask{  
+			 
+			.addmethod("isbutin", func { (@x, @y)
+				 .isin(x,y,0,0);
+				} ); 
+			.addmethod("butmoveon", func {
+				if(  (!.advstdstate && sgmstate!="getitem") || clsave.bis("e1_mg43_klapa_maszyna_ruszona")) return;
+				  
+				if(!clsave.bis("e1_mg43_klapa_maszyna_ruszona") )
+					
+					if(!clsave.bis("e1_mg43_klapa_kolko_zalozone"))
+						advmouse.set("use");
+					else
+						advmouse.set("take");
+					 
+					
+				 
+			} );
+			.addmethod("butmoveoff", func {
+				if( !.advstdstate ) return;
+				  advmouse.setstd;
+				} ); 
+			.addmethod("butclick", func {
+				if( !.advstdstate || clsave.bis("e1_mg43_klapa_maszyna_ruszona")  ) return;
+				
+				if (clsave.bis("e1_mg43_klapa_kolko_zalozone"))
+				{
+					.hide;
+					fxopendoor.play;
+					fxopenwindow.play();
+					anmaszyna_move.play(1);	
+					anmaszyna_broken.hide;
+					advmouse.setstd;
+					butgame.removebut(this);
+					.set_mg_finished;
+					 
+				} 
+				else
+					.cbplay("snd_cantmove");
+			} );
+			butgame.add(this);
+		};   	 
+		
+		.stdstart;  
+		 
+		}// koniec init 
+  
+	mend	{
+		.stdexitdefadv("ad43_pokoj", "gamead43_pokoj0"); 
+	}
+	
+	USE_kolko	{
+		.advsetstdstate; 
+		if(anmaszyna_mask.isin(mouse.getpos,0,0) ){
+			fxopenwindow.play();
+			.removefrompck("kolko");
+			clsave.bset("e1_mg43_klapa_kolko_zalozone");
+			anmaszyna_broken.anfadeout(200,null); 
+			anmaszyna_move.anfadein(200,null);
+			advmouse.set("take");
+			.cbplay("snd_can_move"); 
+		} 
+		else {
+		  .item_gotopck;
+		}
+	}  
+	
+	
+  
+	HINT_CLICK {
+		if (clsave.bis("ma_kolko"))
+		{
+			.showhintitem("kolko");
+			.showhint("anmaszyna_mask"); 
+		} 
+		else if (clsave.bis("e1_mg43_klapa_kolko_zalozone"))
+		{
+			.showhint("anmaszyna_mask"); 
+		} 
+		else
+			.showhint("anpopexit");   
+	}
+}
+ 

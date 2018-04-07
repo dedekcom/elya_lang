@@ -1,0 +1,387 @@
+
+game Kanaly : DziejeGame	{
+	init	{
+		DziejeGame::init("kanaly");
+		
+		.EgiptSave("kanaly");
+		
+		.sfxs = (A, "getpuz 60", "putpuz 60", "bulbul 60", "nasadza", "pik2");
+		
+		.imgs = (A, "bg.pyz", "kzur.pyz 10");
+		new img imgbg	{
+			.clone("anbg");
+			anbg.hide;
+		};
+		new DelayMover cmov;
+		new gmimgvec grk1;
+		"grk1" .* "kd1.pyz";
+		new gmimgvec grk2;
+		"grk2" .* "kd2.pyz";
+		new gmimgvec grm;
+		"grm" .* "kduze.pyz";
+		grk1.hide;
+		grk2.hide;
+		
+		new vector vecs;
+		vecs.type("string");
+		new gmimgvec grtes;
+		new gmimgvec grt2;
+		
+		new int istate = 1;	// 0 - budowa, 1 - gra
+		new int ilevel = 0;
+		
+		new Buttons cbut("buts.pyz");
+		cbut {
+			@s = grbuts.get(0);
+			<s>.addtogamevars("anbutok");
+			@y = Y2 - <s>.geth + 10;
+			@w = <s>.getw;
+			@h = <s>.geth;
+			//@x = X1 + (X2-X1-(grm.size+1)*w)/2;
+			@x = 15;
+			//<s>.setpos( x-w-2, y );
+			<s>.setpos(x, y);
+			for( int i=0; i< grm.size; i++)	{
+				//<grm.get(i)>.setpos(x + i*w, y);
+				<grm.get(i)>.setpos(x, y-(i+1)*h-2);
+			}
+			<grbuts.get(1)>.addtogamevars("anbutrot");
+			//anbutrot.setpos(x + i*w+2, y);
+			anbutrot.setpos(x, y-(i+1)*h-4);
+		};
+		
+		new int ipoints;
+		.newtext("txtp","7",.stdfont(68), 64,64,255 );
+		txtp.setpos(30,Y1-10);
+		txtp.setz(20);
+		
+		new anima anmov {
+			.copy(grk1.get(0));
+			.hide;
+		};
+		
+		new int W;
+		new int H;
+		new img imw {
+			@s = grk1.get(3);
+			.create( <s>.getw, <s>.geth, .white, 64 );
+			W = imw.getw;
+			H = imw.geth;
+			.mtoxy(0,0);
+			if( istate )	.hide;
+		};
+		
+		new img imgm	{
+			@s = grm.get(0);
+			.create( <s>.getw, <s>.geth, .yellow, 64 );
+			.hide;
+		};
+		
+		//ankzur.setpos(X2-ankzur.getw, Y2-ankzur.geth);
+		ankzur.mtoxy(X2,Y2-H);
+		ankzur.move(0, imw.geth);
+		
+		@w = imw.getw;
+		@h = imw.geth;
+		new @ilex = (X2-X1)/w;
+		new @iley = (Y2-Y1)/h + 1;
+		string s;
+		new gmimgvec grin;
+		new gmimgvec grinb;
+		for( int y=0; y<iley; y++)	{
+			for( int x=0; x<ilex; x++ )	{
+				s = "anp"+x+"_"+y;
+				.copyanima(grk1.get(0), s);
+				.copyanima(grk2.get(0),s+"b");
+				<s>.mtoxy(x*w+X1, y*h+Y1);
+				<s+"b">.mtoxy(x*w+X1, y*h+Y1);
+				grin.add(s);
+				grinb.add(s+"b");
+				<s>.vars2(A, "bbyl", false,"idx", x, "idy", y);
+			}
+		}
+		grin.removelast;
+		grinb.removelast;
+		.mload;
+		new classplacepointer2 clp;
+		.sounds = (A, "sndintro", "Muszê zbudowaæ kana³y nawadniaj±ce plantacjê bananów", func { .cbplay("snd1"); clp.showob(grm.get(0),"ld"); },
+			"snd1", "Tu wybiorê element kana³u do po³o¿enia na polu; Aby go obróciæ kliknij na nim prawym przyciskiem myszy",
+				func { .cbplay("snd2"); clp.showob("anbutrot", "rd"); },
+			"snd2", "Lub najed¼ trzymaj±c element na przycisk Obróæ", func { <GAME> {
+				.cbplay("snd3");
+				new img im1;
+				@w = imw.getw;
+				@h = imw.geth;
+				im1.create( 3*w + 4, 3*h + 4, .grey(128), 192 );
+				new img im2;
+				im2.create( w, h, .blue, 255 );
+				im2.ansetcpos( im1.getcx, im1.getcy );
+				im1.blit("im2");
+				new img im3;
+				im3.create( w, h, .blue, 128 );
+				@x = im2.getpx;
+				@y = im2.getpy;
+				im3.setpos( x-w, y );
+				im1.blit("im3");
+				im3.setpos( x, y-h );
+				im1.blit("im3");
+				im3.setpos( x+w, y );
+				im1.blit("im3");
+				im3.setpos( x, y+h );
+				im1.blit("im3");
+				delete im2;
+				delete im3;
+				im1.ancenterscreen;
+				im1.setz(100);
+				clp.showob("im1", "ld");
+				}; },
+			"snd3", "Gdy na danym polu pojawi siê woda z kana³u pola le¿±ce obok niego równie¿ zostan± nawodnione", func { <GAME> {
+				clp.showob("anbutok", "ld");
+				delete im1;
+				.cbplay("snd4");
+				}; },
+			"snd4", "Kiedy zbudujesz kana³ który nawodni wszystkie palmy kliknij przycisk Start", func { clp.show(txtp.getpx+10, txtp.getpy+20, "lu"); .cbplay("snd5"); },
+			"snd5", "Uwa¿aj; Mo¿esz u¿yæ tylko tyle elementów; Do dzie³a", func { clp.stoph; .mstart; },
+			"sndups", "O rany; Nie domkn±³em kana³u", "mstart",
+			"sndnon", "Nie uda³o siê nawodniæ wszystkich palm; Muszê dokonaæ poprawek w konstrukcji kana³u", "mstart",
+			"sndok", "Hurra! Wszystkie palmy nawodnione", func { if( ilevel<5 ) .cbplay("snd6"); else .mend;	},
+			"snd6", "Czas na kolejne pole", func { .mload; .mstart; }
+			);
+		cmov.unlock;
+		if( istate!=0 ) .cbplay("sndintro");
+		else igmstate=1;
+	}
+	mend	{
+		sgmgame = "gamedomek2";
+		sgmglobpath = "domek";
+		gameapi.play( sgmgame );
+	}
+	mstart	{
+		ankzur.setframe(-1,0);
+		igmstate=1;
+		grinb.hide;
+		grin.eval( func { .bbyl = (false); } );
+	}
+	mtoxy(int x, int y)	{
+		/*.setpos( ((.between(X1, x, X2-W) - X1)/W)*W + X1,
+			((.between(Y1, y, Y2-H) - Y1)/H)*H + Y1 );*/
+		.setpos( ((.between(X1, x, X2-W) - X1)/W)*W + X1,
+			((.between(Y1, y, Y2) - Y1)/H)*H + Y1 );
+	}
+	mtoxy2(int x, int y)	{
+		if( .min2 )	.mtoxy(x,y);
+	}
+	min2	{	.min(anmov.getposx, anmov.getposy) || .min(anmov.getex, anmov.getey);	}
+	//min(int x, int y)	{	x>= X1 && x<=X2 && y>=Y1 && y<=Y2-H;	}
+	min(int x, int y)	{	x>= X1 && x<=X2 && y>=Y1 && y<=Y2;	}
+	cmov_GET	{
+		|int x, int y| = mouse.getpos;
+		if( igmstate!=1 ) .cactsndstop(true);
+		else if( grm.isin(x,y,1,0) )	{
+			fxgetpuz.play;
+			@s = grm.getsfound;
+			anmov.setframe( <s>.actionnr(-1), <s>.framenr);
+			anmov.show;
+			imw.show;
+			anmov.ansetcpos(x,y);
+			imw.mtoxy(x,y);
+			.setcobj("anmov");
+		} else if (grin.isin(x,y,1,0) && <grin.getsfound>.actionnr(-1)<5 )	{
+			fxnasadza.play;
+			<grin.getsfound>.hide;
+			.mpoint(1);
+		} else if (istate==0 && grin.isin(x,y,0,0) )	{
+			@s = grin.getsfound;
+			if( <s>.isvisible ) {
+				<s>.ansetnextfr;
+				fxnasadza.play;
+			} else {
+				fxnasadza.play;
+				<s>.setframe(5,0);
+				<s>.show;
+			}
+		}
+	}
+	mget(int x, int y)	{
+		//"anp" + ( (.between(X1, x, X2-W) - X1)/W ) + "_" + ( (.between(Y1, y, Y2-H) - Y1)/H );
+		"anp" + ( (.between(X1, x, X2-W) - X1)/W ) + "_" + ( (.between(Y1, y, Y2) - Y1)/H );
+	}
+	mpoint(int id)	{
+		ipoints+=id;
+		txtp.txtset(ipoints);
+	}
+	cmov_PUT	{
+		.mrel;
+		if( .min2 && ipoints>0 )	{
+			fxputpuz.play;
+			@s = .mget( imw.getposx, imw.getposy );
+			if( !<s>.mpalm )	{
+				.mpoint(-1);
+				<s>.show;
+				<s>.setframe( anmov.actionnr(-1), anmov.framenr );
+			}
+		}
+	}
+	//mpalm	{	(.isvisible && .actionnr(-1)>4) || (.idx==ilex-1&&.idy==iley-1);	}
+	mpalm	{	.isvisible || (.idx==ilex-1&&.idy==iley-1);	}
+	mrel	{
+		<cmov.getfree>.hide;
+		if( istate ) imw.hide;
+	}
+	mouse_rclick	{
+		if( cmov.moving )	{
+			.mrel;
+			cmov.reset;
+		} else if( grm.isin(mouse.getpos,1,0) )	{
+			fxnasadza.play;
+			@s = grm.getsfound;
+			<s>.ansetnextfr;
+		} else if ( istate==0 && grin.isin( mouse.getpos, 1, 0) )	{
+			fxnasadza.play;
+			<grin.getsfound>.hide;
+		}
+	}
+	mouse_move	{
+		|int x, int y| = mouse.getpos;
+		if( cmov.moving || istate==0 )	imw.mtoxy2( x, y );
+		if( grm.isin(x,y,1,0) )	{
+			@s = grm.getsfound;
+			imgm.setpos(<s>.getposx, <s>.getposy );
+			imgm.show;
+		} else imgm.hide;
+	}
+	mload	{
+		grin.hide;
+		grinb.hide;
+		string s = "lev" + ilevel + ".vec";
+		match( ilevel )	{
+			0 => 7;
+			1 => 6;
+			2 => 8;
+			3 => 9;
+			4 => 9;
+			? => {
+				return;
+			}
+		}
+		ipoints = _;
+		txtp.txtset(ipoints);
+		ilevel++;
+		vecs.load(.getgraphpath + s);
+		for( int i=0; i<vecs.size; i+=2 )	{
+			s = vecs.get(i);
+			<s>.setframe( 5, vecs.get(i+1) );
+			<s>.show;
+		}
+	}
+	cbut_moveon	{
+		if( igmstate!=1 ) return;
+		if( sobject=="obrot" )	{
+			if( cmov.moving ) {
+				anmov.ansetnextfr;
+				fxnasadza.play;
+			}
+		} else {
+		
+		}
+	}
+	bool mcheck(int x, int y, string s)	{
+		if( x==ilex-1 && y==iley-1) {
+			return s!="u";
+		}
+		if( x>=ilex || x<0 || y>=iley || y<0 )	{
+			return ( x==ilex-1 && y==iley && s=="u" ) ? 0 : 1;
+		}
+		@san = "anp" + x +"_"+y;
+		if( !<san>.isvisible ) return 1;
+		if( !<san>.bbyl )	{
+			<san>.bbyl = (true);
+			grtes.add(san);
+		}
+		if( <san>.framename->contains(s) )	{
+			<san+"b">.setframe( <san>.actionnr(-1), <san>.framenr );
+			<san+"b">.show;
+			0;
+		} else 1;
+	}
+	cbut_lclick	{
+		if( igmstate!=1 ) return;
+		if( sobject=="zatwierdz" )	{
+			igmstate = 2;
+			.vardelif("timtik");
+			grtes.free;
+			.timer = ("timtik", 1000, func {
+				string s[2];
+				grt2.copy("grtes");
+				int pom = 0;
+				int x, int y;
+				for( int i=0; i< grt2.size; i++) {
+					s0 = grt2.get(i);
+					grtes.remove(s0);
+					s1 = <s0>.framename;
+					x = <s0>.idx;
+					y = <s0>.idy;
+					if( s1.contains("u") ) pom += .mcheck(x,y-1,"d");
+					if( s1.contains("r") ) pom += .mcheck(x+1,y,"l");
+					if( s1.contains("d") ) pom += .mcheck(x,y+1,"u");
+					if( s1.contains("l") ) pom += .mcheck(x-1,y,"r");
+				}
+				for( i=0; i<vecs.size; i+=2 )	{
+					s0 = vecs.get(i);
+					x = <s0>.idx;
+					y = <s0>.idy;
+					if( .misv(x,y-1) || .misv(x+1,y) || .misv(x, y+1) || .misv(x-1, y) ) {
+						<s0+"b">.setframe( <s0>.actionnr(-1), <s0>.framenr );
+						if( !<s0+"b">.isvisible )
+							fxpik2.play;
+						<s0+"b">.show;
+					}
+				}
+				if( pom!=0 ) .cbplay("sndups");
+				else {
+					if( grtes.empty )	{
+						for( i=0; i<vecs.size; i+=2 )	{
+							if( !<vecs.get(i)+"b">.isvisible ) {
+								.cbplay("sndnon");
+								return;
+							}
+						}
+						.cbplay("sndok");
+					} else .play;
+				}
+				} );
+			ankzur.setframe(-1, 1);
+			string s = "anp" + (ilex-1) + "_"+ (iley-2);
+			if( <s>.isvisible && .mcheck(ilex-1, iley-2, "d")==0 )	{
+				fxbulbul.play;
+				timtik.play;
+			} else .cbplay("sndups");
+		}
+	}
+	bool misv(int x, int y)	{
+		if( x==ilex-1 && y==iley-1 ) return true;
+		if( x>=ilex || x<0 || y>=iley || y<0 )	0;
+		else <"anp"+x+"_"+y+"b">.isvisible;
+	}
+	key_down	{
+		if( igmdebug )	{
+			if(  keyboard.iskey("n") )	{
+				.mload;
+			}
+			if( istate==0 )	{
+				if( keyboard.iskey("s") )	{
+					string s;
+					vecs.free;
+					for( int i=0; i<grin.size; i++ )	{
+						s = grin.get(i);
+						if( <s>.isvisible && <s>.actionnr(-1)>4 )	{
+							vecs.add(s);
+							vecs.add(<s>.framenr);
+						}
+					}
+					vecs.save(.getgraphpath + "work.vec");
+				}
+			}
+		}
+	}
+}

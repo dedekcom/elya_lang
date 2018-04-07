@@ -1,0 +1,150 @@
+game Komputer : Komputro {
+	init	{
+		Komputro::init("komputer");
+		.path = ("komputer");
+		.loadlekcja;
+		.imgs = (A, "bkg.pyz", "ukgfx.pyzH 1200", "ukhdd.pyzH 1200", "ukprocramHL.pyz 1200",
+			"uksndH.pyz 1200", "bg2.pyzH 1115");
+		.sfxs = (A,"butmovon2 15");
+		new Buttons buto("obiekty.pyz");
+		tdsnd.napisshow(120,229);
+		tdgfx.napisshow(126,278);
+		tdproc.napisshow(174,74);
+		tdram.napisshow(250,170);
+		tdnet.napisshow(398,143);
+		tdzas.napisshow(530,88);
+		tdmon.napisshow(90,414);
+		tdmysz.napisshow(666,498);
+		tdklaw.napisshow(352,510);
+		tdhdd.napisshow(396,210);
+		tddvd.napisshow(558,268);
+		.copyanima("anukgfx", "angfx1");
+		angfx1.anloopfin;
+		.copyanima("anukgfx", "angfx2");
+		angfx2.setz(angfx2.getz+1);
+		angfx2.setframe(4,0);
+		.copyanima("anukhdd", "anhdd1");
+		anhdd1.anloopfin;
+		.copyanima("anukprocram", "anram1");
+		anram1.anloopfin;
+		.copyanima("anuksnd", "ansnd1");
+		ansnd1.anloopfin;
+		
+		new gmimgvec gral;
+		gral.addlist(A, "anukgfx", "angfx1", "angfx2", "anukhdd", "anhdd1", "anukprocram", "anram1",
+			"anuksnd", "ansnd1", "anbg2");
+		gral.move(400 - anbg2.getw/2, 300 - anbg2.geth/2);
+		
+		new classsimplebutton cbok;
+		cbok.build("scripts/common/butok.pyz", "imglobcurs", 360,528, 100, 0);
+		
+		.sounds = (A,
+			"sndintro", "Na rysunku widzisz model zestawu komputerowego; klikaj na poszczególnych podzespo³ach aby dowiedzieæ siê jak dzia³aj±", func { .cbplay("snd2"); },
+			"snd2", "Kiedy zaspokoisz ciekawo¶æ kliknij przycisk ok aby przej¶æ do nastêpnej lekcji", "mret",
+			"snddvd", "Napêd odczytuje przy pomocy lasera dane z p³yt dvd; je¿eli laser natrafia na wg³êbienie odczytuje jedynkê je¶li wg³êbienia nie ma odczytuje zero", "mret",
+			"sndzas", "Zasilacz zamienia napiêcie z sieci elektrycznej na wielko¶ci wymagane przez p³ytê g³ówn± dyski napêdy i wiatraki", "mret",
+			"sndproc", "Serce komputera procesor steruje prac± ca³ego systemu", "mret",
+			"sndnet", "Karta sieciowa pozwala odbieraæ i wysy³aæ sygna³y na zewn±trz", "mret",
+			"sndmysz", "U¿ywaj±c myszy wybra³e¶ mysz nie muszê chyba wiêcej nic mówiæ", "mret",
+			"sndklaw", "Klawiatura nazywana jest standardowym wej¶ciem wiêcej o tym w lekcji po¶wiêconej podstawom jêzyka C", "mret",
+			"sndram", "Pamiêæ RAM przechowuje dane którymi manipuluje procesor: przesy³a je do innych urz±dzeñ kopiuje pomiêdzy blokami pamiêci i wylicza nowe warto¶ci", "mclose",
+			"sndsnd", "Procesor kopiuje dane z pamiêci", func { .cbplay("sndsnd2"); ansnd1.play(2); },
+			"sndsnd2", "I wysy³a do karty d¼wiêkowej", func { .cbplay("sndsnd3"); ansnd1.play(3); },
+			"sndsnd3", "Karta przetwarza dane cyfrowe i generuje d¼wiêki które s³yszymy dziêki wzmaczniaczowi", func { .cbplay("sndsnd4"); ansnd1.anhide; },
+			"sndsnd4", "Aby odci±¿yæ procesor", func { .cbplay("sndsnd5"); ansnd1.play(4); },
+			"sndsnd5", "Inicjuje on kontroler DMA Direct Memory Acces czyli bezpo¶redni dostêp do pamiêci",
+				func { .cbplay("sndsnd6"); ansnd1.play(5); },
+			"sndsnd6", "I dane przesy³ane s± przez po¶rednictwo kontrolera", "mclose",
+			"sndhdd", "Procesor mo¿e kopiowaæ dane z dysku", func { .cbplay("sndhdd2"); anhdd1.play(2); },
+			"sndhdd2", "Do pamiêci RAM", func { .cbplay("sndhdd3"); anhdd1.play(3); },
+			"sndhdd3", "I zapisywaæ dane z pamiêci", func { .cbplay("sndhdd4"); anhdd1.play(4); },
+			"sndhdd4", "Na dysk; Poniewa¿ jednak", func { .cbplay("sndhdd5"); anhdd1.anhide; },
+			"sndhdd5", "Odwo³anie do komórki pamiêci na dysku jest ponad 1000 razy wolniejsze ni¿ do pamiêci RAM kopiowanie bardzo spowalnia dzia³anie komputera", func { .cbplay("sndhdd6"); anhdd1.play(5); },
+			"sndhdd6", "Dlatego dysk powinien pracowaæ z kontrolerem bezpo¶redniego dostêpu do pamiêci DMA", func { .cbplay("sndhdd7"); anhdd1.play(6); },
+			"sndhdd7", "Który przekopiuje dane bez po¶rednictwa procesora", "mclose",
+			"sndgfx", "Obraz który widzisz na ekranie powstaje poprzez naklejanie na siebie wielu mniejszych obrazków",
+				func { .cbplay("sndgfx2"); angfx1.play(1); },
+			"sndgfx2", "Obrazki te trzymane s± w pamiêci RAM jako dwuwymiarowe tablice pikseli tzw powierzchnie z którymi pracowa³e¶ w lekcji po¶wiêconej grafice komputerowej; procesor czyta z pamiêci algorytmy manipuluj±ce obrazami i tworzy z nich jedn± powierzchniê",
+				func { .cbplay("sndgfx3"); angfx1.play(2); },
+			"sndgfx3", "Któr± przesy³a do pamiêci karty graficznej do obszaru zwanego pamiêci± ekranu",
+				func { .cbplay("sndgfx4"); angfx1.play(3); },
+			"sndgfx4", "Specjalny przetwornik w karcie przekszta³ca dane cyfrowe na sygna³ analogowy",
+				func { .cbplay("sndgfx5"); angfx1.anhide; angfx2.show; },
+			"sndgfx5", "Na podstawie sygna³u monitor generuje obraz", func { .cbplay("sndgfx6"); },
+			"sndgfx6", "Obecnie karty graficzne posiadaj± wbudowane procesory graficzne które wykonuj±  algorytmy bez po¶rednictwa centralnego procesora", "mclose"
+			);
+		.cbplay("sndintro");
+		new @bkliked = false;
+	}
+	cbok_CLICK	{
+		gameapi.play("Linuks");
+	}
+	mret	{	igmstate=1;	}
+	msnd	{
+		anbg2.show;
+		anuksnd.show;
+		.cbplay("sndsnd");
+		ansnd1.play(1);
+	}
+	mram	{
+		anbg2.show;
+		anukprocram.show;
+		anram1.play(1);
+		.cbplay("sndram");
+	}
+	mhdd	{
+		anbg2.show;
+		anukhdd.show;
+		anhdd1.play(1);
+		.cbplay("sndhdd");
+	}
+	mgfx	{
+		anbg2.show;
+		anukgfx.show;
+		.cbplay("sndgfx");
+	}
+	buto_moveon	{	fxbutmovon2.play;	}
+	buto_lclick	{
+		<GAME> (sobject)	{ (@sob)
+			if( igmstate!=1 ) {
+				.mclose;
+				return;
+			}
+			igmstate = 2;
+			bkliked = true;
+			match(sob)	{
+				"glosnik" => .msnd;
+				"dzwiek" => .msnd;
+				"zasilanie" => .cbplay("sndzas");
+				"dvd" => .cbplay("snddvd");
+				"ram" => .mram;
+				"proc" => .cbplay("sndproc");
+				"gfx" => .mgfx;
+				"net" => .cbplay("sndnet");
+				"hdd" => .mhdd;
+				"mysz" => .cbplay("sndmysz");
+				"klaw" => .cbplay("sndklaw");
+				"monitor" => .mgfx;
+				? => igmstate=1;
+			}
+		};
+	}
+	mclose	{
+		<GAME> {
+			if( igmstate==2 )	{
+				.cactsndstop(false);
+				gral.stop(false);
+				gral.hide;
+				igmstate = 1;
+			} else
+				.cactsndstop(true);
+		};
+	}
+	mouse_lclick	{
+		if( bkliked ) {
+			bkliked=false;
+			return;
+		}
+		.mclose;
+	}
+}

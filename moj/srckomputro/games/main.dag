@@ -1,0 +1,366 @@
+new classgamepause clpause;
+new classgamemusic clmusic;
+clmusic.sndbgrpath("sounds/komputro/bgr/");
+clmusic.musicpath("sounds/music/");
+clmusic.load("sounds/musickomputro.db");
+
+new snd sndakskermovon;
+sndakskermovon.load("sounds/komputro/sfx/butmovon.wav");
+
+module claskexit : classasker	{
+	init()	{
+		classasker::init();
+		
+		this.setwavpath("sounds/komputro/");
+		this.newsnd("sndaskexit", "nar07.wav");
+		this.newsnd("sndyes", "nar08.wav");
+		this.newsnd("sndno", "nar09.wav");
+		this.newsnd("sndaskrestart", "nar11.wav");
+		this.newsnd("sndaskrestart2", "nar14.wav");
+		this.load( "scripts/common/asker.pyz", 2000 );
+		this.fxonmovon("sndakskermovon");
+	}
+	askexittomenu()	{
+		this.ask( "sndaskexit", "sndyes", "sndno", "myestomenu", "mnotomenu");
+	}
+	askrestart()	{
+		this.ask( "sndaskrestart", "sndyes", "sndno", "myesrestart", "mnorestart");
+	}
+	askrestart2()	{
+		this.ask( "sndaskrestart2", "sndyes", "sndno", "myesrestart", "mnorestart");
+	}
+	mnotomenu()	{}
+	myestomenu()	{
+		match( gameapi.getgamename() )	{
+			"MenuGlowne" => "Outro";
+			? => "MenuGlowne";
+		}
+		gameapi.play;
+	}
+	mnorestart()	{
+		/*match(gameapi.getgamename)	{
+			"Memo" => "MenuGlowne";
+			? => "MenuGlowne";
+		}
+		gameapi.play;*/
+	}
+	myesrestart()	{	this.crestart();	}
+}
+
+
+module clbuts	{
+	init()	{}
+	load()	{
+		new classbutton buts;
+		buts.build("scripts/common/buttons.pyz", 4000, "imglobcurs");
+		buts.transclickfunc( engine.actclassname(), "butclick");
+		buts.transmovonfunc( engine.actclassname(), "butmovon");
+		buts.transmovofffunc( engine.actclassname(), "butmovoff");
+		buts.disableall();
+		new db dbb;
+		dbb.load("scripts/common/buts.db");
+		new snd sndfxglobon;
+		sndfxglobon.load("sounds/komputro/sfx/globbutmovon.wav");
+		new @bvisible = true;
+	}
+	reset()	{
+		buts.disableall();	
+		@sgame = gameapi.getgamename;
+		int pos = dbb.findbyrow( sgame );
+		if( pos>=0 )	{
+			int ile = dbb.getcolsno( pos );
+			for( int i=1; i<ile; i++)	{
+				buts.enable( dbb.get( pos, i ) );
+			}
+		}
+	}
+	enable(string sbu)	{
+		buts.enable( sbu );
+	}
+	/*****************************************/
+	butmovon(string sc)	{
+		sndfxglobon.play();
+		bvisible = mouse.isvisible;
+		mouse.show;
+	}
+	butmovoff(string sc)	{
+		if( !bvisible ) mouse.hide;
+	}
+	butclick(string sc)	{
+		match(sc)	{
+			"pause" => clpause.pause;
+			"exit", "exit2", "exit3" => claskexit.askexittomenu;
+			"restart" => claskexit.askrestart;
+			? => ;
+		}
+	}
+}
+
+class classplacepointer2 : classplacepointer    {
+	init()  {
+		classplacepointer::init();
+		this.load("scripts/common/strzalka.pyz");
+	}
+}
+
+new int KomputroMode = 3;
+game IntroOld : classadvkomputro , TMenu  {
+	init	{
+		classadvkomputro::init;
+		.tinit("intro", "scripts/intro/", "intro.pyz");
+		.loadguys;
+		new @bgadaja=true;
+		.sounds = ( A,
+			"sndstart", "Witamy w programie Nauka Informatyki",
+				func { .profstop; .jacksay("sndstart2"); },
+			"sndstart2", "Wybierz rodzaj kursu w zale¿no¶ci od swojego wieku",
+				func { .jackstop; bgadaja=false; },
+			"sndl1", "Kurs podstawowy od siódmego roku ¿ycia", "jackstop",
+			"sndl2", "Kurs ¶redniozaawansowany", "jackstop",
+			"sndl3", "Kurs dla m³odzie¿y i doros³ych", "jackstop"
+		);
+		.profsay("sndstart");
+		new TextDb tdtytul(null,40, "tytul.db",10,10,255, 300,100,25, 20, "center");
+		tdtytul.stdshadow(2);
+	}
+	cbplay(string s)	{	if( !bgadaja ) .jacksay(s);	}
+	graj(int id)	{
+		KomputroMode=id;
+		gameapi.play("MenuGlowne");
+	}
+	l1_BUTCLICK	{	.graj(1);	}
+	l2_BUTCLICK	{	.graj(2);	}
+	l3_BUTCLICK	{	.graj(3);	}
+}
+
+game Intro : Komputro	{
+	init	{
+		Komputro::init("intro");
+		.path = ("intro");
+		//.bkg = ("intro.png");
+		new @idbg = 1;
+		.sfxs = (A, "type2", "machine2 40");
+		.newimg("imgbg", "2.jpg", 0);
+		string s;
+		for( int i=1; i<=3; i++)	{
+			s = "gr"+i;
+			new gmimgvec <s>;
+			s ..< ("napis"+i+".pyz");
+			<s>.hide;
+		}
+		.timer = ("timtik", 100, func {
+				idbg++;
+				if (idbg>33) {
+					.delay(3000);
+					fxmachine2.setvol(20);
+				} else if( idbg>30 )	.delay(1000);
+				
+				if( idbg>34 )	{
+					.mouse_lclick;
+				} else {
+					//imgbg.load( .getgraphpath + "intro" + idbg + ".jpg");
+					imgbg.load( .getgraphpath + "" + idbg + ".jpg");
+					.play;
+				}
+			} );
+		.timer = ("timpisz", 140, func {
+			idbg++;
+			match( igmstate )	{
+				1 => if( idbg==gr1.size )	{
+						igmstate = 2;
+						gr1.hide;
+						idbg = -1;
+						.play;
+					} else {
+						fxtype2.play;
+						<gr1.get(idbg)>.show;
+						.play;
+					}
+				2 => if( idbg==gr2.size )	{
+						.delay(80);
+						igmstate = 3;
+						idbg = -1;
+						.play;
+					} else {
+						fxtype2.play;
+						<gr2.get(idbg)>.show;
+						.play;
+					}
+				3 => if( idbg < gr3.size )	{
+						fxtype2.play;
+						<gr3.get(idbg)>.show;
+						.play;
+					} else {
+						igmstate = 4;
+						.delay(1000);
+						.play;
+					}
+				4 => .mouse_lclick;
+				? => ;
+			}
+			} );
+		timtik.play;
+		fxmachine2.play;
+	}
+	mouse_lclick	{	gameapi.play("MenuGlowne");	}
+}
+
+game Outro : Komputro	{
+	init	{
+		Komputro::init("outro");
+		.path = ("intro");
+		.bkg = ("outro.pyz");
+		.timer = ("timfin", 20000, func { .mouse_lclick; } );
+		timfin.play;
+	}
+	mouse_lclick	{	gameapi.play("exit");	}
+}
+
+game MenuGlowne : classadvkomputro , TMenu  {
+	init	{
+		classadvkomputro::init;
+		.tinit("mglowne", "scripts/menu/", "menu.pyz");
+		.loadguys;
+		
+		.sounds = ( A,
+			"sndintro", "Witamy w programie! Kliknij Start aby zacz±æ kurs od pocz±tku lub wczytaj lekcjê", "profstop",
+			"sndnew", "Start kursu", "jackstop",
+			"sndload", "Wczytaj lekcjê", "jackstop");
+		.newanima("anzwierze", "zwierzaki.pyz", 20);
+		if( igmbegin )	{
+			igmbegin = false;
+			.profsay("sndintro");
+		}
+	}
+	cbplay(string s)	{	.jacksay(s);	}
+	new_BUTCLICK	{	gameapi.play("Historia");	}
+	load_BUTCLICK	{
+		bwejdzdoload = true;
+		gameapi.play("LoadGame");
+	}
+}
+
+new string sdemogame = "bramki";
+new bool bwejdzdoload;
+game Demo : Komputro {
+	init	{
+		Komputro::init("demo");
+		.path = ("demo");
+// 		sdemogame.print;
+		.bkg = (sdemogame+".png");
+		
+		@x = 400;
+		@y = 80;
+		new gfxSquare gsq(x,y,300,380);
+		gsq.set( .white, 222);
+		gsq.build;
+		gsq.blackborder(2, 192);
+		new @stdfont16 = .snewfont( "configs/fonts/normal.ttf", 16);
+		new TextDb tdopis(stdfont16, 16, sdemogame+".db", .red, x+15,y+15, 4, 550, "left");
+// 		tdopis.stdshadow(1);
+		
+	}
+	mouse_lclick	{	gameapi.play("LoadGame");	}
+}
+
+game LoadGame : Komputro {
+	init	{
+		Komputro::init("load");
+		.path = ("load");
+		.bkg = ("bkg.pyz");
+		new Buttons buto("buty.pyz");
+		.list = (A, "Logika", "Elektro", "Bramki", "Tasma", "AsmEasy", "Liczy",
+			"Robot", "Grafika", "Komputer", "Linuks", "Binary", "grgry");
+		.list = (A, "logika", "elektro", "bramki", "tasma", "asmeasy", "liczy",
+			"robot", "grafika", "komputer", "linuks", "binary", "grdema");
+		new db dblek;
+		dblek.load("scripts/common/lekcje.db");
+		@isize = 12;
+		new TextDb td1(null, isize, dblek.get(1,1), .mcol, 4,7, 5,550,"left");	td1.stdshadow(2);
+		new TextDb td2(null, isize, dblek.get(2,1), .mcol, 179,30, 5,550,"left");	td2.stdshadow(2);
+		new TextDb td3(null, isize, dblek.get(3,1), .mcol, 379,49, 5,550,"left");	td3.stdshadow(2);
+		new TextDb td4(null, isize, dblek.get(4,1), .mcol, 559,150, 5,550,"left");	td4.stdshadow(2);
+		new TextDb td5(null, isize, dblek.get(5,1), .mcol, 576,1, 5,550,"left");	td5.stdshadow(2);
+		new TextDb td6(null, isize, dblek.get(6,1), .mcol, 5,190, 5,550,"left");	td6.stdshadow(2);
+		@spom = dblek.get(7,1);
+		new TextDb td7(null, isize, spom.strgetto("is:")+"is:", .mcol, 260,216, 5,550,"left");	td7.stdshadow(2);
+		new TextDb td72(null, isize, spom.strgetfrom("is:"), .mcol, 275,235, 5,550,"left");	td72.stdshadow(2);
+		spom = dblek.get(8,1);
+		new TextDb td8(null, isize, spom, .mcol, 470,295, 5,550,"left");	td8.stdshadow(2);
+// 		new TextDb td82(null, isize, "obiekt" + spom.strgetfrom("obiekt"), .mcol, 661,313, 5,550,"left");	td82.stdshadow(2);
+		new TextDb td9(null, isize, dblek.get(9,1), .mcol, 3,360, 5,550,"left");	td9.stdshadow(2);
+		new TextDb td10(null, isize, dblek.get(10,1), .mcol, 199,420, 5,550,"left");	td10.stdshadow(2);
+		new TextDb td11(null, isize, dblek.get(11,1), .mcol, 440,453, 5,550,"left");	td11.stdshadow(2);
+	//init(string sfont, int isize, string sdbfile, int r, int g, int b, int x, int y, int dy, int z, string sdir)
+		.sounds = (A,
+			"sndintro", "Wybierz lekcjê", func { buto.unlock; }
+			);
+		if( bwejdzdoload )	{
+			bwejdzdoload = false;
+			.cbplay("sndintro");
+		} else buto.unlock;
+		
+		if( igmdemo )	{
+			new @stdfont = .stdfont(14);
+			buto {
+				grbuts.each( func { (@id)
+					if( id<2 ) return;
+					.newtextposz("txtid", "Demo: tylko opis lekcji", stdfont, .red, .getpx+5, .getcy-14, .getz+1);
+					txtid.txtshadow(1,stdfont);
+					} );
+			};
+		}
+		//new text txtpom;
+	}
+	buto_moveon	{
+		sndakskermovon.play;
+	}
+	mcol	{	return 192,230,255; }
+	buto_lclick	{
+		int id = sobject.to_i;
+		if( igmdemo )	{
+			if( id==0 || id==1 )	gameapi.play(grgry.get(id));
+			else {
+				sdemogame = grdema.get(id) ;
+				gameapi.play("Demo");
+			}
+		} else
+			gameapi.play( grgry.get(id) );
+	}
+	mouse_move	{
+		//txtpom.set("" + mouse.getposx + ","+mouse.getposy);
+	}
+}
+
+/***************************************************/
+// new classnextgame clnextgm;
+igmstate = 0;
+|igmdebug, igmeasy, igmdemo, igmbegin| = false, false, false, true;
+
+bsms.setstd;
+
+//clnextgm.load("scripts/common/games.db");
+clbuts.load;
+
+new db dbgogame;
+
+dbgogame.load("scripts/common/gry.db");
+
+int i = dbgogame.findbyrow("go");
+gameapi.play(dbgogame.get(i,1));
+
+//   gameapi.play("LoadGame");
+//  gameapi.play("Historia");
+//     gameapi.play("Logika");
+//      gameapi.play("Elektro");
+//       gameapi.play("Tasma");
+//      gameapi.play("Bramki");
+//    gameapi.play("AsmEasy");
+//     gameapi.play("Liczy");
+//      gameapi.play("Robot");
+//  gameapi.play("Grafika");
+//  gameapi.play("Komputer");
+//  gameapi.play("Linuks");
+//   gameapi.play("Binary");
+/***************************************************/
+

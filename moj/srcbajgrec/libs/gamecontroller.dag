@@ -1,0 +1,267 @@
+class ObjController	{
+	init()	{
+		new string _sme = this.getname();
+		<GAME>.addgmobj(_sme);
+	}
+	removefromgame	{	<GAME>.removegmobj(_sme); }
+}
+class LObjController : ObjController, classlocker	{
+	init()	{
+		ObjController::init;
+		classlocker::init;
+	}
+}
+
+class gmbankvec : gmobjvec	{
+	init	{
+		gmobjvec::init;
+		.var2("iid", -1);
+	}
+	startrand	{	if(.size>0) iid=.size->rand;	}
+	play()	{
+		this.stop(false);
+		int ile = this.size();
+		if( ile==0 ) return;
+		iid = (iid+1)%ile;
+		<this.get(iid)>.play();
+	}
+	onfinish()	{}
+	stop(bool bfin)	{
+		if( this.isplaying() )	{
+			<this.getplay()>.stop(bfin);
+			if( bfin ) this.onfinish();
+		}
+	}
+	isplaying	{	( iid>=0 )	? <.getplay>.isplaying : false;	}
+	getplay()	{	return this.get(iid);	}
+}
+
+class GameController : classlocker {
+	init(string ssndbase)	{
+		classlocker::init();
+		new gmobjvec __grobj;
+		
+		new db _dbsnd;
+		_dbsnd.setseparator("|");
+		new string _sndbase = ssndbase;
+		new string GAME = this;
+		
+		new timer __dblclick;
+		__dblclick.delay(250);
+		__dblclick.settick(1);
+		
+		.var2("wavmp3", "wav");
+	}
+	public game_exit()	{
+		//this.stdexportsnd();
+	}
+	/*************************************************/
+	public setsndbase(string sb)	{	_sndbase=sb;	}
+	public say(string styp, string stxt)	{	this.sayf(styp,stxt,null);	}
+	public sayf(string styp, string stxt, string sfun)	{
+		string s = this.getsndtxt(stxt);
+		<s>.setstartstopflag(false,true);
+		this.cplayf(styp, s, sfun);
+	}
+	public string getsndtxt(string stxt)	{
+		string ssnd = "snd" + _sndbase + _dbsnd.getrowsno();
+		this.addsnd( ssnd, stxt );
+		return ssnd;
+	}
+	_sndtimerstart()	{
+		int id = _dbsnd.dbfindbycol(1,this.getname());
+		if( id>=0 )	engine.print( _dbsnd.get( id,2) );
+		else 		engine.print( this.getname() + " not in _dbsnd");
+		engine.print("");
+	}
+	public addsndf(string ssnd, string stxt, string sfun)	{
+		this.addsnd(ssnd,stxt);
+		if( sfun!=null )	{
+			match( ssnd.getb(0,1) ) {
+				":", "$" => ssnd = ssnd.strsubb(1);
+				? => ;
+			};
+			<ssnd>.addmethod("onfinish", sfun );
+		}
+	}
+	public asf(string ssnd, string stxt)	{	this.addsndff( "snd" + ssnd, stxt, "end" + ssnd);	}
+	public addsndff(string ssnd, string stxt, string sfun)	{
+		this.addsndf(ssnd,stxt,sfun);
+		//<ssnd>.setstartstopflag(false,true);
+	}
+	gmconsnd(string ssnd, string swav)	{
+		new snd <ssnd>;
+		<ssnd>.setstartstopflag(false,true);
+		<ssnd>.load( .getsndpath+swav );
+		if( igmsubtitle )	{
+			subtitle.register(ssnd, .getsndpath+swav);
+		}
+	}
+	public getwavmp3	{	"." + .wavmp3;	}
+	public addsnd(string ssnd, string stxt)	{
+		int id = _dbsnd.addrow()-1;
+		string swav;
+		
+		match( ssnd.getb(0,1) )	{
+			"$" => {
+				ssnd = ssnd.strsubb(1);
+				swav = ssnd + .getwavmp3;
+			}
+			":" => {
+				ssnd = ssnd.strsubb(1);
+				swav = _sndbase + "_" + ssnd + id + .getwavmp3;
+			}
+			? => swav = _sndbase + id + .getwavmp3;
+		};
+		
+		string sg = gameapi.getgamename();
+		if( engine.fileexist( this.getsndpath() + swav ) )	{
+			<sg>.gmconsnd( ssnd, swav );
+		} else {
+			<sg>.newtimer( ssnd, stxt.length()*40, 1);
+			<ssnd>.addmethod("onstart", "_sndtimerstart");
+			<ssnd>.addmethod("setstartstopflag", func { (bool b1, bool b2) ; });
+		}
+		_dbsnd.add(id, swav);
+		_dbsnd.add(id, ssnd);
+		_dbsnd.add(id, stxt);
+	}
+	public addbank(string sbank, string sfunc)	{
+		new gmbankvec <sbank>;
+		string s = _;
+		string s2;
+		while( s!=A )	{
+			s2 = this.getsndtxt(s);
+			<sbank>.addbegin( s2 );
+			if( sfunc!=null ) <s2>.addmethod("onfinish", sfunc );
+			s = _;
+		}
+	}
+	public exportbank(string sbase)	{
+		new db <"__db"+sbase> (sbase)	{ (@sbase)
+			.dbbuild(1);
+			.setseparator("|");
+			.dbeach_row( func { (@id)
+				@s = this->strsubbs("__db");
+				.addbegin(id, "snd"+s+id);
+				.addbegin(id, s+id+".wav");
+				} );
+			if( igmdebug )
+				.save("exports/"+sbase+".dlg");
+		};
+		delete <"__db"+sbase>;
+	}
+	public importbank(string sbank, string sbase, string sfun)	{
+		new gmbankvec <sbank>;
+		.importgroupto(sbase, sfun, null, sbank);
+	}
+	public exportsnd(string sfile)	{	if( igmdebug) _dbsnd.save(sfile);	}
+	public stdexportsnd()	{	this.exportsnd( "exports/" + _sndbase + ".dlg" );	}
+	public sounds=()	{	.buildsnds;	}
+	public sounds_from(string sbase)	{
+		new db __tmpdb;
+		@stmpbase = _sndbase;
+		.setsndbase(sbase);
+		__tmpdb.load("exports/"+sbase+".dlg");
+		_dbsnd.free;
+		@s = _;
+		int id, string sf;
+		while( A!=s )	{
+			@s1 = _;
+			id = __tmpdb.dbfindbycol(1, s1);
+			if( id>=0 )	{
+				sf = .getsndpath + __tmpdb.get(id,0);
+				if( engine.fileexist( sf ) )	{
+					<GAME>.gmconsnd( s1, __tmpdb.get(id,0) );
+					<s1>.addmethod("onfinish", s );
+				} else	.addsndf( s1, __tmpdb.get(id,1), s );
+			}
+			@s = _;
+		}
+		_dbsnd.free;
+		delete __tmpdb;
+		.setsndbase(stmpbase);
+	}
+	public buildsnds()	{
+		_dbsnd.free;
+		new db __dbsnd;
+		__dbsnd.dbbuild(3);
+		.buildfromdb("__dbsnd");
+		delete __dbsnd; 
+	}
+	public buildfromdb(string sdb)	{
+		for( int i=0; i< <sdb>.getrowsno; i++)	{
+			.addsndf( <sdb>.get(i,0), <sdb>.get(i,1), <sdb>.get(i,2) );
+		}
+		.stdexportsnd;
+	}
+	public importsnd(string sbase, string sfun)	{	this.importgroup(sbase, sfun, null );	}
+	public importgroup(string sbase, string sfun, string sgr)	{	.importgroupto(sbase,sfun,sgr,null);	}
+	public importgroupto(string sbase, string sfun, string sgr, string sgrto)	{
+		new db __tmpdb;
+		@stmpbase = _sndbase;
+		.setsndbase(sbase);
+		__tmpdb.load("exports/"+sbase+".dlg");
+		_dbsnd.free();
+		string s;
+		for( int i=0; i<__tmpdb.getrowsno(); i++)	{
+			s = __tmpdb.get(i,1);
+			if( sgr==null || <sgr>.contains(s) )	{
+				.addsndf( s, __tmpdb.get(i,2), sfun );
+				if( sgrto!=null ) <sgrto>.add(s);
+			}
+		}
+		_dbsnd.free();
+		__tmpdb.free();
+		delete __tmpdb;
+		.setsndbase(stmpbase);
+	}
+	public freesnd()	{	_dbsnd.free();	}
+	/*************************************************/
+	public addgmobj(string s)		{	__grobj.add(s);		}
+	public removegmobj(string s)	{	__grobj.remove(s);	}
+	public isgmobj(string s)	{	__grobj.contains(s);	}
+	public deletegmobj(string s)	{
+		if( .hasvar(s) )	{
+			.removegmobj(s);
+			delete <s>;
+		}
+	}
+	public lockall()		{
+		__grobj.eval("lock");
+		this.lock();	
+	}
+	public unlockall()		{
+		__grobj.eval("unlock");
+		this.unlock();
+	}
+	public gmunlockall	{	<GAME>.unlockall;	}
+	public gmlockall	{	<GAME>.lockall;	}
+	public lock=(bool b)	{	b ? .gmlockall : .gmunlockall; }
+	mousemove()	{
+		__grobj.eval("onmousemove");
+		this.mouse_move();
+	}
+	mouselclick()	{
+		__grobj.eval("onmouselclick");
+		this.mouse_lclick();
+		if( __dblclick.isplaying )	.mouse_dblclick;
+		else __dblclick.play;
+	}
+	mouserclick()	{
+		__grobj.eval("onmouserclick");
+		this.mouse_rclick();
+	}
+	mouselrel()	{
+		__grobj.eval("onmouselrel");
+		this.mouse_lrel();
+	}
+	mouserrel()	{
+		__grobj.eval("onmouserrel");
+		this.mouse_rrel();
+	}
+	keydown()	{
+		__grobj.eval("onkeydown");
+		this.key_down();
+	}
+}

@@ -1,0 +1,311 @@
+new int igmdebug;
+new int igmeasy;
+new int igmdemo;
+new classgamepause clpause;
+new classgamemusic clmusic;
+new classeasysaver clesav;
+new snd sndakskermovon;
+
+module claskexit : classasker	{
+	init()	{
+		classasker::init();
+		
+		this.setwavpath("sounds/polanie/");
+		this.newsnd("sndaskexit", "nar07.wav");
+		this.newsnd("sndyes", "nar08.wav");
+		this.newsnd("sndno", "nar09.wav");
+		this.newsnd("sndaskdif", "nar10.wav");
+		this.newsnd("sndaskrestart", "nar11.wav");
+		this.newsnd("sndrestartbajka", "nar12.wav");
+		this.newsnd("sndeasygame", "nar13.wav");
+		sndakskermovon.load("sounds/polanie/sfx/butmovon.wav");
+		new int ieasier;
+		this.load( "scripts/common/asker.pyz", 2000 );
+		this.fxonmovon("sndakskermovon");
+	}
+	askexittomenu()	{
+		this.ask( "sndaskexit", "sndyes", "sndno", "myestomenu", "mnotomenu");
+	}
+	askplayeasy()	{
+		this.ask( "sndaskdif", "sndyes", "sndno", "myeseasy", "mnoeasy");
+	}
+	askplayeasy2(string sfy, string sfn)	{
+		this.ask( "sndaskdif", "sndyes", "sndno", sfy, sfn );
+	}
+	myeseasy()	{	igmeasy=true;	}
+	mnoeasy()	{	igmeasy=false;	}
+	askrestart()	{
+		if( gameapi.getgamename()=="gamebajka")	{
+			this.ask( "sndrestartbajka", "sndyes", "sndno", "myesrestart", "mnorestart");
+		} else {
+			this.ask( "sndaskrestart", "sndyes", "sndno", "myesrestart", "mnorestart");
+		}
+	}
+	mnotomenu()	{}
+	myestomenu()	{
+		if( gameapi.getgamename()=="gamemenu")	{
+			gameapi.play("gameoutro");
+		} else {
+			gameapi.play("gamemenu");
+		}
+	}
+	mnorestart()	{}
+	myesrestart()	{	this.crestart();	}
+}
+
+
+module clbuts	{
+	init()	{}
+	load()	{
+		new classbutton buts;
+		buts.build("scripts/common/buttons.pyz", 4000, "imglobcurs");
+		buts.transclickfunc( engine.actclassname(), "butclick");
+		buts.transmovonfunc( engine.actclassname(), "butmovon");
+		buts.disableall();
+		new db dbb;
+		dbb.load("scripts/common/buts.db");
+		new snd sndfxglobon;
+		sndfxglobon.load("sounds/polanie/sfx/globbutmovon.wav");
+	}
+	reset()	{
+		buts.disableall();	
+		int pos = dbb.findbyrow( gameapi.getgamename() );
+		if( pos>=0 )	{
+			int ile = dbb.getcolsno( pos );
+			for( int i=1; i<ile; i++)	{
+				buts.enable( dbb.get( pos, i ) );
+			}
+		}
+	}
+	enable(string sbu)	{
+		buts.enable( sbu );
+	}
+	/*****************************************/
+	butmovon(string sc)	{
+		sndfxglobon.play();
+	}
+	butclick(string sc)	{
+		if( sc=="pause" )	{
+			clpause.pause();
+		} else if( sc=="exit" )	{
+			claskexit.askexittomenu();
+		} else if (sc=="restart")	{
+			claskexit.askrestart();
+		}
+	}
+}
+
+game gameintro	: classadvpiast {
+	init()	{
+		classadvpiast::init();
+		this.setgraphpath("scripts/introutro/");
+		this.csetbkg("inoutbkg.png");
+		this.newanima("annapis1","intro.pyz",10);
+		this.copyanima("annapis1","annapis2");
+		annapis2.setz(20);
+		annapis2.setframe(1,0);
+		this.newsnd("sndnar2","nar06.wav");
+		this.cplayintro("nar01.wav");
+		sndintro.addmethod("onfinish", "finintro");
+		sndnar2.addmethod("onfinish","finsnd2");
+		annapis1.play(0);
+	}
+	finintro()	{
+		this.cbplay("sndnar2");
+		annapis2.play(1);
+	}
+	finsnd2()	{
+		gameapi.play("gamemenu");
+	}
+	mouselclick()	{
+		this.cactsndstop(true);
+	}
+}
+
+game gamemenu : classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		clsav.free();
+		this.setgraphpath("scripts/menu/");
+		this.csetbkg("menubkg.png");
+
+		this.newsnd("sndbajka", "nar15.wav");
+		this.newsnd("sndgra", "nar14.wav");
+		this.newsnd("sndload", "nar03.wav");
+		
+		this.newclbut("clb", "buts.pyz", 10, "imglobcurs");
+		clb.clickfunc("gmbutclick");
+		clb.movonfunc("gmbutmove");
+	}
+	gmbutmove(string s)	{
+		sndakskermovon.play();
+		if(s=="bajka")	{
+			this.crselfplay("sndbajka");
+		} else if (s=="gra")	{
+			this.crselfplay("sndgra");
+		} else if (s=="load")	{
+			this.crselfplay("sndload");
+		} else {
+			engine.print("cos innego: " + s);
+		}
+	}
+	gmbutclick(string s)	{
+		if(s=="bajka")	{
+			if( igmdemo==false )	{
+				gameapi.play("gamebajka");
+			}
+		} else if (s=="gra")	{
+			gameapi.play("gamepodworko1");
+		} else if (s=="load")	{
+			gameapi.play("gameload");
+		} else {
+			engine.print("cos innego: " + s);
+		}
+	}
+}
+
+game gameload : classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		this.setgraphpath("scripts/saves/");
+		this.csetbkg("loadbkg.png");
+		this.newclbut("clb", "buts.pyz", 10, "imglobcurs");
+		clb.clickfunc("gmbutclick");
+		clb.movonfunc("gmmovon");
+		clb.disableall();
+		clb.ienable( clesav.getlevel()+1 );
+		new string splaygame;
+	}
+	gmmovon(string s)	{	sndakskermovon.play();	}
+	gmbutclick(string s)	{
+		int i = s;
+		splaygame = clesav.getgame( i-1 );
+		if (splaygame!=null )	{
+			claskexit.askplayeasy2("mloadeasy", "mloadhard");
+		}
+	}
+	mloadeasy()	{
+		igmeasy = true;
+		gameapi.play( splaygame );
+	}
+	mloadhard()	{
+		igmeasy = false;
+		gameapi.play( splaygame );
+	}
+}
+
+game gameoutro : classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		this.setgraphpath("scripts/introutro/");
+		this.csetbkg("inoutbkg.png");
+		this.cnewtimerfin("timfin",23000,1,"timfinito");
+		this.cnewtimerfin("timaut",3000,1,"timfinaut");
+		this.newanima("anout", "outro.pyz",10);
+		anout.hide();
+		new int ileau = this.newanactions("anout", "ano");
+		new int id = 0;
+		new gmobjvec graut;
+		for(int i=0; i<ileau; i++)	{
+			<"ano"+i>.addmethod("onfinish","finano");
+			graut.add("ano"+i);
+		}
+		ano0.play(0);
+		this.newimg("imgautorzy", "autorzy.png", 10);
+		imgautorzy.hide();
+	}
+	finano()	{
+		id++;
+		if(id<anout.nofactions())	{
+			<"ano"+id>.play(-1);
+		} else {
+			timaut.play();
+		}
+	}
+	timfinaut()	{
+		graut.hide();
+		imgautorzy.show();
+		timfin.play();
+	}
+	timfinito()	{
+		if( igmdemo==false )	{
+			gameapi.exit(); 
+		} else {
+			gameapi.play("gamedemoout");
+		}
+	}
+	mouselclick()	{
+		this.timfinito();
+	}	
+}
+
+game gamedemoout : classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		gameapi.stdbkg();
+		this.newanima("anscr", "scripts/demo/screens.pyz", 10 );
+		anscr.anloopplay(0);
+	}
+	mouselclick()	{	gameapi.exit();	}
+}
+
+new classnextgame clnextgm;
+
+/*game gametest {
+	init()	{
+		gameapi.stdbkg();
+		new text txt1;
+		new font fon1;
+		fon1.load("configs/fonts/l2arial.ttf", 20);
+		txt1.setpos( 100, 100 );
+		txt1.set( "zażółćźą" );
+		txt1.setfont( "fon1" );
+		txt1.createtxt(0, 250, 250);
+		engine.print("" + txt1.getpx() + " "+txt1.getpy() + " " + txt1.getex() + " " + txt1.getey() );
+	}
+}*/
+
+game main {
+	init()	{
+		igmstate = 0;
+		
+		igmdebug = true;
+		igmeasy = false;
+		igmdemo = true;
+		
+		bsms.setstd();
+		
+		clmusic.sndbgrpath("sounds/polanie/bgr/");
+		clmusic.musicpath("sounds/polanie/music/");
+		
+		clmusic.load("sounds/musicpolanie.db");
+		clnextgm.load("scripts/common/games.db");
+		clbuts.load();
+		clesav.load( "scripts/saves/lastlev", "scripts/saves/loads.db");
+		
+		//gameapi.play("gamepart2zamek");
+		//gameapi.play("gamepart1platforma");
+		//gameapi.play("gamelot2");
+		//gameapi.play("gamegoldenaxe");
+		//gameapi.play("gamerzeka");
+		//gameapi.play("gamemacki1");
+		//gameapi.play("gamemacki3");
+		//gameapi.play("gamepart4grzybki");
+		//gameapi.play("gamepart4gotuj");
+		//gameapi.play("gamelot2outro");
+		//gameapi.play("gamensintro");
+		//gameapi.play("gamebajka");
+		//gameapi.play("gamenorth");
+		//gameapi.play("gamensoutro");
+		//gameapi.play("gamepart3oboz");
+		
+		gameapi.play("gameintro");
+		//gameapi.play("gametest");
+		
+		//gameapi.play("gamepodworko2");
+		//gameapi.play("gamepart1las1");
+		//gameapi.play("gamepodworko2");
+		//gameapi.play("gametest");
+	}
+}
+

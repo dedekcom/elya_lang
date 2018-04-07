@@ -1,0 +1,320 @@
+game Biurkow : Computro	{
+	init	{
+		Computro::init("biurkow");
+		advmouse.setstd;
+		
+		.sfxs=(A, "szuflada 60", "kluczyk 70", "getpuz 80", "putpuz 80", "wlaczkomp");
+		//bkg.pyz  czek.pyz  dogim.pyz  ekran.pyz  els.pyz  pen.pyz  tablet.pyz
+		.imgs = (A, "bkg.pyz", "czek.pyzH", "ekran.pyzH 10", "pen.pyzH 100", "tablet.pyzH 60", "kurs.pyzH 56", "dogimH.pyz 55", "powrotH.pyz 20");
+		.copyanima("anczek", "anczek2");
+		anczek2.setframe(-1,1);
+		new gmimgvec gramka;
+		"gramka" ..< "ramka.pyz";
+		gramka.setz(58);
+		new gmimgvec grels;
+		"grels" .* "els.pyz";
+		grels.setz(50);
+		grels.hide;
+/*<action>        zamek2	<action>        dogim	<action>        1jpg	<action>        2jpg	<action>        3jpg
+<action>        4jpg	<action>        monitor	<action>        komp	<action>        zamek*/
+		.withlist(A, "zamek", "zamek2", "komp", "monitor", "mshow");
+		.msetz("monitor",5);
+		.msetz("komp",5);
+		//grels.remove(.mget("monitor"));
+		grels.sortimgs;
+		
+		new bool bmaklucz = clsave.bis("zak_ma_kluczyk");
+		new string smoved = null;
+		new string smovac;
+		new bool bjpg = true;
+		new string mvjpg = null;
+		new int imisjakarta = 0;
+		new int imisjaplik = 0;
+		
+		// tmp
+// 		bmaklucz = true;
+		
+		if( bmaklucz )	{
+			new ConImgMover imov;
+			new ConImgMover tmov;
+			
+			.newanima("anklucz", "$scripts/items/kluczw.pyz", 200);
+			.mretklucz;
+		} else {
+			anpowrot.show;
+			grels.add("anpowrot");
+		}
+		
+		.sounds = (A,
+			":zak1", "Zakluczone", null,
+			":zak2", "Jaka¶ karta wej¶ciowa; Mo¿e siê przydaæ", "mdali",
+			":zak3", "To mi wygl±da na jakie¶ wa¿ne dane; Skopiujê je do pamiêci", null,
+			":zak4", "Doprowadzê jeszcze wszystko do porz±dku i zmykam", "porzadki"
+			);
+		
+		.menable;
+	}
+	mdali	{	igmstate = 1;	}
+	menable	{
+		igmstate = 1;
+		if( bmaklucz )	{
+			imov.unlock;
+			tmov.unlock;
+		}
+	}
+	mretklucz	{
+		fxputpuz.play;
+		imov.free;
+		anklucz.setframe(0, 0);
+		anklucz.show;
+		anklucz.setpos( (iResX-anklucz.getw)/2, iResY-anklucz.geth-5 );
+		grels.add("anklucz");
+	}
+	mtakeklucz	{
+		//_fxtakeitem.play;
+		fxgetpuz.play;
+		grels.remove("anklucz");
+		anklucz.setframe(1, 0);
+		imov.mssetobj("anklucz");
+	}
+	string mget(string s)	{	grels.getsac(s);	}
+	mhide(string s)	{	<.mget(s)>.hide;	}
+	mshow(string s)	{	<.mget(s)>.show;	}
+	msetz(string s, int z)	{	<.mget(s)>.setz(z);	}
+	bool mvis(string s)	{	<.mget(s)>.isvisible;	}
+	mouse_move	{
+		if( igmstate == 5 ) return;
+		|int x, int y| = mouse.getpos;
+		if( bmaklucz )	{
+			if( igmstate == 4 )	{
+				.movpen;
+			} else if( grels.isin(x,y,0,1) )	{
+				if( .mcopy )	{
+					match(smovac)	{
+						"zamek", "zamek2" => advmouse.setbut;
+						"komp", "klucz" => 	if( <smoved>.framenr==0 )	advmouse.setexit;
+						"tablet", "dogim" => if (<smoved>.isvisible && <smoved>.framenr==0 ) advmouse.setexit;
+						"pen", "czek", "powrot" => advmouse.setexit;
+						? => 	.mret;
+					}
+				}
+			} else .mret;
+		} else {
+			if( grels.isin(x,y,1,1) )	{
+				if( .mcopy )	{
+					match(smovac)	{
+						"zamek", "zamek2" => advmouse.setbut;
+						"powrot" => advmouse.setexit;
+						? => 	.mret;
+					}
+				}
+			} else .mret;
+		}
+	}
+	mcopy	{
+		string s = grels.getsfound;
+		if( smoved!=s )	{
+			smoved = s;
+			smovac = <smoved>.actionname;
+			true;
+		} else false;
+	}
+	mret	{
+		if( smoved!=null )	{
+			smoved = null;
+			smovac = null;
+			advmouse.setstd;
+		}
+	}
+	putklucz {
+		imov.free;
+		match( smovac )	{
+			"zamek" => {
+				<smoved>.setframe(-1, 1);
+				fxszuflada.play;
+				if( antablet.framenr==0 )	{
+					antablet.show;
+					grels.add("antablet");
+				}
+				anklucz.hide;
+			}
+			"zamek2" => {
+				fxszuflada.play;
+				<smoved>.setframe(-1, 1);
+				if( andogim.framenr==0 )	{
+					andogim.show;
+					grels.add("andogim");
+					grels.sortimgs;
+				}
+				anklucz.hide;
+			}
+			? => .mretklucz;
+		}
+	}
+	mpowrot(int id)	{
+		if( id==0 && !imisjakarta) imisjakarta=1;
+		else if (id==1 && !imisjaplik) imisjaplik=1;
+		if( imisjakarta && imisjaplik )	{
+			anpowrot.show;
+			grels.add("anpowrot");
+		}
+	}
+	puttablet	{
+		imov.free;
+		fxputpuz.play;
+		match(smovac)	{
+			"komp" => {
+				antablet.setframe(-1,1);
+				antablet.setpos(0, 0);
+				anpen.show;
+				grels.add("anpen");
+			}
+			? => {
+				antablet.setpos(0, 0);
+				grels.add("antablet");
+			}
+		}
+	}
+	mretpen	{
+		fxputpuz.play;
+		grels.remove("anczek");
+		grels.add("anpen");
+		imov.free;
+		grels.sortimgs;
+		igmstate = 1;
+		anpen.setpos(0, 0);
+	}
+	movpen	{
+		int x = anpen.getpx;
+		int y = anpen.getey;
+		if( anczek.isin(x,y,0,1) )	{
+			x = anczek2.getpx + 2*(x-anczek.getpx);
+			y = anczek2.getpy + 2*(y-anczek.getpy);
+			ankurs.ansetbpos( x, y );
+			if( bjpg && grels.isin(x,y,1,1) )	{
+				@s = <grels.getsfound>.actionname;
+				if( mvjpg!=s )	{
+					mvjpg = s;
+					match( s )	{
+						"1jpg", "2jpg", "3jpg", "4jpg" => ankurs.setframe(-1,1);
+						? => {
+							mvjpg = null;
+							ankurs.setframe(-1,0);
+						}
+					}
+				}
+			}
+		}
+	}
+	mouse_lclick	{
+		if( .cisplaying || igmstate==5) return;
+		if(!bmaklucz)	{
+			if( smoved != null )	{
+				if( smovac == "powrot" ) .gotoadv("adrektor", "gameadrektor2");
+				else .cbplay("zak1");
+			}
+		} else {
+			if( igmstate == 2 ) {
+				.putklucz;
+				igmstate = 1;
+			} else if (igmstate == 3)	{
+				.puttablet;
+				igmstate = 1;
+			} else if (igmstate == 4)	{
+				if( anekran.isvisible )	{
+					int x = anpen.getpx;
+					int y = anpen.getey;
+					if( anczek.isin(x,y,0,1) )	{
+						if( bjpg )	{
+							if( mvjpg!=null )	{
+								bjpg = false;
+								<.mget(mvjpg)> {
+									.setframe(-1,1);
+									.setz(52);
+								};
+								if( mvjpg=="4jpg" )	{
+									.cbplay("zak3");
+									.mpowrot(1);
+								}
+							}
+						} else {
+							<.mget(mvjpg)> {
+								.setframe(-1,0);
+								.setz(50);
+							};
+							bjpg = true;
+						}
+					} else .mretpen;
+				} else .mretpen;
+			} else {
+				match( smovac )	{
+					"komp" => {
+						if( <smoved>.framenr==0 )	{
+							fxwlaczkomp.play;
+							<smoved>.setframe(-1,1);
+							anekran.show;
+							ankurs.show;
+							.withlist(A, "1jpg", "2jpg", "3jpg", "4jpg", "mshow");
+						}
+					}
+					"zamek" => {
+						if(<smoved>.framenr==1 )	{
+							fxszuflada.play;
+							if( antablet.framenr==0 ) {
+								antablet.hide;
+								grels.remove("antablet");
+							}
+							<smoved>.setframe(-1,0);
+							.mretklucz;
+						}
+					}
+					"zamek2" => {
+						if(<smoved>.framenr==1 )	{
+							fxszuflada.play;
+							if( andogim.framenr==0 )	{
+								andogim.hide;
+								grels.remove("andogim");
+							}
+							<smoved>.setframe(-1,0);
+							.mretklucz;
+						}
+					}
+					"klucz" => {
+						igmstate = 2;
+						.mtakeklucz;
+					}
+					"dogim" => {
+						.cbplay("zak2");
+						andogim.hide;
+						andogim.setframe(-1,1);
+						grels.remove("andogim");
+						.mpowrot(0);
+					}
+					"tablet" => {
+						fxgetpuz.play;
+						igmstate = 3;
+						grels.remove("antablet");
+						imov.mssetobj("antablet");
+					}
+					"pen" => {
+						fxgetpuz.play;
+						igmstate = 4;
+						grels.add("anczek");
+						grels.remove("anpen");
+						imov.mssetobj("anpen");
+						grels.sortimgs;
+					}
+					"powrot" => {
+						igmstate = 5;
+						clsave.bset("zak_end_rektor");
+						.cbplay("zak4");
+					}
+					? => ;
+				}
+			}
+		}
+	}
+	porzadki	{
+		.gotoadv("adrektor", "gameadrektor2");
+	}
+}

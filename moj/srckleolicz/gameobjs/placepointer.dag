@@ -1,0 +1,33 @@
+/***************************************************************************/
+class classplacepointer	{
+	init()	{
+		new anima anpointer;
+		anpointer.addmethod("onfinish", func { this.play(-1); } );
+		new int _iz = 1000;
+	}
+	public load(string sfile)	{
+		anpointer.load(sfile);
+		this.setz(_iz);
+		anpointer.hide();
+	}
+	public setz(int iz)	{
+		_iz = iz;
+		anpointer.setz(iz);
+	}
+	public stop()	{	anpointer.stop(false);	}
+	public stoph()	{	anpointer.stop(false);	anpointer.hide();	}
+	public show(int x, int y, string sdir)	{
+		anpointer.setpos(x,y);
+		anpointer.play(sdir);
+	}
+	move(@x, @y)	{	anpointer.move(x,y);	}
+	public showob(string sob, string sdir)	{	this.show(<sob>.getcx(), <sob>.getcy(), sdir);	}
+	public showu(int x, int y)	{	this.show(x,y,"uu");	}
+	public showd(int x, int y)	{	this.show(x,y,"dd");	}
+	public showr(int x, int y)	{	this.show(x,y,"rr");	}
+	public showl(int x, int y)	{	this.show(x,y,"ll");	}
+	public showru(int x, int y)	{	this.show(x,y,"ru");	}
+	public showrd(int x, int y)	{	this.show(x,y,"rd");	}
+	public showld(int x, int y)	{	this.show(x,y,"ld");	}
+	public showlu(int x, int y)	{	this.show(x,y,"lu");	}
+}

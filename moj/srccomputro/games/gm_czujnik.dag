@@ -1,0 +1,365 @@
+game Czujnik : Computro	{
+	init	{
+		Computro::init("czujnik");
+		advmouse.setstd;
+		
+// 		bkg.pyz  ekran.pyz  els.pyz  mruga.pyz
+// 		kontrol3.pyz	kontrol2.pyz	kontrolka.pyz
+		.imgs = (A, "bkg.pyz", "ekran.pyz 40", "mruga.pyzH 10", "kontrolka.pyzP 10", "kontrol2.pyzP 10", "kontrol3.pyzP 10");
+		.copyanima("anekran", "anczuj");
+		.sfxs = (A, "hydrant 70", "wyciagabezpiecznik 40", "wsadzabezpiecznik 40");
+		new gmimgvec grkon;
+		grkon.addlist(A, "ankontrolka", "ankontrol2", "ankontrol3");
+		anczuj.setz(10);
+		anczuj.setframe(1,0);
+		new gmimgvec grels;
+		"grels" .* "els.pyz";
+		grels.setz(50);
+		new ConImgMover bmov;	// item
+		
+		new string smoved = null;
+		new string smovac;
+		new int imoved;
+		new int ilaststate = 1;
+		
+		modadvglob	{
+			pcfeliks	{
+				arPocket.addtogamevars("vpck");
+				arPocketFile.addtogamevars("vpckfile");
+			};
+		};
+		string s;
+		new gmimgvec grpc;
+		for( int i=0; i<vpck.size; i++)	{
+			s = "an"+vpck.get(i);
+			.newanima( s, "$scripts/items/"+vpckfile.get(i)+".pyz", 100);
+			<s> (i){ (@id)
+				new int posx = 50 + id*67;
+				new int posy = 540;
+				.addmethod("mpos", func { .setpos(posx, posy); } );
+				.mpos;
+			};
+			grpc.add(s);
+		}
+		
+		.sounds = (A,
+			":fel1", "To mi wygl±da na jakie¶ centrum sterowania", "mwroc",
+			":fel2", "Nie mogê tego przekrêciæ", "mwroc",
+			":fel3", "Ró¿ne bezpieczniki; Ciekawe co oznaczaj± liczby na prawym panelu", "mwroc",
+			":fel4", "Uszkodzony bezpiecznik; Wezmê go", func { .mwroc2; <GAME>.takeuszkodzony; },
+			":fel5", "Nie mogê go wyj±æ; Za mocno siedzi", "mwroc",
+			":fel6", "Prawid³owy bezpiecznik", "mwroc2",
+			":fel7", "Naprawiony bezpiecznik", "mwroc2",
+			":fel8", "Powinno teraz dzia³aæ", "mwroc"
+		);
+		
+		.cycle = ("timcpos", func {
+			|int x, int y| = mouse.getpos;
+			if( y>=540 )	{
+				if( x<50 && <grpc.first>.getpx<50 )	grpc.move(10,0);
+				else if (x>750 && <grpc.last>.getex>750 ) grpc.move(-10,0);
+			}
+			.play;
+			} );
+		timcpos.play;
+		
+		.mrestore;
+		
+		igmstate = 1;
+		if(!clsave.bis("wszedl_do_bazyC"))	{
+			clsave.bset("wszedl_do_bazyC");
+			.mplay("fel1");
+		}
+	}
+	takeuszkodzony	{
+		grpc.sortimgs;
+		.newanima( "anbezpiecznik1", "$scripts/items/bezpiecznik1.pyz", 100);
+		anbezpiecznik1 (grpc.size){ (@id)
+			new int posx = 50 + id*67;
+			new int posy = 540;
+			.addmethod("mpos", func { .setpos(posx, posy); } );
+			.mpos;
+		};
+		grpc.add("anbezpiecznik1");
+		modadvglob	{
+			pcfeliks.additem("bezpiecznik1", "bezpiecznik1");
+		};
+	}
+	mrestore	{
+		grels.show;
+		.mhide("powrotb");
+		anbkg.show;
+		anekran.show;
+		anczuj.show;
+		grkon.nplay(-1);
+		.mmrugaj;
+	}
+	mmrugaj	{
+		if( anczuj.framenr==6 && !clsave.bis("bezpiecznik_naprawionyC") ) anmruga.play(-1);
+	}
+	string mget(string s)	{	grels.getsac(s);	}
+	mhide(string s)	{	<.mget(s)>.hide;	}
+	mshow(string s)	{	<.mget(s)>.show;	}
+	msetz(string s, int z)	{	<.mget(s)>.setz(z);	}
+	bool mvis(string s)	{	<.mget(s)>.isvisible;	}
+	mwroc	{	igmstate = ilaststate;	}
+	mwroc2	{	igmstate = ilaststate;	gmbezp.mwroc;	}
+	mouse_move	{
+		if( igmstate == 5) return;
+		|int x, int y| = mouse.getpos;
+		if( igmstate == 15 || (igmstate==3 && ilaststate==15)) {
+			if (grpc.isin(x,y,1,1) )	{
+				gmbezp.mzeruj;
+				if( .mcopy2 )	advmouse.setbut;
+			} else if (gmbezp.mbezp) {
+				.mret;
+			} else {
+				gmbezp.mzeruj;
+				.mret;
+			}
+		} else if(ilaststate!=15) {
+			if( grels.isin(x,y,0,1) )	{
+				if( .mcopy )	{
+					match(smovac)	{
+						"powrot" => advmouse.setexit;
+						"powrotb" => ;
+						? => advmouse.setbut;
+					}
+				}
+			} else if (grpc.isin(x,y,1,1) )	{
+				if( .mcopy2 )	advmouse.setbut;
+			} else .mret;
+		}
+	}
+	mcopy	{	._mcopy("grels"); imoved=1;	}
+	mcopy2	{	._mcopy("grpc");	imoved=2;	}
+	_mcopy(string sgrp)	{
+		string s = <sgrp>.getsfound;
+		if( smoved!=s )	{
+			smoved = s;
+			smovac = <smoved>.actionname;
+			true;
+		} else false;
+	}
+	mret	{
+		if( smoved!=null )	{
+			smoved = null;
+			smovac = null;
+			advmouse.setstd;
+		}
+		imoved = 0;
+	}
+	mplay(string s)	{
+		ilaststate = igmstate;
+		igmstate=5;		.cbplay(s);
+	}
+	mouse_lclick	{
+		if( igmstate == 15 && imoved!=2 ) {
+			if( <.mget("powrotb")>.isin(mouse.getpos,1,1) )	{
+				.cactsndstop(false);
+				.deletegmobj("gmbezp");
+				.mrestore;
+				ilaststate = 1;
+				igmstate = 1;
+			}
+			return;
+		} else if (igmstate==5 ) return;
+		string s; int id;
+		if( igmstate==3 )	{
+			s = bmov.getfree;
+			<s>.setframe(0,0);
+			<s>.mpos;
+			grpc.add(s);
+			grpc.sortimgs;
+			<s>.move(grpc.getpx, grpc.getpy);
+			if( ilaststate!=15 && imoved==1 && s=="ankluczfr" )	{
+				fxhydrant.play;
+				id = smovac;
+				if( id>=1 && id<=10 )	{
+					if( <smoved>.framenr )	<smoved>.setframe(-1,0);
+					else <smoved>.setframe(-1,1);
+				}
+				igmstate = ilaststate;
+			} else if (ilaststate==15 && gmbezp.getsbezp!=null)	{
+				igmstate = 15;
+				gmbezp.mwyjmij(s);
+			} else igmstate = ilaststate;
+		} else if( imoved==1 ) match( smovac )	{
+			"up" =>	.mczuj( anczuj.framenr-1 );
+			"down" =>	.mczuj( anczuj.framenr+1 );
+			"powrot" => {
+				if( clsave.bis("bezpiecznik_naprawionyC") && !clsave.is("naprawil_czujnik",2) )	{
+					clsave.set("naprawil_czujnik",1);
+					modadvglob	{
+						pcfeliks.pckremove("bezpiecznik2");
+					};
+				}
+				.gotoadv("adghol", "gameadghol");
+			}
+			? => {
+				id = smovac;
+				if( id>=1 && id<=10 )	{
+					if( <smoved>.framenr==0 )	.mplay("fel2");
+					else {
+						igmstate = 15;
+						grels.hide;
+						.mshow("powrotb");
+						anbkg.hide;
+						anekran.hide;
+						anczuj.hide;
+						anmruga.anhide;
+						grkon.stop(false);
+						grkon.hide;
+						advmouse.setstd;
+						new Bezpieczniki gmbezp;
+					}
+				}
+			}
+		} else if (imoved==2) {
+			grpc.remove(smoved);
+			<smoved>.setframe(1,0);
+			bmov.mssetobj(smoved);
+			ilaststate = igmstate;
+			igmstate = 3;
+		}
+	}
+	mczuj(int id)	{
+		if( id>=0 && id<anczuj.nofframes(-1) )	{
+			anczuj.setframe(-1,id);
+			if( id==6 )	.mmrugaj;
+			else anmruga.anhide;
+		}
+	}
+}
+
+class Bezpieczniki : LObjController	{
+	init	{
+		LObjController::init;
+// 		bezp.pyz  bgb.pyz  bkg.pyz  ekran.pyz  els.pyz  mruga.pyz  panel.pyz
+		.imgs = (A, "bezp.pyz 20", "bgb.pyz", "panel.pyz 10", "czek.pyzH 50");
+		anczek.ancenterscreen;
+		new int idczuj = smovac;
+		int i, int j, int k, int i1;
+		@s = "scripts/czujnik/bezpieczniki"+idczuj+".db";
+		new db dbb;
+		if( !engine.fileexist(s) )	{
+			for(i=1; i<=10; i++)	{
+				for( j=0; j<8; j++)	{
+					i1 = dbb.addrow - 1;
+					for(k=0; k<8; k++)	{
+						dbb.add(i1,2->rand);
+					}
+				}
+				if( i==7 )	dbb.set(6,6,1);	// uszkodzony
+				dbb.save("scripts/czujnik/bezpieczniki"+i+".db");
+				dbb.free;
+			}
+		}
+		dbb.load(s);
+		new gmimgvec grb;
+		new vector vypos;
+		vypos.beginadd("begin",119,166,211,256,333,378,426,471);
+		.monofont("fnmon",20);
+		for(i=0; i<8; i++)	{
+			for( j=0; j<8; j++)	{
+				s = "anb"+i+"_"+j;
+				.copyanima("anbezp",s);
+				<s> (j,vypos.get(i)) {	(@x,@y)
+					new int xpos = 172+(.getw+1)*x;
+					if( x>=4 ) xpos+=6;
+					new int ypos = y;
+				};
+				<s>.setframe(0,dbb.get(i,j));
+				<s> { .setpos(xpos, ypos); };
+				grb.add(s);
+			}
+			s = "txtczuj"+i;
+			//653
+			.newtext(s, clstrdigit::bintohex(dbb.dbgetstringrow(i)), "fnmon", .grey(242) );
+			<s>.setz(5);
+			<s>.setpos(653,vypos.get(i));
+		}
+		if( idczuj==7 )	{
+			anb6_6.setframe(0,0);
+			if( !clsave.bis("bezpiecznik_naprawionyC") )	{
+				if( clsave.is("bezpiecznik_wyjetyC",1) )	anb6_6.hide;
+			} else {
+				.mnapraw;
+			}
+		}
+		anbezp.hide;
+		new string sbezp = null;
+		new string swyjety = null;
+		
+		if( !clsave.bis("otworzyl_czujnikC") )	{
+			clsave.bset("otworzyl_czujnikC");
+			.mplay("fel3");
+		}
+		
+		.unlock;
+	}
+	mnapraw	{
+		dbb.set(6,6,0);
+		txtczuj6.txtset(clstrdigit::bintohex(dbb.dbgetstringrow(6)));
+	}
+	mwyjmij(string s)	{
+		if( s=="anobcegi" && <sbezp>.isvisible)	{
+			fxwyciagabezpiecznik.play;
+			if( idczuj==7 && sbezp=="anb6_6" )	{
+				if( clsave.bis("bezpiecznik_naprawionyC") )	{
+					anczek.setframe( 3, 0 );
+					.mplay("fel7");
+				} else {
+					clsave.set("bezpiecznik_wyjetyC",1);
+					anczek.setframe(2,0);
+					.mplay("fel4");
+				}
+			} else {
+				anczek.setframe( <sbezp>.framenr, 0 );
+				.mplay("fel6");
+			}
+			anczek.show;
+			<sbezp>.hide;
+			swyjety = sbezp;
+		} else if (s=="anbezpiecznik2" && idczuj==7 && sbezp=="anb6_6")	{
+			fxwsadzabezpiecznik.play;
+			clsave.set("bezpiecznik_wyjetyC",0);
+			clsave.bset("bezpiecznik_naprawionyC");
+			anb6_6.show;
+			.mnapraw;
+			grpc.remove("anbezpiecznik2");
+			anbezpiecznik2.hide;
+			.mplay("fel8");
+		} else igmstate=ilaststate;
+	}
+	getsbezp	{	sbezp;	}
+	mwroc	{
+		anczek.hide;
+		if( swyjety=="anb6_6" )	{
+			if( !clsave.is("bezpiecznik_wyjetyC",1) ) <swyjety>.show;
+		} else <swyjety>.show;
+	}
+	onmousemove	{}
+	onmouselclick	{
+		if( igmstate==15 && sbezp!=null && <sbezp>.isvisible ) {
+			advmouse.setstd;
+			sbezp = null;
+			.mplay("fel5");
+		}
+	}
+	mzeruj	{	sbezp=null;	}
+	mbezp	{
+		|int x, int y|=mouse.getpos;
+		if( grb.isin(x,y,0,1) )	{
+			@s = grb.getsfound;
+			if( sbezp!=s )	{
+				sbezp = s;
+				advmouse.setbut;
+			}
+		} else {
+			sbezp = null;
+			advmouse.setstd;
+		}
+		true;
+	}
+}

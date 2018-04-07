@@ -1,0 +1,138 @@
+
+game mg01Schody : Banshee	{
+	init	{
+		Banshee::init("mg01_schody");
+		
+		.imgs = (A, "bkg.jpg", "jezyk.pyzP 5", "jaszczur.pyz 10",
+			"przycisk.pyz 20", "klucz.pyz 25",
+			"dolcien.pyz 30", "klapa.pyz 35", "klapamask.pyz 40",
+			"dolekputmedal.pyz 45", "medalput.pyzH 50", "medalpck.pyzH 55",
+			"lisc1.pyz 60", "lisc2.pyz 60", "lisc3.pyz 60", "lisc4.pyz 60",
+			"cienmask.pyz 70", "motyl.pyzP 115");
+		
+		.setasitemtopck("anklucz");
+		anklucz.disable = (true);
+		
+		anmotyl.ansetbpos( iResX/2+250,iResY/2);
+		new filter ftmotyl;
+		ftmotyl.link("anmotyl");
+		new int ilicz = 0;
+		anmotyl.addmethod("onendframe", func {
+			ilicz++;
+			if( ilicz==1 )	{
+				ilicz=0;
+				real kat = 12-21->rand;
+				real dt = 5;
+				real kat2 = ftmotyl.getangle;
+				real x = kat2->sin * dt;
+				real y = kat2->cos * dt;
+				ftmotyl.rotate(kat);
+				.move(-x,-y);
+			}
+			} );
+		
+		if( !clsave.bis("e1_end_schody") )	{
+			.imgs = (A, "czaszka3.pyz 75");
+			.setasitemtopck("anczaszka3");
+		} else {
+			for( int i=1; i<=4; i++)	{
+				<"anlisc"+i> {
+					.Button_isinalpha;
+					.addmethod("butmoveon", func {
+						if( sgmstate!="play" ) return;
+						advmouse.setact;
+						} );
+					.addmethod("butmoveoff", func {
+						if( sgmstate!="play" ) return;
+						advmouse.setstd;
+						} );
+					.addmethod("butclick", func {
+						if( sgmstate!="play" ) return;
+						if( .actionnr(-1)==0 )	{
+							butgame.removebut(this);
+							butgame.onmousemove;
+							.play(1);
+						}
+						} );
+					butgame.add(this);
+				};
+			}
+			andolekputmedal {
+				.addmethod("isbutin", func { (@x, @y)
+					anlisc1.actionnr(-1)==1 && .isin(x,y,0,0);
+					} );
+				.addmethod("butmoveon", func {
+					if( sgmstate!="play" && sgmstate!="getitem" ) return;
+					advmouse.set("take");
+					} );
+				.addmethod("butmoveoff", func {
+					if( sgmstate!="play" && sgmstate!="getitem" ) return;
+					advmouse.setstd;
+					} );
+				butgame.add(this);
+			};
+			anprzycisk	{
+				.addmethod("isbutin", func { (@x, @y)
+					.przyciskodkryty && .isin(x,y,0,0);
+					} );
+				.addmethod("butmoveon", func {
+					if( sgmstate!="play" ) return;
+					advmouse.set("take");
+					} );
+				.addmethod("butmoveoff", func {
+					if( sgmstate!="play" ) return;
+					advmouse.setstd;
+					} );
+				.addmethod("butclick", func {
+					if( sgmstate!="play" ) return;
+					if( .actionnr(-1) ) .setframe(0,0);
+					else .setframe(1,0);
+					if( anmedalput.isvisible && .actionnr(-1) )	{
+						butgame.removebut(this);
+						butgame.onmousemove;
+						sgmstate = "odsun";
+						timzasuwa.play;
+					}
+					} );
+				butgame.add(this);
+			};
+			.cycle = ("timzasuwa", func {
+			anklapa.move(0, -10);
+			if( anklapa.getpy < 0 )	{
+				sgmstate = "play";
+				anklucz.disable=(false);
+			} else .play;
+			} );
+		}
+		
+		.stdstart;
+	}
+	anklucz_TAKE	{	.item_gotocenter;	}
+	anklucz_INPCK	{
+		.addtopck("kluczschodek");
+		clsave.bset("e1_end_schody");
+		.mend;
+	}
+	mend	{
+		sgmstate="end";
+		.timplay("timend", 500, func {
+			.gotoadv("ad01_widokogolny", "gamead01_widokogolny0");
+			ccs.buildfromscreen;
+			} );
+	}
+	przyciskodkryty	{	anlisc2.actionnr(-1) && anlisc3.actionnr(-1) && anlisc4.actionnr(-1);	}
+	anczaszka3_INPCK	{
+		.addtopck("czaszka3");
+		clsave.bset("e1_zabrana_czaszka3");
+		.mend;
+	}
+	USE_medalfontanna	{
+		.advsetstdstate;
+		if( andolekputmedal.isbutin(mouse.getpos) )	{
+			butgame.removebut("andolekputmedal");
+			.removefrompck("medalfontanna");
+			anmedalput.show;
+		} else .item_gotopck;
+	}
+}
+

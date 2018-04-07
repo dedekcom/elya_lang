@@ -1,0 +1,92 @@
+new string sAskerGame;
+
+new classfullsave clsmen("global.sav");
+clsmen.stdload; 
+
+if( clsmen.has("currentprofile") )	
+{	
+	int iProfilId = clsmen.get("currentprofile");
+	if(iProfilId)
+	{
+		bool fullscreen = clsmen.get("fullscreen");
+		if( !.canchangetowindow )	{
+			clsmen.set("fullscreen", true);
+			fullscreen = true;
+		}
+		engine.setfullscreen(fullscreen);
+
+		bool system_cursor = clsmen.get("system_cursor");	
+			
+		if(system_cursor == true)
+		{
+			mouse.hide;
+			mouse.showsys;
+		}
+	}
+		
+}
+else
+{
+		engine.setfullscreen(true);
+		clsmen.set("fullscreen", true);
+		clsmen.set("system_cursor", false);
+}
+
+
+class StdGame : classadv, Localize	{
+	init(string s)	{
+		AdventureGame = false;
+		classadv::init(s);
+		Localize::init;
+		clbuts.setcursorpos(0, 0);
+		claskexit.setcursorpos(0, 0);
+		.path = (s);
+		
+		clbuts.reset;
+		claskexit.reset;
+		advmouse.setstd;
+		
+		if( PrzygodaMode )	{
+			.advsaveonstart;
+			.advsave_game;
+		}
+	}
+	//-------------- adv -------------------------------
+	stdstart	{
+		ccs.enter( "refreshstdstate" );
+	}
+	
+	refreshstdstate {
+		.advsetstdstate;
+		butgame.refresh;
+	}
+	
+	timfinito	{
+		if( !<GAME>.hasvar("_timfinito") )	{
+			<GAME>.timer = ("_timfinito", 100, func {
+				if( .advstdstate ) .mend;
+				} );
+		}
+		_timfinito.play;
+	}
+	Button_stdoff	{
+		.addmethod("butmoveoff", func {
+			if( .advstdstate )
+				advmouse.setstd;
+			} );
+	}
+	//-------------- helpful -------------------------------
+	crect	{	new Rect rec(600,196,403,497);	}
+	crect2	{	new Rect rec2(6,174,1012,530);	}
+	cshowbut(string sbut, @dir)	{
+		clbuts (sbut, dir) { (string sbut, @dir)
+			clp.show( buts.callimgfun( sbut, "getcx"), buts.callimgfun( sbut, "getcy"), dir ); 
+		};
+	}
+	//-------------- sys -------------------------------
+	key_down	{
+		if( igmdebug && keyboard.iskeydown("lctrl") && keyboard.iskey("r") )	.crestart;
+	}
+	public askrestart	{	claskexit.askrestart;	}
+	//-------------------
+}

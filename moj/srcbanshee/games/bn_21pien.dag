@@ -1,0 +1,56 @@
+
+game mg21_pien : Banshee	{
+	init	{
+		Banshee::init("mg21_pien");
+		
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2","pien_light.pyz 3", "zebatka2.pyzH 4" ,
+			"popexit.pyz 45", "ramka.pyz 42");
+		.butpopexit;
+		.butpopexitisinramka;
+		 	
+		if(!clsave.bis("takenan_anzebatka2"))
+		{
+			.gui_toloupe("anzebatka2");
+			.setasitemtopck("anzebatka2"); 
+			anzebatka2{
+           .addmethod("isbutin", func { (int x, int y)
+    			  .advstdstate && .isin(x,y,0,0) && .loupe_visible;
+    				} );
+         
+         };          
+		}   
+		.stdstart;
+	}
+	
+	
+	anzebatka2_TAKE	{	
+		anpien_light.anfadeout(500,null);
+		.gui_removefromloupe("anzebatka2");
+		anzebatka2.show();
+		.stackitem_topck("zebatka");
+		.set_mg_finished;    
+	}
+	
+	anzebatka2_INPCK {
+      .additemtostack("zebatka");
+	  .timfinito;
+    } 
+	 
+	 
+	mend	{
+		.stdexitdefadv("ad21_holglowny", "gamead21_holglowny0");  
+	}
+	
+	HINT_CLICK	{
+		if(!clsave.bis("takenan_anzebatka2"))
+		{
+			.showhint2v("anzebatka2");
+			.showhint2v("guiglass");  
+		}
+		else
+			.showhint("anpopexit"); 
+		 
+	}
+	 
+}
+

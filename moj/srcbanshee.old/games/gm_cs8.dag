@@ -1,0 +1,25 @@
+
+game Cs8Kapral1 : StdGame	{
+	init	{
+		StdGame::init("cs8kapral1");
+		.path = ("cs8kapral");
+		
+		
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Cs8Kapral2 : StdGame	{
+	init	{
+		StdGame::init("cs8kapral2");
+		.path = ("cs8kapral");
+		
+		
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+

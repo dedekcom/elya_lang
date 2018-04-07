@@ -1,0 +1,148 @@
+
+game mg07_skrzynia :Banshee {
+	init{
+    Banshee::init("mg07_skrzynia");
+    .imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2", "zasuwa1_open.pyzH 3", "zasuwa2_open.pyzH 4", "ramka.pyz 5","popexit.pyz 6" , "skrzynia_open.pyzH 7", "kilof.pyzH 8");
+    .setasitemtopck("ankilof");  
+    
+    .sfxs=(A,"wiatr_w_jaskiniN 70", "bgrlas2N 60", "openskrzynia 80", "zawiasy 80");
+    
+    anpopup_bkg {
+  		.Button_isinalpha;
+  		butgame.add(this);
+  	}; 
+     imgbkg {
+  		.Button_isinalpha;
+  		.addmethod("butclick", func {
+  			if( !.advstdstate ) return;
+  			.mend;
+  			} );
+    		butgame.add(this);
+    	};       
+     .butpopexit;     
+     .stdstart; 
+    
+     anzasuwa1_open {
+  			.addmethod("isbutin", func { (@x, @y)
+				.isin(x,y,0,1);
+				} ); 
+  			.Button_moveonms;
+  			.Button_moveoffms;
+  			.addmethod("butclick", func {
+    		 	if( !.advstdstate  ) return;
+     	    if (!clsave.bis("e1_mg07_skrzynia_zasuwa_1_opened"))
+          { 
+             .show();
+             clsave.bset("e1_mg07_skrzynia_zasuwa_1_opened");
+            //.disable = (true);
+            fxzawiasy.play;
+            .butdisable;
+            
+          }else if (clsave.bis("e1_mg07_skrzynia_zasuwa_1_opened") && clsave.bis("e1_mg07_skrzynia_zasuwa_2_opened"))
+            {
+              clsave.bset("e1_mg07_skrzynia_opened"); 
+               .skrzynia_open();
+            }  
+          }); 
+        butgame.add(this);  
+      };
+      
+      anzasuwa2_open {
+  			.addmethod("isbutin", func { (@x, @y)
+				.isin(x,y,0,1);
+				} ); 
+  			.Button_moveonms;
+  			.Button_moveoffms;
+  			.addmethod("butclick", func {
+    		 	if( !.advstdstate  ) return;
+     	    if (!clsave.bis("e1_mg07_skrzynia_zasuwa_2_opened"))
+          { 
+             .show();
+             clsave.bset("e1_mg07_skrzynia_zasuwa_2_opened");
+            //.disable = (true);
+            .butdisable;
+             fxzawiasy.play;
+          }
+          else if (clsave.bis("e1_mg07_skrzynia_zasuwa_1_opened") && clsave.bis("e1_mg07_skrzynia_zasuwa_2_opened"))
+            {
+              clsave.bset("e1_mg07_skrzynia_opened"); 
+               .skrzynia_open();
+            } 
+          }); 
+        butgame.add(this);  
+      };
+      
+       
+      
+      if (clsave.bis("e1_mg07_skrzynia_opened"))
+      {
+        //anzasuwa1_open.disable = (true);
+        anzasuwa1_open.butdisable;
+        //anzasuwa2_open.disable = (true);
+        anzasuwa2_open.butdisable;
+        anskrzynia_open.show();
+        if (!clsave.bis("taken_kilof"))
+        {
+          ankilof.show();
+          //ankilof.enabled = (true);
+          ankilof.butenable;
+        }
+        
+      }
+      else
+      {
+         if (clsave.bis("e1_mg07_skrzynia_zasuwa_1_opened"))
+        {
+          anzasuwa1_open.show(); 
+          //anzasuwa1_open.disable = (true);
+          anzasuwa1_open.butdisable;
+        }
+        
+        if (clsave.bis("e1_mg07_skrzynia_zasuwa_2_opened"))
+        {
+          anzasuwa2_open.show(); 
+          //anzasuwa2_open.disable = (true);
+          anzasuwa2_open.butdisable;
+        }
+      
+      }
+      
+      
+      
+      
+  } // koniec init 
+  
+  ankilof_TAKE {
+     // anpuszka_robaki.setframe("rotostart",0); 
+       .popitem_gotocenter("kilof");
+      .set_mg_finished;   
+  }
+   ankilof_INPCK {
+    .addtopck("kilof"); 
+    .timfinito;
+  }  
+  
+  skrzynia_open()
+  {
+    anzasuwa1_open.hide();
+    anzasuwa2_open.hide(); 
+    anskrzynia_open.show();
+    ankilof.show();
+    fxopenskrzynia.play;
+  }
+  
+  HINT_CLICK {
+    if (!clsave.bis("e1_mg07_skrzynia_zasuwa_1_opened"))
+      .showhint("anzasuwa1_open");  
+    else if (!clsave.bis("e1_mg07_skrzynia_zasuwa_2_opened")) 
+      .showhint("anzasuwa2_open");  
+    else if (!clsave.bis("taken_kilof"))
+      .showhint("ankilof");
+    else
+    .showhint("anpopexit"); 
+  }
+  mend	{
+	 .stdexitdefadv("ad07_alejadrzew", "gamead07_alejadrzew0");
+  }
+}
+ 

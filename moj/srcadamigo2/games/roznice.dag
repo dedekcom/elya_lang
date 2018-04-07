@@ -1,0 +1,62 @@
+new string sRoznice = "jesien";
+game MenuRoznice : classadvadamigo2 , TMenu	{
+	init()	{
+		classadvadamigo2::init;
+		.loadsoldat( 88, 563 );
+		.tinit("mroznice", "scripts/roznice/", "menuroz.pyz");
+		@sfun = "soldatstand";
+		.buildsnds(A,
+			"sndintro", "Wybierz planszê", sfun,
+			"sndwiosna", "wiosna", sfun,
+			"sndlato", "lato", sfun,
+			"sndjesien", "jesien", sfun,
+			"sndzima", "zima", sfun );
+		.cbplay("sndintro");
+		igmbegin = true;
+	}
+	cbplay(@s)	{ .soldattalk(s);	}
+	startgame(string s)	{
+		sRoznice = s;
+		gameapi.play("Roznice");
+	}
+	wiosna_BUTCLICK()	{	.startgame("wiosna");	}
+	lato_BUTCLICK()	{	.startgame("lato");	}
+	jesien_BUTCLICK()	{	.startgame("jesien");	}
+	zima_BUTCLICK()	{	.startgame("zima");	}
+}
+
+game Roznice : classadvadamigo2, TRoznice	{
+	init	{
+		classadvadamigo2::init;
+// 		.debug = (true);
+		.sfxs= (A, "getitem");
+		.tinit("roznice", "scripts/roznice/", "bkgame.pyz", "bg" + sRoznice + ".pyz",
+			 "el" + sRoznice + ".pyz");
+		
+		/*string s;
+		s.load("scripts/roznice/napis1.txt", null);
+		string st = this.consttext(s, 50, 470, 30, 222, 222, 222);*/
+		.newanima("anzostalo", "pozostalo.pyz", 5);
+		anzostalo.ansetbpos( 400 - anzostalo.getw/2, 420 );
+		new Cypher cyf(null, 25, 255, 255, 250, anzostalo.getcx - 15, anzostalo.getcy+10, 10);
+		cyf .= .remained;
+		
+		.sounds = ( A,
+			"sndintro", "Znajd¼ wszystkie szczegó³y, którymi ró¿ni± siê obrazki", func { <GAME>.unlock; },
+			"sndend", "Brawo! Wszystkie ró¿nice znalezione!", func {
+				sRoznice = vecpory.vecnext( sRoznice );
+				.cnewtimerfin("timend", 1000, 1, "askrestart");
+				timend.play;
+			});
+		if( igmbegin )	{
+			igmbegin=false;
+			.lock;
+			.cbplay("sndintro");
+		}
+	}
+	tpoint	{	cyf .= .remained;	fxgetitem.play; }
+	tfinish	{
+		.tpoint;
+		.cbplay("sndend");
+	}
+}

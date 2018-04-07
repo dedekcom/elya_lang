@@ -1,0 +1,113 @@
+
+game mg02Gniazdo : Banshee	{
+	init	{
+		Banshee::init("mg02_gniazdo");
+	  // .addtopck("jajo"); // do testow 
+    .imgs = (A, "bkg.jpg", "ptak.pyzH 20", "ptak2.pyzH 10",
+			"tlo.pyz 5", "jajko.pyzH 15", "ziarno.pyzH 15", "popexit.pyz 50");
+		
+		 antlo {
+  		.Button_isinalpha;
+  		butgame.add(this);
+  	};
+	.loadimgexitbut;   
+    
+    .sfxs = (A, "ptak1", "ptak2", "bgrwiatrN", "bgrlas2N 40", "quickcrumple");
+    
+    if( !clsave.bis("e1_jajko_taken") )	{
+			anjajko.show;
+		}
+		if( !clsave.bis("taken_ziarno") )	{
+			anziarno.show;
+			.setasitemtopck("anziarno");
+		}
+		
+		//ptak.pyz tlo.pyz popexit.pyz ptak2.pyz 
+		if( clsave.bis("e1_ptok_odslonil_jajco") )	{
+			.copyanima("anptak2", "anptakcorp");
+			anptak2.play(1);
+		//	anptakcorp.setz(9);
+			anptakcorp.show;
+		} else {
+			anptak.play(0);
+			anptak.addmethod("onfinish", func { .play(0); });
+		}
+		
+		.butpopexit;
+    
+    anptak
+    {
+      .Button_isinalpha;
+      .addmethod("butmoveon", func {
+				if( !.advstdstate) return;
+				  if(!clsave.bis("e1_ptok_odslonil_jajco"))
+            advmouse.set("use"); 
+          else
+            advmouse.setstd;         
+        } );
+			.addmethod("butmoveoff", func {
+				if( !.advstdstate ) return;
+				  advmouse.setstd;
+				} ); 
+        butgame.add(this);
+    };  
+    if (!clsave.bis(save_prefix+"intro_spoken"))
+    { 
+      .newsnd("snd_intro", "kinnat_c1d1_1a");
+      snd_intro.addmethod("onfinish", "advsetstdstate");     
+      .cbplay("snd_intro"); 
+      clsave.bset(save_prefix+"intro_spoken"); 
+    } 
+		
+		.stdstart;  
+	}
+ 
+	anziarno_TAKE	{
+		if( clsave.bis("e1_ptok_odslonil_jajco") ) {
+			.popitem_gotocenter("ziarno");
+		} else if( !anptak.isplaying(1) ) {
+			anptak.play(1);
+		}
+	}
+	anziarno_INPCK	{
+		.addtopck("ziarno");
+    .timfinito;       
+	}
+ 
+   
+  USE_jajo	{
+		.advsetstdstate;
+    advmouse.setstd;
+    if( anptak.isin(mouse.getpos,1,1) || anjajko.isin(mouse.getpos,1,1) || anziarno.isin(mouse.getpos,1,1) )	{
+			  .removefrompck("jajo");
+        .copyanima("anptak2", "anptakcorp");
+  			anptak.anhide();
+  			fxquickcrumple.play;
+        anptak2.play(1);
+        anptak2.anfadein(300,null); 
+  		//	anptakcorp.setz(9);
+  			anptakcorp.show; 
+        clsave.bset("e1_ptok_odslonil_jajco");
+        advmouse.setstd;  
+    } else .item_gotopck;   
+	} 
+  
+   HINT_CLICK {
+    	if (clsave.bis("ma_jajo"))	{
+    		.showhint("anptak");
+        .showhintitem("jajo");  
+    	}else if(clsave.bis("e1_ptok_odslonil_jajco") && !clsave.bis("taken_ziarno"))
+      {
+        .showhint("anziarno");
+      }
+      else {
+    		.showhint("anpopexit");
+    	}
+  } 
+  
+	mend	{
+		.stdexitdefadv("ad02_brama", "gamead02_brama0");
+	}
+}
+
+

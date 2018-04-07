@@ -1,0 +1,349 @@
+
+game Waly : StdGame	{
+	init	{
+		StdGame::init("waly");
+
+		//bkg.pyz waly.pyz lewy.pyz amunicja.pyz kajko.pyz pocisk.pyz z0_1.pyz z2_1.pyz z0_2.pyz z1_2.pyz
+		//z1_1.pyz z2_2.pyz drabiny.pyz
+		
+		.imgs = (A, "bkg.pyz", "waly.pyz 50", "lewy.pyzP 60", "butkajko.pyz 100", "butkokosz.pyz 100",
+			"kajko.pyz 60", "kokosz.pyz 65", "pocisk.pyzH 90", 
+			"z0_1.pyzH 40", "z0_2.pyzH 40", "z1_1.pyzH 40", "z1_2.pyzH 40", "z2_1.pyzH 40", "z2_2.pyzH 40",
+			"drabiny.pyz 45", "cebula.pyzH 50", "reka.pyzH 50", "glowy.pyz 60");
+		
+		.sfxs = (A, /*"bgrwiatr2N 30",*/ "szturmN 30", "miecz1", "miecz2", "miecz3", "cios1", "cios2", "cios3",
+			"zamach2", "zamach3");
+		mus.playstr("bebny2.ogg -v 50");
+		
+		new Button but;
+		
+		int ilives = 40;
+		new gmimgvec grmir;
+		new gmimgvec grheg;
+		int py = 85;
+		int px;
+		for( int i=0; i<ilives; i++)	{
+			//px = iResX - 10 - 0.6*(anglowy.geth * i) - anglowy.geth;
+			px = 5 + 0.5*(anglowy.geth * i);
+			@s = "anmir"+i;
+			.copyanima("anglowy", s);
+			<s>.setpos( px, py);
+			grmir.add(s);
+			s = "anheg" + i;
+			.copyanima("anglowy", s);
+			<s>.setframe(1,0);
+			<s>.setpos( px, py + 5 + anglowy.geth);
+			grheg.add(s);
+		}
+		anglowy.hide;
+		
+		new int ieasymodifier = 0;
+		if( bModeEasy )	{
+			ieasymodifier = 8;
+			for( i=0; i<ieasymodifier; i++)	{
+				<grheg.last>.hide;
+				grheg.removelast;
+			}
+		}
+		
+		new classplacepointer2 clp;
+		
+		.sounds = (A, "sndnar1", "Kajko i Kokosz odpieraj± szturm Zbójcerzy" ,
+				func { clp.showob("anbutkokosz", "uu"); .cbplay("sndnar2"); },
+			"sndnar2", "Przeno¶ piê¶æ na wdzieraj±cych siê na wa³y Zbójcerzy aby Kokosz ich str±ca³",
+				func { clp.showob("anbutkajko", "uu"); .cbplay("sndnar3"); },
+			"sndnar3", "Je¶li Kokosz jest za daleko od napastnika przenie¶ na Zbójcerza cebulê; Wówczas Kajko str±ci go celnym rzutem", func { clp.showob( gram.first, "rd"); .cbplay("sndnar4"); },
+			"sndnar4", "Nie nadu¿ywaj jednak rzucania bo amunicja mo¿e siê za szybko skoñczyæ",
+				func { clp.stoph; .cbplay("sndnar5"); },
+			"sndnar5", "Do dzie³a!", func { igmstate = 1; .mnextzboj; },
+			":kajko1", "Id±!", null,
+			":o_kajko0", "Walcz Kokosz!", null,
+			":o_kajko1", "Przy³ó¿ mu!", null,
+			":o_kajko2", "Nie odpuszczaj!", null,
+			":o_kajko3", "A masz!", null,
+			":o_kajko4", "Precz z grodu zbóju!", null,
+			":o_kokosz0", "A kysz!", null,
+			":o_kokosz1", "A pan gdzie?", null,
+			":o_kokosz2", "Wynocha!", null,
+			":o_kokosz3", "A masz!", null,
+			":o_kokosz4", "Wracaj na dó³!", null,
+			":zboj0", "Bueee!", null,
+			":zboj1", "Auu!", null,
+			":zboj2", "Ojojoj!", null,
+			":zboj3", "£orety!", null,
+			":zboj4", "Abuabuabua!", null,
+			":zboj5", "Ajajaj!", null,
+			":zboj6", "Aaaaaa!", null,
+			":zboj7", "Hegemonie ratuj!", null,
+			":zboj8", "A!", null,
+			":zboj9", "£osz!", null,
+			"sndnar6", "Grodzianie walczyli jak lwy jednak Zbójcerze wygrali ten etap bitwy; Kiedy wydawa³o siê ¿e walka przegrana Mirmi³ zawo³a³", func { .cbplay("mirmil1"); },
+			":mirmil1", "Wstawajcie moje zuchy! Damy radê!", func { .cbplay("sndnar7"); },
+			"sndnar7", "Kajko i Kokosz jeszcze raz poderwali siê do boju i wszystko zaczê³o siê od nowa",
+				func { gameapi.play("Waly"); },
+			"sndnar8", "Fala nacieraj±cych Zbójcerzy za³ama³a siê; Grodzianie odnie¶li pierwsze zwyciêstwo",
+				func { .cbplay("kokosz1"); },
+			":kokosz1", "Hurra! Odnie¶li¶my pierwsze zwyciêstwo!", func { 
+				gameapi.play("Cs20Pobojowisko");
+				}
+			);
+		
+		new string soko_kajko;	soko_kajko.mokrzykinit(5, 2);
+		new string soko_kokosz;	soko_kokosz.mokrzykinit(5, 2);
+		new string sokzboj;	sokzboj.mokrzykinit(10, 2);
+		
+		new gmimgvec gram;
+		"gram" ..< "amunicja.pyz";
+		gram.setz(55);
+		
+		// in, inb, hit, out
+		anpocisk.addmethod("onfinish", func {
+			if( igmstate!=1 ) return;
+			.hide;
+			.mbumzboj( .actionnr(-1) );
+			soko_kajko.mokrzyk;
+			} );
+		
+		.newdb("dbzboj", "waly.db");
+		new int ilezboj;
+		new int iidzboj = 0;
+		
+		new gmimgvec grzb;
+		grzb.addlist(A, "anz0_1","anz0_2", "anz1_1","anz1_2", "anz2_1","anz2_2");
+		grzb.eval( func {
+			.addmethod("onfinish", func {
+				match(.actionname)	{
+					"in" => .play("inb");
+					"inb", "hit" => .play("hit");
+					"out" => {
+						.hide;
+						ilezboj--;
+						if( ilezboj==0 )	{
+							.mnextzboj;
+						}
+					}
+					? => ;
+				}
+				} );
+			.addmethod("onendframe", func {
+				if( .framename=="hit")	{
+					if( igmstate!=1 ) return;
+					.msfx("miecz",3);
+					<grmir.last>.hide;
+					grmir.removelast;
+					if( grmir.empty ) 	{
+						igmstate = 2;
+						ccs.close( func { .cbplay("sndnar6"); ccs.show; } );
+					}
+				}
+				} );
+			.Button_isinalpha;
+			.Button_moveonms;
+			.Button_moveoffms;
+			but.add(this);
+			} );
+		
+		//standr hitr standu hitu standl hitl standrr gor standll gol posr posu posl
+		new int ikajkotarget = 0;
+		new string skokotarget = "u";
+		.copyanima("ankokosz", "anko");
+		anko.hide;
+		ankokosz.mpos("u");
+		
+		ankokosz.addmethod("onendframe", func {
+			if( igmstate!=1 ) return;
+			string s = .actionname;
+			int i[4];
+			int ispeed = 24;
+			match(s)	{
+				"gor", "gol" => {
+					|i0, i1| = .mgetpos(skokotarget);
+					if(  (s=="gor" && ankokosz.getcx + ispeed >= i0) || 
+						(s=="gol" &&  ankokosz.getcx - ispeed <= i0) )	{
+						ankokosz.mpos(skokotarget);
+						ankokosz.play("stand"+skokotarget);
+						.mkokohit;
+					} else {
+						ankokosz.move( (s=="gor" ? ispeed : -ispeed), 0);
+					}
+				}
+				"hitl", "hitr", "hitu" => {
+					if( .framename=="hit" )	{
+						.mbumzboj( .mtarget(skokotarget) );
+						soko_kokosz.mokrzyk;
+					}
+				}
+				? => ;
+			}
+			} );
+		ankokosz.addmethod("onfinish", func {
+			@s = .actionname;
+			if( s=="gor" || s=="gol")
+				.play(-1); 
+			else .play("stand" + s.gete(0,1));
+			} );
+		
+		ankajko.addmethod("onendframe", func {
+			if( .framename=="fire" )	{
+				fxzamach2.play;
+				anpocisk.play( ikajkotarget );
+			} else if (.framename=="znik")	{
+				<gram.first>.hide;
+				gram.removefirst;
+			}
+			} );
+		
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		new string scelnik;
+		anbutkajko	{
+			.Button_isinalpha;
+			but.add(this);
+		};
+		anbutkokosz	{
+			.Button_isinalpha;
+			but.add(this);
+		};
+	
+		ccs.enter( func { .cbplay("sndnar1"); } );
+	}
+	msfx(string s, int ile)	{
+		<"fx"+s+(ile.rand+1)>.play;
+	}
+	mokrzykinit(int ile, int szansa)	{
+		new int iid = ile->rand;
+		new int iile = ile;
+		new string shero = this->strsubbs("sok");
+		new int iszansa = szansa;
+	}
+	mokrzyk	{
+		if( iszansa->rand == 0)	{
+			//.crplay(shero+iid);
+			<shero+iid>.play;
+			iid = (iid+1)%iile;
+		}
+	}
+	mnextzboj	{
+		if( igmstate!=1 ) return;
+		ilezboj=3;
+		if( iidzboj >= dbzboj.getrowsno )	{
+			
+		} else {
+			for( int i=0; i<3; i++)	{
+				if( dbzboj.get(iidzboj,i)!=0 )	{
+					<"anz"+i+"_"+dbzboj.get(iidzboj,i)>.play("in");
+				} else ilezboj--;
+				
+			}
+			iidzboj++;
+		}
+	}
+	mbumzboj(int id)	{
+		string s = null;
+		if( <"anz"+id+"_1">.mhitable ) s="anz"+id+"_1";
+		else if( <"anz"+id+"_2">.mhitable ) s="anz"+id+"_2";
+		.moutzboj(s);
+	}
+	moutzboj(string s)	{
+		if(s==null) return;
+		.msfx("cios",3);
+		<grheg.last>.hide;
+		grheg.removelast;
+		<s>.play("out");
+		if( grheg.empty ) 	{
+			igmstate = 2;
+			ccs.close( func { .cbplay("sndnar8"); ccs.show; } );
+		} else {
+			sokzboj.mokrzyk;
+		}
+	}
+	mkokohit	{
+		int id = .mtarget(skokotarget);
+		if( <"anz"+id+"_1">.mhitable || <"anz"+id+"_2">.mhitable )	{
+			ankokosz.play("hit"+skokotarget);
+			fxzamach3.play;
+		}
+	}
+	mtarget(string s)	{
+		match(s)	{
+			"l" => 0;
+			"u" => 1;
+			"r" => 2;
+			? => ;
+		}
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		scelnik = null;
+		if( anbutkajko.isin(mouse.getpos,1,1) )
+			scelnik = "ancebula";
+		else if( anbutkokosz.isin(mouse.getpos,1,1) )
+			scelnik = "anreka";
+		if( scelnik==null ) return;
+		<scelnik>.show;
+		.setcobj(scelnik);
+		.msmove;
+	}
+	cmov_PUT	{
+		<scelnik>.hide;
+		.free;
+		if( !grzb.isin(mouse.getpos,1,1) ) return;
+		if( scelnik=="ancebula" ) {
+			if( ankajko.isplaying("go")==false && gram.size )	{
+				ikajkotarget = grzb.getsfound->getb(3,1);
+				ankajko.play("go");
+			}
+		} else {
+			if( !(ankokosz.isplaying(-1)!=false && ankokosz.actionname->getb(0,3)=="hit") )	{
+				//standr hitr standu hitu standl hitl standrr gor standll gol posr posu posl
+				@s = grzb.getsfound;
+				match( s.getb(3,1) )	{
+					"0" => {
+						if( ankokosz.actionname=="standl" )	.mkokohit;
+						else .mgoko(s, "l");
+					}
+					"1" => {
+						if( ankokosz.actionname=="standu" )	.mkokohit;
+						else .mgoko(s, "u");
+					}
+					"2" => {
+						if( ankokosz.actionname=="standr" )	.mkokohit;
+						else .mgoko(s, "r");
+					}
+					? => ;
+				}
+			}
+		}
+	}
+	mgoko(string s, string s2)	{
+		skokotarget = s2;
+		if( ankokosz.getcx < <s>.getcx )
+			ankokosz.play("gor");
+		else ankokosz.play("gol");
+	}
+	mgetpos(string s)	{
+		anko.setframe("pos"+s, 0);
+		return anko.getcx, anko.getey;
+	}
+	mpos(string s)	{
+		ankokosz.play("stand"+s);
+		ankokosz.setpos( .mgetpos(s.gete(0,1)) );
+	}
+	mkokogo(string s)	{	// l, u, r
+		
+	}
+	mhitable	{	.isplaying("inb") || .isplaying("hit");	}
+	mhit	{
+		if( .mhitable )	{
+			.play("out");
+		}
+	}
+	mouse_lclick	{
+		if( igmstate==0 ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("kokosz1");
+	}
+}
+

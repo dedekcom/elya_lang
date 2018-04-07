@@ -1,0 +1,281 @@
+game mg04_glowa3 :Banshee {
+	init{
+    Banshee::init("mg04_glowa3");
+       .imgs = (A,"bkg.jpg","bkg_game.pyz 1","wnetrze_czaszki.pyz 2", "baza.pyz 3","oko_l.pyz 4","oko_p.pyzH 4","szczeka_break.pyz 5", "grom_normal_d.pyzH 6","grom_normal_g.pyzH 6", "grom_normal_p.pyzH 7", "grom_normal_l.pyzH 8","lopatka.pyzH 9", "czaszka_l.pyz  10","czaszka_p.pyz 11", "krysztaly.pyz 12", "ramka.pyz 18", "popexit.pyz 20" );
+     .butpopexit;
+      // .addtopck("oko"); // tymczasowo, finalnie do usuniêcia
+      .setasitemtopck("anlopatka");
+    //animacje
+      new filter ftl;
+      ftl.link("angrom_normal_l"); 
+      new int opacity = 0;
+      angrom_normal_l.addmethod("onendframe", func {
+      int id = .framenr;
+      int numfr = angrom_normal_l.nofframes(-1);
+      if (id <= numfr/2)
+      {
+        opacity = opacity +2;
+      }
+      else
+      {
+        opacity = opacity -2;
+      }
+      ftl.setopacity(opacity *4);  
+      }); 
+     
+      new filter ftl2;
+      ftl2.link("angrom_normal_p"); 
+      new int opacity2 = 0;
+      angrom_normal_p.addmethod("onendframe", func {
+      int id = .framenr;
+      int numfr = angrom_normal_p.nofframes(-1);
+      if (id <= numfr/2)
+      {
+        opacity2 = opacity +2;
+      }
+      else
+      {  
+        opacity2 = opacity -2;
+      }
+      
+      ftl2.setopacity(opacity2 *4);  
+     });  
+         
+         
+      //flagi    
+      if(clsave.bis("bn_04_glowa3_czaszka_otwarta")&& !clsave.bis("taken_lopatka"))
+      {
+          angrom_normal_d.show();
+          anczaszka_l.show();
+          anczaszka_l.play("opened"); 
+          anczaszka_p.show();
+          anczaszka_p.play("opened");
+          angrom_normal_g.show();
+          anlopatka.show();
+      }
+      else
+      {
+          angrom_normal_g.hide(); 
+          angrom_normal_d.hide();
+      }  
+      
+      if (clsave.bis("bn_04_glowa_3_oko_on") && !clsave.bis("bn_04_glowa_3_prawe_oko_zamkniete")){
+        anoko_p.show();
+      }        
+      else
+      {       
+        anoko_p.hide();
+      } 
+      
+      if ( clsave.bis("bn_04_glowa_3_lewe_oko_zamkniete")){
+        anoko_l.hide();
+      }  
+      
+      if (clsave.bis("bn_04_glowa3_szczeka_faza")) 
+      {
+          int faza =  clsave.get("bn_04_glowa3_szczeka_faza");
+          anszczeka_break.play("faza"+ faza); 
+      }      
+      
+                   
+      // buttony 
+      anoko_l {
+  			.Button_isin;
+  			.Button_moveonms;
+  			.Button_moveoffms;
+  			.addmethod("butclick", func {
+  		 	    if( !.advstdstate  ) return;
+  		 	    if (clsave.bis("bn_04_glowa_3_oko_on") && !clsave.bis("bn_04_glowa_3_lewe_oko_zamkniete") )
+            { 
+              anoko_l.play("push");
+              clsave.bset("bn_04_glowa_3_lewe_oko_zamkniete");
+            }
+               
+        } );
+        .addmethod("onfinish", func {
+  				.hide;
+  			  
+          if (clsave.bis("bn_04_glowa_3_prawe_oko_zamkniete") && !clsave.bis("bn_04_glowa_3_czaszka_otwarta")) 
+          { 
+              .open_skull();
+          }        
+  			 } );
+  			 butgame.add(this);
+		};
+    
+    anoko_p {
+			.Button_isin;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+		 	if( !.advstdstate ) return;
+		 	    if ( !clsave.bis("bn_04_glowa_3_prawe_oko_zamkniete")) 
+          { 
+            clsave.bset("bn_04_glowa_3_prawe_oko_zamkniete");
+            anoko_p.play("push");
+          }  
+              
+			} );
+        .addmethod("onfinish", func {
+				.hide; 
+			   
+        if (clsave.bis("bn_04_glowa_3_lewe_oko_zamkniete") && !clsave.bis("bn_04_glowa_3_czaszka_otwarta")) 
+        { 
+            .open_skull();
+        }
+			 } );
+			 
+			butgame.add(this);
+		};
+    
+    /* anlopatka{
+      .Button_isin;
+			.Button_moveonms;
+			.Button_moveoffms; 
+      .addmethod("butclick", func {
+		 	    if( !.advstdstate ) return;
+		 	    if (!clsave.bis("bn_04_glowa3_szczeka_urwana")) 
+          { 
+              anczaszka_l.play("closeopen"); 
+              anczaszka_p.play("closeopen");
+              anszczeka_break.play("smile");
+            }
+          else
+          {
+            anlopatka.hide();
+            .addtopck("lopatka");  
+            anczaszka_l.play("close"); 
+            anczaszka_p.play("close");
+            angrom_normal_l.hide();
+            angrom_normal_p.hide();
+            angrom_normal_d.hide();
+            .item_gotocenter;
+             
+          }
+           
+			} );
+      butgame.add(this);  
+    };
+  */     
+    anszczeka_break{
+      .Button_isin;
+			.Button_moveonms;
+			.Button_moveoffms;
+      .addmethod("butclick", func {
+		 	      if( !.advstdstate ) return;
+		 	     //if (clsave.bis("bn_04_glowa3_szczeka_urwana")) return;
+            
+            int faza;
+            if (clsave.bis("bn_04_glowa3_szczeka_faza")) 
+            {
+                faza =  clsave.get("bn_04_glowa3_szczeka_faza");
+            }
+            else
+            {
+              faza = 0;
+            }
+              
+            if (!clsave.bis("bn_04_glowa3_szczeka_urwana") )
+             {  
+              faza = faza +1;
+               if (faza >2)
+                {
+                  clsave.bset("bn_04_glowa3_szczeka_urwana"); 
+                  faza = 3;    
+                }
+                anszczeka_break.play("break"+ faza);  
+                clsave.set("bn_04_glowa3_szczeka_faza",faza); 
+            }
+      } );
+      .addmethod("onfinish", func {
+			if (clsave.bis("bn_04_glowa3_szczeka_faza")) 
+        {
+          int faza =  clsave.get("bn_04_glowa3_szczeka_faza");
+          anszczeka_break.play("faza"+ faza); 
+            
+        }
+      } );
+      butgame.add(this);  
+    };
+    
+           
+      .stdstart;
+  }// koniec init
+  open_skull()
+  {
+    angrom_normal_g.show();
+    anlopatka.show();
+   // anlopatka.disable = (false); 
+    anczaszka_l.play("open"); 
+    anczaszka_p.play("open");
+    angrom_normal_d.show();
+    clsave.bset("bn_04_glowa3_czaszka_otwarta");
+  } 
+  mend	{
+    .stdexitdefadv("ad04_brzegjeziora", "gamead04_brzegjeziora0");
+	} 
+  USE_oko	{
+		.advsetstdstate();
+    if(anbaza.isin(mouse.getpos,1,1) )	{
+			.removefrompck("oko");
+		  anoko_p.show();
+      angrom_normal_l.show();
+      angrom_normal_l.play("blend");
+      angrom_normal_p.show();
+      angrom_normal_p.play("blend");
+      clsave.bset("bn_04_glowa_3_oko_on"); 
+		} else {
+			.advsetstdstate;
+			.item_gotopck;
+		}
+	}   
+   anlopatka_TAKE	{	
+       if (!clsave.bis("bn_04_glowa3_szczeka_urwana")) 
+      { 
+          anczaszka_l.play("closeopen"); 
+          anczaszka_p.play("closeopen");
+          anszczeka_break.play("smile");
+        }
+      else
+      .item_gotocenter;	
+    }
+	 anlopatka_INPCK	{
+    .addtopck("lopatka");
+	}  
+  
+  HINT_CLICK {
+       
+      if (!clsave.bis("bn_04_glowa_3_oko_on"))
+      {
+        .showhint("anoko_p");
+      }
+      else
+      {
+          if (!clsave.bis("bn_04_glowa_3_lewe_oko_zamkniete"))
+          { 
+              .showhint("anoko_l");
+              return;
+          }
+          else if (!clsave.bis("bn_04_glowa_3_prawe_oko_zamkniete"))
+          { 
+              .showhint("anoko_p");
+              return;
+          }
+          if (!clsave.bis("bn_04_glowa3_szczeka_urwana"))
+          {
+              .showhint("anszczeka_break"); 
+              return; 
+          }
+          
+          if (!clsave.bis("taken_lopatka"))
+          {
+              .showhint("anlopatka");  
+          }
+          else
+            .showhint("anpopexit"); 
+          
+          
+      }
+    }          
+}
+ 

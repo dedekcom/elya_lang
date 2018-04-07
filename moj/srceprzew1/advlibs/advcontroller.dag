@@ -1,0 +1,773 @@
+/* 
+	klasa oblugujaca postac z gry
+	Dominik Dagiel 3 III 2006
+*/
+
+new string sgmlastscene;
+
+module modadv	{
+	init()	{
+		new db dbload;
+	}
+	public load(string sfile)	{
+		dbload.loadscript(sfile);
+	}
+	public string get(string styp, int ipos)	{
+		return  dbload.get( dbload.findbyrow(styp), ipos );
+	}
+}
+
+class classloadedhero	{
+	init()	{
+		new string sanhero;
+		new bool bplaystart = false;
+		new bool bplaystop = false;
+	}
+	public string gethero()		{	return sanhero;	}
+	public sethero(string s)		{	sanhero = s;		}
+	public setplaystart(bool b)	{	bplaystart = b;	}
+	public setplaystop(bool b)	{	bplaystop = b;	}
+	public bool getplaystart()	{	return bplaystart;	}
+	public bool getplaystop()	{	return bplaystop;	}
+}
+
+class classadvcontroller : classadv	{
+	init()	{
+		classadv::init();
+
+		this.setwavpath( modadv.get("sndpath:", 1) );
+		
+		new string _slhpref = "cllh";	// prefix do obiektu classloadedhero
+		new string _spathpref = "pt";	// prefix do obiektu classpathf
+		new string _spocketpref = "pc";	// prefix do pocket
+		
+		new classobjcounter clcbeh;		// prefix do bazy danych bahaviourow
+		clcbeh.set("_dbbh");
+		
+		new string _sbeh = "clbeh";	// prefix obiektu behaviour
+		new int iidbeh;		// id behavioura niedeklarowanego poprzez nazwe
+		
+		new classobjcounter clcadv;	// bazy danych z przygoda
+		clcadv.set("dbadv");
+		
+		new db dbmacros;
+		new vector _vecarg;	// argumenty wolania makr
+		_vecarg.type("string");
+		
+		new classadvcamera clcamera;	// kamera
+		clcamera.setmetonmsmove("advmsmove");
+		
+		new classwalkerqueue clwalkq;	// kolejnosc chodzenia
+		
+		new gmimgvec grbuts;		// obiekty do analizowania (buttons)
+		new gmimgvec grmsmove;		// kieszenie bohaterow i inne do move
+		new gmimgvec grmslclick;
+		
+		new string _susetool = null;
+		new string _slastms = null;
+		new bool bmslock = false;
+		
+		new string sactbeh = null;		// aktualny beh
+		
+		new int licznik=0;
+		
+		new string smainhero = null;
+		
+		string s = this.getname();
+		s = s.strsubbs("game");
+		this.setgraphpath("scripts/" + s + "/" );
+		this.loadadventure( s + ".adv");
+		grbuts.sortimgs();
+		
+		if( smainhero==null )	{	smainhero = clcamera.getactor();	}
+		
+		clcamera.start();
+		//clcamera.setscene();
+		clwalkq.start();
+		
+		advmouse.setstd();
+		
+		if( this.behexist( "beh_" + sgmlastscene+"Init" )==true )	{
+			this.playbeh("beh_" + sgmlastscene+"Init" );
+		} else if ( this.behexist( "behInit" )==true )	{
+			this.playbeh("behInit");
+		}
+		
+		/*if ( clsave.bget("visited") == true ){
+			if( this.playbehfinif( "behinit_FROM_" + sgmlastscene,"postinit" )==true )	{}
+			else if ( this.playbehfinif( "behinit","postinit" )==true )	{}
+		} else {
+			clsave.bset("visited");
+			if( this.playbehfinif( "behinit0_FROM_" + sgmlastscene,"postinit" )==true )	{}
+			else if ( this.playbehfinif( "behinit0","postinit" )==true )	{}
+		}*/
+	}
+	public getmainhero()	{	return smainhero;	}
+	public setmainhero(string s)	{	smainhero=s;	}
+	public bool ismainhero(string s)	{
+		if( smainhero==s)	{	return true;	}
+		return false;
+	}
+	public setactbeh(string s)	{	sactbeh = s;	}
+	public string getactbeh()	{	return sactbeh;	}
+	public bool advgetlock()	{	return bmslock;	}
+	public advmslock()	{	bmslock=true;	}
+	public advmsunlock()	{	bmslock=false;	}
+	public advmssetlock(bool block)	{	bmslock=block;	}
+	public setusetool(string s)	{	_susetool=s;	}
+	public getusetool()	{	return _susetool;	}
+	/********************************/
+	public playbeh(string sname)	{
+		this.playbehfin(sname,null);
+	}
+	public bool playbehif(string sname)	{
+		if ( this.behexist( sname ) == true ){
+			this.playbehfin(sname,null);
+			return true;
+		}
+		return false;
+	}
+	public playbehfin(string sname, string sfunfin)	{
+		this.playbehobfin(sname,null,sfunfin);
+	}
+	public bool playpostinit(string sname)	{
+		return this.playbehobfinif( sname, gameapi.getgamename(), "postinit");
+	}
+	public bool playbehobfinif(string sname, string sob, string sfunfin)	{
+		if ( this.behexist( sname ) == true ){
+			this.playbehobfin(sname,sob,sfunfin);
+			return true;
+		}
+		return false;
+	}
+	public playbehobfin(string sname, string sobfin, string sfunfin)	{
+		<this.getbeh(sname)>.playfin(sobfin, sfunfin);
+	}
+	public playnewgame(string sgame)	{
+		sgame = "game" + sgame;
+		sgmlastscene = gameapi.getgamename();
+		gameapi.play(sgame);
+	}
+	/********************************/
+	string getheroloader(string swavbase)	{
+		swavbase = _slhpref + swavbase;
+		if( engine.varexist(swavbase)==true )	{	return swavbase;	}
+		else {	return null;	}
+	}
+	string gethero(string sloadedhero)	{	return <sloadedhero>.gethero();	}
+	bool getplaystart(string slh)	{	return <slh>.getplaystart();	}
+	bool getplaystop(string slh)	{	return <slh>.getplaystop();	}
+	/*********************************/
+	public advanstand(string san)	{
+		string s =  _spathpref + san;
+		if( engine.varexist( s )==true )	{
+			if( <s>.iswalking()==true )	{
+				<s>.stand();
+			}
+		}
+	}
+	analizeanopts(string sdb, int irow, int icol, int ilecol, string san, string sgrp)	{
+		real r[2], string s1, string s2;
+		bool b0 = false, bool b1 = false;
+		while( icol < ilecol )	{
+			s1 = <sdb>.get(irow,icol);	icol++;
+			if( s1=="-stt" ) {		// bool playstart
+				b0 = <sdb>.get(irow,icol);	icol++;
+			} else if (s1=="-stp")	{	// bool playstop
+				b1 = <sdb>.get(irow,icol);	icol++;
+			} else if (s1=="-wav")	{	// link base wav to anima
+				s1 = _slhpref + <sdb>.get(irow,icol);	icol++;
+				new classloadedhero <s1>;
+				<s1>.sethero( san );
+				<sgrp>.add( s1 );
+			} else if (s1=="-path" )	{
+				s1 = <sdb>.get(irow,icol);	icol++;	// pathfinder
+				r0 = <sdb>.get(irow,icol);	icol++;	// step
+				s2 = _spathpref+san;
+				this.newclpathfcopy( s2, san, s1, r0);
+				<s2>.prepareforhero();
+				s1 = s2 + "look";	new classherolooker <s1>;	<s1>.link( san );
+				s1 = s2 + "use";	new classherouser <s1>;		<s1>.link( san );
+				s1 = s2 + "take";	new classherotaker <s1>;	<s1>.link( san );
+			} else if (s1=="-ft" )	{	// filter
+				s2 = _spathpref+san;
+				r0 = <sdb>.get(irow,icol);	icol++;	// z depth
+				r1 = <sdb>.get(irow,icol);	icol++;	// scale power
+				<s2>.linkfilter();
+				<s2>.setzsize(r0);
+				<s2>.setscalepower(r1);
+			} else {
+				icol = this.analizeaninstr( sdb ,irow, icol-1, san);
+			}
+		}
+		<sgrp>.evali("setplaystart", b0 );
+		<sgrp>.evali("setplaystop", b1 );
+		<sgrp>.free();
+	}
+	setasadvanima()	{
+		modulehero.setashero( this.getname(), "cadvherofinish");
+	}
+	analizebut(string styp, string sdb, int irow, int icol)	{
+		string s[3], int i[2];
+		s0 = <sdb>.get(irow,icol);	icol++;	// nazwa
+		s1 = <sdb>.get(irow,icol);	icol++;	// nazwa annki
+		grbuts.add( s1 );
+ 		///<s1>.setadvbutmets(s0);
+		modadvbut.setasbutton(s1,s0,styp.strsube(1));
+		<s1>.setadvbutpos( <s1>.getcx(), <s1>.getcy() );
+		while( icol < <sdb>.getcolsno(irow) )	{
+			s0 = <sdb>.get(irow,icol);	icol++;	// nazwa
+			if( s0=="-pos" )	{
+				i0 = <sdb>.get(irow,icol);	icol++;	// x
+				i1 = <sdb>.get(irow,icol);	icol++;	// y
+				<s1>.setadvbutpos(i0,i1);
+			} else if (s0=="-bs1")	{
+				<s1>.setbutbase1( <sdb>.get(irow,icol) ); icol++;
+			} else if (s0=="-bs2")	{
+				<s1>.setbutbase2( <sdb>.get(irow,icol) ); icol++;
+			} else if (s0=="-dir")	{
+				<s1>.setbutdir( <sdb>.get(irow,icol) ); icol++;
+			} else if (s0=="-doors")	{
+				<s1>.setbuttyp("doors");
+			} else if (s0=="-item")	{
+				<s1>.setbuttyp("item");
+			}
+		}
+	}
+	public loadadventure(string sfile)	{
+		string sdb = clcadv.get();
+		string sgrp = "grpers"+clcadv.size();
+		this.newdbscript( sdb , sfile );
+		int ile = <sdb>.getrowsno();
+		int i[4], string s[3], bool b[2], bool bhero;
+		real r[2];
+		string spath = "";
+		new gmobjvec <sgrp>;
+		for( int i=0; i<ile; i++)	{
+			i0 =0 ;
+			i1 = <sdb>.getcolsno(i);
+			s0 = <sdb>.get(i,i0);	i0++;
+			if( s0 == "setpath:" )	{
+				spath = <sdb>.get(i,i0);	i0++;
+				this.setgraphpath(spath);
+			} else if (s0=="nopath:")	{
+				spath = "";
+				this.setgraphpath(spath);
+			} else if (s0=="sndpath:")	{
+				s0 = <sdb>.get(i,i0);	i0++;
+				this.setwavpath(s0);
+			} else if( s0=="hero:" || s0=="an:") {
+				spath = this.getgraphpath();
+				s2 = <sdb>.get(i,i0);	i0++;	// anima
+				s1 = <sdb>.get(i,i0);	i0++;	// file
+				if( s0=="hero:" )	{
+					if( s1=="-path" )	{
+						s1 = <sdb>.get(i,i0);	i0++;	// path
+						this.setgraphpath(s1);
+						s1 = <sdb>.get(i,i0);	i0++;	// file
+					} else {
+						this.setgraphpath( modadv.get("heropath:",1) );
+					}
+				}
+				if( s1.gete(0,4)==".pyz" )	{
+					this.newanima(s2, s1, 0);
+				} else {
+					this.copyanima(s1, s2);
+				}
+				this.setgraphpath(spath);
+				<s2>.setasadvanima();
+				if( s0=="hero:" )	{
+					modulehero.buildheroframe(s2);
+					s0 = _spocketpref + s2;
+					new classadvpocket <s0>;
+					grbuts.add(s0);
+					grmsmove.add(s0);
+					grmslclick.add(s0);
+					modadvbut.setasbutton(s0, s2, "pocket");
+				}
+				this.analizeanopts(sdb, i, i0, i1, s2, sgrp);
+			} else if (s0=="anaac:")	{
+				s0 = <sdb>.get(i,i0);	i0++;	// anima
+				if( s0=="-mask" )	{
+					s0 = <sdb>.get(i,i0);	i0++;	// anima
+					new gmmaskvec <s0>;
+				} else {
+					new gmimgvec <s0>;
+				}
+				s1 = <sdb>.get(i,i0);	i0++;	// z ktorej..
+				i2 = this.newanactionsgr(s1, s0, s0);
+				i0 = this.analizeaninstr( sdb ,i, i0, s0);
+			} else if (s0=="anaf:")	{
+				s0 = <sdb>.get(i,i0);	i0++;	// anima
+				s1 = <sdb>.get(i,i0);	i0++;	// z ktorej..
+				new gmimgvec <s0>;
+				i2 = this.newanfrbyactgr(s1, s0, s0);
+				i0 = this.analizeaninstr( sdb ,i, i0, s0);
+			} else if (s0=="anfac:")	{
+				s0 = <sdb>.get(i,i0);	i0++;	// anima
+				if( s0=="-mask" )	{
+					s0 = <sdb>.get(i,i0);	i0++;	// anima
+					new gmmaskvec <s0>;
+				} else {
+					new gmimgvec <s0>;
+				}
+				s1 = <sdb>.get(i,i0);	i0++;	// z ktorej..
+				s2 = <sdb>.get(i,i0);	i0++;	// akcja
+				i2 = this.newanframesgr(s1, s0, <s1>.actionnr(s2), s0);
+				i0 = this.analizeaninstr( sdb ,i, i0, s0);
+			} else if (s0=="anac:")	{
+				s0 = <sdb>.get(i,i0);	i0++;	// anima
+				s1 = <sdb>.get(i,i0);	i0++;	// z ktorej..
+				s2 = <sdb>.get(i,i0);	i0++;	// akcja
+				this.copyanimaact(s1, s0, s2);
+				if( <sdb>.dbchecknext(i,i0)=="-adv" )	{
+					i0++;
+					<s0>.setasadvanima();
+				}
+				i0 = this.analizeaninstr( sdb ,i, i0, s0);
+			} else if (s0=="anf:")	{
+				s0 = <sdb>.get(i,i0);	i0++;	// anima
+				s1 = <sdb>.get(i,i0);	i0++;	// z ktorej..
+				s2 = <sdb>.get(i,i0);	i0++;	// akcja
+				i2 = <sdb>.get(i,i0);	i0++;	// klatka
+				this.copyanima( s1, s0 );
+				<s0>.setframe(s2,i2);
+				if( <sdb>.dbchecknext(i,i0)=="-adv" )	{
+					i0++;
+					<s0>.setasadvanima();
+				}
+				i0 = this.analizeaninstr( sdb ,i, i0, s0);
+			} else if (s0=="behfile:")	{	// file with adv behaviours
+				this.loadbehaviours( <sdb>.get(i,i0) );
+				i0++;
+			} else if (s0=="include:")	{	// another adv specification
+				spath = this.getgraphpath();
+				if( <sdb>.get(i,i0)=="-path" )	{
+					this.setgraphpath(<sdb>.get(i,i0+1));
+					i0+=2;
+				}
+				this.loadadventure( <sdb>.get(i,i0) );
+				this.setgraphpath(spath);
+				i0++;
+			} else if (s0=="walkqueue:")	{
+				while( i0<i1 )	{
+					clwalkq.add( _spathpref + <sdb>.get(i,i0) );
+					i0++;
+				}
+			} else if(s0=="font:")	{
+				s0 = <sdb>.get(i,i0);	i0++;	// nazwa
+				s1 = <sdb>.get(i,i0);	i0++;	// plik
+				i2 = <sdb>.get(i,i0);	i0++;	// size
+				new font <s0>;
+				<s0>.load( s1, i2 );
+			} else if (s0=="bkg:")	{
+				s0 = <sdb>.get(i,i0);	i0++;	// plik
+				this.csetbkg(s0);
+				i0 = this.analizeaninstr( sdb ,i, i0, "imgbkg");
+			} else if (s0=="img:")	{
+				s0 = <sdb>.get(i,i0);	i0++;	// nazwa
+				s1 = <sdb>.get(i,i0);	i0++;	// plik
+				i2 = <sdb>.get(i,i0);	i0++;	// z
+				this.newimg(s0,s1,i2);
+				i0 = this.analizeaninstr( sdb ,i, i0, s0);
+			} else if (s0=="but:" || s0=="doors:" || s0=="item:")	{
+				this.analizebut(s0, sdb, i, i0);
+			} else if (s0=="camera:")	{
+				r0 = <sdb>.get(i,i0);	i0++;	// xmodfifier
+				r1 = <sdb>.get(i,i0);	i0++;	// ymodifier
+				clcamera.scalemodifiers(r0,r1);
+				while(i0<i1)	{
+					s0 = <sdb>.get(i,i0);	i0++;
+					if( s0=="-size")	{
+						i2 = <sdb>.get(i,i0);	i0++;
+						i3 = <sdb>.get(i,i0);	i0++;
+						clcamera.setborders( i2, i3 );
+					} else if (s0=="-center")	{
+						i2 = <sdb>.get(i,i0);	i0++;
+						i3 = <sdb>.get(i,i0);	i0++;
+						clcamera.setcenter( i2, i3 );
+					} else if (s0=="-sizebg")	{
+						clcamera.setborders(imgbkg.getw(), imgbkg.geth());
+					}
+				}
+			} else if (s0=="actor:")	{
+				clcamera.setactor(<sdb>.get(i,i0)); i0++;
+			} else if (s0=="bgr:")	{
+				s0 = <sdb>.get(i,i0);	i0++;	// plan
+				r0 = <sdb>.get(i,i0);	i0++;	// scalex
+				r1 = <sdb>.get(i,i0);	i0++;	// scaley
+				new classbgplan <s0>;
+				clcamera.addbgr(s0, r0, r1);
+			} else if (s0=="pathfinder:")	{
+				s0 = <sdb>.get(i,i0);	i0++;	// nazwa
+				s1 = <sdb>.get(i,i0);	i0++;	// file
+				if( s1.gete(0,3)!="ptf" )	{	// znaczy, ze wgrywany z grafiki
+					i2 = <sdb>.get(i,i0);	i0++;	// dx
+					i3 = <sdb>.get(i,i0);	i0++;	// dy
+				} else {
+					i2 = 20;
+					i3 = 20;
+				}
+				this.newpathf(s0, s1, i2, i3);
+			}
+		}
+	}
+	behrewind()	{
+		if( sactbeh!=null )	{	<sactbeh>.rewind();	}
+	}
+	bool behplaying()	{
+		if( sactbeh!=null )	{	return true;	}
+		return false;
+	}
+	bool behexist(string sname)	{
+		return engine.varexist( this.getbeh(sname) );
+	}
+	string getbeh(string sname)	{	return _sbeh+sname;	}
+	string newbehname()	{
+		string s = _sbeh + "_" + iidbeh;
+		iidbeh++;
+		return s;
+	}
+	string newbeh()	{
+		string s = this.newbehname();
+		new classbehhero <s>;
+		return s;
+	}
+	loadbeh(string sdb, int irow, int icol, int id, string sstarter, string sprevobj, bool brand, bool bpar)	{
+		string s[4], bool bblock = <sstarter>.getblock(), bool bread;
+		s0 = <sdb>.get(irow,id);	id++;
+		s1 = this.newbeh();
+		int i[2];
+		if( s0=="call:")	{
+			s0 = <sdb>.get(irow,id);	id++;
+			<s1>.setascaller( this.getbeh(s0) );
+		} else if (s0=="walk:")	{
+			s0 = <sdb>.get(irow,id);	id++;	// kto
+			int idestx = <sdb>.get(irow,id);	id++;
+			int idesty = <sdb>.get(irow,id);	id++;
+			<s1>.setaswalker( _spathpref + s0, idestx, idesty );
+		} else if (s0=="game:")	{
+			s0 = <sdb>.get(irow,id);	id++;	// nazwa gry
+			<s1>.setasnewgamer(s0);
+		} else if (s0=="ref:")	{
+			id = this.buildbeh( "_" + iidbeh, sdb, irow, id );
+			<s1>.setascaller(this.newbehname());
+		} else if (s0=="anplay:")	{
+			s0 = <sdb>.get(irow,id);	id++;
+			s2 = <sdb>.get(irow,id);	id++;
+			<s1>.setasanplayer(s0, s2);
+		} else if (s0=="anorder:")	{
+			s2 = <sdb>.get(irow,id);	id++;
+			<s1>.setasanorder(sdb, irow, id, s2);
+			id = this.analizeaninstr(sdb,irow,id,null);
+		} else if (s0=="sndbg:")	{
+			s2 = <sdb>.get(irow,id);	id++;
+			<s1>.setassndbg(s2);
+		} else if (s0=="sndplay:")	{
+			s0 = <sdb>.get(irow,id);	id++;
+			<s1>.setassndplayer(s0);
+		} else if (s0=="wait:")	{
+			i0 = <sdb>.get(irow,id);	id++;
+			<s1>.setaswaiter(i0);
+		} else if (s0=="read:")	{
+			s0 = <sdb>.get(irow,id);	id++;	// plik
+			i0 = <sdb>.get(irow,id);	id++;	// x
+			i1 = <sdb>.get(irow,id);	id++;	// y
+			s2 = "auto";
+			if( <sdb>.getcolsno(irow)>id )	{
+				s2 = <sdb>.get(irow,id);
+				if( s2=="-dir" )	{
+					id++;
+					s2 = <sdb>.get(irow,id); id++;
+				}
+			}
+			<s1>.setasreader(s0,i0,i1,s2);
+		} else {		// talker
+			s3 = s0.strgetto("_");
+			s2 = this.getheroloader( s3 );
+			if( s2==null )	{
+				engine.print("loadbeh error: no hero linked to "+s3);
+				return;
+			} else {
+				bool bstart = <s2>.getplaystart();
+				bool bstop = <s2>.getplaystop();
+				string sdir="auto", string sbase=modadv.get("talk:",1), int itypsort=1;
+				bread = true;
+				if( id>=icol )	{	bread=false;	}
+				while(bread==true)	{
+					s3 = <sdb>.get(irow,id);	id++;
+					if( s3=="-stt" )	{
+						bstart = <sdb>.get(irow,id);	id++;
+					} else if (s3=="-stp")	{
+						bstop = <sdb>.get(irow,id);	id++;
+					} else if (s3=="-base")	{
+						sbase = <sdb>.get(irow,id);	id++;
+					} else if (s3=="-r")	{
+						itypsort=1; 
+					} else if (s3=="-nr")	{
+						itypsort = 0;
+					} else if (s3=="-dir")	{	
+						sdir = <sdb>.get(irow,id);	id++;
+					} else {
+						bread = false;
+						id--;
+					}
+					if( bread==true && id>=icol )	{
+						bread = false;
+					}
+				}
+				<s1>.setastalker( <s2>.gethero(), s0, sbase,
+					itypsort, bstart, bstop, sdir );
+				
+			}
+		}
+		<sstarter>.addtostarter( s1 );
+		
+		if( brand==false)	{
+			<sprevobj>.setflags(s1);
+			<s1>.addflags( sstarter, bblock, bpar );
+		} else {
+			<sprevobj>.setflags(null);
+			<s1>.addflags( sstarter, bblock, false );
+		}
+		if( id < icol )	{
+			this.loadbeh(sdb,irow,icol,id,sstarter,s1,brand, bpar);
+		}
+	}
+	int buildbeh(string sname, string sdb, int irow, int icol)	{
+		int id = dbmacros.findbyrow( <sdb>.get(irow, icol) );
+		if( id<0 )	{
+			engine.print("no such macro: "+ <sdb>.get(irow, icol) );
+			return -1;	
+		}	// nie ma takiego makra
+		icol+=2;		// pomin pierwszy nawias
+		int id2 = <sdb>.addrow() -1;
+		string s = <sdb>.get( irow, icol ); icol++;
+		_vecarg.free();
+		while( s!=")" )	{		// sczytanie argumentow
+			_vecarg.add( s );
+			s = <sdb>.get( irow, icol ); icol++;
+		}
+		int ile = dbmacros.getcolsno( id );
+		int i1;
+		<sdb>.add( id2, sname );
+		for( int i=1; i<ile; i++)	{
+			s = dbmacros.get( id, i );
+			if( s.getb(0,1)=="$" )	{
+				i1 = s.getb(1,10);
+				<sdb>.add( id2, _vecarg.get( i1-1 ) );
+			} else {
+				<sdb>.add( id2, s );
+			}
+		}
+		return icol;
+	}
+	loadbehaviours(string sfile)	{
+		string sdb = clcbeh.get();
+		this.newdbscript(sdb, sfile);
+		int i[2], string s[4], bool brand, bool bread, bool bonce, bool bpar, bool bblock, int ienumer;
+		for( int i=0; i< <sdb>.getrowsno(); i++)	{
+			i1 = 0;
+			s0 = <sdb>.get(i,i1);	i1++;
+			if( s0=="macro:")	{
+				dbmacros.dbaddrowfrom( sdb, i, 1 );
+			} else if (s0=="include:")	{
+				s0 = <sdb>.get(i,i1);	i1++;	// path
+				s1 = <sdb>.get(i,i1);	i1++;	// file
+				s2 = this.getgraphpath();
+				this.setgraphpath(s0);
+				this.loadbehaviours(s1);
+				this.setgraphpath(s2);		// przywroc sciezke
+			} else if (s0=="build:")	{
+				i1 = this.buildbeh( <sdb>.get(i,i1), sdb, i, i1+1 );
+			} else {
+				i0 = <sdb>.getcolsno(i);
+				s0 = this.getbeh(s0);
+				new classbehhero <s0>;
+				brand = false;
+				bread = true;
+				bonce = false;
+				bpar = false;
+				bblock = true;
+				ienumer=0;
+				while(bread==true)	{
+					s1 = <sdb>.get(i,i1);	i1++;
+					if( s1=="-nr" )	{
+						brand = false;
+					} else if (s1=="-1")	{
+						bonce = true;
+					} else if (s1=="-par")	{
+						bpar = true;
+					} else if (s1=="-r")	{
+						brand = true;
+					} else if (s1=="-nb")	{
+						bblock = false;
+					} else if (s1=="-en")	{
+						ienumer = <sdb>.get(i,i1);	i1++;
+					} else {
+						bread = false;
+						<s0>.setasstarter(bonce, brand, bpar, bblock, ienumer);
+						this.loadbeh(sdb, i, i0, i1-1, s0, s0, brand, bpar);
+					}
+				}
+			}
+		}
+	}
+	int analizeaninstr(string sdb,int irow,  int icol, string san)	{
+		bool bread = true;
+		if( icol >= <sdb>.getcolsno(irow) )	{	bread=false;	}
+		bool banalize = false;
+		if( san!=null )	{
+			banalize=true;
+			this.advanstand(san);
+		}
+		int i[2];
+		string s[2];
+		while(bread==true)	{
+			s1 = <sdb>.get(irow,icol);	icol++;
+			if (s1=="-z")	{
+				i1 = <sdb>.get(irow,icol);	icol++;
+				if( banalize==true)	{	<san>.setz( i1 );	}
+			} else if (s1=="-pos")	{
+				i0 = <sdb>.get(irow,icol);	icol++;
+				i1 = <sdb>.get(irow,icol);	icol++;
+				if( banalize==true)	{
+					<san>.setpos( i0+ clcamera.getposx(), i1+ clcamera.getposy() );
+				}
+			} else if (s1=="-putgr")	{
+				if( banalize==true )	{	<san>.anputgr();	}
+			} else if (s1=="-vis")	{
+				i0 = <sdb>.get(irow,icol);	icol++;
+				if( banalize==true )	{
+					if( i0==false )	{ <san>.hide();	}
+					else {	<san>.show();	}
+				}
+			} else if (s1=="-dir")	{
+				s0 = <sdb>.get(irow,icol);	icol++;
+				if( banalize==true)	{
+					s1 = <san>.actionname();
+					i0 = <san>.framenr();
+					<san>.setframe( s1.strsube(2) + s0, 0 );
+				}
+			} else if (s1=="-play")	{
+				s1 = <sdb>.get(irow,icol);	icol++;
+				if( banalize==true)	{
+					<san>.splay( s1 );
+				}
+			} else if (s1=="-nplay")	{
+				i0 = <sdb>.get(irow,icol);	icol++;
+				if( banalize==true)	{
+					<san>.nplay( i0 );
+				}
+			} else if (s1=="-bgr")	{		// dodaj do planu
+				s1 = <sdb>.get(irow,icol);	icol++;
+				if( banalize==true)	{
+					<s1>.add(san);
+					if( engine.varexist( _spathpref + san )==true )	{
+						<s1>.add( _spathpref+san );
+					}
+				}
+			} else if (s1=="-sc")	{
+				if( banalize==true)	{
+					s1 = _spathpref+san;
+					if( engine.varexist( s1 )==true )	{
+						<s1>.scalean();
+					}
+				}
+			} else if (s1=="-ssc")	{
+				if( banalize==true)	{	clcamera.setscene();	}
+			} else if (s1=="-actor")	{
+				if( banalize==true)	{	clcamera.setactor(san);	}
+			} else if (s1=="-mhero")	{
+				if( banalize==true)	{	this.setmainhero(s1);	}
+			} else if (s1=="-puty")	{
+				s0 = <sdb>.get(irow,icol);	icol++;
+				if( banalize==true)	{
+					if( s0=="resy" )	{	<s1>.anputy( iResY-1 );	}
+					else { <s1>.anputy(s0);	}
+				}
+			} else {
+				bread = false;		// natrafil na inny string
+				icol--;		// przywroc go do analizy
+			}
+			if( bread == true && icol>=<sdb>.getcolsno(irow) )	{
+				bread = false;
+			}
+		}
+		return icol;
+	}
+	/*******************************/
+	cadvherofinish()	{}
+	/*******************************/
+	butmoveoff(string sbut)	{
+		<sbut>.moveoff();
+		this.< <sbut>.getbutname() + "_MOVEOFF">();
+	}
+	butmoveon(string sbut)	{
+		<sbut>.moveon();
+		this.< <sbut>.getbutname() + "_MOVEON">();
+	}
+	advmsmove()	{
+		int x = mouse.getpx();
+		int y = mouse.getpy();
+		int id = grbuts.isin(x,y,true,true);
+		if( id!=false )	{
+			string s = grbuts.get(id-1);
+			if( s!=_slastms )	{
+				if( _slastms!=null )	{
+					this.butmoveoff(_slastms);
+				}
+				_slastms = s;
+				this.butmoveon(s);
+			}
+		} else {
+			if( _slastms!=null )	{
+				this.butmoveoff(_slastms);
+				_slastms = null;
+			}
+		}
+		grmsmove.evalii("onmousemove", x, y);
+		moddbg.msmove();
+	}
+	butclickon(string sbut)	{
+		string s = _spocketpref+this.getmainhero();
+		if( engine.varexist(s)==true )	{	<s>.skipitem();	}
+		<sbut>.clickon();
+		this.< <sbut>.getbutname() + "_CLICKON">();
+	}
+	advmsclick()	{
+		if( bmslock==false )	{
+			int x = mouse.getpx();
+			int y = mouse.getpy();
+			int id = grbuts.isin(x,y,true,true);
+			if( id!=false )	{
+				string s = grbuts.get(id-1);
+				this.butclickon(s);
+			} else {
+				clwalkq.goto(x,y);
+			}
+			grmslclick.evalii("onmouselclick",x,y);
+		}
+		this.behrewind();
+		moddbg.mslclick();
+	}
+	mousemove()	{
+		this.advmsmove();
+		this.mouse_MOVE();
+	}
+	mouselclick()	{
+		this.advmsclick();
+		this.mouse_LCLICK();
+	}
+	mouselrel()	{
+		moddbg.mslrel();
+		this.mouse_LREL();
+	}
+	mouserclick()	{
+		this.mouse_RCLICK();
+	}
+	keydown()	{
+		moddbg.dbkeydown();
+		this.keyboard_KEYDOWN();
+	}
+}

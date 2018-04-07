@@ -1,0 +1,13 @@
+
+game MenuAnimals2 : MermaidStd	{
+	init	{
+		MermaidStd::init("mainmenu");
+	}
+}
+
+game AnimalsKontynenty : MermaidStd	{
+	init	{
+		MermaidStd::init("kontynenty");
+	}
+}
+

@@ -1,0 +1,90 @@
+
+game mg001_witryna : Banshee	{
+	init	{
+		Banshee::init("mg001_witryna");
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2", "popup_ramka.pyz 3","okladka_2v.pyzH 4", "blask.pyzH 5", "popexit.pyz 5");  
+		.butpopexit;
+         .sfxs = (A, "gwarludziN 40");
+	
+		imgbkg {
+			.addmethod("isbutin", func { (@x, @y)
+				!anpopup_bkg.isin(x,y,0,0);
+			} );
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+					 .mend;
+			} );
+			butgame.add(this);
+		};      
+    
+     
+		.newsndfree("snd_ksiazka", "kinnat_c0d0_0a");
+		 snd_ksiazka.addmethod("onfinish", func{
+		 clsave.bset("e1_mg001_witryna_po_snd_ksiazka"); 
+		 .advsetstdtate; 
+		 if (clsave.get("GAME_acttutorial") != "T2bexitglass" && clsave.get("GAME_acttutorial") != "T2bexitglass_pad")
+			.timfinito; 
+		 });  
+  
+		.gui_toloupe("anokladka_2v"); 
+		anokladka_2v.anhideonsetframe;  
+ 
+		anokladka_2v{
+			.addmethod("isbutin", func { (int x, int y)
+			  .advstdstate && .isin(x,y,0,0) && .loupe_visible;
+				} );
+			.addmethod("butclick", func {
+				if (!clsave.bis("e1_mg001_witryna_okladka_2v_clicked"))
+				{
+					anblask.anfadein(400,func{anblask.anfadeout(2500,func{if ( !.enabled_tutorial ){.hide_loupe;}});});
+					.cbplay("snd_ksiazka"); 
+					if(.checktouchpad)
+						.show_tutorial("T2bexitglass_pad", .ctutpos);
+					else
+						.show_tutorial("T2bexitglass", .ctutpos);
+					
+					//.show_objective("magicbook");
+					clsave.bset("e1_mg001_witryna_okladka_2v_clicked"); 
+					 
+				}
+			});
+			butgame.add(this);
+		}; 
+        
+		ccs.enter( func {
+			if (!clsave.bis("e1_mg001_witryna_okladka_2v_clicked"))	{
+				if(.checktouchpad)
+					.show_tutorial("T2rclick_pad", .rtutpos);
+				else
+					.show_tutorial("T2rclick", .rtutpos);
+				.tutpoint("guiglass","rd");
+			}
+			.advsetstdstate;
+		} );
+	}//koniec init
+  
+	mend	{
+		.stdexitdefadv("ad001_kszew", "gamead001_kszew0");
+	} 
+	LOUPE_SHOW	{
+		if (!clsave.bis("e1_mg001_witryna_okladka_2v_clicked"))
+			.show_tutorial("T2aglass", .tutpos);
+	}
+	LOUPE_HIDE	{
+		if( clsave.get("GAME_acttutorial") == "T2bexitglass"  ||  clsave.get("GAME_acttutorial") == "T2bexitglass_pad")
+		{
+			.hide_tutorial;
+			if ( clsave.bis("e1_mg001_witryna_po_snd_ksiazka"))
+				.timfinito;
+		}
+	}
+	HINT_CLICK {
+		if (!clsave.bis("e1_mg001_witryna_okladka_2v_clicked"))
+		{ 
+			.showhint2v("anokladka_2v");
+			.showhint2v("guiglass");  
+		}
+		else  
+			.showhint("anpopexit");
+  }       
+}

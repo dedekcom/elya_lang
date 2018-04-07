@@ -1,0 +1,290 @@
+
+|iMemoW, iMemoH| = 4, 2;	// cols , rows
+iMemoTryb = 1;	// 0 - player, 1 - p vs c, 2 - p vs p
+iMemoAI = 2;
+
+game MainMenuMemo : MermaidStd	{
+	init	{
+		MermaidStd::init("menu_memo");
+		.cbutexit;
+		.loadasker;
+		
+		.imgs = (A, "bgmenu.jpg", "players.pyzG 10", "timer.pyzGH 10", "mode.pyzGH 10");
+		
+		grplayers.eval( func {
+			.Button_isin;
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					match(.actionname)	{
+						"1p" => {
+							iMemoTryb = 0;
+							ccs.buildfromscreen;
+							grplayers.hide;
+							grtimer.show;
+							sgmstate = "state_showtimer";
+							.stdenter;
+						}
+						"pvc" => {
+							iMemoTryb = 1;
+							ccs.buildfromscreen;
+							grplayers.hide;
+							grmode.show;
+							sgmstate = "state_showmode";
+							.stdenter;
+						}
+						"pvp" => {
+							iMemoTryb = 2;
+							.mgotosize;
+						}
+						? => ;
+					}
+				}
+				} );
+			butgame.add(this);
+			} );
+		grtimer.eval( func {
+			.Button_isin;
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					if( .actionname=="timeroff" )	{
+						clsave.set("Memo_timer","off");
+					} else clsave.set("Memo_timer","on");
+					.mgotosize;
+				}
+				} );
+			butgame.add(this);
+			} );
+		grmode.eval( func {
+			.Button_isin;
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					match(.actionname)	{
+						"easy" => iMemoAI = 0;
+						"medium" => iMemoAI = 2;
+						"hard" => iMemoAI = 4;
+						? => ;
+					}
+					.mgotosize;
+				}
+				} );
+			butgame.add(this);
+			} );
+		
+		.stdenter;
+	}
+	mgotosize	{
+		ccs.buildblack;
+		.stdexit("MenuMemoSize");
+	}
+	butclick_anbutexit	{
+		if( <grtimer.first>.isvisible || <grmode.first>.isvisible )	{
+			ccs.buildfromscreen;
+			grtimer.hide;
+			grmode.hide;
+			grplayers.show;
+			sgmstate = "state_showplayers";
+			.stdenter;
+		} else {
+			ccs.buildblack;
+			if( sMainMenuMemo=="OutroStd" )
+				.askfor(sMainMenuMemo);
+			else .stdexit(sMainMenuMemo);
+		}
+	}
+}
+
+game MenuMemoSize : MermaidStd	{
+	init	{
+		MermaidStd::init("menu_memo");
+		.cbutexit;
+		.loadasker;
+		
+		.imgs = (A, "bgmenu.jpg", "rozmiar.pyzG 10");
+		
+		new db dbs;
+		dbs.dbbuild(A,
+			4,2,"l",
+			4,3,"l",
+			4,4,"m",
+			5,4,"m",
+			6,4,"m",
+			6,5,"m",
+			7,6,"m",
+			8,6,"s",
+			8,7,"s",
+			8,8,"s",
+			9,8,"s",
+			10,8,"s",
+			3);
+		
+		grrozmiar.eval( func {
+			.Button_isin;
+			butgame.add(this);
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					int id = .actionnr(-1);
+					iMemoW = dbs.get(id,0);
+					iMemoH = dbs.get(id,1);
+					clsave.set("Memo_elsize", dbs.get(id,2));
+					.stdexit("GameMemo");
+				}
+				} );
+			} );
+		
+		.stdenter;
+	}
+	butclick_anbutexit	{
+		.stdexit("MainMenuMemo");
+	}
+}
+
+game GameMemo : MermaidStd, TMemo	{
+	init	{
+		MermaidStd::init("mg_memo");
+		
+		new string selsize = clsave.getdef("Memo_elsize", "m");
+		
+		.sfxs = (A, "rekord 60", "brawa1 80", "askerups 70", "pageflip1 70", "podnies1 50", "mikrofalaend 70");
+		
+		int ilebgs = .calcgmfiles("bkg",".jpg");
+		.tinit("bkg"+(1+ilebgs.rand)+".jpg", "els"+selsize+".pyz", "tyl"+selsize+".pyz", 2);
+		
+		int w = iMemoW*(1.2*annak.getw);
+		int h = iMemoH*(1.2*annak.geth);
+		int w2 = 0.85*igmappw;
+		int h2 = 0.75*igmapph;
+		if( w > w2 ) w = w2;
+		if( h > h2 ) h = h2;
+		.tfitinsurf( w, h, 0, 50->igetsc );
+		
+		.cbutexit;
+		.loadasker;
+		
+		int ifont = 40->igetsc;
+		if( iMemoTryb==0 )	{
+			new bool btimeron = clsave.is("Memo_timer","on");
+			
+			if( btimeron )	{
+				.newfont("fntim", .cfontpath, ifont);
+				.newtext("txtime","","fntim",.red);
+				txtime.setpos( anbutexit.getex + 10->igetsc, 10->igetsc );
+				new int icurtime = 0;
+				.timer = ("timczas",1000,func {
+					icurtime++;
+					.mprinttime;
+					.play;
+					} );
+				new classfullsave csave("Memo_records.db");
+				csave.saveonset=(true);
+				csave.stdload;
+				new bool bisrekord;
+				if( csave.has("rec_"+iMemoW+"x"+iMemoH) )	{
+					bisrekord = csave.get("rec_"+iMemoW+"x"+iMemoH);
+					new string srecord = clstrdigit::gettime(bisrekord, "ms");
+				} else bisrekord = false;
+				.mprinttime;
+			}
+		} else {
+			.newanima("anplayer1", "ludki.pyz", 20);
+			.copyanima("anplayer1", "anplayer2");
+			if( iMemoTryb==2 )
+				anplayer2.setframe("player2",0);
+			else anplayer2.setframe("computer",0);
+			.copyanima("anplayer1", "anarrow");
+			anarrow.setframe("arrow",0);
+			int dx = 20->igetsc;
+			int dy = ifont+dx;
+			anplayer1.ansetbpos(dx, igmapph-anplayer1.geth-dy);
+			anplayer2.ansetbpos(igmappw-dx-anplayer2.getw, igmapph-anplayer2.geth-dy);
+			.msetplayer(1);
+			
+			.newfont("fntpt", .cfontpath, ifont);
+			.newtext("timp1","","fntpt",.red);
+			.newtext("timp2","","fntpt",.red);
+			new int ipointsp1 = 0;
+			new int ipointsp2 = 0;
+			timp1.setpos(anplayer1.getpx, anplayer1.getey+dx/2);
+			timp2.setpos(anplayer2.getpx, anplayer2.getey+dx/2);
+			.mprintpoins;
+		}
+		
+		ccs.enter( func {
+			.advsetstdstate;
+			.tm_start;
+			if( iMemoTryb==0 && btimeron )
+				timczas.play;
+			} );
+	}
+	msetplayer(int id)	{
+		@s = "anplayer"+id;
+		anarrow.setpos(<s>.getcx, <s>.getpy);
+	}
+	mprinttime	{
+		if( bisrekord )
+			txtime.txtset("Record: "+srecord+" , "+clstrdigit::gettime(icurtime, "ms"));
+		else
+			txtime.txtset(clstrdigit::gettime(icurtime, "ms"));
+	}
+	mouse_lclick	{
+		if( .advstdstate )
+			.tm_mouselclick;
+	}
+	butclick_anbutexit	{
+		.askfor("MenuMemoSize");
+	}
+	tnextplayer	{
+		TMemo::tnextplayer;
+		.msetplayer(iplayer);
+	}
+	tpoint	{
+		fxmikrofalaend.play;
+		if( iMemoTryb>0 )	{
+			if( iplayer==1 ) ipointsp1++;
+			else ipointsp2++;
+			.mprintpoins;
+		}
+		
+	}
+	mprintpoins	{
+		timp1.txtset(ipointsp1);
+		timp1.txtshadow(1,"fntpt");
+		timp2.txtset(ipointsp2);
+		timp2.txtshadow(1,"fntpt");
+	}
+	tchoose	{	fxpageflip1.play;	}
+	terror	{	fxpodnies1.play;	}
+	tfinish()	{
+		if( iMemoTryb==0 )	{
+			fxbrawa1.play;
+			if( btimeron )	{
+				timczas.stop(false);
+				if( bisrekord==0 || icurtime<bisrekord )	{
+					csave.set("rec_"+iMemoW+"x"+iMemoH, icurtime);
+					<GAME>.img = ("rekord.png 100");
+					imgrekord.ancenterscreen;
+					txtime.txtset(clstrdigit::gettime(icurtime, "ms"));
+					txtime.setpos( imgrekord.getcx-txtime.getw/2, imgrekord.getpy + 0.55*imgrekord.geth );
+					imgrekord.blit("txtime");
+					txtime.hide;
+					sgmstate = "state_showrekord";
+					imgrekord.anzoomin(idymekdelay, "mfin");
+					fxrekord.play;
+				}
+			} else .mfin;
+		} else {
+			.tpoint;
+			if( ipointsp1==ipointsp2 )	{ fxbrawa1.play;}
+			else if (ipointsp1>ipointsp2)	{ fxbrawa1.play;	}
+			else	if( iMemoTryb==2)	{ fxbrawa1.play;	}
+			else { fxaskerups.play;	}
+			.mfin;
+		}
+	}
+	mfin	{	sgmstate = "state_finished";	}
+	butclick_nostdstate_anbutexit	{
+		if( sgmstate=="state_finished" ) .stdexit("MenuMemoSize");
+		else
+			.butclick_anbutexit;
+	}
+}
+

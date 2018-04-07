@@ -1,0 +1,322 @@
+
+game gamepart1las1 : classadvpiast {
+	init()	{
+		classadvpiast::init();
+		this.cloadpiast();
+		this.cloadterrain("scripts/part1/las1/", "bkg.png", "elems.pyz");
+		
+		this.newclmaskfunc("clm", "maski.pyz", "imglobcurs", "mclickmask");
+		new string sanlas = clm.getimg("las2");
+		
+		this.cloadpathf("maska.png");
+		
+		this.newanima("ankij", "jemiolkij.pyz", 20);
+		if( clsav.qload("ilas1zgory", false)==false )	{
+			this.cputgr2("anpiast", 750, 560);
+			ptpiast.gotorel( -50, -10 );
+		} else {
+			this.cputgr2("anpiast", 0, 200);
+			ptpiast.gotorel( 100, 100 );
+		}
+		
+		anpiast.addmethod("onendframe", "mpiastendframe");
+		
+		this.newsnds("sndp", 35, "part1piast", 35, 40 );
+		
+		int ijemiol = clsav.qload("ilas1jemiol", 0);
+		
+		if( ijemiol==0 || ijemiol==1)	{
+			this.copyanima("ankij", "anjem");
+			anjem.setframe("jemiola",0);
+			anjem.setz(600);
+			
+			clm.addmask("ankij", "kij", "imglobcurs", false);
+			clm.addfunctolast("mclickmask", null, null, null);
+			clanpack.resizemethods("ankij");
+		
+			clm.addmask("anjem", "jemiola", "imglobcurs", false);
+			anjem.mbuildvars();
+			clm.addfunctolast("mclickmask", null, null, null);
+			if(ijemiol==1)	{		// jemiola juz spadla, ale jeszcze nie zabrana
+				this.mhidekij();
+				anjem.setframe(-1, anjem.nofframes(-1)-1 );
+				this.mfinjem();
+			}
+		}
+		new int iklikinajem = 0;		// zlicza kliki na jemiole
+		this.newsnd("sfxjemiol", "sfx/jemioladown.wav");
+		this.newsnd("sfxkij", "sfx/las1getkij.wav");
+	}
+	mbuildvars()	{	new int ispadla=false;	}
+	msetspad(int i)	{	ispadla = i;	}
+	int mczyspadla()	{	return ispadla;	}
+	
+	mpiastendframe()	{
+		this.setz( this.getey() );
+	}
+	mstartgame()	{
+		igmstate = 1;
+	}
+	mfinptpiast()	{
+		ptpiast.stand();
+		if(igmstate==0)	{
+			this.mstartgame();
+		}
+	}
+	mptreach(string smask)	{
+		ptpiast.stand();
+		if(smask=="las2")	{
+			gameapi.play("gamepart1las2");
+		} else if (smask=="jemiola")	{
+			clm.disable("jemiola");
+			sfxgetitem.play();
+			clsav.qsave("ilas1jemiol",2);
+			if ( clqs.isdone("blas2juzwie")==false )	{
+				this.cbplaystate("sndp37", 5, 1);
+			} else {
+				this.cbplaystate("sndp40", 5, 1);
+			}
+		}
+	}
+	mclickmask(string smask)	{
+		if(smask=="las2")	{
+			if(igmstate==1)	{
+				this.cwalkto( "ptpiast", sanlas, 0, 0 );
+			}
+		} else if(smask=="kij")	{	
+			if(igmstate==1)	{
+				sfxkij.play();
+				this.crplay("sndp35");
+				igmstate = 2;
+				ptpiast.goto( ankij.getcx(), ankij.getcy() );
+				ankij.saverelpos( mouse.getpx(), mouse.getpy() );
+				ankij.setz(700);
+			}
+		} else if (smask=="jemiola")	{
+			if(igmstate==1)	{
+				if( anjem.mczyspadla()==true)	{
+					this.cwalkto( "ptpiast", "anjem", 0, 0 );
+				} else {
+					if ( clqs.isdone("blas2juzwie")==false )	{
+						this.crplay("sndp36");
+					} else {
+						if(iklikinajem<2)	{
+							iklikinajem++;
+							this.cbplaystate("sndp38", 5, 1);
+						} else {
+							this.cbplaystate("sndp39", 5, 1);
+						}
+					}
+				}
+			}
+		}else{
+			engine.print("mask click error: " + smask);
+		}
+	}
+	mfinjem()	{
+		igmstate = 1;
+		this.cputgr("anjem");
+		anjem.msetspad(true);
+		clsav.qsave("ilas1jemiol",1);
+	}
+	mousemove()	{
+		if(igmstate==2)	{
+			ankij.setrelpos( mouse.getpx(), mouse.getpy() );
+		}
+	}
+	mhidekij()	{
+		clm.disable("kij");
+		ankij.show();
+		ankij.setpos(0,0);
+		ankij.setz(20);	
+	}
+	mouselrel()	{
+		if(igmstate==2)	{
+			if( anjem.isin( ankij.getpx(), ankij.getpy(), true, true )!=false )	{
+				igmstate = 3;
+				anjem.play(-1);
+				anjem.addmethod("onfinish","mfinjem");
+				this.mhidekij();
+				sfxjemiol.play();
+			} else {
+				igmstate=1;
+				ankij.setz(20);
+				ankij.setpos(0, 0);
+			}
+		}
+	}
+	mouselclick()	{
+		this.advclick();
+	}
+}
+
+/*******************************************************************/
+game gamepart1las2 : classadvpiast {
+	init()	{
+		classadvpiast::init();
+		clsav.qsave("ilas1zgory", true);
+		this.cloadpiast();
+		this.cputgr2("anpiast", 550, 570);
+		this.cloadterrain("scripts/part1/las2/", "bkg.png", "elems.pyz");
+		
+		this.newclmaskfunc("clm", "maski.pyz", "imglobcurs", "mclickmask");
+		new string sanjasny = clm.getimg("jasny");
+		new string sanciemny = clm.getimg("ciemny");
+		
+		this.cloadpathf("maska.png");
+		
+		this.newstdanima("andruid", "druid.pyz", 10);
+		this.cputgr("andruid");
+		andruid.setdelay(4);
+		this.newanima("anogrod", "ogrodek.pyz", 10);
+		
+		clm.addmask("anogrod", "ogrod", "imglobcurs", false);
+		clm.addfunctolast("mclickmask", null, null, null);
+		clm.addmask("andruid", "druid", "imglobcurs", false);
+		clm.addfunctolast("mclickmask", null, null, null);
+		ptpiast.gotorel( -50, -10 );
+		anpiast.addmethod("onendframe", "mpiastendframe");
+		anpiast.addmethod("onfinish", "mpiastfin");
+		
+		this.cnewsndsfin("sndp", 41, "part1piast", 41, 50, "mfinp" );
+		this.cnewsndsfin("snddr", 1, "part1druid", 1, 13, "mfindr" );
+		
+		new int ijemiol = clsav.qload("ilas1jemiol", 0);
+		
+		new int bogrodek=false;
+	}
+	mcbplay(int istate, string ssnd, string sdir)	{
+		igmstate = istate;
+		this.cbplay( ssnd );
+		ssnd = ssnd.getb(3, 1);
+		if ( ssnd=="p" )	{
+			this.mpssay(sdir);
+			this.mdrhear();
+		} else if (ssnd=="d")	{
+			this.mdrsay();
+			this.mpshear(sdir);
+		}
+	}
+	/********************** finish sounds *************************************/
+	mfinp41()	{	this.mcbplay(5, "snddr1", "rd" ); }
+	mfinp42()	{	this.mcbplay(5, "snddr3", "rd" ); }
+	mfinp43()	{	this.mcbplay(5, "snddr2", "rr" ); }
+	mfinp44()	{	this.mcbplay(5, "snddr4", "rr" ); }
+	mfinp45()	{	this.mcbplay(5, "snddr5", "rr" ); }
+	mfinp46()	{	this.mcbplay(5, "snddr6", "rr" ); }
+	mfinp47()	{	this.mcbplay(5, "snddr7", "rr" ); }
+	mfinp48()	{	this.mcbplay(5, "snddr8", "rr" ); }
+	mfinp49()	{	igmstate=0;	ptpiast.gotorel(-100,0); }
+	mfinp50()	{	igmstate=0;	ptpiast.gotorel(-100,0); }
+	mfindr1()		{	this.mcbplay(5, "sndp42", "rd" );	 }
+	mfindr2()		{	igmstate=1;	this.mdrhear(); }
+	mfindr3()		{	
+		this.mdrhear(); 
+		clqs.done("blas2juzwie");
+		if( ijemiol==2)	{
+			clqs.done("blas2maodrazu");
+			this.cwalkto2( "ptpiast", "andruid", "druid", -45, 45 );
+		} else {
+			igmstate=1;	
+		}
+	}
+	mwykonal()	{
+		igmstate=1;	this.mdrhear();
+		clqs.done("blas2finito");
+	}
+	mfindr4()		{	this.mcbplay(5, "sndp45", "lu" );	 }
+	mfindr5()		{	this.mcbplay(5, "sndp46", "rr" );	 }
+	mfindr6()		{	this.mwykonal(); }
+	mfindr7()		{	this.mcbplay(5, "sndp48", "rr" );	 }
+	mfindr8()		{	this.mwykonal();	}
+	mfindr9()		{	igmstate=1;	this.mdrhear(); }
+	mfindr10()	{	igmstate=1;	this.mdrhear(); }
+	mfindr11()	{	this.mcbplay(5, "sndp49", "lu" );	 }
+	mfindr12()	{	this.mcbplay(5, "sndp50", "lu" );	 }
+	mfindr13()	{	igmstate=1;	this.mdrhear(); }
+	/***********************************************************/
+	mpiastendframe()	{
+		this.setz( this.getey() );
+	}
+	mpiastfin()	{	this.play(-1);	}
+	mstartgame()	{
+		igmstate = 1;
+	}
+	mfinptpiast()	{
+		ptpiast.stand();
+		if(igmstate==0)	{
+			this.mstartgame();
+		}
+	}
+	mpssay(string sdir)	{	anpiast.play("talk"+sdir);	}
+	mpshear(string sdir)	{	anpiast.play("stand"+sdir);	}
+	mdrsay()	{	andruid.play( "gada" );	}
+	mdrhear()	{ andruid.play("stoiPL");	}
+	mptreach(string smask)	{
+		ptpiast.stand();
+		if(smask=="jasny")	{
+			gameapi.play("gamepart1las1");
+		} else if (smask=="ciemny")	{
+			if ( clqs.isdone("blas2ciemny")==false )	{
+				clqs.done("blas2ciemny");
+				this.mcbplay( 5, "sndp41", ptpiast.getdir() );
+			} else {
+				if( clqs.isdone("blas2finito")==true )	{	// juz wszystko zrobione
+					gameapi.play("gamepart1platforma");
+				} else {
+					this.mcbplay( 5, "snddr10", ptpiast.getdir() );
+				}
+			}
+		} else if (smask=="ogrod")	{
+			if(bogrodek==false)	{
+				bogrodek = true;
+				this.mcbplay( 5, "snddr11", ptpiast.getdir() );
+			} else {
+				this.mcbplay( 5, "snddr12", ptpiast.getdir() );
+			}
+		} else if (smask=="druid")	{
+			if( clqs.isdone("blas2ciemny")==false )	{	// nie doszedl do lasu jeszcze
+				this.mcbplay( 5, "sndp43", "rr" );
+			} else {
+				if( clqs.isdone("blas2finito")!=false )	{	// juz wszystko zrobione
+					this.mcbplay( 5, "snddr13", "rr" );
+				} else {
+					if (clqs.isdone("blas2maodrazu")==true)	{	// mial jemiole nim wiedzial po co
+						this.mcbplay( 5, "sndp44", "rr" );
+					} else {
+						if(ijemiol==2)	{		// doniosl jemiole
+							this.mcbplay( 5, "sndp47", "rr" );
+						} else {
+							this.mcbplay( 5, "snddr9", "rr" );	// nic nie ma, a chce gadac
+						}
+					}
+				}
+			}
+		}
+	}
+	mclickmask(string smask)	{
+		if(smask=="jasny")	{
+			if(igmstate==1)	{
+				this.cwalkto( "ptpiast", sanjasny, 0, 0 );
+			}
+		} else if(smask=="ciemny")	{	
+			if(igmstate==1)	{
+				this.cwalkto( "ptpiast", sanciemny, 0, 0 );
+			}
+		} else if (smask=="ogrod")	{
+			if(igmstate==1)	{
+				this.cwalkto2( "ptpiast", "anogrod", "ogrod", 0, 0 );
+			}
+		} else if (smask=="druid")	{
+			if(igmstate==1)	{
+				this.cwalkto2( "ptpiast", "andruid", "druid", -45, 45 );
+			}
+		}else{
+			engine.print("mask click error: " + smask);
+		}
+	}
+	mouselclick()	{
+		this.advclick();
+	}
+}
+

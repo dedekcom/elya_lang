@@ -1,0 +1,404 @@
+game gameobozintro : classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		this.setgraphpath("scripts/part3/oboz/intro/");
+		this.cstdbkg();
+		this.cloadbgelem( "elems.pyz" );
+		new string sanstrzala = this.cgetelembyaction( "strzala" );
+		new string sanarcher = this.cgetelembyaction( "archer" );
+		<sanstrzala>.setz( <sanarcher>.getz() + 1 );
+		<sanstrzala>.addmethod("onfinish", "mstrzalafin");
+		int ile = this.loadanactions("anps", "piast.pyz", 600);
+		anps2.setz(599);
+		new int icykl=30;
+		new int ikrokx=3;
+		new int ikroky=5;
+		igmstate=0;
+		anps0.addmethod("onfinish", "mpiastfin");
+		anps0.move( -ikrokx*icykl, ikroky*icykl );
+		anps1.move( -ikrokx*icykl, ikroky*icykl );
+		this.cloadwavs("dbwavs", "wavs.db");
+		this.cbplay("sndnar1");
+	}
+	mstartpiast()	{
+		anps0.play(-1);
+	}
+	mpiastfin()	{
+		if(igmstate==0)	{
+			anps0.move( ikrokx, -ikroky );
+			anps1.move( ikrokx, -ikroky );
+			icykl--;
+			if(icykl<=0)	{
+				igmstate=1;
+				icykl=20;
+				ikrokx=1;
+				ikroky=2;
+			}
+			this.play(-1);
+		} else if (igmstate==1)	{
+			anps1.move( ikrokx, ikroky );
+			anps2.move( ikrokx, ikroky );
+			icykl--;
+			if(icykl>0)	{
+				this.play(-1);
+			} else {
+				sndp1.play();
+			}
+		}
+	}
+	mfinp1()	{
+		this.cbplay("sndmysz1");
+	}
+	mfinp2()	{
+		gameapi.play("gamepart3oboz");
+	}
+	mfinmysz2()	{
+		<sanarcher>.play(-1);
+		<sanstrzala>.play(-1);
+		sfxluk1.play();
+	}
+	mstrzalafin()	{
+		this.move(40, -1);
+		if( this.getpx() > 800 )	{
+			this.hide();
+			this.cbplay("sndmysz3");
+			sfxluk2.play();
+		} else {
+			this.play(-1);
+		}
+	}
+}
+
+/****************************************************************************/
+
+game gamepart3oboz : classadvpiast {
+	init()	{
+		classadvpiast::init();
+		this.cloadpiast();
+		this.cloadterrain("scripts/part3/oboz/", "bkg.png", "elems.pyz");
+		
+		this.cloadpathf("maska.png");
+		
+		anpiast.addmethod("onendframe", "mpiastendframe");
+		this.looponfinish("anpiast");
+		
+		this.cnewanimagr("anwino", "specjalne.pyz");
+		int itreez = <this.cgetelembyaction( "drzewo" )>.getz() + 1;
+		this.copyanimaactz("anwino", "anmiod", "miod", itreez );
+		anwino.hide();
+		this.copyanimaactgr("anwino", "anrog", "rog" );
+		this.copyanimaactgr("anwino", "anchlop", "chlop" );
+		this.copyanimaactgr("anwino", "anklucz", "klucz" );
+		
+		new classmask clm;
+		clm.addadvmask("anmiod", "miod", "imglobcurs", "mclickmask" );
+		this.mbuildmask( "slup", "lup", "lup");
+		this.mbuildmask( "sbeczka", "beczka", "beczka");
+		this.mbuildmask( "srog", "rog", "rog");
+		<srog>.setz( itreez+1 );
+		this.mbuildmask( "sspioch", "spiochPL", "spioch");
+		<sspioch>.setz( itreez );
+		this.mbuildmask( "schlop", "chlopPL", "chlop");
+		this.mbuildmask( "seryk", "eryk", "eryk");
+		this.mbuildmask( "solaf", "olafPL", "olaf");
+		this.mbuildmask( "skufer", "kufer", "kufer");
+		<skufer>.addmethod("onfinish", "mfinkufer");
+		
+		this.cloadwavs("dbwavs", "wavs.db");
+		
+		this.cputgr2("anpiast", 750, 470);
+		ptpiast.gotorel( -50, -50 );
+		
+		new classquest clq;
+		new string smowido;
+	}
+	/****************************************************************/
+	mfinp1()	{ 
+		if(smowido=="olaf")	{
+			this.mherosay("sndolaf1");
+		} else {
+			this.mherosay("snderyk1");
+		}
+	}
+	mfinp2()	{	this.mnorma();	}
+	mfinp3()	{
+		if( this.mcheckobaj()==false )	{
+			this.mnorma();
+		} 
+	}
+	mfinp4()	{	this.mnorma();	}
+	mfinp5()	{	this.mherosay("sndolaf2");	}
+	mfinp6()	{	this.mherosay("sndolaf3");	}
+	mfinp7()	{	this.mnorma();	}
+	mfinp8()	{	this.mherosay("snderyk2");	}
+	mfinp9()	{
+		if( this.mcheckall() == false )	{
+			this.mnorma();	
+		}
+	}
+	mfinp10()	{}
+	mfinp11()	{	this.mnorma();	}
+	mfinp12()	{
+		this.mherosay("sndchlop3");
+	}
+	mfinp13()	{	this.mnorma();	}
+	mfinp14()	{
+		clq.done("uwolnil");
+		if( this.mcheckall()==false)	{
+			this.mnorma();
+		}
+	}
+	mfinp15()	{
+		this.mherosay("sndalarm");
+	}
+	mfinp16()	{	this.mnorma();	}
+	mfinp17()	{	this.mnorma();	}
+	mfinp18()	{
+		this.canplayfin("anwino", "mwinofin");
+		anwino.setz(600);
+		anrog.show();
+		sfxwino.play();
+	}
+	mwinofin()	{
+		this.hide();
+		anrog.hide();
+		this.mnorma();
+		sfxwino.stop(false);
+	}
+	mfineryk1()	{	this.mfinsnderyk1();	}
+	mfineryk2()	{
+		if( clq.isdone("dalwino")==false)	{
+			clq.done("dalwino");
+			this.mpiastsay("sndp9");
+			anpiast.play("talkdd");
+		} else {
+			this.mnorma();
+		}
+	}
+	mfinolaf1()	{	this.mfinsndolaf1();	}
+	mfinolaf2()	{
+		if( clq.isdone("dalwino")==false )	{
+			this.mpiastsay("sndp6");	
+		} else if ( this.mcheckall()==false )	{
+			this.mnorma();
+		}
+	}
+	mfinolaf3()	{	this.mpiastsay("sndp7");	}
+	mfinchlop1()	{	
+		if( clq.isdone("maklucz")==false )	{
+			this.mpiastsay("sndp11");
+		} else {
+			sfxklucz.play();
+			this.mherosay("sndp12");
+		}
+	}
+	mfinchlop2()	{	this.mnorma();	}
+	mfinchlop3()	{	
+		<schlop>.stop(false);
+		clm.disable("chlop");
+		this.cplayelemfin("anchlop", "mfinchlop");
+		<this.cgetelembyaction( "cienchlopa" )>.hide();
+		sfxzwiewa.play();
+	}
+	mfinalarm()	{
+		igmstate=3;
+		ptpiast.goto(0,0);
+	}
+	mfinsnderyk1()	{
+		if( clq.isdone("gadaleryk")==false)	{
+			clq.done("gadaleryk");
+			if( clq.isdone("marog")==false )	{
+				this.mpiastsay("sndp3");
+				anpiast.play("talkdd" );
+			} else {
+				this.mfinp3();
+			}
+		} else {
+			this.mnorma();
+		}
+	}
+	int mcheckall()	{
+		if( clq.isdone("dalwino")==true && clq.isdone("dalmiod")==true
+			&& clq.isdone("uwolnil")==true)	{
+			this.mpiastsay("sndp15");
+			anpiast.play("talkdd");
+			return true;
+		} else {
+			return false;
+		}
+	}
+	int mcheckobaj()	{
+		if( clq.isdone("gadalolaf")==true && clq.isdone("gadaleryk")==true )	{
+			this.mpiastsay("sndp2");
+			anpiast.play("talkdd" );
+			return true;
+		} else {
+			return false;
+		}
+	}
+	mfinsndolaf1()	{
+		if( clq.isdone("gadalolaf")==false )	{
+			clq.done("gadalolaf");
+			if( this.mcheckobaj() == false )	{
+				this.mnorma();
+			}
+		} else {
+			this.mnorma();
+		}
+	}
+	mnorma()	{	igmstate=1;	ptpiast.anstand();	}
+	mfinitogame()	{	gameapi.play("gamegoldenaxe");	}
+	/****************************************************************/
+	mfinchlop()	{	
+		this.hide();
+		this.mpiastsay("sndp14");
+	}
+	mfinkufer()	{	this.cplayelemfin("anklucz", "mfinklucz");	}
+	mfinklucz()	{
+		clm.addadvmask("anklucz", "klucz", "imglobcurs", "mclickmask" );
+		this.cputgr( skufer );
+	}
+	mherosay(string ssnd)	{
+		igmstate = 5;
+		ptpiast.anstand();
+		this.cbplay(ssnd);
+	}
+	mpiastsay(string ssnd)	{
+		igmstate=5;
+		this.cbplay(ssnd);
+		ptpiast.ansay();
+	}
+	mpiastendframe()	{
+		this.setz( this.getey() );
+		if( igmstate==0)	{
+			this.mstartgame();
+		}
+	}
+	mstartgame()	{
+		igmstate=1;
+		ptpiast.anstand();
+	}
+	mfinptpiast()	{
+		ptpiast.stand();
+		if( igmstate==3)	{
+			this.mfinitogame();
+		}
+	}
+	mptreach(string smask)	{
+		ptpiast.stand();
+		if(smask=="lup")	{
+			this.crbgplay("sndgadka");
+		} else if (smask=="beczka")	{
+			if( clq.isdone("marog")==false )	{
+				this.mpiastsay("sndp17");
+			} else {
+				if( clq.isdone("mawino")==false )	{
+					this.mpiastsay("sndp18");
+					clq.done("mawino");
+				} else {
+					this.mpiastsay("sndp17");
+				}
+			}
+		} else if (smask=="rog")	{
+			if( clq.isdone("marog")==false )	{
+				<srog>.hide();
+				clq.done("marog");
+				clm.disable("rog");
+				sfxrog.play();
+				this.mpiastsay("sndp16");
+			}
+		} else if (smask=="spioch")	{
+			this.crbgplay("sndspioch");
+		} else if (smask=="eryk")	{
+			if( clq.isdone("gadaleryk")==false )	{
+				this.mpiastsay("sndp1");
+				smowido = "eryk";
+			} else {
+				if( clq.isdone("mawino")==false )	{
+					this.mherosay("snderyk1");
+				} else {
+					if( clq.isdone("dalwino")==false)	{
+						this.mherosay("sndp8");
+					} else {
+						this.mherosay("snderyk2");
+					}
+				}
+			}
+		} else if (smask=="olaf")	{
+			if( clq.isdone("gadalolaf")==false )	{
+				this.mpiastsay("sndp1");
+				smowido = "olaf";
+			} else {
+				if( clq.isdone("mamiod")==false )	{
+					this.mherosay("sndolaf1");
+				} else {
+					if( clq.isdone("dalmiod")==false )	{
+						clq.done("dalmiod");
+						this.mpiastsay("sndp5");
+					} else {
+						this.mherosay("sndolaf3");
+					}
+				}
+			}
+		} else if (smask=="chlop")	{
+			if( clq.isdone("gadalchlop")==false )	{
+				clq.done("gadalchlop");
+				this.mherosay("sndchlop1");
+			} else {
+				if( clq.isdone("maklucz")==false )	{
+					this.mherosay("sndchlop2");
+				} else {
+					sfxklucz.play();
+					this.mherosay("sndp12");
+				}
+			}
+		} else if (smask=="kufer")	{
+			if( clq.isdone("otworzylkufer")==false )	{
+				clq.done("otworzylkufer");
+				<skufer>.setz(10);
+				<skufer>.play(-1);
+				sfxkufer.play();
+			}
+		} else if (smask=="klucz")	{
+			clm.disable("klucz");
+			clq.done("maklucz");
+			this.mpiastsay("sndp13");
+			sfxgetitem.play();
+		} else if (smask=="miod")	{
+			this.mpiastsay("sndp4");
+			clm.disable("miod");
+			clq.done("mamiod");
+			sfxgetitem.play();
+		} 
+	}
+	mclickmask(string smask)	{
+		if(igmstate!=1)	{	return;	}
+		if(smask=="lup")	{
+			this.cwalkto2( "ptpiast", slup, smask, 0, 0 );
+		} else if (smask=="beczka")	{
+			this.cwalkto2( "ptpiast", sbeczka, smask, 60, 30 );
+		} else if (smask=="rog")	{
+			this.cwalkto2( "ptpiast", srog, smask, 0, 50 );
+		} else if (smask=="spioch")	{
+			this.cwalkto2( "ptpiast", sspioch, smask, 0, 50 );
+		} else if (smask=="eryk")	{
+			this.cwalkto2( "ptpiast", seryk, smask, 0, 50 );
+		} else if (smask=="olaf")	{
+			this.cwalkto2( "ptpiast", solaf, smask, 0, 50 );
+		} else if (smask=="chlop")	{
+			this.cwalkto2( "ptpiast", schlop, smask, -40, 40 );
+		} else if (smask=="kufer")	{
+			this.cwalkto2( "ptpiast", skufer, smask, 20, 50 );
+		} else if (smask=="klucz")	{
+			this.cwalkto2( "ptpiast", "anklucz", smask, 0, 0 );
+		} else if (smask=="miod")	{
+			this.cwalkto2( "ptpiast", "anmiod", smask, 0, 90 );
+		} 
+	}
+	mouselclick()	{
+		this.advclick();
+	}
+}
+
+
+

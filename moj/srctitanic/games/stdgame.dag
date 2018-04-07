@@ -1,0 +1,1508 @@
+new string sAskerGame;
+new string sNextGame = null;
+new int iProfilId;
+new int AdventureMode = 0;
+new int iGameMute = 0;
+
+class StdGame : classadv, GameController, Localize, Match3	{
+	init(string s)	{
+		igmstate = 0;
+		sgmstate = "init";
+		classadv::init;
+		GameController::init(s);
+		Localize::init;
+		clbuts.setcursorpos(0, 0);
+		claskexit.setcursorpos(0, 0);
+		.path = (s);
+		.setwavpath(SNDPATH);
+		bsms.setstd;		// ustawia standardowo 
+		clmusic.play;
+		clbuts.reset;
+		claskexit.reset;
+		advmouse.setstd;
+		
+		new classfullsave clsmen("global.sav");
+		clsmen.stdload;
+		new MusicTit mus;
+		.setgamevolume;
+		
+		if( AdventureMode )	{
+			.loadsaver;
+			
+			if( AdventureMode==1 )	{
+				AdventureMode = 2;
+				
+				clsave.free;
+				
+				if( igmdebug )	{
+					new Script scrl("scripts/mainloader/init.dsc");
+				}
+			} else clsave.stdload;
+			
+			clsave.set("currentgame", this);
+			clsave.stdsave;
+		}
+		
+		new bool bmatch3mode = false;
+		
+		new Button but1;
+		.cutscene;
+		
+		new db dblangcom;
+		dblangcom.load( LANGDIR+"commontxt_"+LANG+".db");
+		//.img = ("$scripts/common/skip.pyzH");
+		.newanima("_anskip", "$scripts/common/skip.pyz", 0);
+		new img anskip;
+		anskip.clone("_anskip");
+		delete _anskip;
+		new int TextDialogSize = 16;
+		//@sfont = .stdfont(TextDialogSize);
+		.txtonbutton(dblangcom.dbget("next"), "anskip");
+		anskip.hide;
+		.sfx = ("skip");
+		anskip {
+			.Button_stdms;
+			.addmethod("butclick", func {
+				fxskip.play;
+				.cactsndstop(true);
+				} );
+			//but1.add(this);
+		};
+		
+		if( !this->in(A, "Intro", "MainMenu") )	{
+			.img = ("$scripts/common/butmenu.pyz 1900");
+			anbutmenu	{
+				.Button_stdms;
+				.addmethod("butclick", func {
+					claskexit.askexittomenu;
+					fxskip.play;
+					} );
+				but1.add(this);
+			};
+		}
+		
+		.img = ("$scripts/common/glosnik.pyz 800");
+		anglosnik {
+			iGameMute = clsmen.get("game_mute");
+			.setframe(0, iGameMute);
+			.Button_stdms;
+			.addmethod("butclick", func {
+				if( .framenr==0 )	{
+					iGameMute = 1;
+					_grsfxs.eval( func { .setvol(0); } );
+					gameapi.pausemusic;
+				} else {
+					iGameMute = 0;
+					_grsfxs.eval( func { .setvol(myvol); } );
+					gameapi.resumemusic;
+				}
+				.game_mute;
+				.setframe(0, iGameMute);
+				clsmen.set("game_mute",iGameMute);
+				clsmen.stdsave;
+				} );
+			but1.add(this);
+		};
+		
+		new int iduchstate = 30;
+		
+		.newgrimg("grshowhintb", "$scripts/common/showhintb", 800);
+		grshowhintb.var2("lastplayed", null);
+		grshowhintb.hide;
+		.newgrimg("grshowhintgold", "$scripts/common/hintgold", 800);
+		grshowhintgold.var2("lastplayed", null);
+		grshowhintgold.hide;
+	}
+	txtonbutton(string stxt, string simg)	{
+		@sfont = "_fnbold";
+		.newfont(sfont, "configs/fonts/timesbd.ttf", TextDialogSize);
+		.newtext("_txtnext", stxt, sfont, .black);
+		_txtnext.setpos( <simg>.getcx - _txtnext.getw/2, <simg>.getcy - _txtnext.geth/2 );
+		<simg>.blit("_txtnext");
+		delete _txtnext;
+		delete <sfont>;
+	}
+	sfx=(string s)	{
+		classgame::sfx=(s);
+		s = _grsfxs.last;
+		<s>.var2("myvol", <s>.getvol);
+		if( iGameMute )
+			<s>.setvol(0);
+	}
+	setgamevolume	{
+		mus.musicvolume = (.loadmusicvolume);
+		engine.setsndvol(.loadsndvolume);
+	}
+	stdmusicvol	{	50;	}
+	loadmusicvolume	{
+		int vol = .stdmusicvol;
+		@s = clsmen.get("music_volume"+clsmen.get("currentprofile"));
+		if( s!=null ) vol=s;
+		vol;
+	}
+	stdsndvol	{	60;	}
+	loadsndvolume	{
+		int vol = .stdsndvol;
+		@s = clsmen.get("sfx_volume"+clsmen.get("currentprofile"));
+		if( s!=null ) vol=s;
+		vol;
+	}
+	loadsaver	{
+		new guitems clsave("profile_"+iProfilId+".sav");
+	}
+	/********************* adv **************************************/
+	cutscene	{
+		//if( igmipad ) return;
+		new CutScene ccs(0, 0, iResX, iResY);
+		ccs.setz(2000);
+	}
+	gotoadv(string spath, string sgame)	{
+		sgmlastscene = gameapi.getgamename;
+		sgmglobpath = spath;
+		sgmgame = sgame;
+		gameapi.play("gameadvdef");
+	}
+	gotoadv2(string spath, string sgame)	{
+		sgmlastscene = gameapi.getgamename;
+		sgmglobpath = spath;
+		sgmgame = null;
+		gameapi.play(sgame);
+	}
+	/********************* helpful **************************************/
+	crect	{	new Rect rec(600,196,403,497);	}
+	crect2	{	new Rect rec2(6,174,1012,530);	}
+	cshowbut(string sbut, @dir)	{
+		clbuts (sbut, dir) { (string sbut, @dir)
+			clp.show( buts.callimgfun( sbut, "getcx"), buts.callimgfun( sbut, "getcy"), dir ); 
+		};
+	}
+	napisshow(int x, int y)	{
+		.show;
+		.move(x,y);
+	}
+	napispod(string s)	{	.napisshow(<s>.getcx-.getw/2, <s>.getey+5); }
+	timplay(string stimer, int delay, string sfunc)	{ <GAME> (stimer, delay, sfunc ) { (string stimer, int delay, string sfunc)
+		.timer = (stimer, delay, sfunc );
+		<stimer>.play;
+	}; }
+	/***********************************************************/
+	advclick()	{
+		if( igmdebug && (igmstate==0 || igmstate==5) )	{
+			this.cactsndstop(true);
+		}
+	}
+	key_down	{
+		if( igmdebug && keyboard.iskeydown("lctrl") && keyboard.iskey("r") )	.crestart;
+	}
+	askfor(@s)	{ if( igmstate!=111) {sAskerGame=s; claskexit.askexittomenu; }	}
+	public askrestart	{	claskexit.askrestart;	}
+	/***********************************************************/
+	onmusicfin      {	mus.play;	}
+	exit	{
+		bsms.setstd;
+		.game_exit;
+		if( igmsubtitle )	{
+			subtitle.reset;
+		}
+	}
+	/*********************** hidden ************************************/
+	mhobutmask	{ ._mhobut(0); }
+	mhobut	{ ._mhobut(1); }
+	_mhobut(bool bvis)	{
+		if( bvis )
+			.Button_isinalpha;
+		else	.Button_isinvisalpha;
+		.addmethod("butmoveon", func { ; } );
+		.addmethod("butmoveoff", func { ; } );
+		.addmethod("butclick", func {
+			if( igmstate==1 || sgmstate=="hoout" ) {
+				.mho_click;
+				.<.actionname + "_click">;
+				but1.onmousemove;
+			}
+			} );
+		but1.add(this);
+	}
+	mhobjmask	{	._mhobj(0);	}
+	mhobj	{	._mhobj(1);	}
+	_mhobj(bool bvis)	{
+		if( bvis )
+			.Button_isinalpha;
+		else	.Button_isinvisalpha;
+		.addmethod("butmoveon", func { advmouse.setact; } );
+		.addmethod("butmoveoff", func { advmouse.setstd; } );
+		.addmethod("butclick", func {
+			if( igmstate!=1 ) return;
+			.<this + "_click">;
+			} );
+		but1.add(this);
+	}
+	mstdenter	{
+		/*if( igmipad )	{
+			igmstate=1;
+		} else {
+			ccs.enter( func { igmstate=1; } );
+		}*/
+		ccs.enter( func { igmstate=1; } );
+	}
+	mprzejdzclick(string s)	{	if( igmstate!=2 ) .mprzejdz(s);	}
+	mprzejdz(string s)	{
+		igmstate=2;
+		sNextGame = s;
+		mus.fadeout(1000);
+		ccs.close( func {
+			if( .hasvar("clsave") )	{
+				clsave.set("last_scene", GAME);
+				clsave.stdsave;
+			}
+			gameapi.play(sNextGame);
+			} );
+	}
+	mouse_lclick	{
+		if( bmatch3mode )	{
+			.m3_lclick;
+		} else {
+			.tit_lclick;
+		}
+	}
+	mprogress	{
+		.newtext("txtprg", "Work in progress", .stdfont(48), .white);
+		txtprg.txtcenterscreen;
+	}
+	stdgo	{	igmstate=1;	}
+	loadsnddb	{
+		if( .hasvar("dbsnd") ) return;
+		if( engine.fileexist(.lang_path("snd_")+".db") )	{
+			.lang_db("dbsnd", "snd_");
+		} else {
+			new db dbsnd;
+		}
+		new tcramka tcr;
+		new db dbts;
+		dbts.load(LANGDIR + "Common_snd_"+LANG+".db");
+		dbsnd.dbaddrowfromto("dbts", 0, dbts.getrowsno);
+		dbts.free;
+		.snd=("lektordoors", "lektordoors", "stdret" );
+		.snd=("lektorhodone", "lektorhodone", "stdret" );
+		.snd=("lektorclicks", "lektorclicks", func {
+			tcr.ahide;
+			pogadal=true;
+			if( !timhokara.isplaying ) igmstate=1;
+			} );
+		if( AdventureMode )	{
+			lektorclicks.var2("pogadal", clsave.bis("ho_ukarany") );
+		}
+	}
+	stdret	{	tcr.ahide; igmstate=1; }
+	titsounds={
+		.loadsnddb;
+		.sounds = ();
+	}
+	txtsayl(string s)	{ ._txtplay(s,"sayl");	}
+	txtsayr(string s)	{ ._txtplay(s,"sayr");	}
+	txtthinkl(string s)	{ ._txtplay(s,"thinkl");	}
+	txtthinkr(string s)	{ ._txtplay(s,"thinkr");	}
+	txtplay(string s)	{ ._txtplay(s, null);	}
+	_txtplay(string s, string styp)	{ <GAME> (s, styp){ (string s, string styp)
+		
+		if( igmstate==1 ) igmstate=0;	// 12.06.02
+		
+		dbts.free;
+		@id = dbsnd.findbyrow(s);
+		if( id>=0 )	{
+			for( int i=3; i<dbsnd.getcolsno(id); i++)	{
+				@row = dbts.addrow-1;
+				dbts.add(row, dbsnd.get(id,i));
+			}
+			if( dbsnd.get(id,1)->in(A, "sayl", "sayr", "thinkl", "thinkr") )
+				styp = dbsnd.get(id,1);
+			int limit = dbconf.dbget("dialog_chars:");
+			if( styp==null )	{
+				/*new TextDb tdsnd(null, 16, "$var:dbts", .grey(20),
+					dbsnd.get(id,1)->to_r*iResX,dbsnd.get(id,2)->to_r*iResY, 5,750, "left");*/
+				new TextDb tdsnd(null, TextDialogSize, "$var:dbts", .grey(20),
+					dbsnd.get(id,1)->to_r*iResX,dbsnd.get(id,2)->to_r*iResY, 5,750, "limit_"+limit);
+				tcr.view("tdsnd");
+			} else {
+				/*new TextDb tdsnd(null, 16, "$var:dbts", .grey(20),
+					0,0, 5,750, "left");*/
+				new TextDb tdsnd(null, 16, "$var:dbts", .grey(20),
+					0,0, 5,750, "limit_"+limit);
+				tcr.speaker = (s);
+				tcr.<styp>("tdsnd");
+			}
+			
+			.deletegmobj("tdsnd");
+			tcr.ashow;
+		}
+		.cbplay(s);
+	}; }
+	snd=(string sname, string sfile, string sfun)	{ <GAME> (sname, sfile, sfun) {
+		(string sname, string sfile, string sfun)
+		
+		if( igmsoundson )	{
+			.newsndfree(sname, sfile + ".wav");
+			<sname>.addmethod("onfinish", sfun);
+		} else {
+			@id = dbsnd.findbyrow(sname);
+			if( id>=0 )	{
+				@stxt = "";
+				for( int i=3; i<dbsnd.getcolsno(id); i++)	{
+					stxt+=dbsnd.get(id,i);
+				}
+				.newtimer( sname, stxt.length*_itimersnddelay, 1);
+				<sname>.addmethod("onstart", "_sndtimerstart");
+				<sname>.addmethod("setstartstopflag", func { (bool b1, bool b2) ; });
+				<sname>.addmethod("onfinish", sfun);
+			}
+		}
+	}; }
+	/****************** duch album ***********************/
+	foto_album	{ <GAME> {
+		@sp = .getgraphpath;
+		.path = ("album");
+		.imgs = (A, "al.pyz 700", "fotos.pyzGH 710");
+		.sfx = ("albumP");
+		//anal.ancenterscreen;
+		int ileduchow = anfotos.nofactions;
+		new int _idfoto;
+		for( int i=1; i<=ileduchow; i++)	{
+			@s = grfotos.get(i-1);
+			//<s>.setpos( anal.getposx, anal.getposy );
+			if( clsave.bis("duch"+i+"_found") )	{
+				<s>.setframe(-1,1);
+				<s>.show;
+			}
+		}
+		new itemadder clduch;
+		
+		.setgraphpath(sp);
+	}; }
+	foto_albumout	{ <GAME> {
+		delete fxalbum;
+		clduch.free;
+		delete clduch;
+		delete _idfoto;
+		grfotos.deleteloaded;
+		delete grfotos;
+		delete anal;
+	}; }
+	foto_show(int idduch)	{
+		clsave.bset("duch"+idduch+"_found");
+		@s = grfotos.get(idduch-1);
+		<s>.setz(<s>.getz+1);
+		clduch.showitem(s, "foto_shown");
+	}
+	foto_to_album(int idduch)	{
+		_idfoto=idduch;
+		clduch.gotonextfr(grfotos.get(idduch-1), 15, func {
+			@sduch = grfotos.get(_idfoto-1);
+			<sduch>.setframe(-1,1);
+			<sduch>.setpos(0,0);
+			.foto_in_album;
+			} );
+	}
+	/*************** klucz ********************/
+	klucz_show(int idklucz)	{ <GAME> (idklucz) { (int idklucz)
+		new itemadder clklucz;
+		clsave.bset("ma_klucz"+idklucz);
+		new int _idklucz;
+		if( !.hasvar("fxfoundkey") )
+			.sfx = ("foundkey 80");
+		fxfoundkey.play;
+		clklucz.showitem(grklucze.get(idklucz), "klucz"+idklucz+"_shown");
+	}; }
+	klucz_to_kolo(int idklucz)	{ <GAME> (idklucz) { (int idklucz)
+		_idklucz = idklucz;
+		if( !.hasvar("fxtolist0") )	{
+			.sfx = ("tolist0");
+		}
+		fxtolist0.play;
+		clklucz.gotonextfr(grklucze.get(idklucz), 15, func {
+			@sduch = grklucze.get(_idklucz);
+			<sduch>.setframe(-1,1);
+			<sduch>.setpos(0,0);
+			.<"klucz"+_idklucz+"_in_kolo">;
+			} );
+	}; }
+	/****************** duch ***********************/
+	gogo_duch	{
+		<GAME>.cycle = ("_duch_poser", func {
+			anduch.setpos( and2.getpx, and2.getpy ); 
+			and2.ansetnextfr;
+			.play;
+			} );
+		_duch_poser.play;
+	}
+	stop_duch	{	_duch_poser.stop(false);	}
+	load_duch(string s)	{
+		grels.hide;
+		
+		.newanima("anduch", s+".pyz", 320);
+		.newanima("anwybuch", "$scripts/common/wybuch.pyz", 330);
+		anwybuch.hide;
+		
+		.copyanima("anduch", "and2");
+		and2.hide;
+		and2.setframe(1,0);
+		
+		anduch.play(0);
+		
+		anwybuch.addmethod("onendframe", func {
+			if( .framename=="bum" )	{
+				grels.show;
+				timduchwybuch.play;
+			}
+			});
+		
+		new int iduchstep = 10;
+		
+		anduch {
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( igmstate==iduchstate )	{
+					_duch_poser.stop(false);
+					.anhide;
+					and2.stop(false);
+					anwybuch.setpos( .getcx, .getcy );
+					anwybuch.play(0);
+					
+					grels.eval( func {
+						.vars2(A, "stepx", (anwybuch.getcx - .getpx)/iduchstep,
+							"stepy", (anwybuch.getcy - .getpy)/iduchstep );
+						.move( iduchstep*stepx, iduchstep*stepy );
+						} );
+				}
+				} );
+			but1.add(this);
+		};
+		.cycle = ("timduchwybuch", func {
+			grels.eval( func { .move(-stepx, -stepy); } );
+			iduchstep--;
+			if( iduchstep<=0 )
+				.duch_wybuchl;
+			else .play;
+			} );
+	}
+	remove_duch	{ <GAME> {
+		but1.removebut("anduch");
+		delete and2;
+		.deletegmobj("anduch");
+	}; }
+	/****************** items ***********************/
+	addnewitem(string s)	{
+		clsave.bset("item_"+s);
+		clsave.additem(s);
+	}
+	itemclick_szyfr	{
+		if( igmstate==101 )	{
+			/*itszyf.hideitem(this, func {
+				anitemszyfr {
+					itszyf.freeitem;
+					.itemonpos;
+				};
+				igmstate = 1; 
+				} ); */
+			itszyf.freeitem;
+			.itemonpos;
+			@x = .getpx; @y = .getpy; @h=.geth;
+			
+			.setframe(1,0); .setpos(0,0);
+			itszyf.gotodest(this, h, x, y, 15, func {
+				anitemszyfr {
+					itszyf.freeitem;
+					.itemonpos;
+				};
+				igmstate = 1; 
+				} );
+		} else if( igmstate==1 ) {
+			igmstate = 100;
+			.setframe(1,0);
+			.setpos(0,0);
+			itszyf.showitem(this, func { igmstate=101; } );
+		}
+	}
+	itemclick_haslo		{	.itemclick_mapa;	}
+	itemclick_batyskaf	{	.itemclick_mapa;	}
+	itemclick_mapafull	{	.itemclick_mapa;	}
+	itemclick_mapa	{
+		if( igmstate==101 )	{
+			.itemonpos;
+			igmstate = 1; 
+		} else if( igmstate==1 ) {
+			igmstate = 100;
+			.setframe(1,0);
+			.setpos(0,0);
+			igmstate = 101;
+		}
+	}
+	mouse_move	{
+		GameController::mouse_move;
+	}
+}
+
+class Kajuta1 : StdGame	{
+	init(string s)	{
+		StdGame::init(s);
+		
+		.loadsnddb;
+		
+		.cycle = ("timendmatch3", func { <GAME> {
+			/*if( m3ttc.itime > 0 )	{
+				.match3finish;
+			} else {*/
+				@ipoints = im3points;
+				@ilimit = im3pointlimit;
+				if( ipoints<ilimit && m3ttc.itime > 0  ) .match3finish;
+				else {
+					.match3finish;
+					if( ipoints >= ilimit ) .match3_won;
+					else .match3_lost;
+				}
+			//}
+			}; } );
+	}
+	mtimhelper	{
+		if( igmipad )	{
+			@s = .getgraphpath;
+			.path = ("common");
+			//.newgrimg("grshowhint", "showhintb", 800);
+			new gmimgvec grshowhint;
+			string san = grshowhintb.srcanima;
+			_ = .newanactionsgr(san, san+"c", "grshowhint");
+			grshowhint.setz(800);
+			new gmimgvec grhintpad;
+			grhintpad.var2("idhint", 0);
+			.setgraphpath(s);
+			new gmimgvec grhintpad2;
+			.timer = ("timhelper", 4000, func {
+				if( igmstate==1 )	{
+					grhintpad.free;
+					grhintpad.addgr("grhintpad2");
+					//grhintpad.addgr("grhint");
+					if( <GAME>.hasvar("grext") )	{
+						for( int i=0; i<grext.size; i++)	{
+							if( <grext.get(i)>.bshow )
+								grhintpad.add( grext.get(i) );
+						}
+						if( <GAME>.hasvar("grhint") )	{
+							for( i=0; i<grhint.size; i++)	{
+								grhintpad.addonce( grhint.get(i) );
+							}
+						}
+					}
+					if( grhintpad.size > 0 )	{
+						@s = grhintpad.get( grhintpad.idhint % grhintpad.size );
+						grhintpad.idhint = (( grhintpad.idhint + 1 )% grhintpad.size );
+						grshowhint.setpos( <s>.getcx, <s>.getcy );
+						grshowhint.nplay(-1);
+					}
+					/*for( int i=0; i<grhint.size; i++)	{
+						@s = grhint.get(i);
+						if( <s>.
+					}*/
+				}
+				.play;
+				} );
+			timhelper.play;
+		}
+	}
+	mskipminigame	{
+		.img = ("$scripts/common/skip_minigame.pyz 660");
+		anskip_minigame	{
+			.Button_isinalpha;
+			.addmethod("butmoveon", func {
+				if( igmstate==1 ) advmouse.setbut;
+				} );
+			.Button_moveoffms;
+			.addmethod("butclick", func { if( AdventureMode && igmstate==1 ) .skip_minigame; } );
+			but1.add(this);
+		};
+	}
+	addhintpad(string s)	{	if( igmipad ) grhintpad2.add(s);	}
+	removehintpad(string s)	{	if( igmipad ) grhintpad2.remove(s);	}
+	virtual match3_won	{}
+	virtual match3_lost	{}
+	tohint	{	.withlist("antohint"); 	}
+	loadhint {	<GAME> {
+		if( !.hasvar("anshowhint") )	{
+			//.img = ("$scripts/common/showhint.pyzH 800");
+			new anima anshowhint;
+			anshowhint.load("scripts/common/gwiazdkif.pyz");
+			anshowhint.hide; anshowhint.setz(800);
+			anshowhint.var2("splaynext", null);
+			anshowhint.addmethod("onfinish", func {
+				if( splaynext!=null )	{
+					@s = splaynext;
+					splaynext=null;
+					.playhint(s);
+					igmstate=1;
+				}
+				} );
+		}
+	}; }
+	antohint(string s)	{
+		.loadhint;
+		if( s=="grext" )	{
+			for( int i=0; i<grext.size; i++)	{
+				s = grext.get(i);
+				if( <s>.bshow )
+					grhint.add(s);
+			}
+		} else if( <s>.gettype=="gmimgvec" ) grhint.addgr(s);
+		else grhint.add(s);
+	}
+	hoverobject	{
+		if( igmstate==1 && ( !grshowhintb.isplaying || grshowhintb.lastplayed!=this ) )	{
+			grshowhintb.setpos(.getcx, .getcy );
+			grshowhintb.lastplayed = (this);
+			grshowhintb.nplay(-1);
+		}
+	}
+	hovergold	{
+		if( igmstate==1 && ( !grshowhintgold.isplaying || grshowhintgold.lastplayed!=this ) )	{
+			grshowhintgold.setpos(.getcx, .getcy );
+			grshowhintgold.lastplayed = (this);
+			grshowhintgold.nplay(-1);
+		}
+	}
+	hoverhint(string san)	{
+		<san>.addmethod("butmoveon", func {
+			advmouse.setbut;
+			.hoverobject;
+			} );
+	}
+	grextohint	{	.antohint("grext");	}
+	extohint(string s)	{ .antohint( grext.getsac("do_" + s) );  }
+	playhint(string s)	{
+		.loadhint;
+		if( s!=null )	{
+			anshowhint.setpos( <s>.getcx, <s>.getcy );
+			anshowhint.play(0);
+		}
+	}
+	playhints(string s1, string s2)	{
+		igmstate=0;
+		.loadhint;
+		anshowhint.splaynext = (s2);
+		.playhint(s1);
+	}
+	playhint2(string s)	{ <GAME> (s) { (@s)
+		if( !.hasvar("anshowhint2") )	{
+			.loadhint;
+			.copyanima("anshowhint", "anshowhint2");
+			anshowhint2.anhide;
+		}
+		if( s!=null )	{
+			anshowhint2.setpos( <s>.getcx, <s>.getcy );
+			anshowhint2.play(0);
+		}
+	}; }
+	playexhint(string s)	{ .playhint( grext.getsac("do_"+s) ); }
+	playexhint2(string s)	{ .playhint2( grext.getsac("do_"+s) ); }
+	mpanel	{
+		new gmimgvec grpan;
+		new gmimgvec grklucze;
+		@s=.getgraphpath;
+		.path = ("common");
+		"grpan" .* "panel.pyz";
+		"grklucze" .* "klucze.pyz";
+		.img = ("gwiazdkif.pyzH 600");
+		.setgraphpath(s);
+		grpan.each( func { (@id)
+			.setz(500 + id * 5);
+			} );
+		.copyanima(grpan.getsac("prawy"), "anhint");
+		new gmimgvec grhint;
+		
+		.sfx = ("showhint");
+		anhint {
+			.setframe(-1,1);
+			 .addmethod("isbutin", func { (int x, int y)
+				.isin(x,y,1,1) && .withincut(x,y);
+				} );
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				if( !timhint.isplaying )	{
+					timhint.xend = ( .getpx );
+					.clip( .getpx, 0, .getpx, iResY );
+					timhint.play;
+					.HO_hint_click;
+					.kajuta_hint_click;
+				}
+				} );
+			.timer = ("timhint", dbconf.confmode("hint_time"), func {
+				xend++;
+				anhint.clip( anhint.getpx, 0, xend, iResY );
+				if( xend < anhint.getex )	{
+					.play;
+				}
+				} );
+			timhint.vars2(A, "xend", 0);
+			but1.add(this);
+		};
+		grklucze.each( func { (@id)
+			.setz(550);
+			if( .actionname=="kolko" )	{
+				.show;
+			} else  {
+				if( AdventureMode )	{
+					if( !clsave.bis("ma_klucz"+id) )
+						.hide;
+					else .setframe(-1,1);
+				} else .hide;
+			}
+			} );
+		.mshowalbum;
+		if( AdventureMode && clsave.bis("ma_medalion") )	{
+			.mshowmedalion;
+		}
+	}
+	hidepanel	{
+		grpan.hide;
+		anhint.hide;
+	}
+	showpanel	{
+		grpan.show;
+		anhint.show;
+	}
+	virtual HO_hint_click		{}
+	virtual kajuta_hint_click	{}
+	mshowmedalion	{ <GAME> {
+		//.img = ("$scripts/common/medalion.pyz 507");
+		.img = ("$scripts/common/medalion.pyzG 507");
+		.sfx = ("wisioropen 50");
+		//anmedalion0.mhobj;
+		anmedalion0 {
+			.Button_isinalpha;
+			//.addmethod("butmoveon", func { advmouse.setact; } );
+			//.addmethod("butmoveoff", func { advmouse.setstd; } );
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				.<this + "_click">;
+				} );
+			but1.add(this);
+		};
+		.medalion_close;
+	}; }
+	rosie_go	{	<GAME> {
+		if( !.hasvar("anmedblysk") )	{
+			.img = ("$scripts/common/medblysk.pyz "+anmedalion0.getz);
+			anmedblysk {
+				.Button_stdms;
+				.addmethod("butclick", func {
+					if( igmstate==226 )	{
+						if( anmedalion.framenr!=1 )
+							.medalion_open;
+						igmstate=0;
+						.anhide;
+						but1.onmousemove;
+						.rosie_help;
+					}
+					} );
+				but1.add(this);
+			};
+		}
+		anmedblysk.play(0);
+		igmstate=226;
+	}; }
+	mshowalbum	{
+		if( AdventureMode && clsave.bis("ma_album") )	{
+			.img = ("$scripts/album/album.pyz 527");
+			analbum {
+				.setframe(0,1);
+				.setz( <grpan.getsac("plecak")>.getz+1 );
+				.addmethod("isbutin", func { (@x, @y)
+					.isin(x,y,1,1) || ( <GAME>.hasvar("anal") && anal.isin(x,y,1,1) );
+					} );
+				.Button_moveonms;
+				.Button_moveoffms;
+				.addmethod("butclick", func {
+					if( igmstate==1 )	{
+						igmstate = 121;
+						.foto_album;
+					} else if (igmstate==121)	{
+						.foto_albumout;
+						igmstate=1;
+						.album_hidden;
+					}
+					} );
+				but1.add(this);
+			};
+			
+		}
+	}
+	medalion_open	{
+		anmedalion0.setframe(-1,1);
+		fxwisioropen.play;
+		if( clsave.bis("ma_medalion1") )
+			anmedalion1.show;
+		if( clsave.bis("ma_medalion2") )
+			anmedalion2.show;
+	}
+	medalion_close	{
+		anmedalion0.setframe(-1,0);
+		anmedalion1.hide;
+		anmedalion2.hide;
+	}
+	anmedalion0_click	{
+		if( igmstate!=1 ) return;
+		if( .framenr==0 )	{
+			.medalion_open;
+		} else {
+			.medalion_close;
+		}
+	}
+	mbutnext	{
+		.img = ("$scripts/common/butnext.pyz");
+		anbutnext {
+			.setz(700);
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( igmstate==1 )
+					.<this + "_click">;
+				} );
+			but1.add(this);
+		};
+	}
+	match3but	{
+		if( Trudnosc>=2 ) return;
+		.img = ("$scripts/common/match3but.pyz");
+		anmatch3but	{
+			.setz(710);
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( bmatch3mode )	{
+					if( igmstate!=1000 || im3state!=0 ) return;
+					//.match3finish;
+					m3ttc.stop;
+					.m3finish;
+				} else {
+					if( igmstate!=1 ) return;
+					.match3start;
+				}
+				} );
+			but1.add(this);
+		};
+	}
+	match3start	{
+		bmatch3mode = true;
+		igmstate = 1000;
+		anmatch3but.setframe("match3off",0);
+		<GAME>.m3init;
+	}
+	match3finish	{
+		igmstate = 1;
+		bmatch3mode = false;
+		anmatch3but.setframe("match3mode",0);
+		<GAME>.m3exit;
+	}
+	blockexit(string s)	{	grext.mhide("do_"+s);	}
+	disablexit(string s)	{	grext.mdisable("do_"+s);	}
+	diblockexit(string s)	{	.blockexit(s); .disablexit(s);	}
+	titblock	{	.withlist( "blockexit" );	}
+	dititblock	{	.withlist( "diblockexit" );	}
+	hodone(string s)	{	<grext.getsac("do_"+s)>.bhog = (true);		}
+	msethover(string s, bool b)	{ <grext.getsac("do_"+s)>.bstars = (b);	}
+	nohover(string s)	{	.msethover(s,0);	}
+	mgoldhover(string s)	{	<.mgetext(s)>.bgoldhint = (1);	}
+	mgetext(string s)	{	grext.getsac("do_"+s);	}
+	mexits	{
+		.newgrimg("grext", "exit", 0);
+		grext.hide;
+		if( igmdebug )	{
+			new string sexitfont = .stdfont(20);
+		}
+		grext.eval( func {
+			/*if( igmdebug )	{
+				.newtext("txtlok", .actionname->strsubbs("do_"), sexitfont, .grey(255) );
+				txtlok.setpos(.getcx - txtlok.getw/2, .getcy - txtlok.geth/2 );
+				if( txtlok.getpx < 0 )	txtlok.move( -txtlok.getpx, 0);
+				if( txtlok.getpy < 0 )	txtlok.move( 0, -txtlok.getpy);
+				if( txtlok.getex > iResX )	txtlok.move( iResX-txtlok.getex, 0);
+				if( txtlok.getey > iResY )	txtlok.move( 0, iResY-txtlok.getey);
+				txtlok.setz(700);
+				txtlok.txtshadow(2, sexitfont);
+			}*/
+			.vars2(A, "bshow", 1, "benable", 1, "bhog", 0, "bstars", 1, "bgoldhint", 0,
+				"sexit", .actionname->strsubbs("do_") );
+			.addmethod("isbutin", func { (int x, int y) 
+				/*bshow && */.isin(x,y,0,1);
+				} );
+			.addmethod("butmoveon", func {
+				if( bshow ) {
+					advmouse.setbut;
+					if( bgoldhint )		.hovergold;
+					else if( bstars )	.hoverobject;
+				}
+				} );
+			.addmethod("butmoveoff", func {
+				if( bshow )
+					advmouse.setstd;
+				} );
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				if( bshow  )	{
+					.<"click_"+sexit>; 
+				} else if ( benable )	{
+					igmstate=0;
+					.txtplay("lektordoors");
+				} else if ( bhog )	{
+					igmstate=0;
+					.txtplay("lektorhodone");
+				}
+				} );
+			but1.add(this);
+			} );
+		grext.addmethod("mshow", func { (string s)
+			<.getsac(s)>.bshow = (true);
+			} );
+		grext.addmethod("mhide", func { (string s)
+			<.getsac(s)>.bshow = (false);
+			} );
+		grext.addmethod("mdisable", func { (string s)
+			<.getsac(s)>.benable = (false);
+			} );
+	}
+	mbatyskaf	{
+		.img = ("$scripts/common/batyskaf.png 480");
+	}
+}
+
+class Kajuta : Kajuta1	{
+	init(string s)	{
+		Kajuta1::init(s);
+		.mpanel;
+		
+		@s2 = grpan.getsac("belka");
+		<s2>.hide;
+		.path = ("common");
+		.newgrimg("grpan2", "panelc", <s2>.getz);
+		<grpan2.last>.hide;
+		.path = (s);
+		
+		if( AdventureMode )	{
+			clsave.builditems;
+			.mtimhelper;
+		}
+	}
+	showpan2	{	<grpan2.get(2)>.show;	}
+	hidepan2	{	<grpan2.get(2)>.hide;	}
+	virtual kajuta_hint_click	{
+		if( igmstate==1 )
+			.hint_click;
+		if( igmstate==1 )	{
+			.playhint( grhint.rand );
+		}
+	}
+}
+
+new string HiddenPath = null;
+new string HiddenExclude = null;
+new string HiddenEls = null;
+new real HiddenReduce = 0.0;
+class Hidden : Kajuta1	{
+	init(string s)	{
+		Kajuta1::init(s);
+		
+		if( HiddenPath!=null )	{
+			.path = (HiddenPath);
+			HiddenPath = null;
+		}
+		
+		new int ihoclickdelay = dbconf.dbget("hoclick_delay:");
+		new int ihoclicktimes = dbconf.dbget("hoclick_times:");
+		new int ihoclickkara = dbconf.dbget("hoclick_kara:");
+		
+		new int ihoclicker = 0;
+		.timer = ("timhoclicker", ihoclickdelay, func {
+				ihoclicker=0;
+			} );
+		.timer = ("timhokara", ihoclickkara, func {
+			imgkara.hide;
+			if( lektorclicks.pogadal )
+				igmstate = 1;
+			} );
+		new img imgkara;
+		imgkara.create(iResX, iResY, .black, 128);
+		imgkara.setz(2222);
+		imgkara.hide;
+// 		.debug = (1);
+		
+		.sfxs = (A, "tolist0 70", "tolist1 70", "tolist2 50");
+		
+		.newgrimg("grels", "els", 10);
+		new gmimgvec grelscopy;
+		grelscopy.copy("grels");
+		
+		if( HiddenExclude!=null )	{
+			new gmimgvec grexclude;
+			.lang_db("dbexc", HiddenExclude);
+			for( int i=0; i< dbexc.getrowsno; i++)	{
+				@s = grels.getsac( dbexc.get(i,0) );
+				<s>.hide;
+				grels.remove(s);
+				grexclude.add(s);
+			}
+			HiddenExclude = null;
+		}
+		if( HiddenReduce > 0.0 )	{
+		
+			grels.sortimgsfun( func { (string s0, string s1)
+				<s0>.getw*<s0>.geth < <s1>.getw * <s1>.geth;
+				} );
+			//grels.hash;
+			int ile = HiddenReduce*grels.size+0.5;
+			for( int i=0; i<ile; i++)	{
+				<grels.first>.hide;
+				grels.removefirst;
+			}
+			grels.sortimgs;
+			HiddenReduce = 0.0;
+		}
+		.mpanel;
+		
+		//.newgrimg("grtxt", "txts", 506);
+		new string sclickedho = null;
+		if( HiddenEls!=null )	{
+			.lang_db("dbtxts", HiddenEls);
+			HiddenEls=null;
+		} else {
+			.lang_db("dbtxts", "els_");
+		}
+		new gmimgvec grtxt;
+		new vector vtexts; vtexts.type("string");
+		new gmimgvec grtxtgrey;
+		
+		int i[4], string s[4];
+		new int itxtheight = 16;
+		.newfont("fnttxts", "configs/fonts/timesit.ttf", itxtheight);
+		
+		for( int i=0; i<dbtxts.getrowsno; i++)	{
+			if( dbtxts.getcolsno(i)>1 )	{
+				s0 = dbtxts.get(i,0);
+				i0 = grels.findsac(s0);
+				if( i0>=0 )	{
+					s2 = grels.getsac(s0);
+					s1 = dbtxts.get(i,1);
+					i0 = vtexts.find(s1);
+					if( i0>=0 )	{
+						for( i1=0; i1 < grtxt.size; i1++)	{
+							s3 = grtxt.get(i1);
+							if( <s3>.idvtext==i0 )	{
+								<s2>.var2("stxtview", s3);
+								<s3>.mupdatetxt(1);
+							}
+						}
+					} else {
+						vtexts.add(s1);
+						
+						s0 = "txtel_" + s0;
+						.newtext(s0, s1, "fnttxts", .grey(10) );
+						<s0>.hide;
+						<s0>.setz(507);
+						<s0>.vars2(A, "stekst", s1, "icnt", 1, "idvtext", vtexts.size-1);
+						<s0>.addmethod("mupdatetxt", func { (int ile)
+							icnt += ile;
+							if( icnt>1 )	{
+								.txtset( stekst + " x " + icnt );
+							} else if (icnt == 1)	{
+								.txtset( stekst );
+							}
+							} );
+						grtxt.add(s0);
+						
+						<s2>.var2("stxtview", s0);
+					}
+				}
+			}
+		}
+		grtxt.vars2(A, "irows", 3, "icols", 3 );
+		grtxt.addmethod("lastid", func {
+			int id = 0;
+			while( id<.size && <.get(id)>.isvisible )	{
+				id++;
+			}
+			id;
+			} );
+		grtxt.addmethod("shownext", func {
+			int id = .lastid;
+			if( id==.size ) return;
+			
+			if( id < irows*icols )	{
+				@s = .get(id);
+				int row = id/icols;
+				int col = id%icols;
+				<s>.setpos( iResX/2 - (icols.to_r/2.0 - col.to_r - 0.5)*120 - <s>.getw/2,
+					<grpan.first>.getpy + 62 + row * ( itxtheight + 2) );
+				
+				<s>.show;
+			}
+			} );
+		new int iilegrtxt = grtxt.irows * grtxt.icols;
+		for( i=0; i<iilegrtxt; i++)
+			grtxt.shownext;
+		
+		new int ilehonaraz = 35;
+		new classancounter ctcen;
+		ctcen.set("timcenter",ilehonaraz);
+		new int idtimcenter = 0;
+		new real rcykcenter = 16.0;
+		new string shidenmov = null;
+		for (int i=0; i<ilehonaraz; i++)	{
+			/*new vector <"vhox"+i>; <"vhox"+i>.type("real"); <"vhox"+i>.resize(rcykcenter+1, 0.0);
+			new vector <"vhoy"+i>; <"vhoy"+i>.type("real"); <"vhoy"+i>.resize(rcykcenter+1, 0.0);*/
+			@dt = 3;
+			
+			.cycle= ("timcenter"+i, func {
+				icyk++;
+				
+				rdx += rpx;
+				rdy += rpy;
+				if( ietap==2 )	{
+					<shidenmov>.ansetbpos(vhox.get(icyk), vhoy.get(icyk));
+					grgwiazdki1.setpos( vhox.get(icyk), vhoy.get(icyk) );
+				} else {
+					<shidenmov>.move(rdx, rdy);
+				}
+				rdx -= rdx->to_i;
+				rdy -= rdy->to_i;
+				
+				@sdym = ctdym.get;
+				<sdym>.setpos( <shidenmov>.getcx, <shidenmov>.getcy );
+				<sdym>.setz( <shidenmov>.getz-1 );
+				
+				if( icyk>=rcykcenter )	{
+					if( ietap==1 )	{
+						idestx = idestx2;
+						idesty = idesty2;
+						ietap = 2;
+						
+						grgwiazdki1.setpos( <shidenmov>.getcx, <shidenmov>.getcy );
+						grgwiazdki1.setz( <shidenmov>.getz-1 );
+						grgwiazdki1.nplay(-1);
+						
+						anbable2.setpos( <shidenmov>.getcx, <shidenmov>.getcy );
+						anbable2.setz( <shidenmov>.getz-1 );
+						anbable2.play(0);
+						
+						fxtolist2.playif;
+						
+						.mstart;
+						<"timcenterb"+myid>.play;
+					} else {
+						ctcen.retf(this);
+						if( ctcen.allfree )	{
+							sgmstate="init";
+							igmstate = 1;
+						}
+						<shidenmov>.hide;
+						grels.remove( shidenmov );
+						
+						@ile = grtxt.irows * grtxt.icols;
+						
+						@s2 = <shidenmov>.actionname;
+						if( <sclickedho>.icnt > 1 )	{
+							<sclickedho>.mupdatetxt(-1);
+						/*} else if( grtxt.size > ile )	{
+							grtxtgrey.add( sclickedho );
+							@id = grtxt.find( sclickedho );
+							@s = grtxt.last;
+							grtxt.remove(s);
+							grtxt.set(id, s);
+							grtxt.shownext;
+							<sclickedho>.hide;*/
+						} else {
+							grtxt.remove( sclickedho );
+							grtxtgrey.add( sclickedho );
+							<sclickedho>.createtxt( .grey(128) );
+							if( grtxtgrey.size == ile && grtxt.size>0 )	{
+								grtxtgrey.hide;
+								grtxtgrey.free;
+								int i = 0;
+								while( i<ile && grtxt.size>0 )	{
+									grtxt.shownext;
+									i++;
+								}
+							}
+						}
+						<sdym>.setpos( <sclickedho>.getpx + <sclickedho>.getw/2,
+							<sclickedho>.getpy + <sclickedho>.geth/2 );
+						<sdym>.play("end");
+						.<s2 + "_put">;
+						.hiddenobj_put;
+					}
+				} else {
+					/*if( (ietap==1 && icyk%2) || ietap==2 )
+						<sdym>.play("go");*/
+					if( ietap==1 || ietap==2 )	{
+						<sdym>.play("go");
+					}
+					.play;
+				}
+				} );
+			<"timcenter"+i>.addmethod("mstart", func {
+				@x = <shidenmov>.getcx;
+				@y = <shidenmov>.getcy;
+				rpx = (idestx - x)->to_r/rcykcenter;
+				rpy = (idesty - y)->to_r/rcykcenter;
+				rdx = 0.0;
+				rdy = 0.0;
+				icyk = 0;
+				if( ietap==2 )	{
+					
+					vhox.set(0, x - (x-<shidenmov>.getpx));
+					vhoy.set(0, y - (y-<shidenmov>.getpy));
+					
+					if( rpx<0 )	{
+						for( int i=1; i<=rcykcenter; i++)	{
+							vhox.set( i, rpx + vhox.get(i-1) - (i-rcykcenter.to_i/2)*5 );
+							vhoy.set( i, rpy + vhoy.get(i-1) - (i-rcykcenter.to_i/2)*5 );
+						}
+					} else {
+						for( int i=1; i<=rcykcenter; i++)	{
+							vhox.set( i, rpx + vhox.get(i-1) + (i-rcykcenter.to_i/2)*5 );
+							vhoy.set( i, rpy + vhoy.get(i-1) - (i-rcykcenter.to_i/2)*5 );
+						}
+					}
+					
+					real r[4];
+					r0 = idesty - y;
+					r1 = vhoy.get( rcykcenter-1 )  - vhoy.get( 0 );
+					r2 = r0/r1;
+					for( i=1; i<=rcykcenter; i++)
+						vhoy.set( i, vhoy.get(i)*r2 );
+					
+				}
+				} );
+			<"timcenter"+i> (i) { (@id)
+				new vector vhox; vhox.type("real"); vhox.resize(rcykcenter+1, 0.0);
+				new vector vhoy; vhoy.type("real"); vhoy.resize(rcykcenter+1, 0.0);
+				.vars(A, "rdx", "rdy", "rpx", "rpy", "icyk", "idestx", "idesty", "idestx2", "idesty2",
+				"ietap", "shidenmov", "myid", "sclickedho");
+				myid = id;
+				shidenmov=null;
+				sclickedho=null;
+			};
+			.timer = ("timcenterb"+i, 500, func {
+				<"timcenter"+myid>.mstart;
+				fxtolist1.playif;
+				<"timcenter"+myid>.play;
+				} );
+			<"timcenterb"+i>.vars2(A, "myid", i);
+		}
+		
+		@s = .getgraphpath;
+		.path = ("common");
+		@iledymu = 60;
+		.newanima("anhodym", "dymki.pyz", 600);
+		anhodym.hide;
+		new gmimgvec grdym;
+		grdym.ancopies("anhodym", iledymu);
+		new classancounter ctdym;
+		ctdym.set("anhodym_",iledymu);
+		.imgs = (A, /*"gwiazdkif.pyzH",*/ "gwiazdki1.pyzGH", "bable.pyzH");
+		.copyanima("anbable", "anbable2");
+		
+		.setgraphpath(s);
+		
+		new int izels = 10;
+		grelscopy.each( func { (@id)
+			.setz(izels + id*5);
+			} );
+		grels.each( func { (@id)
+			//.setz(izels + id*5);
+			.setframe(-1,1);
+			.mhobut;
+			} );
+		/*grtxt.eval( func {
+			if( .nofframes(-1) < 2 )
+				.hide;
+			} );*/
+		if( igmdebug )	{
+			new string smovedfont = .stdfont(14);
+			.newtext("txtmovedho", "", smovedfont, .grey(240) );
+			txtmovedho.setz(1500);
+			.newtext("txtmovedho2", "", smovedfont, .grey(2) );
+			txtmovedho2.setz(1499);
+		}
+	}
+	/************ hidden ******************/
+	mmasks	{
+		if( engine.fileexist(.getgraphpath + "masks.pyz") )	{
+			.newgrimg("grmasks", "masks", 0);
+			grmasks.eval( func {
+				.mmask( .actionname );
+				if( .nofframes(-1)>1 )
+					.play(-1);
+				} );
+		} else {
+			new gmimgvec grmasks;
+		}
+	}
+	mmask(string s)	{
+		if( s.getb(0,5)=="_prev" )	{
+			@id = grmasks.find(this);
+			if( id>0 )
+				.setz( <grmasks.get( id-1 )>.getz );
+			else .setz( 2 );
+		} else {
+			string sob;
+			//@id = grels.findsac(s);
+			@id = grelscopy.findsac(s);
+			if( id<0 )	{
+				sob = grexclude.getsac(s);
+			} else	{
+				//sob = grels.get(id);
+				sob = grelscopy.get(id);
+			}
+			.setz( <sob>.getz + 2 );
+		}
+	}
+	mhider(string s)	{
+		@sob = grels.getsac(s);
+		.setz( <sob>.getz - 2 );
+		<sob>.hide;
+		.var2("maskedobj", sob);
+		.addmethod("hidemask", func {
+			if( grels.contains(maskedobj) )
+				<maskedobj>.hide;
+			} );
+		.addmethod("showmask", func {
+			if( grels.contains(maskedobj) )
+				<maskedobj>.show;
+			} );
+	}
+	mhiderclick	{
+		if( .actionnr(-1)==0 )	{
+			.setframe(1,0);
+			.showmask;
+		} else {
+			.setframe(0,0);
+			.hidemask;
+		}
+	}
+	mho_click	{
+		//@id = grtxt.findsac(.actionname);
+		/*@s = .actionname;
+		sclickedho = null;
+		for( int i=0; i<grtxt.size; i++)	{
+			if( grtxt.get(i)->strsubbs("txtel_")==s && <grtxt.get(i)>.isvisible )
+				sclickedho = grtxt.get(i);
+		}*/
+		
+		if( .hasvar("stxtview") && <stxtview>.isvisible )
+			sclickedho = stxtview;
+		else sclickedho = null;
+		
+		//if( id>=0 )	{
+		if( sclickedho!=null && (igmstate==1 || sgmstate=="hoout") )	{
+			@s = ctcen.getf;
+			if( s!=null )	{
+				ihoclicker = 0;
+				but1.removebut(this);
+				angwiazdkif.anhide;
+				
+				shidenmov = this;
+				<s>.shidenmov = (this);
+				.setframe(-1,0);
+				.setz(600);
+				igmstate = 2;
+				
+				if( <GAME>.hasmet( .actionname+"_put" ) )
+					sgmstate="init";
+				else sgmstate="hoout";
+				<s>.idestx = ( iResX/2 );
+				<s>.idesty = ( iResY/2 );
+				<s>.idestx2 = ( <sclickedho>.getpx + <sclickedho>.getw/2 );
+				<s>.idesty2 = ( <sclickedho>.getpy + <sclickedho>.geth/2 );
+				<s>.ietap = (1);
+				<s>.sclickedho = (sclickedho);
+				<s>.mstart;
+				
+				@sdym = ctdym.get;
+				<sdym>.setpos( <shidenmov>.getcx, <shidenmov>.getcy );
+				<sdym>.play("start");
+				
+				/*angwiazdkif.setpos( <shidenmov>.getcx, <shidenmov>.getcy );
+				angwiazdkif.setz( <shidenmov>.getz-1 );
+				angwiazdkif.play(0);*/
+				/*anbable.setpos( <shidenmov>.getcx, <shidenmov>.getcy );
+				anbable.setz( <shidenmov>.getz-1 );
+				anbable.play(0);*/
+				
+				fxtolist0.playif;
+				<s>.play;
+			} else sclickedho=null;
+		}
+	}
+	but1_lclick	{
+		if( igmstate==1 && !grtxt.empty )	{
+			if( timhoclicker.isplaying ) {
+				ihoclicker++;
+			}
+			if( ihoclicker==ihoclicktimes )	{
+				ihoclicker=0;
+				timhoclicker.stop(false);
+				sobject = null;
+				igmstate = 12345;
+				imgkara.show;
+				timhokara.play;
+				if( !clsave.bis("ho_ukarany") )	{
+					clsave.bset("ho_ukarany");
+					.txtplay("lektorclicks");
+				}
+			} else {
+				timhoclicker.play;
+			}
+		} else ihoclicker=0;
+	}
+	HO_hint_click	{
+		fxshowhint.playif;
+		new gmobjvec _grtmp;
+		string s;
+		for( int i=0; i<grels.size; i++)	{
+			s = grels.get(i);
+			if( <s>.hasvar("stxtview") && < <s>.stxtview >.isvisible )
+				_grtmp.add(s);
+		}
+		s = _grtmp.rand;
+		if( s!=null )	{
+			angwiazdkif.setpos( <s>.getcx, <s>.getcy );
+			angwiazdkif.setz( 600 );
+			angwiazdkif.play(0);
+		}
+		delete _grtmp;
+	}
+	mgetel(string s)	{
+		@id = grels.findsac(s);
+		if( id>=0 ) grels.get(id);
+		else null;
+	}
+	mouse_move	{
+		StdGame::mouse_move;
+		if( igmdebug )	{
+			if( igmstate==1 )	{
+				if( grels.isin(mouse.getpos,1,1) )	{
+					@s = <grels.getsfound>.actionname;
+					if( txtmovedho.get != s )	{
+						txtmovedho.txtset(s);
+						txtmovedho2.txtset(s);
+					}
+					txtmovedho.setpos( mouse.getpx, mouse.getpy - txtmovedho.geth - 1 );
+					txtmovedho2.setpos( mouse.getpx + 1, mouse.getpy - txtmovedho.geth );
+					txtmovedho.show;
+					txtmovedho2.show;
+				} else {
+					txtmovedho.hide;
+					txtmovedho2.hide;
+				}
+			} else {
+				txtmovedho.hide;
+				txtmovedho2.hide;
+			}
+		}
+	}
+}

@@ -1,0 +1,165 @@
+class Lexer	{
+	init	{}
+	buildlex	{
+		.vars(A,"id","found");
+		new vector vconsts;
+		vconsts.type("string");
+		new vector vtmp1;
+		vtmp1.type("string");
+		new vector vtmp2;
+		vtmp2.type("string");
+		
+		new int dot = "."->getbyte(0);
+		new string _literal_char = "\"";
+	}
+	setliteralchar(string s)	{	_literal_char=s;	}
+	getliteralchar	{	_literal_char;	}
+	bool _isvar(int b1, int b2)	{
+		int i = id;
+		found = "";
+		int ib;
+		while(i<.length)	{
+			ib = .getbyte(i);
+			if( ib>=b1 && ib<=b2 )	{
+				found += .getb(i,1);
+				i++;
+			} else {
+				if( (ib>=BYTEa && ib<=BYTEz) || (ib>=BYTEA && ib<=BYTEZ) || ib==BYTE_ )	found="";
+				i = .length;
+			}
+		}
+		found.length;
+	}
+	bool isreal	{
+		int i = id;
+		found = "";
+		int ib;
+		bool kropka=true;
+		while(i<.length)	{
+			ib = .getbyte(i);
+			if( (ib>=BYTE0 && ib<=BYTE9) || (ib==dot&&kropka) )	{
+				if( ib==dot ) kropka=false;
+				found += .getb(i,1);
+				i++;
+			} else i = .length;
+		}
+		if( kropka || found.getb(0,1)=="." || found.gete(0,1)=="." ) found="";
+		found.length;
+	}
+	bool isident	{
+		int i = id;
+		found = "";
+		int ib;
+		while(i<.length)	{
+			ib = .getbyte(i);
+			if( (ib>=BYTEa && ib<=BYTEz) || (ib>=BYTEA && ib<=BYTEZ) || ib==BYTE_ ||
+				(i>id && ib>=BYTE0 && ib<=BYTE9) )	{
+				found += .getb(i,1);
+				i++;
+			} else i = .length;
+		}
+		found.length;
+	}
+	bool isliteral	{
+		if( .check!=.getliteralchar )	return false;
+		int i = id+1;
+		found = "";
+		string s;
+		while(i<.length)	{
+			s = .getb(i,1);
+			if( s==.getliteralchar )	{
+				//found += s;
+				return true;
+			} else {
+				found += s;
+				i++;
+			}
+		}
+		false;
+	}
+	bool isconst	{
+		string s0;
+		bool b = .isident;
+		for( int i=0; i< vconsts.size; i++)	{
+			s0 = vconsts.get(i);
+			if( b )	{
+				if( s0 == found )	return true;
+			} else {
+				found = .getb(id, s0.length);
+				if( s0 == found ) return true;
+			}
+		}
+		false;
+	}
+	gettoken(string svec, bool bideal)	{
+		<svec>.free;
+		while( .notend )	{
+			if (.check==" ")	id++;
+			else if (.isconst)	{	<svec>.add("$const"); <svec>.add(.read);	}
+			else if (.isreal )		{<svec>.add( "$real" );	.next; if( bideal ) <svec>.add( found );}
+			else if (.isint )		{<svec>.add( "$int" );	.next; if( bideal ) <svec>.add( found );}
+			else if (.isident )	{<svec>.add( "$alpha" );	.next; if( bideal ) <svec>.add( found );}
+			else if (.isliteral )	{<svec>.add( "$literal" );	.next; id+=2; if( bideal ) <svec>.add( found );}
+			else	{<svec>.add("$error"); id++; }
+		}
+	}
+	int expectdb(string sdb, bool bideal)	{	// identyczne lub parse
+		int j, string s;
+		for( int i=0; i< <sdb>.getrowsno; i++)	{
+			//vtmp2.veccopydbrow(sdb,i);
+			vtmp2.free;
+			for( j=0; j< <sdb>.getcolsno(i); j++)	{
+				s = <sdb>.get(i,j);
+				s.clear;
+				if( s!="" ) vtmp2.add(s);
+			}
+			if( .expectvec("vtmp2", bideal) )	return i;
+		}
+		-1;
+	}
+	bool expectvec(string svecsrc, bool bideal)	{
+		id = 0;
+		.gettoken("vtmp1", bideal);
+		/*vtmp1.print;
+		<svecsrc>.print;*/
+		vtmp1.veceq(svecsrc);
+		/*bool b = vtmp1.veceq(svecsrc);
+		if( !b ) {
+			("wrong expect "+.get)->print;
+			vtmp1.print;
+			<svecsrc>.print;
+		}
+		b;*/
+	}
+	bool expects(string s, string ssep, bool bideal)	{
+		vtmp2.vecbuildfromstring(s,ssep);
+		.expectvec("vtmp2", bideal);
+	}
+	consts=	{	vconsts.withlist("addbegin");	}
+	setas(string sob)	{
+		<sob>.addmethod("buildlex", "buildlex");
+		<sob>.buildlex;
+		<sob>.addmethod("start",	func { (string s) .set(s);	id=0; } );
+		<sob>.addmethod("notend",	func {	id<.length;	} );
+		<sob>.addmethod("getnext",	func { if( id==.length ) return null;
+					id++;	.getb(id-1,1);	} );
+		<sob>.addmethod("next",	func { id+=found.length;	} );
+		<sob>.addmethod("check",	func { if( id==.length ) return null; found=.getb(id,1); found; });
+		<sob>.addmethod("ischar",	func { (string s) s.contains( .getb(id,1) ); } );
+		<sob>.addmethod("isint",	func{	._isvar(BYTE0, BYTE9);	} );
+		<sob>.addmethod("isreal", "isreal");
+		<sob>.addmethod("isbinary",	func{	._isvar(BYTE0, BYTE0+1);	} );
+		<sob>.addmethod("isident",	"isident" );
+		<sob>.addmethod("isconst",	"isconst" );
+		<sob>.addmethod("_isvar", "_isvar");
+		<sob>.addmethod("read",	func { .next;	found;	} );
+		<sob>.addmethod("isliteral", "isliteral");
+		<sob>.addmethod("gettoken", "gettoken");
+		<sob>.addmethod("expects", "expects");
+		<sob>.addmethod("expectvec", "expectvec");
+		<sob>.addmethod("expectdb", "expectdb");
+		<sob>.addmethod("consts=", "consts=");
+		<sob>.addmethod("setliteralchar", "setliteralchar");
+		<sob>.addmethod("getliteralchar", "getliteralchar");
+	}
+}

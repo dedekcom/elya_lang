@@ -1,0 +1,71 @@
+class TWstaw	{
+	init {}
+	tinit(string sbkg, string sbgel, string sels)	{
+		.newimg("imgbkg",sbkg,0);
+		.newanima("anbgel", sbgel, 0);
+		imgbkg.blit("anbgel");
+		new DelayMover cmov;
+		new gmimgvec grels;
+		"grels" ..< sels;
+		grels.setz(10);
+	}
+	cmov_GET	{
+		if( grels.isin(mouse.getpos,1,1) )	{
+			@s = grels.getsfound;
+			<s>.setz(900);
+			.mssetobj( s );
+			.twstaw_get;
+		}
+	}
+	cmov_PUT	{
+		.twstaw_put;
+		string s = .getmover;
+		if( cllen.ilen( <s>.getpx, <s>.getpy, <s>.lodx, <s>.lody) < 40 )	{
+			<s>.setz(11);
+			<s>.setpos(0,0);
+			.free;
+			grels.remove(s);
+			if( grels.empty )	{
+				.twstaw_end;
+			} else {
+				.twstaw_ok;
+			}
+		} else {
+			<s>.setz(10);
+			.retobj;
+		}
+	}
+	virtual twstaw_end	{}
+	virtual twstaw_ok	{}
+	virtual twstaw_put {}
+	virtual twstaw_get {}
+}
+
+game Wstaw : MenuGry, TWstaw	{
+	init	{
+		MenuGry::init;
+		delete anbkg;
+		.path = ("wstaw");
+		.tinit("bgwstaw.png", sSubObraz+".pyz", sSubObraz+"kol.pyz");
+		//grels.each(func {(@id) .ansetbpos(600+100->rand, 200+300->rand); } );
+		.crect;
+		rec.fitgrouprand("grels");
+		.lockall;
+		.setsndbase("wstaw");
+		.removehelp;
+		.sounds = (A,
+			"sndintro", "Wstaw brakuj±ce elementy do obrazka", "cunstop",
+			"sndend", "Doskonale! Obrazek uzupe³niony", func { .cstop; igmstate=11; }
+			);
+		.importbank("sndtak", "myes", "cstop");
+		.cglowa("sndintro");
+	}
+	twstaw_get	{	fxgetpuz.play;	}
+	twstaw_put	{	fxputpuz.play;	}
+	twstaw_ok	{	.cglowa("sndtak"); }
+	twstaw_end	{	.cglowa("sndend"); fxok.play;	}
+	mouse_lclick	{
+		if( igmstate==11 )	gameapi.play("MenuWstaw");
+	}
+	exit_click	{	gameapi.play("MenuWstaw");	}
+}

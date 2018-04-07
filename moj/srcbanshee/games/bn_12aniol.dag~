@@ -1,0 +1,157 @@
+
+game mg12_aniol :Banshee {
+	init{
+    Banshee::init("mg12_aniol");
+    .imgs = (A,"bkg.jpg 1", "base.pyz 2", "serce_part_2.pyzH 3", "serce_part_1.pyzH 4", "animacja.pyzH 5","ramka.pyz 6","popexit.pyz 7");
+    .butpopexit;
+    
+    anbase {
+  		.Button_isinalpha;
+  		butgame.add(this);
+  	}; 
+     imgbkg {
+  		.Button_isinalpha;
+  		.addmethod("butclick", func {
+  			if( !.advstdstate ) return;
+  			.mend;
+  			} );
+    		butgame.add(this);
+    	};       
+    
+ /*  if (!clsave.bis(save_prefix+"serce_part_1_added"))
+    { 
+      .addtopck("serce_part1"); // do testow
+      .addtopck("serce_part2"); // do testow
+      clsave.bset(save_prefix+"serce_part_1_added"); 
+    }  */
+    ananimacja.setdrawmode(1);     
+    .stdstart; 
+    
+    // restore obiektów
+    
+    if (clsave.bis(save_prefix+"serce_part_1_on"))
+      anserce_part_1.show();
+    
+    if (clsave.bis(save_prefix+"serce_part_2_on"))
+      anserce_part_2.show();  
+      
+    if (!clsave.bis(save_prefix+"intro_spoken"))
+    { 
+      .newsnd("snd_intro", "kinnat_012_2");
+      snd_intro.addmethod("onfinish", "advsetstdstate");     
+      .cbplay("snd_intro"); 
+      clsave.bset(save_prefix+"intro_spoken"); 
+    }
+    if(!clsave.bis(save_prefix+"serce_part_1_on"))
+    
+    anserce_part_1
+    {
+      .Button_isinvisalpha;
+      .addmethod("butmoveon", func {
+				if( !.advstdstate) return;
+				  if(!clsave.bis(save_prefix+"serce_part_1_on"))
+            advmouse.set("use"); 
+                
+        } );
+			.addmethod("butmoveoff", func {
+				if( !.advstdstate ) return;
+				  advmouse.setstd;
+				} ); 
+        butgame.add(this);
+    }; 
+    anserce_part_2
+    {
+      .Button_isinvisalpha;
+      .addmethod("butmoveon", func {
+				if( !.advstdstate) return;
+				  if(!clsave.bis(save_prefix+"serce_part_2_on"))
+            advmouse.set("use"); 
+                
+        } );
+			.addmethod("butmoveoff", func {
+				if( !.advstdstate ) return;
+				  advmouse.setstd;
+				} ); 
+        butgame.add(this);
+    }; 
+          
+  
+  }// koniec init 
+  
+  mend	{
+    .stdexitdefadv("ad12_latajacecosna", "gamead12_latajacecosna0"); 
+  }
+  
+   USE_serce_part1	{
+		.advsetstdstate();
+    if(anbase.isin(mouse.getpos,0,1) )	{
+			.removefrompck("serce_part1");
+		  anserce_part_1.anfadein(800,null);  
+      clsave.bset(save_prefix+"serce_part_1_on");
+      butgame.removebut("anserce_part_1");
+      if (.check_all_done())
+      { 
+        .timplay("timend", 1000, "all_done");  
+      }
+		} else {
+			 .item_gotopck;
+		}
+    advmouse.setstd;
+  } 
+  
+  USE_serce_part2	{
+		.advsetstdstate();
+    if(anbase.isin(mouse.getpos,0,1) )	{
+			.removefrompck("serce_part2");
+		  anserce_part_2.anfadein(800,null);  
+      clsave.bset(save_prefix+"serce_part_2_on");
+      butgame.removebut("anserce_part_2");
+      if (.check_all_done())
+      { 
+        .timplay("timend", 1000, "all_done"); 
+      }
+		} else {
+			 .item_gotopck;
+		}
+    advmouse.setstd;
+  } 
+  
+  check_all_done()
+  {
+     if (clsave.bis(save_prefix+"serce_part_1_on") && clsave.bis(save_prefix+"serce_part_2_on"))	{
+	     .set_mg_finished(); 
+       return true;
+     } else
+        return false;
+  } 
+  
+  all_done()
+  {
+    ananimacja.anfadein(1600,"animacja_fadout");  
+    .set_mg_finished();
+    .timfinito;   
+  }
+  animacja_fadout()
+  {
+    ananimacja.anfadeout(1000,"timfinito");    
+  }     
+ 
+   
+  HINT_CLICK {
+    if (!anserce_part_1.isvisible)
+    {
+        .showhintitem("serce_part1");
+        .showhint("anserce_part_1");
+        return;
+    }
+    else if (!anserce_part_2.isvisible)
+    {
+        .showhintitem("serce_part2");
+        .showhint("anserce_part_2");
+        return;
+    }
+    else  
+      .showhint("anpopexit");   
+  }
+}
+ 

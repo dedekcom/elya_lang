@@ -1,0 +1,244 @@
+game mg00_dzwonki :Banshee {
+	init{
+    
+    Banshee::init("mg00_dzwonki");
+	.askopis("mg001_dzwonki"); 	
+	guihint.switchtoskip;  
+    mus.smixer = ("engine");  
+	
+	.sfxs =(A, "dzwon1", "dzwon2", "dzwon3", "dzwon4"); 
+	
+    .imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2" ,"e1reka1.pyz 3","e1reka2.pyz 4","e1reka3.pyz 5","e1reka4.pyz 6", "ramka.pyz 25", "dymki2.pyz 30","e1rekaset.pyzGH 7","e1rekator.pyzH", "popexit.pyz 31");
+    .butpopexit;
+     
+	gre1rekaset.each( func { (int id)
+		.var2("myid", (id+1));
+		.addmethod("onsetframe", func {
+			ane1rekator.setframe( myid-1, <"ane1reka"+myid>.framenr );
+			.setpos( ane1rekator.getcx, ane1rekator.getcy );
+			} );
+		} );
+	for( int i=0; i<4; i++) {
+		if( clsave.bis("e1_reka_"+i+"_play") )
+			.rekaplay(i);
+	} 
+	
+	.newsndfree("snd_reset", "kinnat_c1d1_15");
+	snd_reset.addmethod("onfinish", "advsetstdstate");  
+	
+	 
+	.newsndfree("snd_kinnat_4", "kinnat_4");
+	snd_kinnat_4.addmethod("onfinish",func{ .advsetstdstate;.watch_film("cs03_klif","-adv","ad00_endintro"); });  
+	 	
+	 
+	
+	ane1reka1.play(0); 
+	ane1reka2.play(0); 
+	ane1reka3.play(0); 
+	ane1reka4.play(0); 
+	andymki2.play(0); 
+    .sfxs = (A, "bgrmorzeN 60");
+     
+     
+	ane1reka1 {
+		.Button_isin;
+		.Button_moveonms;
+		.Button_moveoffms; 
+		.addmethod("butclick", func {
+			if( !.advstdstate || .is_mg_finished) return;
+				.click_dzwon("zolty");
+				fxdzwon1.play;		
+			} );
+		 
+		butgame.add(this);
+	};   
+	
+	ane1reka2 {
+		.Button_isin;
+		.Button_moveonms;
+		.Button_moveoffms; 
+		.addmethod("butclick", func {
+			if( !.advstdstate || .is_mg_finished ) return;
+				.click_dzwon("red");
+				fxdzwon2.play;			
+			} );
+		 
+		butgame.add(this);
+	};   
+	
+	ane1reka3 {
+		.Button_isin;
+		.Button_moveonms;
+		.Button_moveoffms; 
+		.addmethod("butclick", func {
+			if( !.advstdstate || .is_mg_finished ) return;
+				.click_dzwon("blue");
+				fxdzwon3.play;		
+			} );
+		 
+		butgame.add(this);
+	};   
+	
+	ane1reka4 {
+		.Button_isin;
+		.Button_moveonms;
+		.Button_moveoffms; 
+		.addmethod("butclick", func {
+			if( !.advstdstate || .is_mg_finished ) return;
+				.click_dzwon("miedz");
+				fxdzwon4.play;		
+			} );
+		 
+		butgame.add(this);
+	};   
+	 
+     
+    imgbkg {
+		.addmethod("isbutin", func { (@x, @y)
+			!anpopup_bkg.isin(x,y,0,0);
+			} );
+		.addmethod("butclick", func {
+			if( !.advstdstate ) return;
+			 .mend;
+			} );
+  		butgame.add(this);
+  	}; 
+         
+     
+	.stdstart; 
+	
+	} // koniec init
+  
+	resetujdzwonki	{
+		clsave.set("e1_dzwon1",0);
+		clsave.set("e1_dzwon2",0);
+		clsave.set("e1_dzwon3",0);
+		clsave.set("e1_dzwon4",0);
+		 
+	}  
+	
+	click_dzwon(string dzwon)	{
+		if(!clsave.bis("e1_koment_rece"))
+		{
+			clsave.bset("e1_koment_rece");
+			clsave.set("e1_dzwonki",1);
+			.resetujdzwonki;
+		}
+		 
+		clsave.set("e1_click_dzwon",dzwon); 
+		.kolejnosc();
+		 
+	}
+	
+	 
+	
+	kolejnosc	{
+			//blue, miedz, red, zolty
+			//met: e1_click_dzwon
+			.click_dzwon_adv;
+			if(clsave.bis("e1_zgadla_dzwonki"))
+			{
+				 ane1reka1.disable;
+				 ane1reka2.disable;
+				 ane1reka3.disable;
+				 ane1reka4.disable;
+				 advmouse.setstd; 
+				// sndplay: kinnat_4
+				// mus.fadeout(300)'
+				clsave.bset("e1_rozbity_grobowiec");
+				.cbplay("snd_kinnat_4");
+				//.watch_film("cs03_klif","-adv","ad00_endintro");
+				.set_mg_finished;
+				.timfinito; 
+			}
+			else if (clsave.get("e1_dzwonki") == 1)
+			{ 
+				.resetujdzwonki;
+				.cbplay("snd_reset");
+			}
+	}
+	
+	click_dzwon_adv	{
+		string s = clsave.get("e1_click_dzwon");
+		int id = clsave.get("e1_dzwonki");
+		clsave.set("e1_dzwon"+id, s);
+		
+		if( id == 4 )	{
+			id = 1;
+			.recehide;
+		} else {
+			 int iac = .getrekaid(s);
+			.rekaplay(iac);
+			clsave.bset("e1_reka_"+iac+"_play");
+			id++;
+		}
+		clsave.set("e1_dzwonki", id);
+		@s1 = clsave.get("e1_dzwon1");
+		@s2 = clsave.get("e1_dzwon2");
+		@s3 = clsave.get("e1_dzwon3");
+		@s4 = clsave.get("e1_dzwon4");
+		//blue, miedz, red, zolty
+		if( (s1=="blue" && s2=="miedz" && s3=="red" && s4=="zolty") ||
+			(s4=="blue" && s1=="miedz" && s2=="red" && s3=="zolty") ||
+			(s3=="blue" && s4=="miedz" && s1=="red" && s2=="zolty") ||
+			(s2=="blue" && s3=="miedz" && s4=="red" && s1=="zolty") )	{
+			clsave.bset("e1_zgadla_dzwonki");
+			.set_mg_finished;
+			.recehide;
+		}
+	} 
+	
+	int getrekaid(string s)	{
+		match( s )	{
+			"zolty" => 0;
+			"red" => 1;
+			"blue" => 2;
+			"miedz" => 3;
+			? => -1;
+		}
+	} 
+
+	rekaplay(int iac)	{
+		<gre1rekaset.get(iac)>.play( -1 );
+	}
+
+	recehide	{
+		gre1rekaset.eval("anhide");
+		for( int i=0; i<4; i++)	{
+			clsave.set("e1_reka_"+i+"_play",0);
+		}
+	} 
+
+	komentdzwonki	{
+		if(!clsave.bis("e1_koment_rece"))
+		{
+			clsave.bset("e1_koment_rece");
+			.cbplay("snd_kinnat_2");
+			clsave.set("e1_dzwonki",1);
+			.resetujdzwonki;
+		}
+	}	
+	
+    
+	mend	{
+		ccs.buildfromscreen; 
+		if(.is_mg_finished)
+			.watch_film("cs03_klif","-adv","ad00_endintro");
+		else
+			.stdexitadvadv("ad00_endintro", "gamead00_endintro0");  
+	}
+  
+  HINT_CLICK {
+    .showhint("anpopexit");  
+  } 
+  
+  SKIP_CLICK {
+	clsave.bset("e1_zgadla_dzwonki");
+	.set_mg_finished;
+	clsave.bset("e1_rozbity_grobowiec");
+	.cbplay("snd_kinnat_4");
+	.mend;  
+  } 
+  
+}
+ 

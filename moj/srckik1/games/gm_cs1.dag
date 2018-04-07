@@ -1,0 +1,118 @@
+
+game Cs1Panorama : StdGame	{
+	init	{
+		// SAVE START
+		clsave.free;
+		clsave.set("epizod", "e1Zupa");
+		clsave.set("igmpad", igmpad);
+		PrzygodaMode = 1;
+		
+		StdGame::init("cs1panorama");
+		// autosave in init
+		
+		
+		.imgs = (A, "panorama.pyz", "znak.pyz 5", "drzewa.pyz 10", "ptak.pyzP 7", "ptak2.pyzP 6");
+		anptak2.move(0, -30);
+		
+		.sounds = (A, "snd1", "Na wzgórzu po¶ród dzikich borów i jezior sta³ drewaniany gród ksiêcia Mirmi³a", func {
+			ccs.playfin( func {
+				delete anpanorama;
+				delete anznak;
+				delete andrzewa;
+				delete anptak;
+				delete anptak2;
+				new gmimgvec grgrod;
+				"grgrod" .* "grod.pyz";
+				grgrod.nplay(-1);
+				new string sbggrod = grgrod.first;
+				grgrod.move( iResX - <sbggrod>.getw, 0 );
+				
+				fxbgrlas1.setvol(50);
+				mus.playstr("sunrise.ogg -v 50");
+				
+				}, func {
+				.cycle = ("timgrod", func {
+					if( <sbggrod>.getpx >= 0 )	{
+					} else
+						grgrod.move(1, 0);
+						.play;
+					} );
+				timgrod.play;
+				.cbplay("snd2");
+				} );
+			},
+			"snd2", "Dni mieszkañców wype³nia³a prosta praca zabawy oraz ¶wiêta ku czci Natury dawczyni ¿ycia; Pomy¶lne rz±dy Mirmi³a wspiera³a ma³¿onka Lubawa s³yn±ca z silnego charakteru i domowych wypieków; Maj±c taki skarb u boku Mirmi³ móg³ po¶wiêcaæ siê swoim ulubionym zajêciom jak ³owienie ryb czy pielêgnowanie ogródka", func { 
+			ccs.close( func { gameapi.play("Cs1Domek"); } );
+			}
+			);
+		
+		.sfxs = (A, "bgrlas1N");
+		
+		ccs.enter( func { .cbplay("snd1"); } );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Cs1Domek : StdGame	{
+	init	{
+		StdGame::init("cs1domek");
+		.imgs =(A, "bkg.pyz", "spia.pyz 10", "slonecznik.pyzPL 5", "kokoszH.pyz 10", "kajkoH.pyz 15");
+		.copyanima("anspia", "ankajko1");
+		anspia.anloopsplay("kokosz");
+		ankajko1.anplayfin("kajko", func {
+			if( igmstate==1 )	{
+				.hide;
+				anspia.stop(false);
+				anspia.hide;
+				ankokosz.anplayfin("przeciag", func {
+					if( igmstate==1 )	{
+						.kosay("koko2");
+						igmstate = 2;
+					}
+					} );
+				ankajko.play("przeciag");
+				.cbplay("koko1");
+			} else 
+				.play(-1);
+			} );
+		.sounds = (A, "sndnar1", "Grodzianie nie zaprz±tali g³owy obawami o bezpieczeñstwo gdy¿ na stra¿y Mirmi³owa czuwali najlepsi najdzielniejsi i najsprytniejsi wojowie w tej czê¶ci kraju Kajko i Kokosz; W ka¿dej chwili gotowi do dzia³ania; W pe³nym uzbrojeniu i w najwy¿szej formie wytrenowani wypoczêci nakarmieni", func { igmstate=1; },
+			"sndnar10", "¯ycie szybko powróci³o na stare tory", func { igmstate=1; },
+			":koko1", "Uaaaaa", null,
+			":koko2", "Kajtulu ¿o³±dek sygnalizuje mi ¿e wybi³a pora drugiego ¶niadania", func { .koend; .kasay("kajko1"); },
+			":kajko1", "Juu¿? Przecie¿ dopiero co skoñczy³e¶ pierwsze", func { .kaend; .kosay("koko3"); },
+			":koko3", "Mylisz siê przyjacielu; W miêdzyczasie pe³ni³em niezwykle odpowiedzialn± funkcjê wartownicz±",
+				func { .koend;
+					mus.fadeout(1000);
+					ccs.close( func {
+					if( clsave.get("epizod")=="e10Warownia" )
+						.gotoadv("addomkk", "gameaddomkk1");
+					else	.gotoadv("addomkk", "gameaddomkk0");
+					} ); }
+			);
+		
+		.sfxs = (A, "bgrout2N 50");
+		mus.playstr("dwor.ogg -v 50");
+		
+		ccs.enter( func { 
+			if( clsave.get("epizod")=="e10Warownia" )
+				.cbplay("sndnar10");
+			else .cbplay("sndnar1");
+			} );
+	}
+	kosay(string s)	{	.ksay("ankokosz", s);	}
+	kasay(string s)	{	.ksay("ankajko", s);	}
+	ksay(string sk, string s)	{
+		<sk>.play("gada");
+		.cbplay(s);
+	}
+	koend	{	.kend("kokosz");	}
+	kaend	{	.kend("kajko");		}
+	kend(string sk)	{
+		<"an" + sk>.play("slucha");
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

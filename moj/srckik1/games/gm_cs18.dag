@@ -1,0 +1,85 @@
+
+game Cs18Waly : StdGame	{
+	init	{
+		StdGame::init("cs18waly");
+		
+		//obroncy.pyz bkg.pyz bg2.pyz wieze.pyz flaga.pyz zboje1.pyz zboje2.pyz hegemon.pyz tarcza.pyz pieniek.pyz
+		//hodon.pyz kapral.pyz oferma.pyz
+		
+		.imgs = (A, "bkg.pyz", "bg2.pyz 10", "flaga.pyzP 20", "zboje1.pyz 30", "zboje2.pyz 40",
+			"hegemon.pyz 50", "tarcza.pyz 60", "pieniek.pyz 70", "hodon.pyz 80", "kapral.pyz 90", "oferma.pyzP 100");
+		
+		.newgrimg("grob", "obroncy", 5);
+		grob.nplay(-1);
+		.newgrimg("grwiez", "wieze", 15);
+		
+		.sounds = (A, "sndnar1", "Tymczasem grodzianie dobrze przygotowali siê do obrony", func { .hesay("hegemon1"); },
+			":hegemon1", "Sk±d wiedzieli o naszym ataku?", func { .hestop; .hosay("hodon1"); },
+			":hodon1", "Teraz to ju¿ niewa¿ne; Mamy przewagê w postaci planu i si³y uderzeniowej",
+				func { .hostop; .kasay("kapral1"); },
+			":kapral1", "Wodzu meldujê ¿e Oferma siê zbudzi³", func { .kastop; .hesay("hegemon2"); },
+			":hegemon2", "To cudownie; Kapralu daj rozkaz ataku na wa³y zmiêkczymy trochê obroñców; Wzniosê okrzyki motywuj±ce",
+				func { .hestop; .kasay("kapral2"); },
+			":kapral2", "Tak jest wodzu!", func {
+					.kastop;
+					ccs.close( func { gameapi.play("Cs19Waly2"); } ); 
+				}
+			);
+		
+		.sfxs = (A, "bgrwiatr2N 30", "wojeN 20");
+		
+		ccs.enter( func { .cbplay("sndnar1"); } );
+	}
+	hesay(string s)	{	.cbplay(s);	anhegemon.play("talk");	}
+	hestop	{	anhegemon.play("stand"); }
+	hosay(string s)	{	.cbplay(s);	anhodon.play("talk");	}
+	hostop	{	anhodon.play("stand"); }
+	kasay(string s)	{	.cbplay(s);	ankapral.play("talk");	}
+	kastop	{	ankapral.play("stand"); }
+	ofsay(string s)	{	.cbplay(s);	anoferma.play("talk");	}
+	ofstop	{	anoferma.play("stand"); }
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Cs19Waly2 : StdGame	{
+	init	{
+		StdGame::init("cs19waly2");
+		.path = ("cs18waly");
+		
+		.imgs = (A, "bkg.pyz", "bg2.pyz 10", "wieze.pyz 15", "hegemon2.pyz 25", "drabiny.pyzP 30");
+		
+		.newgrimg("grob", "obroncy", 5);
+		grob.nplay(-1);
+		.newgrimg("grzb", "zboje", 40);
+		grzb.nplay(-1);
+		
+		.sounds = (A, ":hegemon1", "Naprzód Zbójcerze! Wybi³a nasza godzina! Jeszcze dzi¶ wypijemy miód z piwnicy Mirmi³a!",
+				func { .hestop; .cbplay("mirmil1"); },
+			":mirmil1", "Niedoczekanie twoje ³obuzie! Poka¿emy wam gdzie raki zimuj±!", func { .cbplay("lubawa1"); },
+			":lubawa1", "Piêknie mu powiedzia³e¶ Mirmi³ku", func { .hesay("hegemon2"); },
+			":hegemon2", "Cha cha! Wkrótce sam porozmawiasz z rakami jak ciê wrzucê do jeziora ryby nakarmiæ! Do boju Zbójcerze!",
+				func {
+					anhegemon2.play("go");
+					andrabiny.anplayfin("go", func { timend.play; } );
+				}
+			);
+		.timer = ("timend", 1000, func {
+			ccs.close( func {
+				gameapi.play("Waly");
+				} );
+			} );
+		.sfxs = (A, "bgrwiatr2N 30", "wojeN 20");
+		
+		ccs.enter( func { .hesay("hegemon1"); } );
+	}
+	hesay(string s)	{	.cbplay(s);	anhegemon2.play("talk");	}
+	hestop	{	anhegemon2.play("stand"); }
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+
+

@@ -1,0 +1,192 @@
+class TextDb : classlocker, ObjController, gfxObject {
+	init(string sfont, int isize, string sdbfile, int r, int g, int b, int x, int y, int dy, int z, string sdir)	{
+		classlocker::init;
+		ObjController::init;
+		new string sFont = sfont;
+		new string sFontBold = null;
+		new string sFontItalic = null;
+		new string sFontBoldItalic = null;
+		new bool bhtml = false;
+		
+		string s;
+		int id, int i;
+		if( sfont.contains("$") )	{
+			bhtml = true;
+			new vector vfont; vfont.type("string");
+			vfont.vecbuildfromstring( sfont, "$" );
+			
+			for( i=0; i<vfont.size; i++)	{
+				s = vfont.get(i);
+				if( s.contains("_italic") && s.contains("_bold") )	{
+					sFontBoldItalic = s;
+				} else if ( s.contains("_italic") )	{
+					sFontItalic = s;
+				} else if ( s.contains("_bold") )	{
+					sFontBold = s;
+				} else sFont = s;
+			}
+			if( sFont.contains("$") )	{
+				if( sFontItalic!=null ) sFont = sFontItalic;
+				else if( sFontBold!=null ) sFont = sFontBold;
+				else sFont = sFontBoldItalic;
+			}
+			sfont = sFont;
+		} else sfont = .checkfont( sfont, isize );
+		new int iFontSize = isize;
+		
+		.var2("Z",z);
+		string skey = null;
+		if( sdbfile.contains(":") )	{
+			skey = sdbfile.strgetto(":") + ":";
+		}
+		if( sdbfile.contains(".db") )	{
+			if( skey =="$path:" )	{
+				new db dbtxt;
+				dbtxt.load( sdbfile.strsubbs(skey) );
+			} else .newdb( "dbtxt", sdbfile );
+		} else {
+			match(skey)	{
+				"$lang:" => .lang_db("dbtxt", sdbfile.strsubbs(skey) );
+				"$var:" => {
+					new db dbtxt;
+					dbtxt.dbcopy( sdbfile.strsubbs(skey) );
+				}
+				"$row:" => {
+					new db dbtxt;
+					s = sdbfile.strsubbs(skey)->strgetto(",");
+					id = sdbfile.strgetfrom(",");
+					for( i=0; i< <s>.getcolsno(id); i++)	{
+						_ = dbtxt.addrow;
+						dbtxt.add(i, <s>.get(id,i) );
+					}
+				}
+				? => {
+					new db dbtxt;
+					dbtxt.dbaddlast( sdbfile );
+				}
+			}
+		}
+		int w = 0, int ile = dbtxt.getrowsno;
+		
+		if( sdir.getb(0,5)=="limit" )	{
+			int lim = sdir.strsubbs("limit_");
+			new vector vtmp; vtmp.type("string");
+			new vector vtmp2; vtmp2.type("string");
+			for( int i=0; i<dbtxt.getrowsno; i++)	{
+				vtmp.vecbuildfromstring( dbtxt.get(i,0), " " );
+				for( int j=0; j<vtmp.size; j++)
+					vtmp2.add(vtmp.get(j));
+			}
+			dbtxt.free;
+			string s = "";
+			string s2;
+			for( i=0; i<vtmp2.size; i++)	{
+				s2 = vtmp2.get(i);
+				if( (s+s2)->length < lim )	{
+					s += s2 + " ";
+				} else {
+					j = dbtxt.addrow-1;
+					dbtxt.add(j, s);
+					s = s2 + " ";
+				}
+			}
+			j = dbtxt.addrow-1;
+			dbtxt.add(j, s);
+			ile = dbtxt.getrowsno;
+		}
+		
+		new gmimgvec grtxt;
+		grtxt._setpos(x,y);
+		for( i=0; i< ile; i++)	{
+			s = "txt" + i;
+			new text <s>;
+			@s1 = dbtxt.get(i,0);
+			if( bhtml )	{
+				if( s1.contains("<b>") ) { sfont = sFontBold; s1.strremove("<b>"); }
+				else if( s1.contains("<bi>") ) { sfont = sFontBoldItalic; s1.strremove("<bi>"); }
+				else if( s1.contains("<i>") ) { sfont = sFontItalic; s1.strremove("<i>"); }
+				else sfont = sFont;
+			}
+			<s>.setfont( sfont );
+			
+			<s>.set( s1 );
+			<s>.setpos(x,y);
+			y+=isize+dy;
+			<s>.setz(z);
+			<s>.createtxt(r,g,b);
+			if( <s>.getw>w ) w = <s>.getw;
+			grtxt.add(s);
+		}
+		.var2("Rows", ile);
+		if( sdir == "right" || sdir =="center" )	{
+			for( i=0; i<ile; i++)	{
+				s = "txt" + i;
+				if( sdir == "center" )	{
+					<s>.move( (w-<s>.getw)/2, 0 );
+				} else {
+					<s>.move( w-<s>.getw, 0 );
+				}
+			}
+		}
+		.var2("W", w);
+		gfxObject::init("grtxt");
+	}
+	stdshadow(int dt)	{	.setshadow(0,0,0,dt);	}
+	setshadow(int r, int g, int b, int dt)	{
+		string s[2];
+		string sfont = ._checkfont(sFont, iFontSize, "_fntbrd");
+		for( int i=0; i< dbtxt.getrowsno; i++)	{
+			s0 = "txt" + i;
+			s1 = "txts" + i;
+			new text <s1>;
+			<s1>.set( <s0>.get );
+			<s1>.setfont( sfont );
+			<s1>.setz( <s0>.getz-1 );
+			<s1>.setpos( <s0>.getpx+dt, <s0>.getpy+dt );
+			<s1>.createtxt(r,g,b);
+			grtxt.add(s1);
+		}
+	}
+	setz(int z)	{
+		/*for( int i=0; i< dbtxt.getrowsno; i++)	{
+			<"txt" + i>.setz(z);
+			<"txts" + i>.setz(z-1);
+		}*/
+		Z = z;
+		grtxt.setz(z);
+	}
+	getz	{ Z;	}
+	isin(int x, int y, bool bv, bool ba)	{	grtxt.isin(x,y,bv,ba);	}
+	view	{
+		@s = _;
+		string s2;
+		while(A!=s)	{
+			s2 = grtxt.get(s);
+			<s2>.show;
+			s2 = "txts" + s2.strsubbs("txt");
+			if( engine.varexist(s2) ) <s2>.show;
+			@s=_;
+		}
+	}
+	blitto(string simg)	{
+		string s;
+		for( int i=0; i<grtxt.size; i++)	{
+			s = grtxt.get(i);
+			<s>.buildfullname;
+			<simg>.blit(<s>.getfullname);
+			<GAME>.vardel(<s>.getfullname);
+		}
+	}
+	setcol(int r, int g, int b)	{
+		for( int i=0; i<grtxt.size; i++) <grtxt.get(i)>.createtxt(r,g,b);
+	}
+	clip(int x1, int y1, int x2, int y2)	{
+		for( int i=0; i<grtxt.size; i++) <grtxt.get(i)>.clip(x1,y1,x2,y2);
+	}
+	setpos(int x, int y)	{
+		@dx = x-grtxt.getposx;
+		@dy = y-grtxt.getposy;
+		grtxt.move(dx, dy);
+		//for( int i=0; i<grtxt.size; i++) <grtxt.get(i)>.setpos(x+,y1,x2,y2);
+	}
+}

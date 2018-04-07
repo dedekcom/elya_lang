@@ -1,0 +1,100 @@
+
+class GuiItem	{
+	init	{}
+	/****************** rotujacy obiekt **************************/
+	setasrototaker(string sanima, real ilerot, real ileobrotow)	{
+		<sanima>.addmethod("_setasrototaker", func { (@ilerot, @ileobrotow)
+			.vars2(A, "ilerotos",ilerot, "idrotos", 0.0, "ikatos", (ileobrotow*360.0)/ilerot,
+				"rzoomx", 0.0, "rzoomy", 0.0, "rzoomstepx", 0.0, "rzoomstepy", 0.0,
+				"rmovx", 0.0, "rmovy", 0.0, "istartalfa", 128,
+				"iendx", 0.0, "iendy", 0.0,
+				"irotodir", 1, "izoomdir", 0);
+			new filter ftroto;
+			ftroto.setpivottype(2);
+			
+			new timer timrotocenter;
+			timrotocenter.setcycle(1);
+			timrotocenter.addmethod("onfinish", func {
+				if( <.getbuildername>.rototaker_setroto )
+					.play;
+				} );
+			//SetAnMover::setas(this, 0.0, 0.0);
+			} );
+		<sanima>._setasrototaker(ilerot, ileobrotow);
+		<sanima>.addmethod("rototaker_start", "rototaker_start");
+		<sanima>.addmethod("rototaker_startwh", "rototaker_startwh");
+		<sanima>.addmethod("rototaker_startact", "rototaker_startact");
+		<sanima>.addmethod("rototaker_setroto", "rototaker_setroto");
+		<sanima>.addmethod("rototaker_endroto", func { .<"rototaker_"+ this + "_endroto">; } );	// std funkcja, mozna podmienic
+	}
+	bool rototaker_setroto	{
+		if( izoomdir )	{
+			@r = idrotos/ilerotos;
+			@rx = rzoomx + rzoomstepx*r;
+			@ry = rzoomy + rzoomstepy*r;
+			ftroto.rotatezoomxy( irotodir*ikatos, rx, ry );
+		} else {
+			@r = (ilerotos-idrotos);
+			@rx = rzoomx + rzoomstepx*r;
+			@ry = rzoomy + rzoomstepy*r;
+			ftroto.rotatezoomxy( irotodir*ikatos, rx, ry );
+			r = idrotos/ilerotos;
+		}
+		if( istartalfa<255 )	{
+			real iop = istartalfa;
+			ftroto.setopacity( iop + (255.0-iop) * r );
+		}
+		//.move(rmovx, rmovy);
+		real r1 = (iendx - .getposx) * r * rx;
+		real r2 = (iendy - .getposy) * r * ry;
+		.move(r1, r2);
+		idrotos++;
+		if( idrotos<ilerotos ) true;
+		else {
+			ftroto.unlink;
+			.rototaker_endroto;
+			false;
+		}
+	}
+	rototaker_startact(int endx, int endy, def sact)	{
+		string sact2;
+		if( sact.gettype!="string" )	{
+			sact2 = .nameofaction(sact);
+		} else sact2 = sact;
+		.rototaker_start( .getpx, .getpy, endx, endy, .getw, .geth, sact2 );
+	}
+	rototaker_start(int startx, int starty, int endx, int endy, real startw, real starth, string sact)	{
+		.setframe(sact,0);
+		.setpos(startx,starty);
+		.rototaker_startwh(endx, endy, startw, starth, .getw, .geth);
+	}
+	rototaker_startwh(int endx, int endy, real startw, real starth, real endw, real endh)	{
+		iendx = endx;
+		iendy = endy;
+		rmovx = ( endx-.getcx)->to_r/ilerotos;
+		rmovy = ( endy-.getcy)->to_r/ilerotos;
+		
+		if( endw>startw )	{
+			rzoomx = startw/endw;
+			rzoomstepx = (endw-startw)/endw;
+			izoomdir=1;
+		} else {
+			izoomdir=0;
+			rzoomx = endw/startw;
+			rzoomstepx = (1.0-rzoomx)/ilerotos;
+		}
+		if( endh > starth )	{
+			rzoomy = starth/endh;
+			rzoomstepy = (endh-starth)/endh;
+		} else {
+			rzoomy = endh/starth;
+			rzoomstepy = (1.0-rzoomy)/ilerotos;
+		}
+		
+		ftroto.link(this);
+		
+		idrotos = 0;
+		if( .rototaker_setroto )
+			timrotocenter.play;
+	}
+}

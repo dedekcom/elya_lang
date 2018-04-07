@@ -1,0 +1,80 @@
+class gfxObject	{
+	init(string sob)	{	new string sgfxobj = sob; }
+	setpos		{	<sgfxobj>.setpos;	}
+	move		{	<sgfxobj>.move;	}
+	getpos		{	<sgfxobj>.getpos;	}
+	getposx		{	<sgfxobj>.getposx;	}
+	getposy		{	<sgfxobj>.getposy;	}
+	getpx		{	<sgfxobj>.getpx;	}
+	getpy		{	<sgfxobj>.getpy;	}
+	getw			{	<sgfxobj>.getw;	}
+	geth			{	<sgfxobj>.geth;	}
+	getcx		{	<sgfxobj>.getcx;	}
+	getcy		{	<sgfxobj>.getcy;	}
+	getex		{	<sgfxobj>.getex;	}
+	getey		{	<sgfxobj>.getey;	}
+	lodx			{	<sgfxobj>.lodx;	}
+	lody			{	<sgfxobj>.lody;	}
+	setz			{	<sgfxobj>.setz;		}
+	getz			{	<sgfxobj>.getz;	}
+	show		{	<sgfxobj>.show;	}
+	hide			{	<sgfxobj>.hide;	}
+	isvisible		{	<sgfxobj>.isvisible;	}
+	bool isin		{	<sgfxobj>.isin;		}
+}
+
+class gfxSquare : Color, gfxObject	{
+	init(int x1, int y1, int w1, int h1)	{
+		Color::init;
+		.vars(A, "w", "h");
+		w=w1; h=h1;
+		new img imggfx;
+		imggfx.setpos(x1,y1);
+		gfxObject::init("imggfx");
+	}
+	build	{	imggfx.create(w,h,r,g,b,a);	}
+	shadow(int dx, int dy, int alpha)	{
+		|@x,@y| = imggfx.getpos;
+		imggfx.setpos(0,0);
+		new img _img1;
+		new img _img2;
+		if( imggfx.getw>0 )	{
+			_img1.create(w,h,.transparent);
+			_img1.blit("imggfx");
+		} else _img1.create(w,h,.get);
+		_img2.create(w,h,.black,alpha);
+		if( dx<0 )	{
+			_img1.move(-dx, 0);
+			x+=dx;
+		} else	_img2.move( dx, 0 );
+		if( dy<0 )	{
+			_img1.move(0,-dy);
+			y+=dy;
+		} else	_img2.move( 0, dy );
+		w += dx.abs;
+		h += dy.abs;
+		imggfx.create(w, h, .transparent);
+		imggfx.blit("_img2");
+		imggfx.blit("_img1");
+		delete _img1;
+		delete _img2;
+		imggfx.move(x,y);
+	}
+	blackborder(int width, int a2)	{	.border(width,width, .black,a2);	}
+	border(int width, int height, int r2, int g2, int b2, int a2)	{
+		|@x,@y| = imggfx.getpos;
+		imggfx.setpos(0,0);
+		new img _img;
+		if( imggfx.getw>0 )	{
+			_img.create(w,h,.transparent);
+			_img.blit("imggfx");
+		} else _img.create(w,h,.get);
+		_img.move(width,height);
+		w += 2*width;
+		h += 2*width;
+		imggfx.create(w,h,r2,g2,b2,a2);
+		imggfx.blit("_img");
+		delete _img;
+		imggfx.move(x,y);
+	}
+}

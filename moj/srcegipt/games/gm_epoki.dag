@@ -1,0 +1,192 @@
+class Epoka2 : Dzieje	{
+	init(string s)	{
+		sEpoka2 = s;
+		Dzieje::init("plansza");
+		
+		.list = (A, "prehistoria", "EpokaPr", "egipt", "Egipt", "daleki", "EpokaCh", "europa", "EpokaSr", "afryka", "EpokaAf", "ameryka", "EpokaAm", "grecja", "EpokaGr", "rzym", "EpokaRz", "grgry");
+		
+		new Button but1;
+		but1.load("grepoki", "epokieng.pyz", func {	(@id)
+			.show;
+			.setz(10);
+			//.Button_isin;
+			.addmethod("isbutin", func { (@x,@y) .isin(x,y,1,1); } );
+			if( .actionname!=sEpoka2 )
+				.setframe(-1,1);
+			.addmethod("butmoveon", func {
+				fxpop.play;
+				advmouse.setbut;
+				.setframe(-1,0);
+				} );
+			.addmethod("butmoveoff", func {
+				advmouse.setstd;
+				if( .actionname!=sEpoka2 )
+					.setframe(-1,1);
+				} );
+			.addmethod("butclick", func {
+				gameapi.play( grgry.get( grgry.find(.actionname) + 1 ) );
+				} );
+			} );
+		.path=("epoki");
+	}
+}
+
+new string sEpoka2;
+game EpokaSr : Epoka2	{
+	init	{
+		Epoka2::init("europa");
+		.img=("sr_bgeng.pyz");
+		new gmimgvec gmobs;
+		"gmobs" ..< "sr_obs.pyz";
+		gmobs.hide;
+		.timer=("timtik", 3000, "ipacgo" );
+		.ipacgo;
+	}
+	ipacgo	{
+		@s = gmobs.first;
+		gmobs.removeat(0);
+		<s>.show;
+		if( gmobs.size )
+			timtik.play;
+	}
+}
+
+game EpokaRz : Epoka2	{
+	init	{
+		Epoka2::init("rzym");
+		.img=("rz_bgeng.pyz");
+		.newanima("annak", "rz_nakeng.pyz", 5);
+		new gmimgvec gmobs;
+		"gmobs" ..< "rz_obs.pyz";
+		gmobs.each( func { (@id)
+			if( id>0 )	{
+				@s = gmobs.get(id-1);
+				.ansetbpos( <s>.getpx, <s>.getey );
+			}
+			} );
+		.timer=("timtik", 20, func {
+			gmobs.move(0, -2->igetsc1);
+			@s = gmobs.get(0);
+			if( <s>.getey <= annak.getpy )	{
+				gmobs.removeat(0);
+				@s2 = gmobs.last;
+				<s>.ansetbpos( <s2>.getpx, <s2>.getey );
+				gmobs.add(s);
+			}
+			.play;
+			} );
+		timtik.play;
+	}
+}
+game EpokaCh : Epoka2	{
+	init	{
+		Epoka2::init("daleki");
+		.img=("ch_bgeng.png");
+		new string simg1 = "img1";
+		new string simg2 = "img2";
+		new img img1;
+		new img img2;
+		new int iwidok = 1;		// aktualnie odgrywana scena
+		new string sbaseimg = .getgraphpath + "ch";
+		new int iilescen = 12;
+		new int ibajkaz = 10;
+		new int ileft = 525->igetsc;
+		new int iup = 256->igetsc;
+		img1.load( sbaseimg + 1 + ".png" );
+		img1.setpos( ileft, iup );
+		img1.setz( ibajkaz );
+		.tmodeopacity( 1, -2 );
+		.timer=("timtik",3000,"mnext");
+		.mnext;
+	}
+	public tmodeopacity(int ic, int idop)	{
+		new classfadeinout clfio;
+		new int iopacityc = ic;
+		new int iopacityd = idop;
+	}
+	mfinclfio	{
+		<simg2>.hide();
+		<simg2>.setz( ibajkaz );
+		timtik.play;
+	}
+	mnext	{
+		int id = iwidok + 1;
+		if( id > 0 && id <= iilescen );
+		else id=1;
+		iwidok = id;
+		<simg2>.load( sbaseimg+iwidok+".png" );
+		<simg2>.setz( ibajkaz );
+		<simg2>.setpos( ileft, iup );
+		<simg2>.setz( ibajkaz-1 );
+		<simg1>.setz( ibajkaz );
+		clfio.imgtransparency( iopacityc, iopacityd, simg1, "mfinclfio");
+		string s = simg1;
+		simg1 = simg2;
+		simg2 = s;
+	}
+	mfinpop()	{
+		if( iwidok>iilescen ) iwidok=1;
+		.mnext;
+	}
+}
+game EpokaAf : Epoka2	{
+	init	{
+		Epoka2::init("afryka");
+		.imgs=(A,"af_bgeng.pyz", "af_obs.pyz 10");
+		anaf_obs.anloopplay(0);
+	}
+}
+game EpokaAm : Epoka2	{
+	init	{
+		Epoka2::init("ameryka");
+		.imgs=(A,"am_bgeng.pyz");
+	}
+}
+
+game EpokaPr : Epoka2	{
+	init	{
+		Epoka2::init("prehistoria");
+		.imgs=(A,"pr_bgeng.pyz", "pr_obeng.pyz 10");
+		anpr_obeng.anloopplay(0);
+	}
+}
+
+game EpokaGr : Epoka2	{
+	init	{
+		Epoka2::init("grecja");
+		.imgs=(A,"gr_bgeng.pyz", "gr_obs.pyz 10");
+		angr_obs.anloopplay(0);
+	}
+}
+
+game EpokaEg : Epoka2	{
+	init	{
+		Epoka2::init("egipt");
+		.imgs=(A,"eg_bgeng.pyz", "eg_obs.pyzH");
+		new gmimgvec greps;
+		new int iaction = 0;
+		new int iframe = 0;
+		.timer = ("timtik",1000, func {
+			if( iframe < aneg_obs.nofframes(iaction) )	{
+				<greps.get(iframe)>.show;
+				iframe++;
+				if( iframe == aneg_obs.nofframes(iaction) ) .delay(3000);
+				.play;
+			} else	{
+				iaction++;
+				if( iaction > aneg_obs.nofactions )	iaction = 0;
+				<GAME>.loadacts;
+			}
+			} );
+		.loadacts;
+	}
+	loadacts	{
+		greps.deleteallgm;
+		greps.free;
+		_ = .newanframesgr("aneg_obs", "anegob", iaction, "greps");
+		iframe=0;
+		greps.hide;
+		timtik.delay(1000);
+		timtik.play;
+	}
+}

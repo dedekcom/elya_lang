@@ -1,0 +1,41 @@
+
+game Pelikan : StdGame	{
+	init	{
+		StdGame::init("pelikan");
+		
+		//bkg.pyz  kik.pyz  nakladka.pyz  peli.pyz  pobier.pyz  ryba.pyz
+		.imgs = (A, "bkg.pyz", "kik.pyz 20", "nakladka.pyz 20", "pobier.pyz 15", "peli.pyzP 10", "ryba.pyzH 12", "ryba2.pyzH 12");
+		new bool bmaryba = false;
+		anpeli.addmethod("onendframe", func {
+			if( .framename=="out" && bmaryba==false )
+				anryba.play(0);
+			} );
+		anpobier.addmethod("onendframe", func {
+			if( igmstate==1 && .framenr==9 && anryba.isvisible && anryba.framenr>1&&anryba.framenr<13)	{
+				anryba.stop(false);
+				anryba.hide;
+				anryba2.play(0);
+				bmaryba = true;
+				anpeli.play(1);
+				igmstate = 2;
+				timend.play;
+			}
+			} );
+		.sounds = (A, ":kajko1", "Mam j±", func {
+			ccs.close( func {
+				.gotoadv("adjaga", "gameadjaga0");
+				} );
+			} );
+		ccs.enter( func { igmstate=1; } );
+		.timer = ("timend", 1000, func { .cbplay("kajko1"); });
+	}
+	mouse_lclick	{
+		if( igmstate==1 )	{
+			if( anpobier.isplaying(-1)==false ) {
+				anpobier.play(0);
+				ankik.play(0);
+			}
+		}
+	}
+}
+

@@ -1,0 +1,68 @@
+new string sAskerGame;
+class Bill : classadv, GameController, Localize	{
+	init(string s)	{
+		igmstate = 0;
+		classadv::init;
+		GameController::init(s);
+		Localize::init;
+		clbuts.setcursorpos(0, 0);
+		claskexit.setcursorpos(0, 0);
+		.path = (s);
+		.setwavpath(SNDPATH);
+		.sfxs=(A,"pop 50", "pik1");
+		bsms.setstd;		// ustawia standardowo 
+		clmusic.play;
+		clbuts.reset;
+		new Music mus;
+		
+		new Button butbill;
+	}
+	anbutexit_click	{	gameapi.play("Menu");	}
+	_button_click	{	.<this+"_click">;	}
+	cstrzalki	{
+		.newanima("angoleft", "$scripts/common/goleft.pyz", 1000);
+		.newanima("angoright", "$scripts/common/goright.pyz", 1000);
+		angoleft.Button_stdalpha;
+		angoright.Button_stdalpha;
+		angoleft.addmethod("butclick", "_button_click");
+		angoright.addmethod("butclick", "_button_click");
+		butbill.add("angoleft");
+		butbill.add("angoright");
+	}
+	cbutexit	{
+		.newanima("anbutexit", "$scripts/common/butexit.pyz", 1000);
+		anbutexit.Button_stdalpha;
+		anbutexit.addmethod("butclick", "_button_click");
+		butbill.add("anbutexit");
+	}
+	cshowbut(@dir)	{	clp.show(cbok.getimgfunc("getcx"), cbok.getimgfunc("getcy"), dir); }
+	napisshow(int x, int y)	{
+		.show;
+		.move(x,y);
+	}
+	napispod(string s)	{	.napisshow(<s>.getcx-.getw/2, <s>.getey+5); }
+	/***********************************************************/
+	onmusicfin      {       mus.play;       }
+	exit	{
+		bsms.setstd;
+		.game_exit;
+		if( igmsubtitle )	{
+			subtitle.reset;
+		}
+	}
+	public askrestart	{	claskexit.askrestart;	}
+	/***********************************************************/
+	advclick()	{
+		if( igmdebug && (igmstate==0 || igmstate==5) )	{
+			this.cactsndstop(true);
+		}
+	}
+}
+
+class Bill2 : Bill	{
+	init(string s)	{
+		Bill::init(s);
+		.cstrzalki;
+		.cbutexit;
+	}
+}

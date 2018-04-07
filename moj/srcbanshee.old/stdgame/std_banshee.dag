@@ -1,0 +1,157 @@
+
+new db dbgame;
+dbgame.load( LANGDIR + "gametxts.db" );
+
+class BansheeStd : StdGame, BanGui	{
+	init(string s)	{
+		StdGame::init(s);
+		if( PrzygodaMode )	{
+			BanGui::save_pocket;
+			BanGui::init;
+			banguisrc.load;
+			new bool bmouselock=false;
+			.initgui;
+			if(!bHOInventory) .inventory_show;
+		}
+	}
+	//--------------- zgodnosc advcontroller z bangui
+	advmslock		{	bmouselock=true; advmouse.setwait;	}
+	advmsunlock		{	bmouselock=false; advmouse.setstd;	}
+	advgetlock		{	bmouselock;		}
+	advstdstate		{	sgmstate=="play";	}
+	advsetstdstate		{	.advsetstate("play");	}
+	advsetstate(string s)	{	sgmstate=s;		}
+	//---------------- button exit popup
+	butpopexit	{
+		anpopexit {
+			.Button_isinalpha;
+			.vars2(A, "bholdon", false);
+			.addmethod("butmoveon", func {
+				//if( !.advstdstate ) return;
+				advmouse.setbut;
+				.setframe(-1,1);
+				} );
+			.addmethod("butmoveoff", func {
+				//if( !.advstdstate ) return;
+				advmouse.setstd;
+				.setframe(-1,0);
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate || bholdon ) return;
+				.mend;
+				} );
+			butgame.add(this);
+		};
+	}
+	mousemove	{
+		.gmcontrol_mousemove;
+		if( PrzygodaMode )	{
+			.gui_mousemove;
+		}
+	}
+}
+
+class Banshee : BansheeStd	{
+	init(string s)	{
+		bHOInventory = false;
+		BansheeStd::init(s);
+	}
+}
+
+class HOBanshee : Hidden, BansheeStd	{
+	init(string s)	{
+		bHOInventory = true;
+		BansheeStd::init(s);
+		.init_hidden;
+	}
+	mtoloupe(string sname)	{
+		@s = .mgetel(sname);
+		.gui_toloupe(s);
+		guiloupemask.setz( <grguiloupe.last>.getz );
+		<s>.hide;
+		<s>.var2("myz",<s>.getz);
+		< <s>.stxtview>.createtxt( .holoupecol );
+		<s>.addmethod("isbutin", func { (@x, @y)
+			if( .loupe_visible )	{
+				.setframe(-1,0);
+				.isin(x,y,0,1);
+				/*int odp = clsurf.commonimgs("guiloupemask", this);
+				if( odp )	{
+					("dupa "+licz)->print;
+					licz++;
+				}
+				odp;*/
+				.setframe(-1,1);
+			} else 0;
+			} );
+		<s>.addmethod("butmoveon", func {
+			//guiloupemask.setz(.getz);
+			//.setz(guiloupemask.getz);
+			;
+			} );
+		<s>.addmethod("butmoveoff", func {
+			//guiloupemask.setz(guiloupe.getz-1);
+			//.setz(myz);
+			;
+			} );
+	}
+	holoupecol	{	return 0,202,1;	}
+}
+
+game BanFilm : StdGame	{
+	init	{
+		StdGame::init("film");
+		advmouse.set("empty");
+		if( PrzygodaMode )	{
+			BanGui::save_pocket;
+		}
+		
+		//.showfps;
+		
+		new Film film1;
+		film1.bcenter = (true);
+		film1.bborders = (true);
+		film1.musicclass = ("mus");
+		film1.addmethod("onfinish", func {
+			//ccs.buildfromfile("scripts/" + clsave.get("filmpath") + "/" + slastframe);
+			ccs.buildfromscreen;
+			string s = gameapi.getgamename;
+			match( clsave.get("nextgame_type") )	{
+				"-def" => {
+					.gotoadv(clsave.get("nextgame_path"), clsave.get("nextgame"));
+				}
+				"-adv" => {
+					.gotoadv2(clsave.get("nextgame_path"), clsave.get("nextgame"));
+				}
+				? => gameapi.play(clsave.get("nextgame"));
+			}
+			} );
+		new string slastframe;
+		film1 {
+			.playfilm( "scripts/"+clsave.get("filmpath") + "/", clsave.get("filmdb") );
+			slastframe = sprefilm + iendklatka + ".jpg";
+		};
+	}
+	mouse_lclick	{
+		if( film1.isplaying ) film1.stop(true);
+	}
+	showfps	{
+		if( !.hasvar("cfps") )	{
+			new CalcFPS cfps;
+			cfps.stdset(14, 10, 10);
+		}
+		cfps.play;
+	}
+}
+
+game StartBanshee : StdGame	{
+	init	{
+		StdGame::init("startbanshee");
+		clsave.set("filmpath","cs02_kinnatbook");
+		clsave.set("filmdb","film");
+		clsave.set("nextgame_type","-def");
+		clsave.set("nextgame_path","ad00_endintro");
+		clsave.set("nextgame","gamead00_endintro0");
+		gameapi.play("BanFilm");
+	}
+}

@@ -1,0 +1,1225 @@
+
+game IntroNelaShip : MermaidStd	{
+	init	{
+		MermaidStd::init("intros");
+		.img = ("bgintro.jpg");
+		ccs.enter(func {
+			.timplay("timend", 3000, "mend");
+			} );
+		.playmainmusic;
+	}
+	mend	{	.stdexit("MenuPlayerNelaShip");	}
+	mouse_lclick	{	.mend;	}
+}
+
+game OutroNelaShip : MermaidStd	{
+	init	{
+		MermaidStd::init("intros");
+		.img = ("bgoutro.jpg");
+		ccs.enter(func {
+			.timplay("timend", 3000, "mend");
+			} );
+	}
+	mend	{	.stdexit("exit");	}
+	mouse_lclick	{	.mend;	}
+}
+
+new string sNelaShipPlayer = "player1";
+
+game MenuPlayerNelaShip : MermaidStd	{
+	init	{
+		MermaidStd::init("menus");
+		.imgs = (A, "bghero.jpg", "players.pyzG 10", "buttop.pyz 10");
+		grplayers.eval( func {
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					sNelaShipPlayer = .actionname; 
+					.stdexit("MenuLevelNelaShip");
+				}
+				} );
+			butgame.add(this);
+			} );
+		anbuttop.Button_addstdstate;
+		.cbutexit;
+		.loadasker;
+		
+		.stdenter;
+	}
+	butclick_anbutexit	{
+		.askfor("OutroNelaShip");
+	}
+	butclick_anbuttop	{
+		.stdexit("MenuTopNelaShip");
+	}
+	key_down	{
+		if( igmdebug )	{
+			if( keyboard.iskey("m") )
+				gameapi.play("ShipMaps");
+		}
+	}
+}
+
+game MenuTopNelaShip : MermaidStd	{
+	init	{
+		MermaidStd::init("menus");
+		.imgs = (A, "bglevel.jpg", "topkola.pyzG 10", "toplistwy.pyzG 5", "topplayer.pyzH 15");
+		
+		new classfullsave csave("arcade_nela_top.db");
+		csave.saveonset=(true);
+		csave.stdload;
+		
+		@sfilefont = "configs/fonts/seren1.ttf";
+		@size = 50->igetsc;
+		.newfont("fntrek", sfilefont, size);
+		@sfont = "fntrek";
+		
+		new bool binput = iNelaShipPoints > 0;
+		if( binput )	{
+			int pos = 6;
+			for( int p=1; p<=5; p++ )	{
+				@s = csave.get("points"+p);
+				if( s==null || s.to_i < iNelaShipPoints )	{
+					for( int p2=5; p2>p; p2-- )	{
+						@p3 = p2-1;
+						csave.replace( "points"+p2, "points"+p3 );
+						csave.replace( "player"+p2, "player"+p3 );
+						csave.replace( "playername"+p2, "playername"+p3 );
+					}
+					csave.set("points"+p, iNelaShipPoints);
+					csave.set("player"+p, sNelaShipPlayer);
+					csave.set("playername"+p, "");
+					pos = p;
+					p = 6;
+				}
+			}
+		}
+		for( int i=1; i<=5; i++ )	{
+			@s = csave.get("player"+i);
+			if( s!=null )	{
+				@sp = "anplayer"+i;
+				.copyanima("antopplayer",sp);
+				<sp>.setframe(s,0);
+				<sp>.show;
+				<sp>.ancenterimg(grtopkola.get(i-1));
+				@st = "txtp"+i;
+				.newtext(st, csave.get("points"+i), sfont, .red);
+				<st>.setz( 20 );
+				@sl = grtoplistwy.get(i-1);
+				<st>.setpos( <sl>.getpx + 80->igetsc - <st>.getw/2, <sl>.getcy-<st>.geth/2 );
+				@sn = "txtnom"+i;
+				.newtext(sn, csave.get("playername"+i), sfont, .red);
+				<sn>.setpos( <sl>.getpx + 200->igetsc, <sl>.getcy-<st>.geth/2 );
+				<sn>.setz( 20 );
+			}
+		}
+		if( binput )	{
+			if( pos<=5 )	{
+				@slistwa = grtoplistwy.get(pos-1);
+				
+				@dx = 5->igetsc1;
+				@startx = 920->igetsc - ((BYTEZ-BYTEA)*(size+dx))/4;
+				@x = startx;
+				int pol = (BYTEZ+BYTEA)/2;
+				if( pos<5 )
+					@y = <slistwa>.getey;
+				else @y = <grtoplistwy.get(3)>.getpy;
+				@starty = y;
+				new gmimgvec grtx;
+				new int iposplayer = pos;
+				int w;
+				new string stxtplayer = "txtnom"+pos;
+				for( int i=BYTEA; i<=BYTEZ; i++ )	{
+					@s = "txta"+i;
+					@st = "a";
+					st.setbyte(0,i);
+					.newtext(s, st, sfont, .red);
+					<s>.setz( 26 );
+					<s>.setpos( x, y );
+					if( i>pol )	{
+						pol = BYTEZ;
+						x = startx;
+						y += 1.5*size;
+						w = <s>.getex;
+					} else 
+						x+=<s>.getw+dx;
+					grtx.add(s);
+					<s>.Button_stdms;
+					<s>.addmethod("butclick", func {
+						if( .advstdstate )	{
+							@s = <stxtplayer>.get;
+							if( s.length < 10 )	{
+								<stxtplayer>.txtset( s+.get );
+							} else <stxtplayer>.txtset( s.strsube(1) + .get );
+							.mupdateplayer;
+						}
+						} );
+					butgame.add(s);
+				}
+				.newtext("txdel", "<", sfont, .red);
+				txdel.setpos( w+dx, starty );
+				txdel.setz( 24 );
+				txdel.Button_stdms;
+				txdel.addmethod("butclick", func {
+					if( .advstdstate )	{
+						@s = <stxtplayer>.get;
+						if( s.length > 0 )	{
+							<stxtplayer>.txtset( s.strsube(1) );
+						}
+						.mupdateplayer;
+					}
+					} );
+				butgame.add("txdel");
+				@h = <grtx.last>.getey;
+				grtx.add("txdel");
+				w = txdel.getex;
+				new img imbgtxt;
+				
+				imbgtxt.create( (w-startx) + 2*dx, (h - starty) + 2*dx, .grey(32), 192 );
+				imbgtxt.setz( 22 );
+				imbgtxt.setpos( startx-dx, starty-dx );
+				
+				new int ipikaczu = pos;
+				.timplay("timpik", 500, func {
+					if( <"anplayer"+ipikaczu>.isvisible )	{
+						<"anplayer"+ipikaczu>.hide;
+						<"txtnom"+ipikaczu>.hide;
+						<"txtp"+ipikaczu>.hide;
+					} else {
+						.showpikaczu;
+					}
+					.play;
+					} );
+			}
+			iNelaShipPoints = 0;
+		}
+		
+		.cbutexit;
+		
+		.stdenter;
+	}
+	mupdateplayer	{
+		csave.set("playername"+iposplayer, <stxtplayer>.get);
+		sndfxmoveon2.play;
+	}
+	showpikaczu	{
+		<"anplayer"+ipikaczu>.show;
+		<"txtnom"+ipikaczu>.show;
+		<"txtp"+ipikaczu>.show;
+	}
+	butclick_anbutexit	{
+		.stdexit("MenuPlayerNelaShip");
+	}
+}
+
+new int iNelaShipLevel = 1;
+new int iIleNelaShipLevels = 12;
+new int iNelaShipPoints = 0;
+game MenuLevelNelaShip : MermaidStd	{
+	init	{
+		MermaidStd::init("menus");
+		.imgs = (A, "bglevel.jpg", "levels.pyzG 10");
+		
+		new classfullsave csave("arcade_nela.db");
+		csave.saveonset=(true);
+		csave.stdload;
+		csave.bset("enable_level1");
+		
+		grlevels.each( func { (@id)
+			.Button_stdalpha;
+			
+			//if( csave.bis("enable_level"+(id+1)) )	{
+				.addmethod("butclick", func {
+					if( .advstdstate )	{
+						iNelaShipLevel = .actionnr(-1)+1; 
+						iNelaShipPoints = 0;
+						music.fadeout(1000);
+						.stdexit("NelaShipRaid");
+					}
+					} );
+			//} else .imgsetoverlay(.white, 128);
+			butgame.add(this);
+			} );
+		.cbutexit;
+		
+		.stdenter;
+	}
+	butclick_anbutexit	{
+		.stdexit("MenuPlayerNelaShip");
+	}
+}
+
+
+class NelaShipCommon : MermaidStd	{
+	init(string s)	{
+		new int iiletor = 30;
+		MermaidStd::init(s);
+	}
+	isspecship(string s)	{
+		s=="en1" || s=="en2" || s=="en3" || s=="en4" || s=="en5" || s=="en6" || s=="kam1" || s=="kam2" || s=="kam3" ||
+		s=="fire1" || s=="fire2" || s=="fire3" || s=="fire4" || s=="fire5" || s=="fire6";
+	}
+}
+
+game NelaShipRaid : NelaShipCommon	{
+	init	{
+		NelaShipCommon::init("mg_raid");
+		
+		.sfxs = (A, "laser 20", "askerups 50", "rekord 50");
+		.mkfxset("bum", 3, 50);
+		.mkfxset("eksplozja", 2, 50);
+		.mkfxset("cios", 4, 30);
+		.mkfxset("step2", 4, 30);
+		.mkfxset("butmoveon2", 8, 30);
+		.mkfxset("bat", 4, 30);
+		
+		.cbutexit;
+		.loadasker;
+		._loadasker2("restart.pyz", "anrestart");
+		.newimg("imgpasek", "pasek.png", 200);
+		
+		new string sfilefont = "configs/fonts/seren1.ttf";
+		.newfont("fntseren", sfilefont, 25->igetsc);
+		.newtext("txtinfo", "", "fntseren", .red);
+		txtinfo.setpos( anbutexit.getex + 50->igetsc, imgpasek.getcy - txtinfo.geth );
+		new int iPoints = iNelaShipPoints;
+		txtinfo.setz( imgpasek.getz + 10 );
+		
+		new db dblev;
+		dblev.load( .getpath("level"+iNelaShipLevel+".db") );
+		.newimg("imgbg1", "tlo_gry"+dblev.dbgetdef("bkg:",1)+".jpg", 0 );
+		.imgs = (A, /*"bg1.jpg", */"bg_sun.pyz 5", "bg_planetsG.pyz 10");
+		
+		new classfullsave csave("arcade_nela.db");
+		csave.saveonset=(true);
+		csave.stdload;
+		
+		new bool bmouselrel = true;
+		
+		new gmobjvec grpause;
+		
+		new classadvcamera camera;
+		grpause.add("camera");
+		camera.setborders(imgbg1.getw, imgbg1.geth);
+		//camera.countcenter;
+		camera.setcenterscreen; 
+		//camera.setactor("mouse");
+		new int icameraposy = imgpasek.geth;
+		
+		/*@dy = 50->igetsc;
+		camera.setscreen(0, dy, imgbg1.getw, imgbg1.geth);
+		camera.setcenter(igmappw/2, (igmapph/2)+dy);*/
+		
+		new classbgplan plan0;
+		camera.addbgr("plan0", 0.3, 0.3);
+		//plan0.add("imgbg1");
+		SetAnMover::setas("imgbg1", -1, 0);
+		imgbg1.sam_copy;
+		//plan0.add( imgbg1.get_sam_copy );
+		
+		new classbgplan plan1;
+		camera.addbgr("plan1", 0.5, 0.5);
+		plan1.add("anbg_sun");
+		new int id_planet = 0;
+		new real rstartx = 0.8;
+		new real rstarty = 0.8;
+		for( int i=0; i<grbg_planets.size; i++ )
+			.addnextp;
+		new string slastplan = "planplan"+(id_planet-1);
+		
+		//camera.scalemodifiers(0.02, 0.02);
+		
+		int x = igmappw - anbg_sun.getpx;
+		anbg_sun.move(x,0);
+		grbg_planets.move(x,0);
+		new bool bcheckplanets = true;
+		
+		.cycle=("timniebo", func {
+			imgbg1.sam_move;
+			if( bcheckplanets )	{
+				int x = imgbg1.moved_x;
+				if( x )	{
+					anbg_sun.move(x,0);
+					grbg_planets.move(x,0);
+					if( anbg_sun.getex < -anbg_sun.getw )	{
+						bcheckplanets = false;
+						camera.remove("plan1");
+						anbg_sun.hide;
+						for( int i=0; i<grbg_planets.size; i++ )	{
+							camera.remove("planplan"+i);
+							<grbg_planets.get(i)>.hide;
+						}
+					}
+				}
+			}
+			.play;
+			} );
+		timniebo.play;
+		grpause.add("timniebo");
+		
+		.newanima("anship", "ship1.pyz", 100);
+		.copyanima("anship", "anstest");
+		anstest.hide;
+		anship.play(0);
+		anship.move( -anship.getex, 0 );
+		grpause.add("anship");
+		
+		.newanima("anbulet", "bulet.pyz", 100);
+		anbulet.hide;
+		int ilecnt = 50;
+		new SimpleCounter cntbul(ilecnt);
+		new int ibuletspeed = 15->igetsc;
+		if( ibuletspeed<1 ) ibuletspeed = 1;
+		
+		.newanima("anfire", "fire.pyz", 110);
+		new SimpleCounter cntfire(ilecnt);
+		new int ifirespeed = -ibuletspeed;
+		anfire.hide;
+		
+		.newanima("anels", "els.pyz", 110);
+		new SimpleCounter cntbum(ilecnt);
+		.newanima("anbums", "bums.pyz", 110);
+		anbums.hide;
+		new map2 vship("int");
+		new gmobjvec grspec;
+		for( int i=0; i<anels.nofactions; i++ )	{
+			@s = anels.nameofaction(i);
+			if( .isspecship(s) && s.getb(0,4)!="fire" )	{
+				vship.add(s,0);
+				grspec.add(s);
+			}
+		}
+		
+		for( int i=0; i<ilecnt; i++ )	{
+			@s = "anbulet"+i;
+			.copyanima("anbulet", s);
+			grpause.add(s);
+			<s>.addmethod("onfinish", func {
+				if( grels2.isin(.getcx, .getcy,1,1) )	{
+					@s = grels2.getsfound;
+					@sac = <s>.actionname;
+					match(sac)	{
+						// met star sat glaz p1 p2 hole p3 en1 en2
+						"en1","en2","en3","en4","en5","en6","kam1","kam2","kam3","fire1","fire2","fire3","fire4","fire5","fire6" => {
+							.anhide;
+							<s>.lives = (<s>.lives - 1);
+							if( <s>.lives<=0 )	{
+								<s>.anhide;
+								.moutel(s);
+								@s2 = "anbums"+cntbum.next;
+								<s2>.play(sac);
+								<s2>.ancenterimg(s);
+								string sac2 = (sac.getb(0,4)=="fire" ? "en" + sac.gete(0,1) : sac);
+								vship.calc(sac2,"+",1);
+								iPoints += sac.gete(0,1);
+								.mprintstatus;
+								if( sac.gete(0,1)->to_i > 3 )	{
+									.fxsetplay("eksplozja");
+								} else {
+									.fxsetplay("bum");
+								}
+							} else {
+								.fxsetplay( sac.getb(0,1)=="k" ? "step2" : "cios" );
+							}
+						}
+						"hole","sat","star","p1","p2","p3" => ;
+						? => .anhide;
+					}
+				}
+				if( .isvisible )	{
+					.move(ibuletspeed, 0);
+					if( .getpx >= igmappw )	{
+						.anhide;
+					}
+					.play(0);
+				}
+				} );
+			
+			s = "anbums"+i;
+			.copyanima("anbums",s);
+			
+			s = "anfire"+i;
+			.copyanima("anfire",s);
+			grpause.add(s);
+			<s>.addmethod("onfinish", func {
+				if( anship.isin(.getpx,.getcy,1,1) )	{
+					.anhide;
+					.mshipbum;
+				} else {
+					.move(ifirespeed, 0);
+					if( .getex < 0 )	{
+						.anhide;
+					} else
+						.play(-1);
+				}
+				} );
+		}
+		
+		new int xship;
+		new int yship;
+		new gmimgvec grels;
+		new gmimgvec grels2;
+		new int ienemyspeed = 6->igetsc1;
+		new int idroga = 0;
+		new real rshipspeed = 10.0->rgetsc;
+		.cycle = ("timship", func {
+			if( .advisstate("state_shipgo") )	{
+				real destx = mouse.getpx;
+				real desty = mouse.getpy;
+				if( desty < icameraposy+yship ) desty=icameraposy+yship;
+				real x = destx - (anship.getpx + xship);
+				real y = desty - (anship.getpy + yship);
+				real rlen = x.length(x,y);
+				if( rlen>0 ) {
+					if( rlen <= rshipspeed )	{
+						//anship.ansetbpos(destx+xship, desty+yship);
+						if( bmouselrel )
+							.advsetstdstate;
+					} else
+						anship.move( x/rlen*rshipspeed, y/rlen*rshipspeed );
+				}
+			} else if (.advisstate("state_starting") )	{
+				anship.move(rshipspeed, 0);
+			}
+			int i = 0;
+			idroga -= ienemyspeed;
+			while( i < grels.size )	{
+				@s = grels.get(i);
+				if( (<s>.getpx+idroga+<slastplan>.getpx) < igmappw )	{
+					<s>.move(idroga+ienemyspeed+<slastplan>.getpx,<slastplan>.getpy + icameraposy);
+					<slastplan>.add(s);
+					grels2.add(s);
+					grels.removeat(i);
+					if( <s>.actionname->getb(0,4)=="fire" )	{
+						<s>.addmethod("onfinish", func {
+							.play(-1);
+							if( 5->rand==0 )	{
+								@s = "anfire"+cntfire.next;
+								<s>.play(.actionname);
+								<s>.setpos(.getposx,.getposy);
+								.fxsetplay("bat");
+							}
+							} );
+						<s>.play(-1);
+					}
+				} else {
+					i = grels.size;
+				}
+			}
+			i=0;
+			while( i < grels2.size )	{
+				@s = grels2.get(i);
+				<s>.move( -ienemyspeed, 0 );
+				if( <s>.getex < 0 )	{
+					.moutel(s);
+					if( grels.empty && grels2.empty && anship.isvisible )	{
+						<GAME>.mfinish;
+					}
+				} else {
+					// badanie uderzen
+					if( <s>.bboomer )	{
+						for( int j=0; j<anstest.nofframes(1); j++ )	{
+							anstest.setframe(1, j);
+							anstest.setpos( anship.getposx, anship.getposy );
+							if( <s>.isin( anstest.getcx, anstest.getcy, 1, 1 ) && anship.isvisible )	{
+								j = anstest.nofframes(1);
+								i = grels2.size;
+								.mshipbum;
+							}
+						}
+					}
+					i++;
+				}
+			}
+			.play;
+			} );
+		timship.play;
+		grpause.add("timship");
+		.timer = ("timbulet", 500, func {
+			@s = "anbulet"+cntbul.next;
+			<s>.setpos( anship.getposx, anship.getposy );
+			//<s>.ansetbpos( anship.getpx, anship.getpy );
+			<s>.play(0);
+			.play;
+			fxlaser.play;
+			} );
+		grpause.add("timbulet");
+		
+		real rlenx = imgbg1.getw * iiletor;
+		real rleny = imgbg1.geth;
+		int col;
+		new classbgplan planels;
+		camera.addbgr("planels", 1, 1);
+		slastplan = "planels";
+		for( i=0; i<dblev.getrowsno; i++ )	{
+			@sac = dblev.get(i,0);
+			if( sac!="bkg:" )	{
+				@san = "anels"+i;
+				.copyanima("anels",san);
+				
+				if( .isspecship(sac) )	{
+					<san>.play(sac);
+					<san>.ansetrandfr;
+					<san>.var2("lives", sac.gete(0,1)->to_i);
+					col=1;
+				} else {
+					<san>.setframe(sac, dblev.get(i,1) );
+					<san>.show;
+					col=2;
+				}
+				<san>.var2("bboomer", !<san>.actionname->in(A,"hole","sat","star","p1","p2","p3"));
+				<san>.ansetbpos( dblev.get(i,col)->to_r*rlenx + igmappw, dblev.get(i,col+1)->to_r*rleny );
+				if( sac.in(A,"hole","sat","star","p1","p2","p3") )
+					<san>.setz( anship.getz-5 );
+				else <san>.setz( anship.getz+5 );
+				grels.add(san);
+				//<slastplan>.add(san);
+			}
+		}
+		anels.hide;
+		grpause.add("grels2");
+		
+		new int campos;
+		camera.moveplans(0,icameraposy);
+		campos.addmethod("getposx", func { anship.getcx; } );
+		campos.addmethod("getposy", func { anship.getcy; } );
+		camera.setactor("campos");
+		//camera.setscene;
+		
+		camera.scalemodifiers(0.02, 0.02);
+		
+		plan0.add("imgbg1");
+		plan0.add(imgbg1.get_sam_copy);
+		
+		camera.start;
+		
+		.mprintstatus;
+		
+		ccs.enter( func {
+			.advsetstate("state_starting");
+			timbulet.play;
+			//timlevel.play;
+			.timplay("timstart", 1000, "advsetstdstate");
+			} );
+	}
+	mshipbum	{
+		.advsetstate("state_fail");
+		anship.anhide;
+		timbulet.stop(false);
+		camera.stop;
+		@s2 = "anbums"+cntbum.next;
+		<s2>.addmethod("onfinish", func {
+			if( sgmstate=="state_fail" )	{
+				._showasker("anrestart");
+				fxaskerups.play;
+			}
+			} );
+		<s2>.play("en1");
+		<s2>.ancenterimg("anship");
+		.fxsetplay("eksplozja");
+	}
+	mprintstatus	{
+		txtinfo.txtset("Level "+iNelaShipLevel + "   Points: "+iPoints);
+	}
+	mfinish	{
+		if( iNelaShipLevel < iIleNelaShipLevels )	{
+			csave.bset("enable_level"+(iNelaShipLevel+1));
+		}
+	
+		fxlaser.setvol(2);
+		._loadasker2("points.pyz", "anpoints");
+		.copyanima("anpointsbg", "anpointsdim");
+		anpointsdim.setframe("wymiar",0);
+		anpointsdim.hide;
+		@dy = anpointsdim.geth/7;
+		@y = anpointsdim.getpy+3->igetsc1;
+		@ika = 1;
+		@ien = 1;
+		@xka = anpointsdim.getpx + 10->igetsc;
+		@xen = anpointsdim.getcx + 10->igetsc;
+		@xtka = xka + 110->igetsc;
+		@xten = xen + 110->igetsc;
+		//@sfont = .stdfont(18->igetsc);
+		
+		@sfont = "fntseren";
+		new string sTxtPoints = "Total Points: ";
+		new string stxtrecord = "Current Record: ";
+		new string stxtbonus = "Bonus Points: ";
+		new int iLevelPoints = 0;
+		new int iCurPoints = 0;
+		new int iCurRecord = csave.get("record"+iNelaShipLevel);
+		new int iBonus = iNelaShipLevel*20;
+		@z = anpointsbg.getz + 1;
+		new gmimgvec grekord;
+		
+		.newtext("txtrec", stxtrecord+iCurRecord, sfont, 255,64,64);
+		txtrec.setpos( anpointsdim.getcx - txtrec.getw/2, y );
+		txtrec.setz( z );
+		txtrec.hide;
+		grekord.add("txtrec");
+		
+		.newtext("txtpoints", sTxtPoints+iCurPoints, sfont, .yellow);
+		txtpoints.setpos( anpointsdim.getcx - txtpoints.getw/2, y + dy - txtpoints.geth);
+		txtpoints.setz( z );
+		txtpoints.hide;
+		grekord.add("txtpoints");
+		
+		.newimg("imgbonus", "bonus.png", anpointsbg.getz + 2 );
+		.newfont("fntseren2", sfilefont, 50->igetsc);
+		.newtext("txtbonus", iBonus, "fntseren2", .red);
+		imgbonus.ancenterscreen;
+		imgbonus.move(0,-50->igetsc);
+		txtbonus.setpos( imgbonus.getcx - txtbonus.getw/2, imgbonus.getcy - txtbonus.geth/2 );
+		imgbonus.blit("txtbonus");
+		delete txtbonus;
+		delete fntseren2;
+		imgbonus.hide;
+		
+		for( int i=0; i<grspec.size; i++ )	{
+			@s = grspec.get(i);
+			iLevelPoints += vship.get(s) * s.gete(0,1)->to_i;
+			@san = "anel" + s;
+			new img <san>;
+			anels.setframe(s,0);
+			<san>.imgclonezoom("anels", 0.3);
+			<san>.setz( z );
+			@stxt = "txt" + san;
+			.newtext(stxt, 0, sfont, .yellow);
+			<stxt>.setz( z );
+			if( i<5 )	{
+				ika++;
+				<san>.setpos( xka, y + ika*dy - <san>.geth );
+				<stxt>.setpos( xtka, y + ika*dy - <stxt>.geth );
+			} else {
+				ien++;
+				<san>.setpos( xen, y + ien*dy - <san>.geth );
+				<stxt>.setpos( xten, y + ien*dy - <stxt>.geth );
+			}
+			<san>.hide;
+			<stxt>.hide;
+			grspec.set(i, san);
+			grekord.add(san);
+			grekord.add(stxt);
+		}
+		iLevelPoints += iBonus;
+		iNelaShipPoints += iLevelPoints;
+		new bool bisrekord = false;
+		if( iLevelPoints > iCurRecord )	{
+			iCurRecord = iLevelPoints;
+			bisrekord = true;
+			csave.set("record"+iNelaShipLevel, iLevelPoints);
+			.newimg("imgrekord", "rekord.png", anpointsbg.getz + 2 );
+			.newfont("fntseren2", sfilefont, 50->igetsc);
+			.newtext("txtnewrec", iCurRecord, "fntseren2", .red);
+			imgrekord.ancenterscreen;
+			imgrekord.move(0,-50->igetsc);
+			txtnewrec.setpos( imgrekord.getcx - txtnewrec.getw/2, imgrekord.getpy + 0.55*imgrekord.geth );
+			imgrekord.blit("txtnewrec");
+			delete txtnewrec;
+			delete fntseren2;
+			imgrekord.hide;
+		}
+		._showasker("anpoints");
+		anpointsyes.setz( anpointsbg.getz + 4 );
+		anpointsno.setz( anpointsbg.getz + 4 );
+		
+		new int icykpoints = 0;
+		.timer = ("timpoints", 70, func {
+			if( icykpoints < grspec.size )	{
+				@san = grspec.get(icykpoints);
+				@s = san.strsubbs("anel");
+				int ile = vship.get( s );
+				if( ile>0 )	{
+					vship.set(s,ile-1);
+					@stxt = "txt"+san;
+					int ile2 = s.gete(0,1);
+					<stxt>.txtset( <stxt>.get->to_i + ile2 );
+					iCurPoints += ile2;
+					txtpoints.txtset(sTxtPoints + iCurPoints);
+					.fxsetplay("butmoveon2");
+				} else icykpoints++;
+				if( icykpoints >= grspec.size )	{
+					iCurPoints += iBonus;
+					
+					/*txtpoints.txtset(stxtbonus + iBonus);
+					.timplay("timpoints2", 1500, func {
+						txtpoints.txtset(sTxtPoints + iCurPoints);
+						timpoints.play;
+						} );*/
+					fxrekord.play;
+					imgbonus.anzoomin(idymekdelay, func {
+						txtpoints.txtset(sTxtPoints + iCurPoints);
+						.timplay("timpoints2", 1500, func {
+							imgbonus.anzoomout(idymekdelay, func {
+								timpoints.play;
+								} );
+							} );
+						} );
+					
+				} else
+					.play;
+			} else {
+				if( bisrekord )	{
+					sgmstate = "state_showrekord";
+					imgrekord.anzoomin(idymekdelay,func { sgmstate = "state_shownrekord"; } );
+					anpointsbg.anzoomout(idymekdelay,null);
+					grekord.hide;
+					fxrekord.play;
+				}
+			}
+			} );
+	}
+	asker_anpoints_shown	{
+		grspec.eval( func { .show; <"txt"+this>.show; } );
+		timpoints.play;
+		txtpoints.show;
+		txtrec.show;
+	}
+	preclick_anpointsyes	{
+		if( sgmstate=="state_shownrekord" )
+			.butclick_anpointsyes;
+	}
+	butclick_anpointsyes	{
+		if( iNelaShipLevel < iIleNelaShipLevels )	{
+			iNelaShipLevel++; 
+			.stdexit("NelaShipRaid");
+		} else {
+			.mstdexittop;
+		}
+	}
+	mstdexittop	{
+		.playmainmusic;
+		.stdexit("MenuTopNelaShip");
+	}
+	mstdexit	{
+		.playmainmusic;
+		iNelaShipPoints = 0;
+		.stdexit("MenuPlayerNelaShip");
+	}
+	preclick_anpointsno	{
+		if( sgmstate=="state_askexit" )	{
+			grekord.hide;
+		} else if ( sgmstate=="state_shownrekord" )	{
+			.mstdexittop;
+		}
+	}
+	butclick_anpointsno	{
+		.mstdexittop;
+	}
+	moutel(string s)	{
+		grels.remove(s);
+		grels2.remove(s);
+		<slastplan>.remove(s);
+		<s>.anhide;
+	}
+	addnextp	{
+		.addplanet(rstartx, rstarty);
+		real dt = id_planet.to_r/(25.0->rgetsc);
+		rstartx+=0.15->rgetsc + dt;
+		rstarty+=0.15->rgetsc + dt;
+	}
+	addplanet(real rx, real ry)	{
+		@s = "planplan"+id_planet;
+		new classbgplan <s>;
+		camera.addbgr(s, rx, ry);
+		<s>.add(grbg_planets.get(id_planet));
+		id_planet++;
+	}
+	mouse_lclick	{
+		if( .advstdstate )	{
+			@x = mouse.getpx;
+			@y = mouse.getpy;
+			if( y>icameraposy /*&& anship.isin( x, y, 1, 1 ) */)	{
+				/*xship = x - anship.getpx;
+				yship = y - anship.getpy;*/
+				xship = anship.getw;
+				yship = anship.geth/2;
+				.advsetstate("state_shipgo");
+				bmouselrel = false;
+				
+			}
+		} else if( sgmstate=="state_shipgo" && anbutexit.isin(mouse.getpos,1,1) )
+			.butclick_anbutexit;
+	}
+	mouse_lrel	{
+		bmouselrel = true;
+		/*if( sgmstate == "state_shipgo" )	{
+			.advsetstdstate;
+		}*/
+	}
+	key_down	{
+		if( igmdebug )	{
+			if( keyboard.iskey("m") )
+				gameapi.play("ShipMaps");
+			else if( keyboard.iskey("r") )
+				gameapi.play(GAME);
+		}
+	}
+	butclick_anbutexit	{
+		grpause.pause;
+		.showasker;
+	}
+	butclick_nostdstate_anbutexit	{
+		if( sgmstate=="state_shownrekord" || sgmstate=="state_askexit" )	{
+			.mstdexit;
+		}
+	}
+	butclick_anaskeryes	{
+		.mstdexit;
+	}
+	butclick_anaskerno	{
+		grpause.resume;
+		.advsetstdstate;
+	}
+	butclick_anrestartyes	{
+		.stdexit(GAME);
+	}
+	butclick_anrestartno	{
+		iNelaShipPoints = iPoints;
+		.mstdexittop;
+	}
+}
+
+game ShipMaps : NelaShipCommon	{
+	init	{
+		NelaShipCommon::init("mg_raid");
+		
+		new real rzoomer = 0.2;
+		
+		new img imgbg;
+		imgbg.create( igmappw, igmapph, .white, 255 );
+		
+		//.imgs = (A, "bg1.jpg");
+		
+		new int iedgex = 50;
+		new int iedgey = 50;
+		new int iedgeex = igmappw-iedgex;
+		new int iedgeey;
+		@x = iedgex;
+		@y = iedgey;
+		new gmimgvec grels;
+		new gmimgvec grtors;
+		new img imgbg1;
+		new img imgtor;
+		new int iidbg = 1;
+		new int iileshowtor = iiletor;
+		.mloadbg;
+		
+		new int ielsx = <grels.first>.getpx;
+		new int ielsex = <grels.last>.getex;
+		new real rtorlenx = iiletor*imgtor.getw;
+		
+		.newtxtbut("imgleft", "left");
+		.newtxtbut("imgright", "right");
+		imgleft.setpos( 0, y+imgtor.geth );
+		imgright.setpos( igmappw-imgright.getw, y+imgtor.geth );
+		.newtxtbut("butnextbg", "next bg");
+		butnextbg.setpos( imgleft.getpx, imgleft.getey + 20 );
+		
+		.newtxtbut("butsave", "save");
+		@dx = 30;
+		butsave.setpos( dx, igmapph - butsave.geth-dx );
+		.newtxtbut("butload", "load");
+		butload.setpos( butsave.getex+dx, butsave.getpy );
+		.newtxtbut("butplay", "play");
+		butplay.setpos( butload.getex+dx, butload.getpy );
+		
+		new string sprefile = "";
+		@y = butload.getpy - butload.geth * 3;
+		for( int i=1; i<=iIleNelaShipLevels; i++ )	{
+			@s = "butload"+i;
+			.newtxtbut(s, "load "+i);
+			<s>.var2("myid",i);
+			<s>.addmethod("butclick_"+s, func { .mload(myid); } );
+			<s>.setpos( x, y );
+			@s2 = "butsave"+i;
+			.newtxtbut(s2, "save "+i);
+			<s2>.var2("myid",i);
+			<s2>.addmethod("butclick_"+s2, func { .msave(myid); } );
+			<s2>.setpos( x, y+butload.geth+1 );
+			@w = <s>.getw;
+			if( <s2>.getw > w ) w = <s2>.getw;
+			x+= w+5;
+		}
+		
+		new int ielsmove;
+		.cycle=("timove", func {
+			if( sgmstate=="state_movels" )	{
+				int mv = ielsmove;
+				if( keyboard.iskeydown("space") )
+					mv = 10*ielsmove;
+				.movels(mv);
+			}
+			.play;
+			} );
+		
+		new anima anship;
+		anship.loadzoom( .getpath("ship1.pyz"), rzoomer, rzoomer );
+		anship.setpos( 100, 100 );
+		anship.setz(10);
+		
+		@sf = .stdfont(14);
+		.newtext("txtf", "F", sf, .red );
+		txtf.hide;
+		
+		new anima anels;
+		anels.loadzoom( .getpath("els.pyz"), rzoomer, rzoomer );
+		x = iedgex;
+		y = imgleft.getey;
+		int tmpy = y;
+		new int inextel = 0;
+		new gmimgvec grs;
+		for( int i=0; i<anels.nofactions; i++ )	{
+			anels.setframe(i,0);
+			// met star sat glaz p1 p2 hole p3 en1 en2 kam1 kam2 kam3
+			if( .isspecship(anels.actionname) )	{
+				|x,y,tmpy| = .mputel( .maddel(i,0), x, y, tmpy );
+			} else {
+				for( int j=0; j<anels.nofframes(i); j++ )	{
+					|x,y,tmpy| = .mputel( .maddel(i,j), x, y, tmpy );
+				}
+			}
+			
+			
+		}
+		anels.hide;
+		new db dbsav;
+		
+		
+		.newtext("txtcur", "", sf, .black );
+		txtcur.setpos( 5, 2 );
+		.msetcurlev;
+		
+		new DelayMover cmov;
+		cmov.setclickrel(false);
+		cmov.unlock;
+		new gmimgvec grpat;
+		
+		timove.play;
+		.advsetstdstate;
+	}
+	msetcurlev	{	txtcur.txtset("Current level: "+sprefile+", current bg: "+iidbg);	}
+	mloadbg	{
+		bool breload = grtors.size;
+		if( breload )	{
+			for( int i=1; i<=iileshowtor; i++ )	{
+				@s = "imgtor"+i;
+				delete <s>;
+			}
+		}
+		imgbg1.load( .getpath("tlo_gry"+iidbg+".jpg") );
+		imgbg1.anzoom(rzoomer);
+		imgtor.imgclone("imgbg1");
+		imgbg1.hide;
+		@x = iedgex;
+		@y = iedgey;
+		iedgeey = iedgey + imgtor.geth;
+		for( int i=1; i<=iileshowtor; i++ )	{
+			@s = "imgtor"+i;
+			new img <s>;
+			<s>.copy("imgtor");
+			<s>.setpos(x,y);
+			x+=<s>.getw;
+			<s>.mclip;
+			if( !breload )	{
+				grels.add(s);
+				grtors.add(s);
+			}
+		}
+		imgtor.hide;
+	}
+	mclip	{	.clip(iedgex,iedgey-5,iedgeex,iedgeey+5);	}
+	munclip	{	.clip(0,0,igmappw,igmapph);	}
+	mputel(string s, int x, int y, int tmpy)	{
+		if( x+<s>.getw > iedgeex )	{
+			x = iedgex;
+			y = tmpy;
+		}
+		<s>.ansetbpos(x,y);
+		x+=<s>.getw;
+		if( <s>.getey > tmpy )
+			tmpy = <s>.getey;
+		grs.add(s);
+		/*if( <s>.actionname->getb(0,4)=="fire" )	{
+			txtf.txtcenter(s);
+			<s>.blit("txtf");
+		}*/
+		return x,y,tmpy;
+	}
+	maddel(int iac, int ifr)	{
+		@s = "anels" + inextel;
+		.copyanima("anels", s);
+		<s>.setframe(iac,ifr);
+		inextel++;
+		s;
+	}
+	movels1(int mv)	{
+		//grels.move( mv, 0 );
+		grels.eval1(func { (@w)
+			.move(w,0);
+			if( .gettype=="anima" )
+				<GAME>.putoverlay(this);
+			} , mv);
+		ielsx += mv;
+		ielsex += mv;
+	}
+	movels(int mv)	{
+		.movels1(mv);
+		if( ielsx > iedgex )	{
+			.movels1( iedgex-ielsx );
+		} else if ( ielsex < iedgeex )	{
+			.movels1( iedgeex-ielsex );
+		}
+	}
+	mmove(int ile)	{
+		ielsmove = ile*10;
+		sgmstate = "state_movels";
+		timove.stop(true);
+	}
+	butclick_imgleft	{	.mmove(1);	}
+	butclick_imgright	{	.mmove(-1);	}
+	butclick_butnextbg	{
+		if( .advstdstate )	{
+			.mloadbgid(iidbg+1);
+			.msetcurlev;
+		}
+	}
+	mloadbgid(int id)	{
+		iidbg = id;
+		if( !engine.fileexist(.getpath("tlo_gry"+iidbg+".jpg")) )	{
+			iidbg = 1;
+		}
+		<GAME>.mloadbg;
+	}
+	mouse_lrel	{
+		if( sgmstate=="state_movels" )	{
+			.advsetstdstate;
+		}
+	}
+	cmov_GET	{
+		if( .advstdstate )	{
+			if( grs.isin(mouse.getpos,1,1) )	{
+				@s = <GAME>.maddel(0,0);
+				<s>.ancopy( grs.getsfound );
+				.mgetel(s);
+			} else if ( grpat.isin(mouse.getpos,1,1) )	{
+				@s = grpat.getsfound;
+				.mgetel(s);
+				grpat.removeat(grpat.getfound);
+				grels.remove(s);
+			} else if ( anship.isin( mouse.getpos,1,1) )	{
+				.mssetobj("anship");
+			}
+		}
+	}
+	mgetel(string s)	{
+		.mssetobj(s);
+		<s>.setz( 10 );
+		.advsetstate("state_getel");
+		<s>.munclip;
+	}
+	cmov_PUT	{
+		.advsetstdstate;
+		@s = .getfree;
+		if( clsurf.commonimgsurf(s, iedgex, iedgey, iedgeex, iedgeey) )	{
+			.mputpat(s);
+		} else {
+			<GAME>.moutpat(s);
+		}
+	}
+	moutpat(string s)	{
+		.vardel(s);
+		if( .hasvar(s+"fire") )	{
+			delete <s+"fire">;
+		}
+	}
+	mputpat(string s)	{
+		grpat.add(s);
+		grels.add(s);
+		<s>.mclip;
+		<s>.setz( 5 );
+		<s>.show;
+		<GAME>.putoverlay(s);
+	}
+	putoverlay(string san)	{
+		if( <san>.actionname->getb(0,4)=="fire" )	{
+			@s = san + "fire";
+			if( !.hasvar(s) )	{
+				new img <s>;
+				<s>.imgclone(san);
+				<s>.paint(.red,128,0);
+			}
+			<s>.setz(<san>.getz+1);
+			<s>.setpos(<san>.getpx, <san>.getpy);
+		}
+	}
+	mdelall	{
+		grels.removegr("grpat");
+		//grpat.deleteallgm;
+		grpat.eval( func {
+			<GAME>.moutpat(this);
+			} );
+		grpat.free;
+	}
+	butclick_butsave	{	.msave(sprefile);	}
+	msave(string spref)	{
+		sprefile = spref;
+		if( .advstdstate )	{
+			grpat.sortpx;
+			dbsav.free;
+			dbsav.dbaddstringrow("bkg: "+iidbg, " ");
+			for( int i=0; i<grpat.size; i++ )	{
+				@s = grpat.get(i);
+				real ry = (<s>.getpy - iedgey)->to_r/imgtor.geth->to_r;
+				real rx = (<s>.getpx - ielsx)->to_r/rtorlenx;
+				@sac = <s>.actionname;
+				int irow = dbsav.addrow-1;
+				dbsav.add(irow, sac);
+				if( !.isspecship(sac) )	{
+					dbsav.add(irow,<s>.framenr);
+				}
+				dbsav.add(irow,rx);
+				dbsav.add(irow,ry);
+			}
+			dbsav.save( .mgetfile );
+		}
+	}
+	mgetfile	{	.getpath("level" + sprefile + ".db");	}
+	butclick_butload	{	.mload(sprefile);	}
+	mload(string spref)	{
+		if( .advstdstate && engine.fileexist( .mgetfile ) )	{
+			sprefile = spref;
+			.mdelall;
+			dbsav.load( .mgetfile );
+			int col;
+			for( int i=0; i<dbsav.getrowsno; i++ )	{
+				@sac = dbsav.get(i,0);
+				if( sac=="bkg:" )	{
+					.mloadbgid(dbsav.get(i,1));
+				} else {
+					@iac = anels.actionnr(sac);
+					if( .isspecship(sac) )	{
+						@san = <GAME>.maddel(iac,0);
+						col=1;
+					} else {
+						@san = <GAME>.maddel(iac, dbsav.get(i,1) );
+						col=2;
+					}
+					<san>.ansetbpos( dbsav.get(i,col)->to_r*rtorlenx + ielsx, dbsav.get(i,col+1)->to_r*imgtor.geth->to_r + iedgey );
+					.mputpat(san);
+				}
+			}
+			.msetcurlev;
+		}
+	}
+	butclick_butplay	{
+		if( .advstdstate )	{
+			/*.butclick_butsave;
+			dbsav.load( .mgetfile );
+			dbsav.save( .getpath("level1.db") );*/
+			iNelaShipLevel = sprefile;
+			gameapi.play("NelaShipRaid");
+		}
+	}
+}
+

@@ -1,0 +1,10 @@
+path:
+	srcemag/
+
+src:
+
+all:
+	dd1.dag
+
+out:
+	srcemag/emag.odd

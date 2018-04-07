@@ -1,0 +1,262 @@
+
+game Cs33Gdas : StdGame	{
+	init	{
+		StdGame::init("cs33gdas");
+		.imgs = (A, "bkg.pyz", "swieca.pyzP 5", "hodon.pyz 10", "krysztal.pyz 15", "gdas.pyz 20", "maska.pyz 30");
+		
+		angdas.anplayfin(0, func {
+			anhodon.setframe(1,0);
+			timend.play;
+			} );
+		angdas.addmethod("onendframe", func {
+			if( .framename=="zabral" )
+				fxzamach2.play;
+				ankrysztal.hide;
+			} );
+		
+		.sfxs = (A, "bgrdomN", "zamach2");
+		
+		.timer = ("timend", 1000, func {
+			.gotoadv("adbiuro", "gameadbiuro2");
+			} );
+	}
+}
+
+game Cs34Krysztal : StdGame	{
+	init	{
+		StdGame::init("cs34krysztal");
+		.imgs = (A, "bkg.pyz", "zamek.pyz 10", "krysztal.pyzP 15");
+		.sfxs = (A, "bgrmorze2N 30", "bgrplazaN 50", "bgrwiatrN 50", "zbilkrysztal");
+		ankrysztal.addmethod("onfinish", func {
+			gameapi.play("Cs35Opaski");
+			} );
+	}
+}
+
+game Cs35Opaski : StdGame	{
+	init	{
+		StdGame::init("cs35opaski");
+		.imgs = (A, "bkg.pyz", "swieca.pyzP 5", "kajko.pyzP 10", "kokosz.pyzP 15");
+		.sfxs = (A, "bgrdomN");
+		ankajko.addmethod("onfinish", func {
+			ccs.close( func {
+				.gotoadv("adbiuro", "gameadbiuro2");
+				} );
+			} );
+	}
+}
+
+game Cs36Sledzie : StdGame	{
+	init	{
+		StdGame::init("cs36sledzie");
+		.imgs = (A, "bkg.pyz", "swieca.pyzP 5", "hodon.pyzP 10", "beczki.pyz 15");
+		
+		.sfxs = (A, "bgrdomN", "uderzwstol", "wpadlwblachy");
+		
+		anhodon.addmethod("onfinish", func { .cbplay("kokosz1"); } );
+		.sounds = (A, ":kokosz1", "Solone ¶ledzie? Proszê bardzo", func {
+			ccs.close( func {
+				.gotoadv("adbiuro", "gameadbiuro2");
+				} );
+			} );
+	}
+}
+
+game Cs37Stwory : StdGame	{
+	init	{
+		StdGame::init("cs37stwory");
+		
+		new gmimgvec grels;
+		new int istworylevel = 1;
+		
+		.sounds = (A, "sndnar1", "Po rozbiciu kryszta³u hipnozy czary rzucone na mieszkañców wyspy przesta³y dzia³aæ; Stwory z wyspy Hokulandii na powrót sta³y siê lud¼mi" , null );
+		
+		mus.playstr("magia.ogg magia2.ogg magia3.ogg magia4.ogg");
+		
+		.mload;
+		ccs.enter( func { .cbplay("sndnar1"); } );
+	}
+	mload	{
+		"grels" .* ("s"+istworylevel+".pyz");
+		grels.setdelay(7);
+		<grels.last>.addmethod("onfinish", func {
+			ccs.close( func {
+				grels.deleteallgm;
+				grels.free;
+				istworylevel++;
+				if( istworylevel>3 )	{
+					mus.fadeout(1000);
+					ccs.close( func {
+						gameapi.play("Cs38Komnata");
+						} );
+				} else {
+					.mload;
+					ccs.enter(null);
+				}
+				} );
+			} );
+		grels.nplay(-1);
+	}
+}
+
+game Cs38Komnata : StdGame	{
+	init	{
+		StdGame::init("cs38komnata");
+		
+		.imgs = (A, "podmaski.pyzG", "zapadnia.pyz 5", "bkg.pyz 10", "klepka.pyzH 11",
+			"ludki1.pyzG 20", "hodon.pyz 25", "ludki2.pyzG 30", "maska.pyz 40",
+			"ludki3.pyzG 45", "kokosz.pyz 26", "kajko.pyz 27", "soren.pyz 28");
+		new gmimgvec grels;
+		grels.addlist(A, "grludki1", "grludki2", "grludki3");
+		
+		anhodon.addmethod("onfinish", func {
+			if( .actionname=="tup")	{
+				anzapadnia.play(0);
+				fxprzekreca1.play;
+				.play("stand");
+			}
+			} );
+		anhodon.addmethod("onendframe", func {
+			if( .framename=="tup") {
+				anklepka.show;
+				fxklamka2.play;
+			}
+			} );
+		anzapadnia.addmethod("onfinish", func {
+			.cbplay("sndtlum2");
+			grels.setframe(-1,1);
+			ankokosz.play("oo");
+			ankajko.play("oo");
+			} );
+		
+		.sounds = (A, ":kokosz1", "Zebrali¶my siê w tej komnacie by os±dziæ uzurpatora który ciemiê¿y³ lud tej wyspy zamieni³ mieszkañców w stwory i uwiêzi³ ksiêcia Sorena w ciemnym lochu", func { .kasay("kajko1"); .kostop; },
+			":kajko1", "Ciê¿ar twoich win Hodonie jest przeogromny; Ksi±¿ê Soren wymierzy ci sprawiedliw± karê", 
+				func { .kastop; .kosay("kokosz2"); },
+			":kokosz2", "Je¶li chcesz prosiæ o ³askê masz teraz ostatni± szansê", func { .kostop; .hosay("hodon1"); },
+			":hodon1", "Chcê prosiæ; Ale nie o ³askê", func { .hostop; .kosay("kokosz3"); },
+			":kokosz3", "Masz jeszcze czelno¶æ stawiaæ nam warunki? Dalej próbujesz rz±dziæ?",
+				func { .kostop; .sosay("soren1"); },
+			":soren1", "Nie uno¶ siê Kokoszu; Jak± masz pro¶bê Hodonie?", func { .sostop; .hosay("hodon2"); },
+			":hodon2", "Dziêkujê Sorenie; Chcia³bym ciê prosiæ by¶ powiedzia³ mi dlaczego nie pragniesz zemsty za to co ci zrobi³em", func { .hostop; .sosay("soren2"); },
+			":soren2", "Zemsty? Chcia³bym ci raczej podziêkowaæ", func { .sostop; .cbplay("sndtlum1"); grels.setframe(-1,1); },
+			"sndtlum1", "Ooooch; S³yszeli¶cie?", func { grels.setframe(-1,0); .sosay("soren3"); },
+			":soren3", "Przez ca³e ¿ycie siê zamartwia³em; Bêd±c ksiêciem wci±¿ my¶la³em jak zapewniæ wyspie spokój jak u³o¿yæ siê z zamorskimi s±siadami jak pokryæ dziurê bud¿etow±; Bior±c na siebie brzemiê w³adzy uwolni³e¶ mnie od trosk; Dopiero w ciemnym lochu zazna³em prawdziwego szczê¶cia; Przez ca³e godziny ws³uchiwa³em siê w odg³osy natury i do¶wiadcza³em ¿ycia takiego jakim ono jest; Zamiast ¿yæ w my¶lach o tym co by³o i co siê ma wydarzyæ ¿y³em w tym co jest jedyn± prawd±; W wiecznej chwili obecnej", func { .sostop; .hosay("hodon3"); },
+			":hodon3", "Zaiste prawdziwa jest twoja przemiana Sorenie; Jestem ju¿ zmêczony walk± o w³adzê i wp³ywy; Budowanie zamków podbijanie krain nie przynosi mi ¿adnej rado¶ci; My¶la³em ¿e co¶ osi±gnê wznosz±c kamienne zamki; ¯e przejdê do historii; Czujê jednak wy³±cznie smutek i niepokój; Czy umiesz daæ mi to szczê¶cie które sam odczuwasz?",
+				func { .hostop; .kosay("kokosz4"); },
+			":kokosz4", "Nie wierz mu ksi±¿ê znowu co¶ knuje; To chytry lis", func { .kostop; .hosay("hodon4"); },
+			":hodon4", "Pyta³e¶ siê Kokoszu czy mam pro¶bê; Odsuñcie siê proszê", func { .hostop; ccs.playfin( func {
+					ankokosz.play("standb");
+					ankajko.play("standb");
+					ansoren.play("standb");
+				},  func {
+					anhodon.play("tup");
+				} ); },
+			"sndtlum2", "Ooooo! Widzieli¶cie?", func { .hosay("hodon5"); },
+			":hodon5", "W ka¿dej chwili mog³em was pokonaæ; Ale nie chcê ju¿ d³u¿ej marnowaæ ¿ycia na marzenia o w³adzy; Chcia³bym was wszystkich przeprosiæ za to co zrobi³em; Uwierzcie mi nie by³em ani trochê szczê¶liwy czyni±c to ca³e z³o",
+				func { .hostop; .sosay2("soren4"); grels.setframe(-1,2); ankokosz.play("hehe"); ankajko.play("hehe"); },
+			":soren4", "Cieszmy siê bracia i siostry; Dzi¶ Kajko i Kokosz odczarowali nie tylko was ale i Hodona; Czy to nie wspania³e zwyciêstwo w którym ka¿dy czuje siê wygranym?", func { ansoren.play("standb"); .cbplay("sndtlum3"); },
+			"sndtlum3", "Hurra! Niech ¿yje Soren! Niech ¿yj± Kajko i Kokosz! Brawo Hodon!", func { ccs.close( func {
+				gameapi.play("Cs39Theend"); } ); }
+			);
+		
+		.sfxs = (A, "bgrholN 40", "bgrdomN 70", "klamka2", "przekreca1");
+		
+		ccs.enter( func { .kosay("kokosz1"); } );
+	}
+	kosay(string s)	{ ankokosz.play("talk"); .cbplay(s); }
+	kostop	{	ankokosz.play("stand"); }
+	kasay(string s)	{ ankajko.play("talk"); .cbplay(s); }
+	kastop	{	ankajko.play("stand"); }
+	hosay(string s)	{ anhodon.play("talk"); .cbplay(s); }
+	hostop	{	anhodon.play("stand"); }
+	sosay(string s)	{ ansoren.play("talk"); .cbplay(s); }
+	sostop	{	ansoren.play("stand"); }
+	sosay2(string s)	{ ansoren.play("talkb"); .cbplay(s); }
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Cs39Theend : StdGame	{
+	init	{
+		StdGame::init("cs39theend");
+		
+		.imgs = (A, "bgsky.pyz", "woda.pyzP 5", "kregi.pyzP 7", "lodz.pyzP 10", "lodka.pyzP 15",
+			"pomost.pyz 20", "myler.pyz 22", "baba1.pyz 24", "baba2.pyz 26", "babka3.pyz 30",
+			"gula.pyz 33", "szambelan.pyz 35", "gdas.pyz 38", "kokosz.pyz 40" ,"kajko.pyz 45",
+			"dziura.pyzG 100", "koniec.pyzH 110");
+		ankoniec.move(0,-100);
+		new gmimgvec grels;
+		grels.addlist(A, "anmyler", "anbaba1", "anbaba2", "anbabka3", "anszambelan");
+		
+		.sfxs = (A, "bgrmorze3N");
+		mus.playstr("flety.ogg -v 70");
+		
+		.sounds = (A, "sndnar1", "Wbrew nadziejom wyspiarzy Soren nie wróci³ na tron ksiêstwa; Postanowi³ odp³yn±æ na bezludn± wyspê by wie¶æ ¿ywot pustelnika; Jego towarzyszem obok szczurka Lutka zosta³ Hodon który w niczym nie przypomina³ ju¿ dawnego butnego w³adcy", func { .cbplay("sndnar2"); grels.nplay(0); anlodka.play(1); },
+			"sndnar2", "Kajko Kokosz i Gda¶ spêdzili jeszcze kilka wspania³ych dni na wyspie; Zaprzyja¼nili siê z mieszkañcami; Szczególnie polubili dzielnego Matiego", func { .cbplay("sndnar3"); timkurtyna.play; },
+			"sndnar3", "A potem wyruszyli do ukochanego Mirmi³owa i ciotki Jagi która z utêsknieniem wyczekiwa³a powrotu kruka Gdasia",
+			func { ankoniec.show; igmstate = 1; }
+			);
+		new img imlewy;
+		string s = grdziura.get(0);
+		imlewy.create( <s>.getpx, iResY, .black, 255);
+		imlewy.setz(105);
+		new img imgora;
+		imgora.create( iResX, <s>.getpy, .black, 255);
+		imgora.setz(105);
+		s = grdziura.get(3);
+		new img imprawy;
+		imprawy.create( iResX-<s>.getex, iResY, .black, 255);
+		imprawy.setpos( <s>.getex, 0 );
+		imprawy.setz(105);
+		new img imdol;
+		imdol.create(iResX, iResY-<s>.getey, .black, 255);
+		imdol.setpos( 0, <s>.getey);
+		imdol.setz(105);
+		s = grdziura.first;
+		new int dt = 4;
+		while(<s>.getex > 0 || <s>.getey > 0 )	{
+			<grdziura.get(0)>.move(-dt,-dt);
+			<grdziura.get(1)>.move(dt,-dt); 
+			<grdziura.get(2)>.move(-dt,dt); 
+			<grdziura.get(3)>.move(dt,dt); 
+			imlewy.move(-dt,0);
+			imprawy.move(dt,0);
+			imgora.move(0,-dt);
+			imdol.move(0,dt);
+		}
+		.cycle = ("timkurtyna", func {
+			@s = grdziura.get(0);
+			if( <s>.getpx < <s>.lodx )	{
+				imlewy.move(dt,0);
+				imgora.move(0,dt);
+				imprawy.move(-dt,0);
+				imdol.move(0,-dt);
+				<grdziura.get(0)>.move(dt,dt);
+				<grdziura.get(1)>.move(-dt,dt); 
+				<grdziura.get(2)>.move(dt,-dt); 
+				<grdziura.get(3)>.move(-dt,-dt); 
+				.play;
+			} else {
+				mus.fadeout(1000);
+				timkoniec.play;
+			}
+			} );
+		.timer = ("timkoniec", 1000, func {
+			mus.playstr("wyspa1.ogg");
+			} );
+		ccs.enter( func {
+			.advgetscreenshoot;
+			.cbplay("sndnar1");
+			} );
+	}
+	mouse_lclick	{
+		if( igmstate==1 ) {
+			igmstate=2;
+			mus.fadeout(1000);
+			ccs.close( func { gameapi.play("MainMenu"); } );
+		} else if (igmdebug)	{
+			.cactsndstop(true);
+		}
+	}
+}

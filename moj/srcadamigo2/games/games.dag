@@ -1,0 +1,259 @@
+/*game gameintro_old : classadvadamigo2 {
+	init()	{
+		classadvadamigo2::init;
+		.path = ("menus");
+		.bkg = ("introbkg.png");
+		.newimg("imgnapis","intronapis.png",10);
+		imgnapis.setpos(400-imgnapis.getw/2, 50);
+		.timer = ("timintro", 200, "fintim" );
+		timintro.play;
+	}
+	fintim		{	gameapi.play("gamemenu");	}
+	mouselclick	{	.fintim;	}
+}
+
+game gameintro2 : classadvadamigo2 {
+	init	{
+		classadvadamigo2::init;
+		new img imgbkg;
+		imgbkg.load("scripts/introm/tlointro.png");
+		new img imgtlo;
+		new int idscene = 1;
+		.showscene;
+		.cnewtimercyclefin("timintro", 1, 1, func { .showscene; .play; } );
+		timintro.play;
+	}
+	showscene	{
+		if( idscene==35 )	{
+			.endintro;
+		} else {
+			imgtlo.load("scripts/introm/intro" + clstrdigit::getdigit(idscene,4)+".png" );
+			imgtlo.hide;
+			imgtlo.show;
+			imgtlo.setpos( 400 - imgtlo.getw/2, 300 - imgtlo.geth/2 );
+			idscene++;
+		}
+	}
+	endintro		{	gameapi.play("gamemenu");	}
+	mouselclick	{	.endintro;	}
+}
+*/
+game gameintro : classadvadamigo2, GameController	{
+	init	{
+		classadvadamigo2::init;
+		GameController::init("intro");
+		.path = ("intro");
+		.newanima("anbkg","bkg.pyz",0);
+		.newanima("anob","obraz.pyz",10);
+		.buildsnds(A,
+			"sndintro", "Witamy w ¶wiecie gier i zabaw Adamigo; Nasza dewiza to edukacja poprzez zabawê", "endintro"
+			);
+		anob.setpos(394,212);
+		new filter fob;
+		.cnewtimercyclefin("timcyk", 1, 1, "fincyk");
+		new @blewo = true;
+		new @rrot = 0.0;
+		fob.link("anob");
+		fob.setpivottype(2);
+		.loadsoldat( 130, 573 );
+		.loadgeneral( 648, 574 );
+		.cbplay("sndintro");
+		new @rotstep = 3.0;
+		new @rbor = 22.0;
+		timcyk.play;
+	}
+	fincyk	{
+		@r2 = rrot;
+		if( blewo )	{
+			if( rrot<=0.0)	{
+				rrot+=.rotstep;
+				blewo=false;
+			} else {
+				rrot-=.rotstep;
+			}
+		} else {
+			if( rrot>=rbor )	{
+				blewo=true;
+				rrot-=.rotstep;
+			} else {
+				rrot+=.rotstep;
+			}
+		}
+		fob.rotate(rrot-r2);
+		.play;
+	}
+	rbetween(real r1, real r2)	{		rrot<=r1 || rrot>=r2;	}
+	real rotstep	{
+		if( .rbetween(3,rbor-3) )	{
+			1.0;
+		} else if( .rbetween(8,rbor-8) )	{
+			2.0;
+		} else rotstep;
+	}
+	endintro	{	gameapi.play("gamemenu");	}
+	mouselclick	{	.endintro;	}
+	cbplay(string s)	{
+		classsound::cbplay2(s);
+		angeneral.play("talk");
+	}
+}
+
+/*******************************************************/
+new bool StartAdamigo = true;
+game gamemenu : classadvadamigo2 , TMenu	{
+	init	{
+		classadvadamigo2::init;
+		.loadsoldat( 315, 591 );
+		.loadgeneral( 442, 588 );
+		
+		.sfxs = (A, "mysz1 50", "wlacznik 20", "blink 20");
+		new anima anblink {
+			.load("scripts/menus/bgblink.pyz");
+			.setz(10);
+			.hide;
+			.setdelay(4);
+			.addmethod("onfinish", func { .hide; } );
+		};
+		.timer = ("timblink", 500+0->rand(10)*100, func { .delay(500+0->rand(10)*600);
+			anblink.show; anblink.play(0); fxblink.play;	.play;	} );
+		timblink.play;
+		
+		.tinit("menug", "scripts/menus/", "menuglowne.pyz");
+		@sfun = func { angeneral.play("stand"); };
+		.buildsnds(A,
+			"sndintro", "Witamy w programie Edukacja z Adamigo! Wybierz grê", sfun,
+			"sndpuzzle", "puzzle i wstawianie",sfun,
+			"sndroznice", "ró¿nice",sfun,
+			"snddopas", "dopasowywanie elementów",sfun,
+			"sndkolorowanka", "kolorowanka", sfun,
+			"sndzagadki", "zagadki", sfun,
+			"sndmemo", "memo", sfun );
+		if(StartAdamigo)	{
+			StartAdamigo=false;
+			.cbplay("sndintro");
+		}
+		new gmimgvec grlamp;
+		"grlamp" .* "lamp.pyz";
+		anlamp0.setz(10);
+		anlamp1.setz(100);
+		anlamp2.setz(110);
+		anlamp2.hide;
+		
+		.newanima("anmysz", "myszka.pyz", 15);
+		new int imousestate = 0;
+		new int imyszspeed = -10;
+		new int imyszspeed2;
+		anmysz.move(1800, 0);
+		anmysz.addmethod("onfinish", "mousefin");
+		anmysz.play(0);
+		
+		/*new anima anpom {
+			.load("scripts/menus/lamp.pyz");
+			.setz(200);
+			.anaddfilter;
+			.mask("anlamp2");
+		};*/
+	}
+	cbplay(string s)	{
+		//.tickstart;
+		classsound::cbplay2(s);
+		angeneral.play("talk");
+	}
+	mousefin	{
+		match(imousestate)	{
+			0 => { if( .getpx<500 ) { imousestate=1; imyszspeed2=imyszspeed; fxmysz1.play;}
+				.move(imyszspeed,0); }
+			1 => { if ( imyszspeed2>=0 ) imousestate++;
+				else { imyszspeed2++; .move(imyszspeed2,0); } }
+			20 => { if( imyszspeed2==imyszspeed ) imousestate=21;
+				 else {.move( imyszspeed2, 0); imyszspeed2--; } }
+			21 => if( .getex < -100 ) { imousestate=0; .move( -(.getpx-1800), 0 ); }
+				else .move(imyszspeed,0); 
+			? => imousestate++;
+		}
+		.play(-1);
+	}
+	/*mouse_move()	{
+		anpom.unlink;
+		anpom.ansetbpos( mouse.getpos );
+		anpom.link;
+	}*/
+	mouse_lclick()	{
+		if( anlamp0.isin(mouse.getpos, true, true) )	{
+			if( anlamp0.framenr==0 )	{
+				anlamp0.setframe(0,1);
+				anlamp2.play(2);
+				fxwlacznik.play;
+			} else {
+				anlamp0.setframe(0,0);
+				anlamp2.anhide;
+				fxwlacznik.play;
+			}
+		}
+	}
+	puzzle_BUTCLICK		{	gameapi.play("MenuPuzzleTryb");	}
+	roznice_BUTCLICK	{	gameapi.play("MenuRoznice");	}
+	dopas_BUTCLICK		{	gameapi.play("gamemenudopas");	}
+	kolorowanka_BUTCLICK	{	gameapi.play("MenuKolorowanka");	}
+	zagadki_BUTCLICK	{	igmbegin=true; gameapi.play("zgadnijmulti1");	}
+	memo_BUTCLICK		{	gameapi.play("MenuMemo");	}
+}
+/*******************************************************/
+
+game gameoutro : classadvadamigo2 {
+	init	{
+		classadvadamigo2::init;
+		.path =("outro");
+		new gmimgvec grbg;
+		"grbg" ..< "bgs.pyz";
+		.img = ("titles.pyz");
+		new @idtit = 0;
+		new @Ile = 0;
+		new @Id = 0;
+		new gmimgvec grim;
+		string s;
+		for( int i=0; i<11; i++)	{
+			s = "img"+i;
+			new img <s>;
+			grim.add(s);
+		}
+		.newdb("dbl","pos.db");
+		new classfadeinout clf;
+		.cnewtimerfin("timcyk", 1000, 1, "fintim");
+		.view;
+	}
+	fintim	{
+		clf.imgtransparency(1, -5, "img"+Id, "next");
+	}
+	next	{
+		@s = "img"+Id;
+		<s>.transparency(255);
+		<s>.hide;
+		Id++;
+		if( Id==Ile )	.view;
+		else	timcyk.play;
+	}
+	view	{
+		if( idtit==antitles.nofframes(0) )	.endintro;
+		else {
+			grim.hide;
+			string s;
+			Ile = (dbl.getcolsno(idtit) - 1)/3;
+			Id = 0;
+			for( int i=0; i< Ile; i++)	{
+				s = "img"+i;
+				<s>.load("scripts/outro/o"+(idtit+1)+"_"+i+".png");
+				<s>.setpos( dbl.get(idtit, 3*i + 2), dbl.get(idtit, 3*i + 3) );
+				<s>.show;
+				<s>.setz(20-i);
+			}
+			antitles.setframe(0,idtit);
+			idtit++;
+			timcyk.play;
+		}
+	}
+	endintro		{	gameapi.play("exit");	}
+	mouselclick	{
+		.endintro;
+	}
+}

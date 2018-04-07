@@ -1,0 +1,77 @@
+new classgamepause clpause;
+new classgamemusic clmusic;
+clmusic.sndbgrpath("sounds/bgr/");
+clmusic.musicpath("sounds/music/");
+clmusic.load("sounds/music.db");
+
+new snd sndaskermovon;
+sndaskermovon.load("sounds/sfx/butmovon.wav");
+
+module clbuts	{
+	init()	{}
+	load()	{
+		new classbutton buts;
+		buts.build("scripts/common/buttons.pyz", 4000, "imglobcurs");
+		buts.transclickfunc( engine.actclassname(), "butclick");
+		buts.transmovonfunc( engine.actclassname(), "butmovon");
+		buts.transmovofffunc( engine.actclassname(), "butmovoff");
+		buts.disableall();
+		new db dbb;
+		dbb.load("scripts/common/buts.db");
+		new snd sndfxglobon;
+		sndfxglobon.load("sounds/sfx/globbutmovon.wav");
+		new @bvisible = true;
+	}
+	reset()	{
+		buts.disableall();	
+		@sgame = gameapi.getgamename;
+		int pos = dbb.findbyrow( sgame );
+		if( pos>=0 )	{
+			int ile = dbb.getcolsno( pos );
+			for( int i=1; i<ile; i++)	{
+				buts.enable( dbb.get( pos, i ) );
+			}
+		}
+	}
+	enable(string sbu)	{
+		buts.enable( sbu );
+	}
+	/*****************************************/
+	butmovon(string sc)	{
+		sndfxglobon.play();
+		bvisible = mouse.isvisible;
+		mouse.show;
+	}
+	butmovoff(string sc)	{
+		if( !bvisible ) mouse.hide;
+	}
+	butclick(string sc)	{
+		if( sc=="pause" )	{
+			clpause.pause();
+		} else if( sc=="exit" )	{
+			claskexit.askexittomenu();
+		} else if (sc=="restart")	{
+			claskexit.askrestart();
+		}
+	}
+}
+
+/***************************************************/
+igmstate = 0;
+|igmdebug, igmeasy, igmdemo, igmbegin| = false, false, true, true;
+
+bsms.setstd;
+
+clbuts.load;
+
+gameapi.play("main");
+game main : Common	{
+	init	{
+		Common::init("mainloader");
+		advmouse.load("scripts/common/cursors.pyz");
+		
+		sndaskermovon.load("sounds/sfx/globbutmovon.wav");
+		
+		gameapi.play( "Battle" );
+	}
+}

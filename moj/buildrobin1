@@ -1,0 +1,3 @@
+./kompiluj ./srcrobin1/robin1.prj
+#cp ./srcrobin1/robin1.odd /home/dedek/projekty/rysunki_gimp/robin1/project/scripts/
+awk -f optimize.awk ./srcrobin1/robin1.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/robin1/project/scripts/robin1.odd

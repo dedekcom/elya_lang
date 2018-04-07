@@ -1,0 +1,254 @@
+
+new int iKolorowankaTryb = 1;	// 0 - dowolny, 1 - sterowany
+new vector vPostacie {
+	.type("string");
+	.beginadd("begin", "detektyw", "informatyk", "kwiaciarka", "kucharz", "fryzjerka", "malarz", 
+			"marynarz", "naukowiec", "policjant", "strazak", "nauczycielka");
+};
+new @KoloLudek = vPostacie.get(0);
+
+class Dymarka	{
+	init	{}
+	initdym	{
+		.sfxs = (A, "tykacz", "para 50");
+		new anima andym {
+			.load("scripts/puzzle/dym.pyz");
+			.setz(15);
+			.hide;
+			.addmethod("onfinish", func {	.hide;	timdym.play;	} );
+		};
+		.timer = ("timdym", 2000+0->rand(1000), func {
+			andym.play(-1);
+			fxpara.play;
+			.delay( 2000 + 0->rand(20)*500); } );
+		timdym.play;
+		
+		new anima anmano	{
+			.load( "scripts/kolorowanka/" + ( 0->rand(2) ? "manometr" : "manodrugi" ) + ".pyz");
+			.setz(11);
+			.addmethod("onstart", func { fxtykacz.playif; } );
+		};
+	}
+}
+
+game MenuKolorowanka : classadvadamigo2 , TMenu, Dymarka	{
+	init()	{
+		classadvadamigo2::init;
+		.loadsoldat( 0, 630 );
+		ansoldat.anaddfilter;
+		ansoldat.rotate( 315 );
+		.tinit("mkolorowanka", "scripts/kolorowanka/", "podmenu.pyz");
+		.buildsnds(A,
+			"sndintro", "Wybierz tryb kolorowania", "soldatstand",
+			"sndsterowany", "Pokoloruj postaæ jak na obrazku","soldatstand",
+			"snddowolny", "Pokoloruj postaæ dowolnie", "soldatstand"	);
+		
+		.initdym;
+		anmano.addmethod("onfinish", func { gameapi.play("Kolorowanka"); } );
+		.cbplay("sndintro");
+	}
+	cbplay(@s)	{ .soldattalk(s);	}
+	startgra(int id)	{
+		if( igmstate!=10)	{
+			igmbegin = true;
+			igmstate = 10;
+			iKolorowankaTryb = id;
+			anmano.play(-1);
+			andym.play(0);
+		}
+	}
+	sterowany_BUTCLICK	{	.startgra(1);  }
+	dowolny_BUTCLICK	{	.startgra(0);  }
+}
+
+game Kolorowanka : classadvadamigo2, TPainter	{
+	init()	{
+		classadvadamigo2::init;
+		.sfxs = (A, "pedzel 60", "pedzel2 60", "ikonka 70");
+		
+		if( iKolorowankaTryb==0 )	{
+			.tinit("paintdow", "scripts/kolorowanka/", "bgdowolny.pyz", "brush.pyz", KoloLudek+".pyz",
+				"coldowolny.pyz", "lu");
+			.sounds = (A, "sndintro", "Pokoloruj obrazek", null );
+			/*.newanima("anlewo", "strzaleczki.pyz", 200);
+			.copyanima("anlewo", "anprawo");
+			new gmimgvec strzalki;
+			_ = "strzalki" .+ "anlewo" .+ "anprawo";
+			anprawo.setframe(0,1);
+			strzalki.setpos( 400, 560 );*/
+			.newanima("anlewo", "strzalki2.pyz", 200);
+			.copyanima("anlewo", "anprawo");
+			anprawo.setframe("right", 0);
+			.copyanima("anlewo", "anbgstrz");
+			anbgstrz.setframe("bg", 0);
+			anbgstrz.setz( 190 );
+			new gmimgvec strzalki;
+			_ = "strzalki" .+ "anlewo" .+ "anprawo";
+			new string smoved = null;
+			grpaleta.each( func { (@id) .paint( .getrgba( .getcx, .getcy ), 0 ); } );
+			.unlock;
+		} else {
+			.tinit("paint", "scripts/kolorowanka/", "bkg.pyz", "brush.pyz", KoloLudek+".pyz",
+				KoloLudek+"kol.pyz", "lu");
+			.lockall;
+			new gmimgvec grmaly	{
+				this ..< (KoloLudek+"s.pyz");
+				.setz(10);
+				@s = .get( .findsac("foreground") );
+				.remove(s);
+				<s>.setz(11);
+			};
+			
+			new classplacepointer2 clp;
+			new classsimplebutton cbok;
+			cbok.build("scripts/menus/przycok.pyz", "imglobcurs", 0, 545, 100, 0);
+			
+			.list = (A, "detektyw", "informatyk", "kucharz", "malarz", "marynarz", "naukowiec",
+				"policjant", "strazak", "lmen");
+			.list = (A, "fryzjerka", "kwiaciarka", "nauczycielka", "lwomen");
+			
+			@sfunkol = func { .cbplay("snd" + KoloLudek); };
+			@sfunpostac = func { .cbplay( igmstate==2 ? "sndend" : "sndpowrot"+splec); };
+			@sfundali = func { .cbplay("snddalej2"); };
+			new @splec = lmen.contains(KoloLudek) ? "men" : "women";
+			new @sfunstart = func { .unlockall; igmstate=1; };
+			.sounds = ( A,
+				"sndintro", "Pokoloruj postaæ któr± widzisz na ¶rodku ekranu tak samo jak tê w rogu",
+					func { clp.show(cbok.getimgfunc("getcx"), cbok.getimgfunc("getcy"), "ld");
+						.cbplay("snddalej"); },
+				"snddalej", "Je¿eli uznasz ¿e postaæ pokolorowana jest prawid³owo wci¶nij przycisk sprawd¼",
+					func { clp.stoph; .cbplay("sndstart"); },
+				"sndstart", "Zaczynamy!", sfunstart,
+				"sndok", "Brawo! Idealnie", func { .cbplay( "snd" + splec ); },
+				"sndmen", "pokolorowany", sfunkol,
+				"sndwomen", "pokolorowana", sfunkol,
+				"snddetektyw", "detektyw", sfunpostac,
+				"sndinformatyk", "informatyk", sfunpostac,
+				"sndkucharz", "kucharz", sfunpostac,
+				"sndmalarz", "malarz", sfunpostac,
+				"sndmarynarz", "marynarz", sfunpostac,
+				"sndnaukowiec", "naukowiec", sfunpostac,
+				"sndpolicjant", "policjant", sfunpostac,
+				"sndstrazak", "stra¿ak", sfunpostac,
+				"sndfryzjerka", "fryzjerka", sfunpostac,
+				"sndkwiaciarka", "kwiaciarka", sfunpostac,
+				"sndnauczycielka", "nauczycielka", sfunpostac,
+				"sndend", "Kliknij aby przej¶æ do kolorowania nastêpnej postaci", func { igmstate=4; },
+				"sndnon", "Niestety", func { igmstate=3; .cbplay("snd" + KoloLudek); },
+				"sndpowrotmen", "nie jest tak samo pokolorowany jak ten w rogu", sfundali,
+				"sndpowrotwomen", "nie jest tak samo pokolorowana jak ta w rogu", sfundali,
+				"snddalej2", "Przypatrz siê uwa¿nie popraw b³êdy i kliknij przycisk sprawd¼ ponownie",
+					sfunstart );
+				
+				new vector vkolory;
+				grmaly.each( func { (@id)
+					//.framename->print;
+					vkolory.add(grpaleta._find1(func{ (@s) .framename->contains(s); }, .framename));
+					@s = grpaleta.get(vkolory.last);
+					.paint(<s>.getrgba(<s>.getcx, <s>.getcy), 0 );
+					} );
+// 			vkolory.print;
+			//grpaleta.each( func { (@id) .paint( .getrgba( .getcx, .getcy ), 0 ); } );	// jednolity kolor
+			}
+			new Color color {
+				.img = (grpaleta.get(0));
+				a = 255;
+				anbrush2.paint( .get, 0 );
+				.var2("framenr", <grpaleta.get(0)>.framenr );
+			};
+			grdraw.each( func { (@id) .var2("colored", -1); } );
+			if( iKolorowankaTryb==0 )	.loadgame;		// ostatni pokolorowany
+			if( igmbegin )	{
+				.cbplay("sndintro");
+				igmbegin=false;
+			} else {
+				if( iKolorowankaTryb==1 )	.cbplay("sndstart");
+			}
+	}
+	cbok_CLICK	{
+		if( igmstate!=1 ) return;
+		if( grdraw.ineach( func { (@id) colored==vkolory.get(id); } ) )	{
+			igmstate=2;
+			.cbplay("sndok");
+		} else {
+			igmstate = 3;
+			.cbplay("sndnon");
+		}
+	}
+	nextgame	{
+		KoloLudek = vPostacie.vecnext( KoloLudek );
+		gameapi.play( "Kolorowanka" );
+	}
+	prevgame	{
+		KoloLudek = vPostacie.vecprev( KoloLudek );
+		gameapi.play( "Kolorowanka" );
+	}
+	savegame	{
+		new vector vSave;
+		grdraw.each( func { (@id) vSave.add( colored ); } );
+		vSave.save( "saves/kolo" + vPostacie.find( KoloLudek ) + ".vec" );
+	}
+	loadgame		{
+		@sfile =  "saves/kolo" + vPostacie.find( KoloLudek ) + ".vec";
+		if( engine.fileexist( sfile ) )	{
+			new vector vLoad;
+			vLoad.load( sfile );
+			grdraw.each( func { (@id)
+				@idcol = vLoad.get(id);
+				if( idcol>=0 )	{
+					@s = grpaleta.get(idcol);
+					.paint(<s>.getrgba(<s>.getcx, <s>.getcy), 0 );
+				}
+				colored = idcol; } );
+		}
+	}
+	mouse_move	{
+		TPainter::mouse_move;
+		if( iKolorowankaTryb==0 )	{
+			 if (strzalki.isin(mouse.getpos,true,true) ) {
+				if( smoved!=strzalki.getsfound ) {
+					fxikonka.play;
+					if( smoved!=null )	<smoved>.setframe(-1, 0);
+					smoved = strzalki.getsfound;
+					<smoved>.setframe(-1, 1);
+				}
+			} else {
+				if( smoved!=null )	{
+					<smoved>.setframe(-1, 0);
+					smoved = null;
+				}
+			}
+		}
+	}
+	mouse_lclick	{
+		if( igmstate==4 )	{
+			.nextgame;
+			return;
+		}
+		//if( igmdebug ) .cactsndstop(true);
+		.cactsndstop(true);
+		if( !.getlock )	{
+			@s;
+			|int x, int y| = mouse.getpos;
+			if( grdraw.isin(x,y,true,true) )	{
+				s = grdraw.getsfound;
+				<s>.paint( anbrush2.getrgba(anbrush2.getpx+_ibrx,anbrush2.getpy+_ibry), 0 );
+				<s>.colored = (color.framenr);
+				fxpedzel2.play;
+			} else if ( grpaleta.isin(x,y,true,true) )	{
+				s = grpaleta.getsfound;
+				|@c[4]| = <s>.getrgba(x,y);
+				c3 = 255;
+				anbrush2.paint( c0, c1, c2, c3, 0 );
+				color.framenr = ( <s>.framenr );
+				fxpedzel.play;
+			} else if ( iKolorowankaTryb==0 && anlewo.isin(x,y,true,true) )	{
+				.savegame;
+				.prevgame;
+			} else if ( iKolorowankaTryb==0 && anprawo.isin(x,y,true,true) )	{
+				.savegame;
+				.nextgame;
+			}
+		}
+	}
+}

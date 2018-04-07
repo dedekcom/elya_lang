@@ -1,0 +1,209 @@
+class TPuzzle	{
+	init	{}
+	tinit(string sbkg, string sels, int row, int col, int dx, int dy)	{
+		new int iCols = col;
+		new int iRows = row;
+		.newimg("imgbkg", sbkg, 0);
+		
+		new gmimgvec grel;
+		new gmimgvec grend;
+		"grel" ..< sels;
+		grel.hash;
+		grel.each( func { (@id) .setz(10+id); } );
+		
+		new int ibadajl = 25;
+		new string sactpuz;
+		new int iblitopacity = 255;
+		new int PuzzleState = 0;
+		
+		new DelayMover cmov;
+		new SimpleCounter cnt(200);
+		
+		new int iX = dx;
+		new int iY = dy;
+		grel.move( iX, iY );
+	}
+	setpuzstate(int istate)	{
+		PuzzleState=istate;
+		if( PuzzleState==1)	{
+			new gmimgvec grblit;
+			@s = _;
+			"grblit" ..< s;
+			grblit.hide;
+		}
+	}
+	cmov_GET	{
+		if( grel.isin( mouse.getpos, true, true ) )	{
+			string s = grel.getsfound;
+			<s>.setz(900);
+			.mssetobj( s );
+			.tpuzzle_get;
+		}
+	}
+	bool cwithin(string s)	{
+		int i;
+		if( .gettype!="anima" )	{
+			for( i=0; i < .size; i++)	{if( <.get(i)>.cwithin( s ) )	return true;}
+			return false;
+		} else {
+			if( <s>.gettype=="anima" )	{
+				int id = .framenr;
+				int im = id%iCols;
+				A;
+				if( im>0 )			id-1;
+				if( im<iCols-1 )	id+1;
+				im = id/iCols;
+				if( im>0 )			id-iCols;
+				if( im<iRows-1)	id+iCols;
+				return <s>.framenr->in;
+			} else {
+				for( i=0; i< <s>.size; i++)		{if( .cwithin( <s>.get(i) ) )	return true;}
+				return false;
+			}
+		}
+	}
+	cblit(string s)	{
+		if( <s>.gettype=="anima" )	{
+			if( PuzzleState==1 )	{
+				<s>.setpos(iX, iY);
+				<s>.hide;
+				s = grblit.get(<s>.framenr);
+			}
+			<s> {
+				.setz(1);
+				.show;
+				.setpos(iX,iY);
+				int x = .getpx;
+				int y = .getpy;
+				.anaddfilter;
+				.setopacity(iblitopacity);
+				.setpos(x,y);
+				imgbkg.blit( this );
+				.unlink;
+				.setpos(iX,iY);
+				.hide;
+			};
+		} else	for( int i=0; i< <s>.size; i++ )		.cblit( <s>.get(i) );
+	}
+	cmov_PUT	{	<GAME>.cput;	}
+	cput	{
+		.tpuzzle_put;
+		string s = cmov.getmover;
+		<s>.setz(100+cnt.next);
+		cmov.free;
+		grel {
+			.sortimgs;
+			.each( func { (int i) .setz(10+i); } );
+		};
+		string s1 = s, string s2;
+		sactpuz = s;
+		while(<s>.gettype != "anima")	s=<s>.get(0);
+		if( ibadajl.length( <s>.lodx+iX-<s>.getpx, <s>.lody+iY-<s>.getpy ) < ibadajl )	{
+			.cblit(s1);
+			grel.remove(s1);
+			grend.add(s1);
+			.tpuzzle_blit;
+			if( grel.empty )	{
+				grend.show;
+				.tpuzzle_end;
+			}
+		} else {
+			grel.remove(s1);
+			for( int i=0; i<grel.size; i++)	{
+				s = grel.get(i);
+				if( cllen.iposlen(s,s1)<ibadajl && <s1>.cwithin(s) )	{
+					|int x, int y| = <s>.getpos;
+					if( <s>.gettype=="anima")	{
+						if( <s1>.gettype=="anima" )	{
+							s2 = "gr" + s;
+							new gmimgvec <s2>;
+							<s2>.add(s);
+							<s2>.add(s1);
+						} else {
+							<s1>.add(s);
+							s2 = s1;
+						}
+						grel.remove(s);
+						grel.add(s2);
+					} else {
+						if( <s1>.gettype=="anima" )	{
+							<s>.add(s1);
+						} else {
+							<s>.addgr(s1);
+						}
+						s2 = s;
+					}
+					<s2>.setpos(x,y);
+					<s2>.setz( <s1>.getz );
+					grel.sortimgs;
+					sactpuz = s2;
+					return;
+				}
+			}
+			grel.add(s1);
+		}
+	}
+	virtual tpuzzle_end {}
+	virtual tpuzzle_get {}
+	virtual tpuzzle_blit {}
+	virtual tpuzzle_put {}
+}
+
+game Puzzle : DziejeGame, TPuzzle	{
+	init(int irow)	{
+		DziejeGame::init("puzzle");
+		
+		.sfxs = (A, "getpuz 60", "putpuz 60", "ok 60");
+		
+		int row = irow*irow;
+		.tinit("bgpuzzle.png", "puz"+row+".pyz", irow, irow, 0, 0);
+		.newanima("anpodpo", "podp"+row+".pyz", 1);
+		anpodpo.hide;
+		
+		.img = ("tlo"+row+".pyz");
+		imgbkg.blit("antlo"+row);
+		delete <"antlo"+row>;
+		
+		.crect;
+		//.crect2;
+		new Rect rec2(6,54,1012,690);
+		rec.fitgrouprand("grel");
+		
+		.sounds=(A,
+			"sndintro", "Z³ó¿ puzlle; Najed¼ na przycisk Pomocy ¿eby zobaczyæ podpowied¼", func { .unlockall; igmstate=1;},
+			"sndok", "Bardzo ³adnie; obejrzyj obrazek i kliknij by z³o¿yæ kolejny", func {
+				igmstate=111;
+				anpodpo.show;
+				}
+			);
+		//.setpuzstate("we"+sSubObraz+".pyz", 1);
+		.cbplay("sndintro");
+		//.unlockall;
+	}
+	clbuts_help_butmoveon	{
+		if( igmstate!=111)
+			anpodpo.show;
+	}
+	clbuts_help_butmoveoff	{
+		if( igmstate!=111)
+			anpodpo.hide;
+	}
+	tpuzzle_get	{	fxgetpuz.play;	}
+	tpuzzle_put	{	fxputpuz.play;	}
+	tpuzzle_end	{
+		fxok.play;
+		grend.hide;
+		.cbplay("sndok");
+	}
+	cmov_PUT	{
+		<GAME>.cput;
+		rec2.fit(sactpuz);
+	}
+	mouse_lclick	{
+		if( igmstate==0)	.cactsndstop(true);
+		else if (igmstate==111)	gameapi.play("SubMenu");
+	}
+	exit_click	{	.askfor("SubMenu");	}
+}
+
+

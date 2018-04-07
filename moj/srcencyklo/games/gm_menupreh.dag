@@ -1,0 +1,100 @@
+
+game IntroPreh : Dzieje	{
+	init	{
+		Dzieje::init("intropreh");
+		.img=("intro" + LANG + ".pyz");
+		.timer=("timtik",3000,func { .mend; } );
+		timtik.play;
+	}
+	mend	{	gameapi.play("MenuPreh");	}
+	mouse_lclick	{	.mend;	}
+}
+
+game MenuPreh : Dzieje, TMenu	{
+	init	{
+		Dzieje::init("menupreh");
+		.tinit("menu" + LANG + ".pyz");
+		but1.bcheck2klik = (true);
+		.img = ("mamut.pyz 50");
+		anmamut.addmethod("onfinish", func { .play(-1); } );
+		but1.balpha=(0);
+		bPrehMenuGry = true;
+		.sounds=(A,
+			"sndintro", "Witamy w programie Dzieje Ludzi Prehistoria; Wybierz rodzaj zabawy", func { .cstopm; .gmunlockall; },
+			"sndgry", "Gry i zabawy", "cstopm",
+			"sndopowiesc", "Opowie¶æ o przygodach prehistorycznego my¶liwego", "cstopm",
+			"sndepoka", "Poznaj ¿ycie naszych przodków", "cstopm",
+			"sndquiz", "Sprawd¼ swoj± wiedzê", "cstopm"
+			);
+		if( igmbegin )	{
+			igmbegin=false;
+			.cbplay("sndintro");
+		} .gmunlockall;
+		
+		if( igmipad )	{
+			but1 { <grbuts.get(grbuts.findsac("exit"))>.hide; };
+		}
+	}
+	cstopm	{	anmamut.stop(false);	anmamut.setframe(0,0);	}
+	cbplay(string s)	{
+		classsound::cbplay2(s);
+		anmamut.stop(false);
+		anmamut.play(0);
+	}
+	gry_BUTCLICK	{	gameapi.play("PrehMenuGry");	}
+	opowiesc_MOVEON	{
+		if(igmdemo) {
+			@s =  but1.getbut;
+			.inpiecz( <s>.getcx, <s>.getcy-80 );
+		}
+	}
+	opowiesc_MOVEOFF	{	.outpiecz;	}	
+	opowiesc_BUTCLICK	{	if( !igmdemo )	gameapi.play("Opowiesc");	}
+	quiz_BUTCLICK	{	gameapi.play("MenuQuiz");	}
+	epoka_BUTCLICK	{	gameapi.play("Prehistoria");	}
+	exit_BUTCLICK	{	/*.askfor("Outro");*/claskexit.askexitgame;	}
+}
+
+game Outro : Dzieje	{
+	init	{
+		Dzieje::init("outro");
+		.img = ("outro.pyz");
+		.timer=("timtik",7000, func {
+			anoutro.framenr ? gameapi.exit : anoutro.setframe(0,1);
+			.delay(40000);
+			.play;
+			} );
+		timtik.play;
+	}
+	mouse_lclick	{
+		timtik.stop(true);
+	}
+}
+
+class Outro_common : Dzieje	{
+	init(string sfile)	{
+		Dzieje::init("outro");
+		.img=(sfile);
+		.timer=("timtik",10000, func { gameapi.exit; } );
+		timtik.play;
+	}
+	mouse_lclick	{	timtik.stop(true);	}
+}
+
+game Outrocze : Outro_common	{
+	init	{	Outro_common::init("outrocze.png");	}
+}
+game Outroslo : Outro_common	{
+	init	{	Outro_common::init("outroslo.png");	}
+}
+
+game Outroeng : Dzieje	{
+	init	{
+		Dzieje::init("outro");
+		.img = ("outroeng.pyz");
+	}
+	mouse_lclick	{
+		if( anoutroeng.framenr )	gameapi.exit;
+		else anoutroeng.setframe(0,1);
+	}
+}

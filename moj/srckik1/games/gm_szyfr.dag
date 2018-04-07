@@ -1,0 +1,92 @@
+
+game Szyfr : StdGame	{
+	init	{
+		StdGame::init("szyfr");
+		
+		.imgs = (A, "bkg.pyz", "klucz.pyz 100", "powrot.pyz 200", "kufer.pyz 10");
+		
+		.newgrimg("grels", "key", 20);
+		new Rect rec2(8,333,1017-8,693-333);
+		anklucz.ansetbpos(0,1000);
+		rec2.fit("anklucz");
+		
+		new bool bklucz = clsave.bis("e6_klucz2_on_kufer2");
+		if( !bklucz ) anklucz.hide;
+		new DelayMover cmov;
+		cmov.unlock;
+		
+		new Button butout;
+		butout.add("anpowrot");
+		anpowrot.Button_std;
+		anpowrot.addmethod("butclick", func {
+			if( igmstate==1 )	.mend;
+			} );
+		new string ssavepref = "e6_kufer2_key_";
+		
+		new vector vkey;
+		vkey.beginadd("begin", 0,0,0,0,4,5,6,0,8,0,0,0,0,13,14,15,16,0,0,19);
+		for( int i=0; i<grels.size; i++)	{
+			@s = grels.get(i);
+			@s1 = ssavepref+i;
+			if( clsave.bis(s1) )	{
+				<s>.setframe(-1,1);
+			} else {
+				clsave.set(s1,0);
+			}
+		}
+		
+		.timer = ("timend", 1000, func { .cbplay("kajko1"); });
+		
+		.sounds = (A, ":kajko1", "Nie zgadniesz co znalaz³em w tym kufrze", func { .cbplay("kokosz1"); },
+			":kokosz1", "Czarodziejski eliksir w magicznej buteleczce?", func { .cbplay("kajko2"); },
+			":kajko2", "Pud³o; Kolejny kuferek; Ten nie do¶æ ¿e nie ma k³ódki to nawet nie widaæ na nim ¿adnego mechanizmu",
+				func { clsave.set("e6_kufer2_state",1); .mend; } );
+		
+		.sfxs = (A, "wciska1", "klamka 50", "getpuz 70", "putpuz 60");
+		mus.playstr("logiczne.ogg");
+		
+		igmstate = 1;
+	}
+	mset(int idk, int idf)	{
+		<grels.get(idk)>.setframe(-1, idf);
+		clsave.set( ssavepref + idk, idf );
+		fxwciska1.play;
+	}
+	mend	{	ccs.close( func {
+		.gotoadv("adpokojkk", "gameadpokojkk0");
+		} );
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		|int x, int y| = mouse.getpos;
+		if( anklucz.isin(x,y,1,1) )	{
+			fxgetpuz.play;
+			.mssetobj( "anklucz" );
+		} else if( grels.isin(x,y,1,1) )	{
+			.mset( grels.getfound, ( <grels.getsfound>.framenr ? 0 : 1 ) );
+			bool bok = true;
+			for( int i=0; i<grels.size; i++)	{
+				if( <grels.get(i)>.framenr )	{
+					if( vkey.get(i)==0 ) bok = false;
+				} else {
+					if( vkey.get(i)!=0 ) bok = false;
+				}
+			}
+			if( bok ) {
+				igmstate = 2;
+				ankufer.setframe(1,0);
+				timend.play;
+				
+				fxklamka.play;
+			}
+		}
+	}
+	cmov_PUT	{
+		.free;
+		rec2.fit("anklucz");
+		fxputpuz.play;
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

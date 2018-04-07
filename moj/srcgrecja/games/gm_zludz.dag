@@ -1,0 +1,93 @@
+
+game Zludz : DziejeGame	{
+	init	{
+		DziejeGame::init("zludz");
+		
+		.subgamebg;
+		
+		.sfxs = (A, "harfa2 50");
+		
+		.imgs = (A, "belka.pyz", "$scripts/mainmenu/prof.pyz 10", "$scripts/mainmenu/maska.pyz 5");
+		new anima anob;
+		
+		new int iZludzLevel = 0;
+		.sounds = (A, "sndgo", "W tej zabawie logicznej poznasz z³udzenia optyczne stosowane przez Greków przy budowaniu monumentalnych budowli; Je¶li bêdziesz chcia³ bym powtórzy³ zadanie kliknij na mnie", "mnext1",
+			"snd1", "Na obrazku widzimy kwadrat i kilkana¶cie okrêgów; Przypatrz siê uwa¿nie; Czy krawêdzie kwadratu s± idealnie równe czy lekko wygiête? Aby us³yszeæ odpowied¼ kliknij przycisk Play na dole", "mgo",
+			"sndo1", "Gdy usuniemy okrêgi okazuje siê ¿e kwadrat jest idealnie równy a ugiêcie krawêdzi by³o tylko z³udzeniem; Wci¶nij Play aby przej¶æ dalej", "mnext",
+			"snd2", "Obejrzyj dok³adnie dwa odcinki zakoñczone grotami; Który z nich jest krótszy?", "mgo",
+			"sndo2", "Ró¿ne d³ugo¶ci s± tylko z³udzeniem oba odcinki s± równe", "mnext",
+			"snd3", "Na obrazku widzimy 2 niebieski kropki otoczone okrêgami; Czy która¶ jest wiêksza?", "mgo",
+			"sndo3", "Po usuniêciu okrêgów widzimy ¿e obie kropki s± identyczne", "mnext",
+			"snd4", "Przyjrzyj siê uwa¿nie jaskó³kom; Czy odleg³o¶æ miêdzy dziobami ptaków z numerami 1 i 2 jest taka sama jak odleg³o¶æ miêdzy dziobami ptaków z numerami 3 i 4?", "mgo",
+			"sndo4", "Choæ trudno w to uwierzyæ odleg³o¶ci s± takie same", "mnext",
+			"snd5", "To bardzo ciekawy przyk³ad; Wewn±trz bia³ych kropek pojawiaj± siê mniejsze niebieskie kropki które s± iluzj±; Co siê dzieje kiedy próbujesz zatrzymaæ wzrok na jednej z nich?", "mgo",
+			"sndo5", "Niebieska kropka natychmiast znika i pojawia siê w innych miejscach", "mnext",
+			"snd6", "Czy górna krawêd¼ tych korali jest idealnie równa czy ugina siê lekko do do³u?", "mgo",
+			"sndo6", "Krawêd¼ jest oczywi¶cie równa! Kolejna iluzja", "mnext",
+			"snd7", "Zbli¿ siê do ekranu zakryj rêk± prawe oko i wpatruj siê intensywnie 30 sekund w ¿ó³t± kropkê; Potem dalej zakrywaj±c rêk± prawe oko powoli przesuwaj wzrok na cyfry od 1 do 6; Czy zauwa¿y³e¶ co¶ ciekawego?", "mgo",
+			"sndo7", "Tak jest! ¯ó³ta kropka znika", "mnext",
+			"snd8", "Ten grecki statek namalowano za pomoc± czerwonych i niebieskich kropek; Przypatrz mu siê i powiedz jakie z³udzenie zauwa¿y³e¶", "mgo",
+			"sndo8", "Znów iluzja; Wydaje siê nam ¿e statek i chmury lekko siê poruszaj±", "mnext",
+			"snd9", "Policz ile desek jest na obrazku", "mgo",
+			"sndo9", "Oczywi¶cie nie ma tu ¿adnej deski; Kolejna sztuczka która oszukuje nasz mózg", "mnext",
+			"snd10", "Który wa³ek porusza siê najszybciej?", "mgo",
+			"sndo10", "¯aden; Obrazek nie jest animowany! Ruch elips odbywa siê tylko w naszym umy¶le", "mnext",
+			"snd11", "Czy ten kwadrat nie wydaje siê wklês³y?", "mgo",
+			"sndo11", "Kolejny trik; Wystarczy usun±æ bia³e i czarne krzy¿yki i iluzja znika", "mnext",
+			"snd12", "Ile widzisz trójk±tów?", "mgo",
+			"sndo12", "Prawid³owa odpowied¼; ¯adnego; Kolejny raz nasz mózg widzi obraz który nie istnieje" , func { <GAME> {
+				.mstop;
+				anob.hide;
+				.lang_db("dbend", "koniec");
+				.newtext("txtend", dbend.get(0,0), .stdfont(48), 255,108,0);
+				txtend.setpos( (iResX-txtend.getw)/2, (iResY-txtend.geth)/2 );
+				igmstate = 5;
+				}; }
+			);
+		new Button butprof;
+		anmaska {
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if(igmstate==1)	{
+					igmstate = 6;
+					.mprof("snd" + iZludzLevel);
+				}
+				} );
+			butprof.add(this);
+		};
+		.mprof("sndgo");
+	}
+	mprof(string s)	{
+		anprof.play("talk");
+		.cbplay(s);
+	}
+	mstop	{	anprof.play("stand");	}
+	mnext1	{
+		igmstate = 0;
+		iZludzLevel++;
+		anob.load( .getgraphpath + "z" + iZludzLevel + ".pyz" );
+		.mprof("snd" + iZludzLevel);
+	}
+	mgo	{
+		igmstate = 1;
+		.mstop;
+	}
+	mnext	{ .mstop; igmstate = 3; }
+	clbuts_play_butclick	{ <GAME> {
+		if( igmstate==1 )	{
+			anob.play(1);
+			.mprof("sndo" + iZludzLevel);
+			igmstate = 2;
+			fxharfa2.play;
+		} else if (igmstate == 3) {
+			.mnext1;
+			fxharfa2.play;
+		}
+	}; }
+	mouse_lclick	{
+		if( igmstate==0 || igmstate==2)	.cactsndstop(true);
+		else if (igmstate==5) gameapi.play("MenuGry");
+		else if (igmstate==6) igmstate = 0;
+	}
+	exit_click	{	.askfor("SubMenu");	}
+}

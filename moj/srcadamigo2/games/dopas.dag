@@ -1,0 +1,607 @@
+/*game gamemenudopas : classadvadamigo2 , Tclassmenu	{
+	init()	{
+		classadvadamigo2::init();
+		Tclassmenu::init();
+		this.tload("scripts/dopasowanki/","wstawtryb.pyz","menubuts.db");
+		bgmwstaw=true;
+		bgmdopasbegin=true;
+	}
+	mono_BUTCLICK()	{	gameapi.play("gamedopasowankamonomenu");	}
+	multi_BUTCLICK()		{	gameapi.play("gamedopasowankamulti");	}
+}*/
+game gamemenudopas : classadvadamigo2 , TMenu	{
+	init()	{
+		classadvadamigo2::init;
+		.loadsoldat( 396, 600 );
+		.tinit("mdopas", "scripts/dopasowanki/", "menudopas.pyz");
+		.newanima("anpojed", "pojedyn.pyz", 100);
+		.buildsnds(A,
+			"sndintro", "Wybierz tryb gry i planszê", "soldatstand",
+			"sndall", "wszystkie elementy","soldatstand",
+			"sndlazienka", "³azienka", "soldatstand",
+			"sndsalon", "salon", "soldatstand",
+			"sndkuchnia", "kuchnia", "soldatstand",
+			"sndzabawowy", "pokój dzieciêcy", "soldatstand");
+		.cbplay("sndintro");
+		new int iZ = but1 { grbuts.getz; };
+	}
+	cbplay(@s)	{ .soldattalk(s);	}
+	playgame(string s)	{
+		sgmdopas=s;
+		bgmdopasbegin=true;
+		gameapi.play("gamedopasowankamono");
+	}
+	setact	{
+		but1 { <grbuts.getsfound>.setz( iZ+1 ); };
+		anpojed.setframe(0,1);
+	}
+	setstd	{
+		but1 { grbuts.setz(iZ);	};
+		anpojed.setframe(0,0);
+	}
+	all_BUTCLICK()	{	bgmdopasbegin=true; gameapi.play("gamedopasowankamulti");	}
+	lazienka_BUTCLICK()	{	.playgame("lazienka");	}
+	salon_BUTCLICK()	{	.playgame("salon");	}
+	zabawowy_BUTCLICK()	{	.playgame("zabawowy");	}
+	kuchnia_BUTCLICK()	{	.playgame("kuchnia");	}
+	lazienka_MOVEON	{	.setact;	}
+	lazienka_MOVEOFF	{	.setstd;	}
+	salon_MOVEON		{	.setact;	}
+	salon_MOVEOFF		{	.setstd;	}
+	kuchnia_MOVEON		{	.setact;	}
+	kuchnia_MOVEOFF	{	.setstd;	}
+	zabawowy_MOVEON	{	.setact;	}
+	zabawowy_MOVEOFF	{	.setstd;	}
+}
+
+new string sgmdopas;
+new bool bgmdopasbegin = true;
+game gamedopasowankamonomenu : classadvadamigo2	{
+	init()	{
+		classadvadamigo2::init();
+		string s = "scripts/dopasowanki/";
+		bgmdopasbegin=true;
+		this.setgraphpath(s);
+		this.csetbkg("bgmenu.png");
+		new classsimplebutton cb1;
+		cb1.build(s+"lazienka.png", "imglobcurs", 100, 0, 10, 0);
+		new classsimplebutton cb2;
+		cb2.build(s+"salon.png", "imglobcurs", 400, 0, 10, 0);
+		new classsimplebutton cb3;
+		cb3.build(s+"kuchnia.png", "imglobcurs", 100, 300, 10, 0);
+		new classsimplebutton cb4;
+		cb4.build(s+"zabawowy.png", "imglobcurs", 400, 300, 10, 0);
+		this.cloadwavs("dbwav","menuwavs.db");
+		this.cbplay("sndintro");
+	}
+	playgame(string s)	{
+		sgmdopas=s;
+		gameapi.play("gamedopasowankamono");
+	}
+	mmovon(string s)	{
+		sndakskermovon.play();
+		if( sndintro.isplaying()==false )	{
+			this.crselfplay("snd"+s);
+		}
+	}
+	cb1_CLICK()	{	this.playgame("lazienka");	}
+	cb2_CLICK()	{	this.playgame("salon");	}
+	cb3_CLICK()	{	this.playgame("kuchnia");	}
+	cb4_CLICK()	{	this.playgame("zabawowy");	}
+	cb1_MOVEON()	{	this.mmovon("lazienka");	}
+	cb2_MOVEON()	{	this.mmovon("salon");	}
+	cb3_MOVEON()	{	this.mmovon("kuchnia");	}
+	cb4_MOVEON()	{	this.mmovon("zabawowy");	}
+}
+
+game classgamedopasowanka : classadvadamigo2	{
+	init()	{
+		classadvadamigo2::init();
+		this.setgraphpath("scripts/dopasowanki/");
+		
+		new classplacepointer2 clp;
+		new classsimplebutton cbok;
+		cbok.build("scripts/menus/przycok.pyz", "imglobcurs", 0, 545, 1000, 0);
+		new int izlicz=30;
+		// przedmioty
+		new gmimgvec grel;
+		new gmimgvec grsprawdz;
+		new gmimgvec grpoprawne;
+		new int iToler = 10;
+		
+		this.newanima("anel","elementy.pyz",10);
+		int ile = this.newanfrbyactgr("anel", "anel", "grel");
+		anel.hide();
+		grel.hash();
+		new Rewinder clrew;
+		clrew.build("scripts/wstawianki/strzalki.pyz",5,"imglobcurs","right",10,"grel");
+		
+		grel.move((anel.getw()-clrew.getbutw())/2 - 120 ,0);
+		clrew.movearrows(-120, 0);
+		grel.eval("anaddfilter");
+		grel.eval1("setpivottype",1);
+		new int itafx = grel.getpx();
+		
+		this.newsnd("sfxmov","sfx/step.wav");
+		this.newsnd("sfxclick","sfx/getitem.wav");
+		this.newsnd("sfxrel","sfx/putpuz.wav");
+		
+		new int iletafli = grel.size();
+		for( int i=0; i<iletafli;i++)	{
+			<grel.get(i)>._buildtafel();
+		}
+		
+		new DelayTaker cldt;
+		
+		new DelayTaker cldt2;
+		new ImgMover clmv2;
+		
+		igmstate=0;
+		
+		new classfadeinout clfio;
+		new int iclfiov = -20;
+		new string sfiotaf;
+	}
+	loadmaski(string sfile, string sgrp)	{
+		new gmimgvec <sgrp>;
+		string san = "an" + sgrp;
+		this.newanima(san, sfile,100);
+		_ = this.newanfrbyactgr(san, san, sgrp);
+		<san>.hide();
+	}
+	int nextlicz()	{
+		izlicz++;
+		if( izlicz>900 )	{	izlicz=30;	}
+		return izlicz;
+	}
+	_buildtafel()	{
+		new int _iinx = this.getpx();
+		new int _iiny = this.getpy();
+	}
+	puttafel()	{
+		this.setpos(_iinx+grel.getpx()-this.lodx()-itafx,_iiny+grel.getpy()-this.lody());
+		this.setopacity(255);
+		this.link();
+	}
+	fintafel()	{
+		igmstate = 1;
+		<sfiotaf>.hide;
+	}
+	bool puttafel2(string sgm, string sgr)	{
+		this.setz(this.nextlicz());
+		string s = this.getname();
+		if( this.actionname()==sgm && clsurf.commonimgs( s, <sgr>.get( this.framenr() ) ) )	{
+			this.link();
+			igmstate = 0;
+			sfiotaf = s;
+			clfio.setopacity(1, iclfiov, s, "fintafel");
+			grpoprawne.add(s);
+			return true;
+		} else {
+			this.setopacity(128);
+			this.link();
+			return false;
+		}
+	}
+	mdali()	{
+		if( igmstate==0)	{
+			this.cbplay("sndintro2");
+			clp.show(cbok.getimgfunc("getcx"), cbok.getimgfunc("getcy"), "ld");
+		} else if (igmstate==2)	{
+			igmstate = 1;
+		}
+	}
+	cbok_MOVEON()	{	sndakskermovon.play();	}
+	mstart()	{
+		igmstate=1;
+		clrew.unlock();
+	}
+	mousemove()	{
+		clrew.moveitem();
+		clmv2.msmove();
+	}
+	mouselrel()	{
+		if( igmstate!=1 )	{	return;	}
+		if( cldt.isonrel() )	{
+			this.mwstaw();
+		} else if (cldt2.isonrel())	{
+			this.mwstaw2();
+		}
+	}
+	virtual stopsnd()	{
+		this.cactsndstop(true);
+	}
+	mouselclick()	{
+		if( igmdebug || sndbad.isplaying() || sndnotall.isplaying() )	{
+			this.stopsnd();
+		}
+		if( igmstate!=1 )	{	return;	}
+		int x, int y, string s, int id;
+		if( cldt.isonclick() )	{
+			this.mwstaw();
+		} else if (cldt2.isonclick())	{
+			this.mwstaw2();
+		} else if ( !cldt.istaken() )	{
+			x = mouse.getpx();
+			y = mouse.getpy();
+			s = grel.getimg(x,y,true,true);
+			if( s!=null && <s>.withincut(x,y) )	{
+				<s>.setz(1030);
+				<s>.unlink();
+				clrew.getitem(s,x,y);
+				cldt.take();
+				sfxclick.play();
+			} else {
+				this.msprawdzwstawione(x,y);
+			}
+		}
+	}
+	msprawdzwstawione(int x, int y)	{}
+	mnotall()	{	igmstate=1;	}
+	clrew_up_MOVEON()	{	sfxmov.play();	}
+	clrew_down_MOVEON()	{	sfxmov.play();	}
+}
+
+game gamedopasowankamono : classgamedopasowanka	{
+	init()	{
+		classgamedopasowanka::init();
+		this.setgraphpath("scripts/dopasowanki/");
+		clrew.setfxrew("sfx/przesun.wav");
+		this.buildobjects();	
+		this.cloadwavs("dbwav","wavsmono.db");
+		if( bgmdopasbegin )	{
+			bgmdopasbegin=false;
+			this.cbplay("sndintro");
+		} else {
+			this.mstart();
+		}
+	}
+	cbok_CLICK()	{
+		if( igmstate!=1 )	return;
+		grsprawdz .= "grpoprawne";
+		grsprawdz.addgr("grin");
+		int ile = grsprawdz.size();
+// 		if( ile==0 )	{	return;	}
+		igmstate=0;
+		for( int i=0; i<ile; i++)	{
+			if( <grsprawdz.get(i)>.actionname()!=sgmdopas )	{
+				this.cbplay("sndbad");
+				string s2 = grsprawdz.get(i);
+				<s2>.setopacity(255);
+				<s2>.setz( this.nextlicz() );
+				grin.sortimgs();
+				return;
+			}
+		}
+		if( ile < anel.nofframes(sgmdopas) )	{
+			this.cbplay("sndnotall");
+		} else {
+			this.cbplay("sndhura");
+		}
+		sfxmov.play();
+	}
+	msprawdzwstawione(int x, int y)	{
+		string s = grin.getimg(x,y,true,true);
+		if(s!=null)	{
+			<s>.setz(1030);
+			<s>.unlink();
+			grin.remove(s);
+			cldt2.take();
+			clmv2.setobj(s,x,y);
+			sfxclick.play();
+		}
+	}
+	mwstaw()	{
+		cldt.ret();
+		string s = clrew.getmoved();
+		int w = <s>.getw()/2;
+		int h = <s>.geth()/2;
+// 		if( clsurf.isin(<s>.getcx(), <s>.getcy(), 10+w, 10+h, 590-w, 590-h) )	{
+		if( clsurf.isin(<s>.getcx(), <s>.getcy(), w-iToler, h-iToler, 599+iToler-w, 599+iToler-h) )	{
+			if( !<s>.puttafel2(sgmdopas, "grpod") )	{
+				grin.add(s);
+			}
+			clrew.freeitem();
+		} else {
+			<s>.setz(10);
+			clrew.retitem();
+		}
+		sfxrel.play();
+	}
+	mwstaw2()	{
+		cldt2.ret();
+		string s = clmv2.getmover();
+		int w = <s>.getw()/2;
+		int h = <s>.geth()/2;
+		//if( clsurf.isin(<s>.getcx(), <s>.getcy(), 10+w, 10+h, 590-w, 590-h) )	{
+		if( clsurf.isin(<s>.getcx(), <s>.getcy(), w-iToler, h-iToler, 599+iToler-w, 599+iToler-h) )	{
+			if (!<s>.puttafel2(sgmdopas, "grpod") )
+				grin.add(s);
+			clmv2.free();
+		} else {
+			<s>.setz(10);
+			<s>.puttafel();
+			clrew.putitem(s);
+			clmv2.free();
+		}
+		sfxrel.play();
+	}
+	buildobjects()	{
+		this.csetbkg("bg"+sgmdopas+".png");
+		new gmimgvec grin;		// wstawione
+		this.loadmaski( sgmdopas+".pyz", "grpod");
+// 		grpod.move(25,25);
+		grpod.hide();
+	}
+	mintrofin()	{
+		this.cbplay("snd"+sgmdopas);
+	}
+	mbad()	{
+		igmstate=2;
+		this.cbplay("snd"+sgmdopas);
+	}
+	mhura()	{
+		igmstate=3;
+		sgmdopas = anel.annextaction(sgmdopas);
+		gameapi.play("gamedopasowankamono");
+	}
+	mintrofin2()	{
+		clp.stoph();
+		this.mstart();
+	}
+	virtual stopsnd()	{
+		if( sndbad.isplaying() )	{
+			this.cactsndstop(false);
+			igmstate=2;
+			this.mdali();
+		} else
+			this.cactsndstop(true);
+	}
+	mkuchnia()	{	this.mdali();	}
+	msalon()	{	this.mdali();	}
+	mlazienka()	{	this.mdali();	}
+	mzabawowy()	{	this.mdali();	}
+}
+
+/*************************************************************/
+
+game gamedopasowankamulti : classgamedopasowanka	{
+	init()	{
+		classgamedopasowanka::init();
+		clrew.setfxrew("sfx/przesun.wav");
+		this.cloadwavs("dbwav","wavsmulti.db");
+		new vector vecpom;
+		vecpom.type("string");
+		vecpom.beginadd("begin","lazienka","salon","kuchnia","zabawowy");
+		new int itafelgr;
+		new vector grpos;
+		//grpos.beginadd("begin",10,10,290,290, 310,10,590,290, 10,310,290,590, 310,310,590,590 );
+		grpos.beginadd("begin",1,1,299,299, 301,1,599,299, 1,301,299,599, 301,301,599,599 );
+		//engine.setdebugstate(true);
+		this.buildobjects();		// virtual
+		
+		new img imglicz {
+			.load("scripts/memo/licznik1.png");
+			.setpos( 800-.getw, 5 );
+			//.setz(0);
+		};
+		new TextTimeCounter cltc("configs/fonts/bold.ttf", 19, 250, 250, 250, 
+			imglicz.getpx+20, imglicz.getpy+13, 300, "hms");
+		//cltc.setbg(10,10,128,192);
+		
+		if( bgmdopasbegin )	{
+			bgmdopasbegin=false;
+			this.cbplay("sndintro");
+		} else {	this.mstart2();	}
+		
+		grel.move(23 ,0);
+		clrew.movearrows(23, 0);
+	}
+	cbok_CLICK()	{
+		if( igmstate!=1 )	return;
+		int ile = anel.nofframes(0);
+		igmstate=0;
+		
+		int i, int j, string s;
+		grsprawdz .= "grpoprawne";
+		for( j=1; j<=4; j++)	{
+			s = "grin"+j;
+			grsprawdz.addgr(s);
+			ile = <s>.size();
+			for( i=0; i<ile; i++)	{
+				if( <<s>.get(i)>.actionname()!=vecpom.get(j-1) )	{
+					//engine.print( <<s>.get(i)>.actionname() + " nie pasuje do " + vecpom.get(j-1) );
+					this.cbplay("sndbad");
+					string s2 = <s>.get(i);
+					<s2>.setopacity(255);
+					<s2>.setz( this.nextlicz() );
+					<s>.sortimgs();
+					return;
+				}
+			}
+		}
+		if( grsprawdz.size()<iletafli )	{
+			this.cbplay("sndnotall");
+			return;
+		}
+		this.cbplay("sndhura");
+		cltc.stop();
+		sfxmov.play();
+	}
+	msprawdzwstawione(int x, int y)	{
+		string s[2];
+		for( int i=1; i<=4; i++)	{
+			s0 = "grin"+i;
+			s1 = <s0>.getimg(x,y,true,true);
+			if(s1!=null)	{
+				<s1>.setz(1030);
+				<s1>.unlink();
+				<s0>.remove(s1);
+				cldt2.take();
+				clmv2.setobj(s1,x,y);
+				sfxclick.play();
+				itafelgr = i;
+				return;
+			}
+		}
+	}
+	mwstaw()	{
+		cldt.ret();
+		string s = clrew.getmoved();
+		int w = <s>.getw()/2;
+		int h = <s>.geth()/2;
+		string sg;
+		sfxrel.play();
+		int id = 0;
+		for( int i=1; i<=4; i++)	{
+			sg = "grin"+i;
+			if( clsurf.isin(<s>.getcx(), <s>.getcy(), grpos.get(id)+w,
+				grpos.get(id+1)+h, grpos.get(id+2)-w, grpos.get(id+3)-h) )	{
+				if( !<s>.puttafel2( vecpom.get(i-1), "grpod"+i) )
+					<sg>.add(s);
+				clrew.freeitem();
+				return;
+			}
+			id+=4;
+		}
+		<s>.setz(10);
+		clrew.retitem();
+	}
+	mwstaw2()	{
+		cldt2.ret();
+		string s = clmv2.getmover();
+		int w = <s>.getw()/2;
+		int h = <s>.geth()/2;
+		string sg;
+		sfxrel.play();
+		int id = 0;
+		for( int i=1; i<=4; i++)	{
+			sg = "grin"+i;
+			if( clsurf.isin(<s>.getcx(), <s>.getcy(), grpos.get(id)+w,
+				grpos.get(id+1)+h, grpos.get(id+2)-w, grpos.get(id+3)-h) )	{
+				if( !<s>.puttafel2(vecpom.get(i-1), "grpod"+i) )
+					<sg>.add(s);
+				clmv2.free();
+				return;
+			}
+			id+=4;
+		}
+		<s>.setz(10);
+		<s>.puttafel();
+		clrew.putitem(s);
+		clmv2.free();
+		
+		sfxrel.play();
+	}
+	buildobjects()	{
+		this.csetbkg("bgprj.png");
+		string s;
+		int id = 0;
+		for( int i=1; i<=4; i++)	{
+			new gmimgvec <"grin"+i>;
+			s = "grpod" + i;
+			this.loadmaski( vecpom.get(i-1)+"s.pyz", s);
+			<s>.move( grpos.get(id)-10, grpos.get(id+1)-10 );
+			<s>.hide;
+			id+=4;
+		}
+	}
+	mintrofin()	{
+		this.mdali();
+	}
+	mbad()	{
+		igmstate=1;
+	}
+	mhura1	{	<gameapi.getgamename>.mhura;	}
+	mhura()	{
+		new db dbrek;
+		dbrek.load("saves/rekordy.db");
+		int pos;
+		int itime = cltc.gettime();
+		
+		pos = dbrek.dbinsertless( itime );
+		dbrek.dbcuttosize(10);
+		
+		new int irekpos=pos;
+		if( pos>=10 )	{
+			this.cnewsndfin("sndrek","dopas23.wav","mfinnorek");
+			igmstate=3;
+		} else {
+			this.cnewsndfin("sndrek","dopas22.wav","mfinyesrek");
+			dbrek.getcolsno(pos)>1 ? dbrek.set( pos, 1, cltc.sgettime() ) : dbrek.add( pos, cltc.sgettime() );
+			igmstate = 5;
+		}
+		new font fnt1;
+		fnt1.load( "configs/fonts/VeraMono.ttf", 18 );
+		new text imgtxt;
+		imgtxt.setz(500);
+		imgtxt.setbkg( 200, 100, 350, 300, 128,128,192,192 );
+		imgtxt.setborders(2,10,10,10,128);
+		imgtxt.show();
+		string s;
+		int h = 25;
+		for( int i=0; i<10; i++)	{
+			s = "txtt"+i;
+			new text <s>;
+			<s>.setfont("fnt1");
+			<s>.set( i<dbrek.getrowsno() ? dbrek.get(i,1) : "99:59:59" );
+			<s>.setz(600);
+			<s>.setpos( 210, 120+(i*h) );
+			if( i==irekpos )	{
+				<s>.createtxt( 255,80,80 );
+				new TextTyper cltxt1("fnt1", 18, 255,80,80, "a0 ", 15);
+				cltxt1.setpos( 310, 120+i*h );
+				cltxt1.setz(600);
+				cltxt1.onenter(null,"writtenauthor");
+			} else {
+				<s>.createtxt( 220,220,220 );
+				s = "txtt2"+i;
+				new text <s>;
+				<s>.setfont("fnt1");
+				<s>.set( i<dbrek.getrowsno() ? dbrek.get(i,2) : "---------------" );
+				<s>.createtxt( 220,220,220 );
+				<s>.setpos( 310, 120+i*h );
+				<s>.setz(600);
+			}
+		}
+		this.cbplay("sndrek");
+	}
+	writtenauthor()	{
+		string s = cltxt1.get();
+		if( dbrek.getcolsno(irekpos)<3 )	{
+			dbrek.add(irekpos, s);
+		} else dbrek.set( irekpos, 2, s );
+		dbrek.save("saves/rekordy.db");
+		this.mfinnorek();
+	}
+	mfinyesrek()	{
+		cltxt1.enable();
+		igmstate = 4;
+	}
+	mfinnorek()	{
+		claskexit.askrestart();
+	}
+	keydown()	{
+		if( igmstate!=4 )	return;
+		cltxt1.onkeydown();
+	}
+	mouserclick()	{
+		if( igmdebug )	{
+			this.cactsndstop(false);
+			//this.mhura();
+			.cbplay("sndhura");
+		}
+	}
+	mintrofin2()	{
+		clp.stoph();
+		this.mstart2();
+	}
+	mstart2()	{
+		cltc.play();
+		this.mstart();
+	}
+	mkuchnia()	{}
+	msalon()	{}
+	mlazienka()	{}
+	mzabawowy()	{}
+}

@@ -1,0 +1,18 @@
+
+class HwarsStd : StdGame	{
+	init(string s)	{
+		StdGame::init(s);
+	}
+}
+
+class HWarsUnit	{
+	init	{
+		
+	}
+}
+
+game HWarsGame : HwarsStd	{
+	init	{
+		HwarsStd::init("hwars");
+	}
+}

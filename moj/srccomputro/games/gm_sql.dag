@@ -1,0 +1,272 @@
+game Sql : Computro	{
+	init	{
+		Computro::init("sql");
+		new GUI gui("butgame");
+		.lang_db("dbl","txt");
+		new vector vm1;
+		vm1.type("string");
+		new img imgbkg;
+		imgbkg.create(iResX, iResY, .grey(32), 255);
+		
+		gui.newwndtitle("winmain", null, .mtekst("maintit"), 784, 520);
+		winmain.winmove(400-winmain.getw/2, 4);
+		gui.newbutton("butshow", .mtekst("pokapoka"), 180, 25);
+		butshow.setpos( 800 - 195, 35 );
+		butshow.hide;
+		gui.newbutton("butprev", .mtekst("prev"), 180, 25);
+		butprev.setpos(800-butshow.getex, butshow.getpy);
+		
+		new @stdfont12 = .stdfont(12);
+		.lang_db("dbzad","zad");
+		.newdb("dbsql","zapytania.db");
+		.newdb("dbcmp", "zapytania.sql");
+		new db dbodp2;
+		
+		new SQL dbazy;
+		dbazy.load(.getgraphpath);
+		new db dbodp;
+		new int ilesql = 0;
+		
+		new AlgImg algim;
+		new int izadanie = 1;
+		new int izapytanie = 0;
+		.mloadzad;
+		ccs.enter( func { igmstate = 1; } );
+	}
+	int mquery(string s)	{
+		@id = dbazy.query(s);
+		if(id==0)	{
+			ilesql++;
+			dbodp.free;
+			dbazy.copyresult("dbodp");
+			if( dbodp.getrowsno>30 )	{
+				dbodp.dbcuttosize(30);
+				for( int i=0; i<dbodp.getcolsno(29); i++) dbodp.set(29,i,"...");
+			}
+			s = "winsql"+ilesql;
+			gui.newsqltable(s, "dbodp", "center");
+			<s>.setz(510);
+			<s>.setpos( 400 - <s>.getw/2, winbgtxt.getey + 20 );
+			//if(<s>.getw>620)	{
+			@y = 500-winbgtxt.getey;
+			@w = <s>.getw;
+			gui.newrewinder("rewsql"+ilesql, (w>620 ? 100 : 400-w/2) , <s>.getpy, (w>620 ? 600 : 0), (<s>.geth>y+10 ? y : 0), s);
+			<"rewsql"+ilesql>.winsetz(500);
+		}
+		id;
+	}
+	butshow_lclick	{
+		if( <GAME>.hasvar("tdzad") )	.mshowtext;
+	}
+	merror(int id)	{
+		igmstate = 2;
+		gui.newwndtitle("winerror", null, .mtekst("error"), 480, 120);
+		winerror.winmove(400-winerror.getw/2,100-winerror.geth/2);
+		if( id )	{
+			gui.print("winerror", 10, 40, .mtekst("error1"));
+			gui.print("winerror", 10, 60, .mtekst("er"+id) + ": " + dbazy.serror);
+		} else {
+			gui.print("winerror", 10, 50, .mtekst("error2"));
+		}
+		gui.newbutton("butokerror", "OK", 80, 30);
+		butokerror.setpos( winerror.getcx - butokerror.getw/2, winerror.getey-10-butokerror.geth );
+		winerror.winsetz(600);
+		butokerror.winsetz(610);
+		ttsql.disable;
+	}
+	butokerror_lclick	{
+		butokerror.unclick;
+		igmstate = 1;
+		gui.dellist(A, "butokerror", "winerror");
+		ttsql.enable;
+		.mdeltabs;
+	}
+	butok_lclick	{
+		butok.unclick;
+		if( igmstate!=1 ) return;
+		if( izadanie.in(A,7,9,11,13,15,17,19,21,23,25,27,29,31,33) )	{
+			.mdeltabs;
+			@sq = ttsql.getlines;
+			@id = .mquery(sq);
+			if( id )	{
+				<GAME>.merror(id);
+			} else {
+				_ = .mquery(sq);
+				_ = dbazy.query( .mgetrow );
+				dbodp2.free;
+				dbazy.copyresult("dbodp2");
+				if( dbodp.dbeq("dbodp2") )	.mnextzad;
+				else <GAME>.merror(0);
+			}
+		} else
+			.mnextzad;
+	}
+	string mgetrow	{
+		@row = izapytanie-1;
+		@rows = dbcmp.getcolsno(row);
+		@s = "";
+		for( int i=1; i<rows; i++) s+=dbcmp.get(row,i)+" ";
+		s;
+	}
+	butprev_lclick	{
+		butprev.unclick;
+		if( igmstate!=1 ) return;
+		.mprevzad;
+	}
+	mtabpos(int id, int x, int y)	{
+		if( gui.hasvar("rewsql"+id) )	<"rewsql"+id>.winsetallpos(x, y);
+		else <"winsql"+id>.setpos(x, y);
+	}
+	mtabmove(int id, int x, int y)	{
+		if( gui.hasvar("rewsql"+id) )	<"rewsql"+id>.winmove(x, y);
+		<"winsql"+id>.move(x,y);
+	}
+	mhidetxt	{
+		tdzad.hide;
+		wintxt.hide;
+		winbgtxt.hide;
+		butok.unclick;
+		butok.hide;
+		butshow.show;
+	}
+	mshowtext	{
+		tdzad.show;
+		winbgtxt.show;
+		wintxt.show;
+		butok.show;
+		butshow.unclick;
+		butshow.hide;
+	}
+	mtekst(string s)	{	dbl.get( dbl.findbyrow(s), 1); }
+	mloadvec(string s)	{
+		@id = dbl.findbyrow(s);
+		vm1.free;
+		for( int i=1; i< dbl.getcolsno(id); i++)	{
+			vm1.add( dbl.get(id, i) );
+		}
+	}
+	mnextzad	{
+		if( izadanie < dbzad.getrowsno)	{
+			.mendzad;
+			izadanie++;
+			.mloadzad;
+		} else {
+			igmstate = 0;
+			ccs.close( func {
+				if( PrzygodaMode )
+					.gotoadv("adbib", "gameadbib2");
+				else gameapi.play("Menu");
+				} );
+		}
+	}
+	mprevzad	{
+		if( izadanie>1 ) {
+			.mendzad;
+			izadanie--;
+			.mloadzad;
+		}
+	}
+	mendzad	{
+		.mdeltabs;
+		.mdelquery;
+	}
+	mdeltabs	{
+		for( int i=1; i<=ilesql; i++)	{
+			gui.delobj("winsql"+i);
+			if( gui.hasvar("rewsql"+i) )	gui.delobj("rewsql"+i);
+		}
+		ilesql=0;
+	}
+	mgetpos(int id, string spos)	{
+		if( gui.hasvar("rewsql"+id) )	<"rewsql"+id>.<"get"+spos>;
+		else <"winsql"+id>.<"get"+spos>;
+	}
+	mypos(int id)	{
+		int y = 0;
+		for( int i=1; i<=id; i++)	{
+			y+=<"winsql"+i>.geth + 20;
+			if( gui.hasvar("rewsql"+i) ) y+=20;
+		}
+		y;
+	}
+	mdelquery	{	<GAME> {
+		if( .hasvar("tdsql") )	{
+			.deletegmobj("tdsql");
+			gui.dellist(A,"ttsql","buthelp");
+		}
+	}; }
+	mloadquerry	{
+		.mdelquery;
+		new TextDb tdsql(stdfont12, 12, "$row:dbsql,"+(izapytanie-1), .white, 9, 566, 2, 100, "left");
+		gui.newtextbox("ttsql", .allchars, 600, 140);
+		ttsql.winmove(100, 360 );
+		gui.newbutton("buthelp", .mtekst("help"), 80, 30);
+		buthelp.setpos( ttsqlwnd.getcx - buthelp.getw/2, ttsqlwnd.getey+4 );
+	}
+	ttsql_activate	{
+		ttsql.winsetz( tdzad.getz+100 );
+		buthelp.winsetz(ttsql.getz);
+		butok.lock;
+	}
+	ttsql_OUTSIDE	{
+		if( !buthelp.isin(mouse.getpos,0,0) )	{
+			ttsql.winsetz( 5 );
+			buthelp.winsetz(ttsql.getz);
+			ttsql.deactivate;
+			butok.unlock;
+		}
+	}
+	buthelp_lclick	{
+		buthelp.unclick;
+		if( igmstate!=1 ) return;
+		@row = izapytanie-1;
+		ttsql.clear;
+		for( int i=1; i<dbcmp.getcolsno(row); i++)	ttsql.setid( dbcmp.get(row,i), i-1 );
+	}
+	mloadzad	{	<GAME> {
+		if( .hasvar("tdzad") )	{
+			.deletegmobj("tdzad");
+			gui.dellist(A,"wintxt","winbgtxt","butok");
+		}
+		if( igmdebug )	dbzad.load(.lang_path("zad") + ".db" );
+		new TextDb tdzad(stdfont12, 12, "$row:dbzad,"+(izadanie-1), .black, 0,0, 2, 200, "left");
+		gui.newwndtext("wintxt", tdzad.getw+8, tdzad.geth+8);
+		gui.newwnd("winbgtxt", wintxt.getw+8, wintxt.geth+50);
+		winbgtxt.setz(100);
+		wintxt.setz(winbgtxt.getz+10);
+		gui.newbutton("butok", "OK", 80, 30);
+		butok.winsetz(wintxt.getz+10);
+		winbgtxt.setpos( 400-winbgtxt.getw/2, 70 );
+		butok.setpos( winbgtxt.getcx - butok.getw/2, winbgtxt.getey-10-butok.geth );
+		wintxt.setpos( winbgtxt.getpx+4, winbgtxt.getpy+4 );
+		tdzad.move( wintxt.getpx+4, wintxt.getpy+4 );
+		.mshowtext;
+		
+		match( izadanie )	{
+			7,9,11,13,15,17,19,21,23,25,27,29,31,33 => izapytanie = (izadanie-5)/2;
+			8,10,12,14,16,18,20,22,24,26,28,30,32,34 => izapytanie = (izadanie-6)/2;
+			? => ;
+		}
+		
+		match( izadanie )	{
+			2 => _ = .mquery("select * from wol1;");
+			3, 4 => _ = .mquery("select * from wol2;");
+			5, 6 => {
+				_ = .mquery("select * from autor where nazwisko = 'christa';");
+				_ = .mquery("select * from wydawca where nazwa = 'egmont';");
+				.mtabmove(2, 0, .mypos(1) );
+				_ = .mquery("select * from wolumin where id = 1 or id = 2;");
+				.mtabmove(3, 0, .mypos(2));
+			}
+			7,9,11,13,15,17,19,21,23,25,27,29,31,33 => 	.mloadquerry;
+			8,10,12,14,16,18,20,22,24,26,28,30,32,34 => .mviewquery;
+			? => ;
+		}
+	}; }
+	mviewquery	{
+		_ = .mquery( .mgetrow );
+	}
+	mouse_rclick	{
+		if( igmdebug ) .butok_lclick;
+	}
+}

@@ -1,0 +1,1576 @@
+
+new gmimgvec grguipck;
+new int iGuiZ = 1234;
+new int iBookZ = 1240;
+new int iHintStarZ = 1300;
+new int iTakeZ = 1324;	// items
+new int iSlotZ = 1230;
+new int iRotoIleRot = 20;
+new int iRotoIleObrotow = 2;
+new int iSzkielkoZ = 1340;
+new int iPopupZ = 1100;
+new bool bHOInventory;
+new int ishowpouptime = dbconf.dbget("showpopup_time:");
+
+class BanGuiSrc{
+	init	{
+		new anima guihint;
+		guihint.load( "scripts/sys_gui/hint.pyz" );
+		guihint.hide;
+		guihint.setz(iGuiZ);
+		new anima guirose;
+		guirose.load( "scripts/sys_gui/roza.pyz" );
+		guirose.setz(iGuiZ);
+		guirose.hide;
+		new anima gguimenu;
+		gguimenu.load( "scripts/sys_gui/menu.pyz" );
+		gguimenu.setz(iGuiZ);
+		gguimenu.hide;
+		new anima gguishowhint;
+		gguishowhint.load( "scripts/sys_gui/showhintb.pyz" );
+		gguishowhint.setz(iHintStarZ);
+		gguishowhint.hide;
+		new anima guiloupe;
+		guiloupe.load( "scripts/sys_gui/reka.pyz" );
+		guiloupe.hide;
+		new anima anpopexit;
+		anpopexit.load( "scripts/sys_gui/popexit.pyz" );
+		anpopexit.hide;
+		new anima guipiorko;
+		guipiorko.load( "scripts/sys_gui/piorko.pyz" );
+		guipiorko.hide;
+		guipiorko.setz(iBookZ+10);
+
+		new anima gguiglass;
+		gguiglass.load( "scripts/sys_gui/szkielko.pyz" );
+		gguiglass.setz(iSzkielkoZ);
+		gguiglass.hide;
+		
+		new anima gguipopup;
+		gguipopup.load("scripts/sys_gui/popup.pyz");
+		gguipopup.setz(iPopupZ);
+		gguipopup.hide;
+		
+		.with(A, "guihint", "guirose", "gguiglass",
+			"movoffsetl");
+		.with(A, "gguimenu", "guipiorko",
+			"movoffsetr");
+		
+		new db dbitems;
+		dbitems.load( LANGDIR + "popup_items.db" );
+		
+		new font fnthogui;
+		fnthogui.load( dbconf.dbget("hoguifont:"), dbconf.dbget("item_txtname_size:") );
+	}
+	load	{
+		dbitems.addtogamevars("dbitems");
+		guihint.addtogamevars("globalhint");
+		guirose.addtogamevars("globalrose");
+		gguimenu.addtogamevars("globalmenu");
+		gguishowhint.addtogamevars("globalshowhint");
+		guiloupe.addtogamevars("globalloupe");
+		anpopexit.addtogamevars("globalpopexit");
+		guipiorko.addtogamevars("globalpiorko");
+		gguipopup.addtogamevars("globalpopup");
+		gguiglass.addtogamevars("globalglass");
+		fnthogui.addtogamevars("fnthogui");
+		banbook.load;
+	}
+}
+
+new BanGuiSrc banguisrc;
+
+class BanBook	{
+	init	{
+		new anima ansysbook;
+		ansysbook.load( "scripts/sys_book/book2.pyz" );
+		//ansysbook.saveimages( "scripts/sys_book/book/");
+		ansysbook.hide;
+		
+		new db dbbook;
+		dbbook.loadscript( LANGDIR + "sys_book_story.db" );
+		new img imgrozkladl;
+		new img imgrozkladr;
+		
+		new int bookfontsize =  dbconf.dbgetint("bookfontsize:");
+		new int ibookodstep =  dbconf.dbgetint("ibookodstep:");
+		new int ilettersinrow = dbconf.dbgetint("ilettersinrow:");
+		new font ftbook;
+		ftbook.load( dbconf.dbget("bookfont:"), bookfontsize );
+		new font ftitalic;
+		ftitalic.load( dbconf.dbget("bookitalic:"), bookfontsize );
+		new font ftbold;
+		ftbold.load(  dbconf.dbget("bookbold:"), bookfontsize );
+		new font ftitalicbold;
+		ftitalicbold.load(  dbconf.dbget("bookitalicbold:"), bookfontsize );
+		new int irbook = dbconf.dbgets("bookfontcolor:", 1);
+		new int igbook = dbconf.dbgets("bookfontcolor:", 2);
+		new int ibbook = dbconf.dbgets("bookfontcolor:", 3);
+		new real rmargin = dbconf.dbget("bookmargin:");
+		new text txttest;
+		txttest.setfont("ftbook");
+		
+		new int icurpage = 1;
+		
+		new vector vakap; vakap.type("string");
+		new string sakappref = "s";
+		new int ilepages = 0;
+		
+		new vector vparse; vparse.type("string");
+		
+		/*ansysbook.setframe("openpaper",0);
+		new int ipagew = (1.0 - rmargin*2) * ansysbook.getw;
+		new int ipageh = (1.0 - rmargin*2) * ansysbook.geth;
+		int x1 = ansysbook.getpx;
+		int y1 = ansysbook.getpy;
+		int x2 = ansysbook.getex;
+		int y2 = ansysbook.getey;
+		imgrozkladr.create( x2-x1, y2-y1, .transparent );
+		imgrozkladr.setpos( x1, y1 );
+		imgrozkladr.hide;
+		new int irpagex = ansysbook.getpx + rmargin*ansysbook.getw;
+		new int irpagey = ansysbook.getpy + rmargin*ansysbook.geth;
+		new int irpageex = ansysbook.getex - rmargin*ansysbook.getw;
+		new int irpageey = ansysbook.getey - rmargin*ansysbook.geth;
+		ansysbook.setframe("closepaper", 0);
+		new int ilpagex = ansysbook.getpx + rmargin*ansysbook.getw;
+		new int ilpagey = ansysbook.getpy + rmargin*ansysbook.geth;
+		int x1 = ansysbook.getpx;
+		int y1 = ansysbook.getpy;
+		int x2 = ansysbook.getex;
+		int y2 = ansysbook.getey;
+		imgrozkladl.create( x2-x1, y2-y1, .transparent );
+		imgrozkladl.hide;
+		imgrozkladl.setpos( x1, y1 );*/
+		
+		new int ipagew = (1.0 - rmargin*2) * (ansysbook.getw/2);
+		new int ipageh = (1.0 - rmargin*2) * ansysbook.geth;
+		new int ilpagex = ansysbook.getpx + rmargin*ansysbook.getw;
+		new int ilpagey = ansysbook.getpy + rmargin*ansysbook.geth;
+		int w = ansysbook.getw/2;
+		int h = ansysbook.geth;
+		new int irpagex = ilpagex + w;
+		new int irpagey = ilpagey;
+		imgrozkladl.create( w, h, .transparent );
+		imgrozkladl.setpos( ansysbook.getpx, ansysbook.getpy );
+		imgrozkladr.create( w, h, .transparent );
+		imgrozkladr.setpos( imgrozkladl.getex, imgrozkladl.getpy );
+		
+		new anima angguibook;
+		angguibook.load( "scripts/sys_book/guibook.pyz" );
+		angguibook.hide;
+		angguibook.setz( iBookZ );
+		angguibook.movoffsetr;
+		//.parse;
+	}
+	load	{
+		ansysbook.addtogamevars("globalsysbook");
+		imgrozkladl.addtogamevars("bookpagel");
+		imgrozkladr.addtogamevars("bookpager");
+		.vars2(A, "ipagelw", imgrozkladl.getw, "ipagerw", imgrozkladr.getw);
+		angguibook.addtogamevars( "globalguibook" );
+	}
+	parse	{
+		int state = 0;
+		int pageside = 0;	// 0 -lewa, 1-prawa
+		int page = 1;
+		
+		int x, int y, int i[5];
+		string s[3];
+		string sakap;
+		s1 = "";
+		s2 = "";
+		int actrow = 0;
+		int ilerows = ipageh/.rowh;
+		
+		for( int i=0; i<dbbook.getrowsno; i++)	{
+			for( int j=0; j<dbbook.getcolsno(i); j++)	{
+				s0 = dbbook.get(i,j);
+				if( state==0 )	{
+					if( s0.getb(0,1)=="<" )	{
+						sakap = sakappref + s0.strsubb(1)->strsube(1);
+						i0 = 0;
+						i1 = 0;
+						if( sakap.contains(" ") )	{
+							vparse.vecbuildfromstring(sakap, " ");
+							i0 = vparse.contains("italic");
+							i1 = vparse.contains("bold");
+						}
+						new string <sakap>;
+						s1 = "    ";
+						s2 = s1;
+						i1 = 0;
+						<sakap>.vars2(A, "sakapit", sakap.strsubbs(sakappref), "pageside", pageside,
+							"page", page, "irow", actrow, "bitalic", i0, "bbold", i1, "stresc", "",
+							"ilines", 0);
+						vakap.add( sakap );
+						
+						state = 1;
+					}
+				} else if (state==1)	{
+					if( s0=="<end>" )	{
+						state=0;
+						<sakap>.stresc = ( s1 );
+						<sakap>.var2("sline"+i1, s2);
+						<sakap>.ilines = (i1+1);
+						s1 = "";
+						if( <sakap>.irow + i1 > ilerows )	{
+							<sakap>.irow = (0);
+							if( pageside == 0 ) {
+								pageside = 1;
+								<sakap>.pageside = (1);
+							} else {
+								pageside = 0;
+								<sakap>.pageside = (0);
+								page++;
+								<sakap>.page = (page);
+							}
+							actrow=i1+2;
+						} else actrow = <sakap>.irow + i1+2;
+						i1 = 0;
+						
+						ilepages = page;
+					} else {
+						s1 += s0 + " ";
+						//if( (s2+s0)->length * bookfontsize > ipagew )	{
+						if( (s2+s0)->length > ilettersinrow )	{
+							<sakap>.var2("sline"+i1, s2);
+							s2 = s0 + " ";
+							i1++;
+						} else {
+							s2 += s0 + " ";
+						}
+					}
+				}
+			}
+		}
+		/*for( int i=0; i< vakap.size; i++)	{
+			@s = vakap.get(i);
+			(s+": page="+<s>.page+", side="+<s>.pageside)->print;
+		}*/
+	}
+	rowh	{	bookfontsize+ibookodstep;	}
+	nextpage	{	.openpage(icurpage+1);	}
+	prevpage	{	.openpage(icurpage-1);	}
+	openpage(int ipage)	{
+		if( ilepages<=0 ) return;
+		if( ipage<=0 ) ipage=ilepages;
+		else if (ipage>ilepages) ipage=1;
+		icurpage = ipage;
+		for( int i=0; i< vakap.size; i++)	{
+			if( <vakap.get(i)>.page == ipage )	{
+				.open(vakap.get(i));
+				imgrozkladl.show; imgrozkladr.show;
+				return;
+			}
+		}
+	}
+	openlastpage	{
+		icurpage = clsave.get("guibook_curpage");
+		if( icurpage<=0 ) icurpage=1;
+		.openpage(icurpage);
+	}
+	openchapter(string schapter)	{
+		schapter = sakappref + schapter;
+		if( !vakap.contains(schapter) ) return;
+		.open(schapter);
+	}
+	openlast	{
+		if( vakap.empty ) return;
+		@s = clsave.get("guibook_lastchapter");
+		if( s==null ) s = vakap.first->strsubbs( sakappref );
+		.openchapter(s);
+	}
+	open(string sakap)	{
+		icurpage = <sakap>.page;
+		clsave.set("guibook_curpage", icurpage);
+		new text txt1;
+		@x = imgrozkladl.getpx;
+		@y = imgrozkladl.getpy;
+		imgrozkladl.create( imgrozkladl.getw, imgrozkladl.geth, .transparent );
+		imgrozkladl.setz( iBookZ+1 );
+		imgrozkladl.setpos(x,y);
+		imgrozkladl.hide;
+		@x = imgrozkladr.getpx;
+		@y = imgrozkladr.getpy;
+		imgrozkladr.create( imgrozkladr.getw, imgrozkladr.geth, .transparent );
+		imgrozkladr.hide;
+		imgrozkladr.setz( iBookZ+1 );
+		imgrozkladr.setpos(x,y);
+		/*<stxt>.set(stext);
+		<stxt>.setfont(sfont);
+		<stxt>.createtxt(r,g,b);*/
+		@page = <sakap>.page;
+		for( int i=0; i<vakap.size; i++)	{
+			@s = vakap.get(i);
+			if( <s>.page == page && clsave.bis("guibook_enabled_"+<s>.sakapit) )	{
+				if( <s>.bitalic )	{
+					if( <s>.bbold )	{
+						txt1.setfont( "ftitalicbold" );
+					} else txt1.setfont("ftitalic");
+				} else if ( <s>.bbold )	{
+					txt1.setfont("ftbold");
+				} else txt1.setfont("ftbook");
+				@ile = <s>.ilines;
+				for( int j=0; j<ile; j++)	{
+					txt1.set( <s>.<"sline"+j> );
+					txt1.createtxt( irbook, igbook, ibbook );
+					//("adding row: "+txt1.get)->print;
+					if( <s>.pageside==0 )	{
+						txt1.setpos( ilpagex, ilpagey + (<s>.irow+j)*.rowh );
+						imgrozkladl.blit("txt1");
+					} else {
+						txt1.setpos( irpagex, ilpagey + (<s>.irow+j)*.rowh );
+						imgrozkladr.blit("txt1");
+					}
+				}
+			}
+		}
+		delete txt1;
+	}
+	close	{
+		imgrozkladl.hide;
+		imgrozkladr.hide;
+	}
+}
+
+new BanBook banbook;
+
+class BanGui	{
+	init	{
+		new gmimgvec grguiloupe;
+	}
+	isadvclass	{	<gameapi.getgamename>.hasvar("clcamera");	}
+	initgui	{
+		@sactpath = .getgraphpath;
+		
+		//-------------- gui -------------------------------
+		.path = ("sys_gui");
+		
+		new int iItemSlots = 8;
+		
+		.newanima("guinventory", "inventory.pyz", iGuiZ);
+		.newanima("guitemslot", "items.pyz", iGuiZ);
+		.newanima("guileft", "itemleft.pyz", iGuiZ);
+		.newanima("guiright", "itemright.pyz", iGuiZ);
+		guileft.hide;
+		guiright.hide;
+		
+		.copyanima("globalhint", "guihint");
+		guihint.show; guihint.setz(iGuiZ);
+		.copyanima("guihint", "guihinsub");
+		guihinsub.play(1);
+		.copyanima("globalrose", "guirose");
+		guirose.show;
+		.copyanima("globalmenu", "guimenu");
+		guimenu.show;
+		
+		
+		//.newanima("guishowhint", "showhintb.pyz", iHintStarZ);
+		.copyanima("globalshowhint", "guishowhint");
+		guishowhint.hide;
+		.copyanima("guishowhint", "guishowhint2");
+		.copyanima("guishowhint", "guishowhint3");
+		
+		.copyanima("globalglass", "guiglass");
+		guiglass.show;
+		.copyanima("globalloupe", "guiloupe");
+		
+		guiloupe.setz(iSzkielkoZ);
+		guiloupe.hide;
+		.copyanima("guiloupe", "guiloupemask");
+		guiloupemask.setframe(1,0);
+		guiloupemask.setz(guiloupe.getz-1);
+		new filter ftguiloupe;
+		
+		new gmimgvec grgotopckstack;
+		new gmimgvec grguitemslots;
+		@dx = 3;
+		guitemslot.hide;
+		if( bHOInventory )	{
+			.newanima("guihoinventory", "hoinventory.pyz", 505);
+			guinventory.setz(505);
+			guinventory.hide;
+		} else {
+			for( int i=0; i<iItemSlots; i++ )	{
+				.additemslot;
+			}
+			guinventory.vars2(A, "blockout", false, "sitemshow", null);
+			guinventory.show;
+		}
+		
+		string sfun;
+		if( .isadvclass )	{
+			sfun = "clickon";
+			classadvbut::setasbutton2("guinventory", "guinventory", "guinventory");
+			guinventory.addmethod("butisin", func { (int x, int y, bool bv, bool ba)
+				x >= .getpx && x < .getex && y >= .getpy;
+				} );
+		} else if( !bHOInventory) {
+			guinventory {
+				.Button_isin;
+				.addmethod("butmoveon", func {
+					if( !.advstdstate ) return;
+					advmouse.setact;
+					} );
+				.addmethod("butmoveoff", func {
+					if( !.advstdstate ) return;
+					advmouse.setstd;
+					} );
+				butgame.add(this);
+			};
+			//sfun = "butclick";
+		}
+		/*guinventory.addmethod( sfun, func {
+			//.advmslock;
+			.inventory_check;
+			} );*/
+		.cycle = ("_timinv", func {
+			@dy = dir*speed;
+			if( dir>0 )	{
+				if( .inventory_hidden )	{
+					//.advsetstdstate;
+					//.advmsunlock;
+				} else {
+					.inventory_move(dy);
+					.play;
+				}
+			} else {
+				if( .inventory_showed )	{
+					/*@s = grguitemslots.first;
+					.inventory_move( <s>.getpy - <s>.lody );*/
+					for (int i=0; i<grgotopckstack.size; i++)
+						<grgotopckstack.get(i)>._item_gotopck2;
+					if( .isretitemstate )	{
+						.item_gotopck;
+					} else {
+						//.advmsunlock;
+						if( guinventory.sitemshow!=null )	{
+							.showhint( .getanitem(guinventory.sitemshow) );
+							guinventory.sitem = (null);
+						}
+					}
+				} else {
+					.inventory_move(dy);
+					_ = .inventory_showed;
+					.play;
+				}
+			}
+			} );
+		_timinv.vars2(A, "dir",-1, "speed", 15);
+		
+		.timer = ("timunblockinventory", 2000, func { guinventory.blockout = (false); } );
+		
+		if( .isadvclass )	{
+			sfun = "clickon";
+			classadvbut::setasbutton2("guihint", "guihint", "guihint");
+			classadvbut::setasbutton2("guiglass", "guiglass", "guiglass");
+			guiglass.smousecursor = ("loupe");
+		} else {
+			guinventory {
+				.Button_isinalpha;
+				.addmethod("butmoveon", func {
+					if( !.advstdstate ) return;
+					advmouse.setact;
+					} );
+				.addmethod("butmoveoff", func {
+					if( !.advstdstate ) return;
+					advmouse.setstd;
+					} );
+				butgame.add(this);
+			};
+			guiglass {
+				.Button_isinalpha;
+				.addmethod("butmoveon", func {
+					if( !.advstdstate ) return;
+					advmouse.setact;
+					} );
+				.addmethod("butmoveoff", func {
+					if( !.advstdstate ) return;
+					advmouse.setstd;
+					} );
+				butgame.add(this);
+			};
+			guihint {
+				.Button_isinalpha;
+				.addmethod("butmoveon", func {
+					if( !.advstdstate ) return;
+					advmouse.setact;
+					} );
+				.addmethod("butmoveoff", func {
+					if( !.advstdstate ) return;
+					advmouse.setstd;
+					} );
+				butgame.add(this);
+			};
+			sfun = "butclick";
+		}
+		guiglass.addmethod( sfun, func {
+			.LOUPE_CLICK;
+			if( .isadvclass )	{
+				_ = .playbehif("beh_LOUPE_CLICK");
+			}
+			//if( .isadvclass )	{
+				if( .actionnr(-1)==0 )	{
+					.setframe(1,0);
+					guiloupe.show;
+					if( grguiloupe.size )	{
+						guiloupemask.show;
+						ftguiloupe.link( "guiloupemask" );
+						for( int i=0; i<grguiloupe.size; i++)	{
+							@s = grguiloupe.get(i);
+							if( <s>.mtype == "loupe" )	{
+								ftguiloupe.loupe( s );
+							} else if (<s>.mtype == "umask" )	{
+								<s>.startumask;
+							}
+						}
+						//ftguiloupe.lineardodge( "guiloupemask" );
+					}
+					.update_loupepos;
+				} else if (.actionnr(-1)==1 )	{
+					ftguiloupe.removeallblend;
+					ftguiloupe.unlink;
+					guiloupe.hide;
+					guiloupemask.hide;
+					grguiloupe.eval( func { if( mtype=="umask" ) .stopumask; } );
+					.setframe(0,0);
+				}
+			/*} else {
+				if( !.advstdstate ) return;
+				.LOUPE_CLICK;
+			}*/
+			} );
+		guihint.addmethod( sfun, func {
+			if( .isadvclass )	{
+				if( .actionname=="hint" )	{
+					guihinsub.anhide;
+					guirose.anhide;
+					.play("click");
+					_ = .playbehif("beh_HINT_CLICK");
+				}
+			} else {
+				if( !.advstdstate ) return;
+				<gameapi.getgamename>.HINT_CLICK;
+			}
+			} );
+		guihint.addmethod("onfinish", func {
+			match(.actionname)	{
+				"click" => {
+					.play("grow");
+				}
+				"grow" => {
+					.play("hint");
+					guihinsub.play(1);
+					guirose.play(0);
+				}
+				? => ;
+			}
+			} );
+		
+		.setgraphpath(sactpath);
+		
+		
+		//-------------- pck items -------------------------------
+		new string _clicked_guiitem;
+		.freeactitem;
+		if( .isadvclass )	{
+			new advDelayMover guimov;
+		} else {
+			new DelayMover guimov;
+			guimov.b2clicks = (true);
+		}
+		//guimov.setclickrel(false);
+		guimov.unlock;
+		
+		new gmimgvec grguitems;
+		
+		new string sanitemprefix = "anitem_";
+		
+		//-------------- book -------------------------------
+		.book_load;
+		
+		//------------- schowaj inventory na init
+		if( !bHOInventory )	{
+			for( int i = 0; i<grguipck.size; i++ )
+				._addtopck( grguipck.get(i) );
+			.inventory_show;
+			new Rect invhide(0,0,0,0);
+			invhide.setborders(0,guinventory.getpy,igmappw,igmapph);
+			.inventory_hide;
+			new Rect invshow(0,0,0,0);
+			invshow.setborders(guileft.getex, guinventory.getpy, guiright.getpx, igmapph);
+		}
+	}
+	//-------------- lupa------------------
+	loupe_visible	{	guiloupe.isvisible;	}
+	update_loupepos	{
+		if( .loupe_visible )	{
+			guiloupe.setpos(mouse.getpos);
+			guiloupemask.setpos(mouse.getpos);
+		}
+	}
+	//--------------hint -------------------
+	showhint(string sob)	{
+		.showhintxy(<sob>.getcx, <sob>.getcy);
+	}
+	showhintxy(int x, int y)	{
+		if( guishowhint.isplaying(-1) )	{
+			if( guishowhint2.isplaying(-1) )	{
+				if( guishowhint3.isplaying(-1) )	{
+					guishowhint._showhint(x,y);
+				} else guishowhint3._showhint(x,y);
+			} else guishowhint2._showhint(x,y);
+		} else guishowhint._showhint(x,y);
+	}
+	_showhint(int x, int y)	{
+		.setpos(x,y);
+		.play(-1);
+	}
+	showhintitem(string sitem)	{
+		guinventory.blockout = (true);
+		guinventory.sitemshow = (sitem);
+		if( .inventory_playing || .inventory_hidden )	{
+			.inventory_in;
+		} else
+			.showhint( .getanitem(sitem) );
+	}
+	//-------------- book -------------------------------
+	book_load	{
+		@sactpath = .getgraphpath;
+		.path = ("sys_book");
+		
+		//.newanima("ansysbook", "book.pyz", iBookZ);
+		.copyanima("globalsysbook", "ansysbook");
+		ansysbook.setz(iBookZ);
+		ansysbook.hide;
+		.newanima("guibooknext", "next.pyz", iBookZ);
+		.newanima("guibookprev", "prev.pyz", iBookZ);
+		.newanima("guibookexit", "exit.pyz", iBookZ);
+		new gmimgvec grguibook;
+		grguibook.addlist(A, "guibookexit", "guibooknext", "guibookprev");
+		grguibook.hide;
+		
+		grguibook.eval( "Button_isin" );
+		guibookexit.Button_moveonms;
+		guibookexit.Button_moveoffms;
+		guibookexit.addmethod("butclick", func {
+			if( sgmstate == "state_bookopened" )	{
+				.gui_closebook;
+			}
+			} );
+		guibooknext.addmethod("butclick", func {
+			if( sgmstate == "state_bookopened" )	{
+				banbook.nextpage;
+			}
+			} );
+		guibookprev.addmethod("butclick", func {
+			if( sgmstate == "state_bookopened" )	{
+				banbook.prevpage;
+			}
+			} );
+		butgame.addgroup("grguibook");
+		
+		.copyanima("globalguibook", "anguibook");
+		anguibook.show;
+		//menubook closedbook openbook openedbook openpaper closepaper closebook
+		
+		string sfun;
+		if( .isadvclass )	{
+			sfun = "clickon";
+			classadvbut::setasbutton2("anguibook", "guibook", "book");
+		} else {
+			anguibook {
+				.addmethod("isbutin", func { (@x, @y)
+					@iac = .actionnr(-1);
+					@ifr = .framenr;
+					.setframe(0,0);
+					.isin(x,y,1,1);
+					.setframe(iac,ifr);
+					} );
+				.addmethod("butmoveon", func {
+					if( !.advstdstate ) return;
+					advmouse.setact;
+					} );
+				.addmethod("butmoveoff", func {
+					if( !.advstdstate ) return;
+					advmouse.setstd;
+					} );
+				butgame.add(this);
+			};
+			sfun = "butclick";
+		}
+		anguibook.addmethod( sfun, func {
+			if( .advstdstate )	{
+				.gui_openbook;
+			}
+			} );
+		GuiItem::setasrototaker("ansysbook", iRotoIleRot, iRotoIleObrotow);
+		
+		new img imbookpage1; imbookpage1.setz( iBookZ );
+		
+		ansysbook {
+			.vars2(A, "bookstate", "bookstate_init", "sbehaviour", null);
+			.addmethod("showbook", func {
+				if( bookstate=="bookstate_init" )	{
+					bookstate = "bookstate_open";
+					banbook.openlastpage;
+					.buildimgbook;
+					bookpagel.hide;
+					bookpager.hide;
+					imbookpage1.anzoomfadein(ishowpouptime, func {
+						.hide;
+						ansysbook.show;
+						bookpagel.show;
+						bookpager.show;
+						@sbeh = ansysbook.sbehaviour;
+						if( sbeh!=null )	{
+							ansysbook.sbehaviour = (null);
+							<sbeh>.reteval;
+						} else {
+							.advsetstate("state_bookopened");
+							grguibook.show;
+						}
+						} );
+				}
+				} );
+			.addmethod("hidebook", func {
+				bookstate = "bookstate_close";
+				.buildimgbook;
+				.hide;
+				grguibook.hide;
+				bookpagel.hide;
+				bookpager.hide;
+				anguibook.anfadein(ishowpouptime, null);
+				imbookpage1.anzoomfadeout( ishowpouptime, func {
+					.hide;
+					ansysbook.bookstate=("bookstate_init");
+					
+					if( ansysbook.sbehaviour!=null )	{
+						@s = ansysbook.sbehaviour;
+						ansysbook.sbehaviour=(null);
+						<s>.reteval;
+					} else {
+						.advinitial;
+					}
+					} );
+				} );
+		};
+		
+		/*.copyanima("ansysbook", "ansysbook2");
+		ansysbook2.setz(iBookZ+2);
+		ansysbook2.hide;
+		ansysbook {
+			istartalfa = 255;
+			.vars2(A, "bookstate", "bookstate_init", "sbehaviour", null);
+			.addmethod("showbook", func {
+				if( bookstate=="bookstate_init" )	{
+					.setframe("menubook", 0);
+					.show;
+					bookstate = "bookstate_open";
+					irotodir = -1;
+					ansysbook2.setframe("closedbook",0);
+
+					.rototaker_start( .getpx+igmoffsetx, .getpy+igmoffsety, 
+						ansysbook2.getcx, ansysbook2.getcy, .getw, .geth, "closedbookroto" );
+				}
+				} );
+			.addmethod("rototaker_endroto", func {
+				if( bookstate == "bookstate_open" )	{
+					.setpos(0,0);
+					.play("closedbook");
+				} else if ( bookstate=="bookstate_close" )	{
+					.setframe("menubook", 0);
+					.setpos(0,0);
+					.hide;
+					ansysbook2.setpos(0,0);
+					anguibook.show;
+					bookstate="bookstate_init";
+					
+					if( sbehaviour!=null )	{
+						@s = sbehaviour;
+						sbehaviour=null;
+						<s>.reteval;
+					} else {
+						.advinitial;
+					}
+				}
+				} );
+			.addmethod("onfinish", func {
+				@s = .actionname;
+				if( s=="closedbook" )	{
+					banbook.openlast;
+					.play("openbook");
+				} else if( s=="openbook" )	{
+					ftpage1.link("imbookpage1");
+					imbookpage1.hide;
+					bookpager.show;
+					ansysbook2.play("openpaper");
+				} else if (s=="closebook")	{
+					bookstate = "bookstate_close";
+					ansysbook2.hide;
+					ansysbook2.setframe("menubook", 0);
+					ansysbook2.setpos(igmoffsetx,0);
+					
+					@x = .getpx;
+					@y = .getpy;
+					.setframe("closedbookroto", 0);
+					.ansetbpos(x, y);
+					
+					irotodir = 1;
+					.rototaker_startwh(ansysbook2.getcx, ansysbook2.getcy, .getw, .geth,
+						ansysbook2.getw, ansysbook2.geth);
+				}
+				} );
+		};
+		ansysbook2	{
+			//.setdelay(5);
+			new int ipagelstartx;
+			new int ipagelex;
+			new int ipagerx;
+			.addmethod("onfinish", func {
+				@s = .actionname;
+				if( s=="openpaper" )	{
+					ftpage1.unlink;
+					bookpagel.setz( iBookZ+1 );
+					bookpagel.setpos( ipagelstartx, bookpagel.getpy );
+					ansysbook.setframe("openedbook", 0);
+					@sbeh = ansysbook.sbehaviour;
+					if( sbeh!=null )	{
+						ansysbook.sbehaviour = (null);
+						<sbeh>.reteval;
+					} else {
+						.advsetstate("state_bookopened");
+						grguibook.show;
+					}
+				} else if ( s=="closepaper" )	{
+					bookpager.hide;
+					ansysbook.play("closebook");
+				}
+				} );
+			.addmethod("onendframe", func {
+				if( .actionname=="openpaper" )	{
+					if( .framenr == 14 )	{
+						bookpagel.show;
+						bookpagel.setz( .getz+1 );
+						ipagelex = bookpagel.getex;
+						ipagelstartx = bookpagel.getpx;
+						ftpage1.link("bookpagel");
+						ftpage1.setpivottype(1);
+					}
+					if( .framenr >= 14 )	{
+						 ftpage1.setzoomxy( (ipagelex-(.getpx+10))->to_r/banbook.ipagelw->to_r, 1 );
+						 bookpagel.setpos( .getpx+10, bookpagel.getpy );
+						//bookpagel.clip( .getpx+10, 0, .getex, iResY );
+					}
+				}
+				} );
+		};*/
+		
+		.setgraphpath(sactpath);
+	}
+	buildimgbook	{
+		imbookpage1.imgbuildfromlist(A, "ansysbook", "bookpagel", "bookpager",
+					"guibooknext", "guibookprev", "guibookexit");
+	}
+	gui_openbook	{
+		.advmslock;
+		globalpiorko.anhide;
+		if( ansysbook.sbehaviour==null )
+			.advsetstate("state_bookopen");
+		anguibook.anfadeout(ishowpouptime, null);
+		ansysbook.showbook;
+	}
+	gui_closebook	{
+		.advmslock;
+		if( ansysbook.sbehaviour==null )
+			.advsetstate("state_bookclose");
+		bookpagel.hide;
+		grguibook.hide;
+		//ansysbook.setframe("openedcover",0);
+		//ansysbook2.play("closepaper");
+		ansysbook.hidebook;
+	}
+	gui_toloupe(string san)	{
+		<san>.var2("mtype", "loupe");
+		grguiloupe.add(san);
+		grguiloupe.sortimgs;
+	}
+	//------------------------------------------------
+	int subanalizeaninstr(string san, string sdb, int irow, int icol, string sord)	{
+		bool banalize = ( san!=null );
+		int i[2];
+		match( sord )	{
+			"-toloupe" => {
+				if( banalize ) {
+					.gui_toloupe(san);
+				}
+			}
+			"-loupeumask" => {
+				if( banalize )	{
+					<san> {
+						.var2("mtype", "umask");
+						new filter ftumask;
+						.addmethod("startumask", func {
+							ftumask.link(this);
+							ftumask.umask("guiloupemask");
+							} );
+						.addmethod("stopumask", func {
+							ftumask.removeallblend;
+							ftumask.unlink;
+							} );
+					};
+					grguiloupe.add(san);
+				}
+			}
+			"-popz" => {
+				i0 = <sdb>.get(irow,icol);	icol++;
+				if( banalize )	{
+					<san>.setz(iPopupZ+i0);
+				}
+			}
+			? => icol--;
+		}
+		icol;
+	}
+	//-------------- but item -------------------------------
+	int subanalizebut(string sbut, string sdb, int irow, int icol, string sord)	{
+		match( sord )	{
+			"-inloupe" => {
+				<sbut>.addmethod("butisin", func { (int x, int y, bool bv, bool ba)
+					if( guiloupe.isvisible )	{
+						if( balpha==-1 )
+							.isin(x,y,false,ba);
+						else .isin(x,y,false,balpha);
+					} else 0;
+					} );
+			}
+			"-rotopck" => {
+				.setasitemtopck(sbut);
+			}
+			"-topck" => {
+				.setasitemtopck(sbut);
+				<sbut>.sitemtopck = ( <sdb>.get(irow,icol) );
+				icol++;
+			}
+			"-popup" => {
+				.copyanima("globalpopexit", sbut+"popexit" );
+				<sbut> {
+					smousecursor = "loupe";
+					.vars2(A, "state", "hidden", "spopexit", this+"popexit", "spopwnd", this+"_window");
+					.hide;
+					<spopwnd>.hide;
+					<spopwnd>.setz( iPopupZ );
+					<spopexit>.setz( iPopupZ+100 );
+					.addmethod("butisin", func { (int x, int y, bool bigv, bool biga)
+						if( state=="hidden" ) .isin(x,y,0,biga);
+						else <spopexit>.isin(x,y,1,0) || !<spopwnd>.isin(x,y,1,0);
+						} );
+					.addmethod("moveon", func {
+						if( state=="shown" )	{
+							advmouse.setbut;
+							<spopexit>.setframe(0,1);
+						} else advmouse.set(smousecursor);
+						} );
+					.addmethod("moveoff", func {
+						advmouse.setstd;
+						if( state=="shown" )	{
+							<spopexit>.setframe(0,0);
+						}
+						} );
+					.addmethod("clickon", func {
+						if( state=="shown" )	{
+							_ = .playbehif( "beh_"+.getbutname+"_QUIT" );
+						}
+						} );
+					.addmethod("hidepopup", func {
+						<spopexit>.hide;
+						<spopwnd>.hide;
+						state = "hidden";
+						} );
+					.addmethod("showpopup", func {
+						<spopexit>.show;
+						<spopwnd>.show;
+						<spopexit>.setpos( <spopwnd>.getex-2, <spopwnd>.getpy );
+						state = "shown";
+						} );
+				};
+			}
+			? => ;
+		}
+		icol;
+	}
+	setasitemtopck(string sbut)	{
+		GuiItem::setasrototaker(sbut, iRotoIleRot, iRotoIleObrotow);
+		<sbut>.vars2(A, "styperoto", "init", "sbehstate", "behstate_playbeh", "sitemtopck", null);
+		<sbut>.addmethod("rototaker_endroto", func {
+			if( styperoto=="startroto" )	{
+				if( .isadvclass )	{
+					if( sbehstate=="behstate_nobeh" )	{
+						._item_gotopck;
+					} else {
+						@sbeh = "beh_"+.getbutname+"_TAKEN";
+						if( .behexist( sbeh ) )	{
+							.playbeh( sbeh );
+						} else {
+							if( sgmstate=="state_itemgotocenter" )
+								.advsetstate("state_itemgotopck");
+							._item_gotopck;
+						}
+					}
+				} else ._item_gotopck;
+			} else if( styperoto=="endroto") {
+				.freeactitem;
+				styperoto = "inpck";
+				.hide;
+				
+				if( .isadvclass )	{
+					if( sbehstate!="behstate_nobeh" )	{
+						.advinitial;
+						@sbeh = "beh_"+.getbutname+"_INPCK";
+						if( .behexist( sbeh ) )	{
+							.playbeh( sbeh );
+						} else {
+							
+						}
+					}
+					if( sitemtopck!=null )	{
+						.addtopck(sitemtopck);
+					}
+					grgotopckstack.remove(this);
+				} else {
+					.advinitial;
+					<GAME>.<this+"_INPCK">;
+				}
+			}
+			} );
+		if( .isadvclass )	{
+			<sbut>.addmethod("clickon", func {
+				if (styperoto=="init")	{
+					@s = "beh_"+.getbutname+"_TAKE";
+					if( .behexist(s) )	{
+						sbehstate = "behstate_playbeh";
+						.playbeh(s);
+					} else {
+						sbehstate = "behstate_nobeh";
+						._item_gotocenter;
+					}
+				} else if (styperoto=="inpck")	{
+				}
+				} );
+		} else {
+			<sbut> {
+				.vars2(A, "gettyp", "itemtotake", "disable", 0, "bignoralpha", 0);
+				.Button_isinalpha;
+				.addmethod("isbutin", func { (@x, @y)
+					!disable && .isin(x,y,1,bignoralpha);
+					} );
+				.addmethod("butmoveon", func {
+					if( !.advstdstate ) return;
+					advmouse.set("take");
+					} );
+				.addmethod("butmoveoff", func {
+					if( !.advstdstate ) return;
+					advmouse.setstd;
+					} );
+				.addmethod("butclick", func {
+					if( !.advstdstate ) return;
+					if( <GAME>.hasmet( this+"_TAKE" ) )	{
+						<GAME>.<this+"_TAKE">;
+					} else .item_gotocenter;
+					} );
+			};
+			butgame.add(sbut);
+		}
+	}
+	setactitem(string s)	{	_clicked_guiitem=s;	}
+	getactitem		{	_clicked_guiitem;	}
+	freeactitem		{	.setactitem(null);	}
+	item_gotocenter	{
+		.advmslock;
+		.advsetstate("state_itemgotocenter");
+		._item_gotocenter;
+	}
+	_item_gotocenter	{
+		if( .isadvclass )	{
+			@s = grbuts.getsfound;
+		} else {
+			@s = butgame.sclicked;
+			if( s==null ) return;
+		}
+		if( sgmstate=="state_itemgotocenter" )	{
+			<s>.sbehstate = ("behstate_playbeh");
+			.setactitem(s);
+		}
+		if( grguiloupe.contains(s) )	{
+			<s>.show;
+			.remove_from_loupe(s);
+		}
+		<s>.setframe("rotostart", 0);
+		<s>.styperoto = ("startroto");
+		<s>.setz( iTakeZ );
+		<s>.rototaker_startact(.getappcenter, "rotocenter");
+	}
+	item_gotopck	{
+		@s = .getactitem;
+		if( s!=null )	{
+			<s>._item_gotopck2;
+		}
+	}
+	_item_gotopck2	{
+		if( .gettyp=="pckitem" ) ._pckitem_gotopck;
+		else ._item_gotopck;
+	}
+	_item_gotopck	{
+		if( .isretitemstate )	{
+			.advmslock;
+			.advsetstate("state_itemgotopck");
+		} else
+			grgotopckstack.addonce(this);
+		
+		if( !bHOInventory && (.inventory_playing || .inventory_hidden) )	{
+			.inventory_in;
+		} else {
+			if( bHOInventory )	{
+				@s = "guihoinventory";
+			} else {
+				if( grguitems.size+1 > grguitemslots.size )
+					.additemslot;
+				@s = .lastemptyslot;
+			}
+			
+			styperoto = "endroto";
+			@sac = .actionname;
+			.setframe("rotopck",0);
+			@w = .getw; @h = .geth;
+			.setframe(sac,0);
+			//.rototaker_startact( <s>.getcx, <s>.getcy, "rotopck");
+			.rototaker_startwh( <s>.getcx, <s>.getcy, .getw, .geth, w, h);
+		}
+	}
+	_pckitem_gotopck	{
+		if( .isretitemstate )	{
+			.advmslock;
+			.advsetstate("state_pckitemgotopck");
+		} else
+			grgotopckstack.addonce(this);
+		if( .inventory_playing || .inventory_hidden )	{
+			.inventory_in;
+		} else {
+			.saveitemtolastslot;
+			grguitems.addonce(this);
+			
+			.setframe(0,0);
+			@w = .getw; @h = .geth;
+			.setframe(1,0);
+			.rototaker_startwh( <myslot>.getcx, <myslot>.getcy, .getw, .geth, w, h);
+		}
+	}
+	saveitemtolastslot	{	.saveitemtoslot(.lastemptyslot);	}
+	saveitemtoslot(string sslot)	{
+		if( sslot == null )	{
+			"sslot = null!"->print;
+		} else {
+			myslot = sslot;
+			<myslot>.myitem = (this);
+		}
+	}
+	//-------------- pocket -------------------------------
+	guimov_GET	{
+		if( .advstdstate && !.advgetlock && grguitems.isinfunc(mouse.getpos, func { (int x, int y)
+				.isin(x,y,1,1) || x.length(x-.getcx, y-.getcy)<=25;
+			}) )	{
+			@s = grguitems.getsfound;
+			grguitems.remove(s);
+			< <s>.myslot >.myitem = (null);
+			<s>.myslot = (null);
+			<s>.play(1);
+			.setactitem(s);
+			.mssetobj(s);
+			if( !.isadvclass )	{
+				.advsetstate("getitem");
+			}
+		}
+	}
+	guimov_PUT	{
+		@s = .getfree;
+		if( !.advgetlock )	{
+			if( .isadvclass )	{
+				@sbut = .advfocusedbut;
+				@sbeh = "beh_USE_" + <s>.getbutname;
+				if( sbut!=null && .playbehif( sbeh + "_ON_" + <sbut>.getbutname ) ) {
+					// nie robimy 'freeactitem'
+				} else if( !.playbehif( sbeh ) )	{
+					<s>.sbehstate = ("behstate_nobeh");
+					.freeactitem;
+					<s>._pckitem_gotopck;
+				}
+			} else {
+				@smet = "USE_" + <s>.getbutname;
+				if( <GAME>.hasmet( smet ) )	{
+					<GAME>.<smet>;
+				} else {
+					.advsetstdstate;
+					.item_gotopck;
+				}
+				//.freeactitem;
+			}
+		}
+	}
+	getanitem(string sitem)	{	sanitemprefix+sitem;	}
+	addtopck(string sitem)	{	<gameapi.getgamename>._addtopck(sitem);	}
+	_addtopck(string sitem)	{	
+		@s = .getanitem(sitem);
+		if( !grguitems.contains(s) )	{
+			if( !bHOInventory )	{
+				.newanima(s, "$scripts/adv_items/"+sitem+".pyz", iTakeZ);
+				GuiItem::setasrototaker(s, iRotoIleRot, iRotoIleObrotow);
+				<s>.vars2(A, "getbutname", sitem, "myslot", null, "gettyp", "pckitem", "sbehstate", "behstate_nobeh");
+				<s>.saveitemtolastslot;
+				
+				<s>.addmethod("rototaker_endroto", func {
+					if( sgmstate=="state_pckitemgotopck" || sbehstate=="behstate_nobeh" )	{
+						grgotopckstack.remove(this);
+						.freeactitem;
+						.play(0);
+						if( sgmstate=="state_pckitemgotopck" )	{
+							.advinitial;
+						}
+					}
+					} );
+				@slot = <s>.myslot;
+				<s>.setpos( <slot>.getcx, <slot>.getcy );
+				<s>.play(0);
+			}
+			grguitems.add(s);
+		}
+		.saveitemtopck(sitem);
+	}
+	saveitemtopck(string sitem)	{
+		clsave.set("ma_"+sitem,1);
+		clsave.set("taken_"+sitem,1);
+		grguipck.addonce(sitem);
+	}
+	isretitemstate	{	sgmstate=="state_pckitemgotopck" || sgmstate=="state_itemgotopck";	}
+	removefrompck(string sitem)	{
+		@sitm = .getactitem;
+		@s = sanitemprefix + sitem;
+		if( s==sitm ) .freeactitem;
+		<s>.anhide;
+		grguitems.remove(s);
+		grguipck.remove(sitem);
+		clsave.set("ma_"+sitem,0);
+	}
+	additemslot	{
+		@id = grguitemslots.size;
+		@s = "guitemslot"+id;
+		.copyanima("guitemslot", s);
+		//<s>.show;
+		<s>.setslotpos;
+		<s>.var2("myitem",null);
+		if( .isadvclass )	{
+			classadvbut::setasbutton2(s, "guislot"+id, "guislot");
+			<s>.smousecursor = ("normal");
+			//setasbutton2(string san, string sname, string styp)
+		}
+		grguitemslots.add(s);
+	}
+	setslotpos	{
+		.cliptoguislot;
+		if( grguitemslots.size>=1 )	{
+			@dx = 0;
+			.ansetbpos( <grguitemslots.get(grguitemslots.size-1)>.getex+dx, .getpy );
+		}
+	}
+	cliptoguislot	{
+		@dx = 3;
+		.clip( guileft.getex+dx, 0, guiright.getpx - dx, igmapph );
+	}
+	lastemptyslot	{
+		for( int i=0; i<grguitemslots.size; i++)	{
+			@s = grguitemslots.get(i);
+			if( <s>.myitem == null ) return s;
+		}
+		null;
+	}
+	load_pocket	{	grguipck.vecload( "guipocket_"+PrzygodaNumer+".db" );	}
+	save_pocket	{	grguipck.vecsave( "guipocket_"+PrzygodaNumer+".db" );	}
+	inventory_check	{
+		if( .inventory_hidden )	.inventory_in;
+		else .inventory_out;
+	}
+	inventory_out	{	.inventory_start(1);	}
+	inventory_in	{	.inventory_start(-1);	}
+	inventory_start(int dir)	{
+		if( _timinv.isplaying )	{
+			if( _timinv.dir == dir ) return;
+			_timinv.stop(false);
+		}
+		_timinv.dir=(dir);
+		_timinv.play;
+	}
+	inventory_playing	{	_timinv.isplaying;	}
+	inventory_move(int y)	{
+		grguitemslots.move(0, y);
+		guinventory.move(0, y);
+		guileft.move(0,y);
+		guiright.move(0,y);
+		grguitems.move(0,y);
+	}
+	inventory_hidden	{
+		int dy = <grguitemslots.first>.getpy - igmapph;
+		if( dy>0 )	{
+			.inventory_move(-dy);
+			true;
+		} else dy==0;
+	}
+	inventory_showed	{
+		//<grguitemslots.first>.getpy <= <grguitemslots.first>.lody;
+		if( guinventory.getposy < 0 )	{
+			.inventory_move( -guinventory.getposy );
+			true;
+		} else guinventory.getposy == 0;
+	}
+	inventory_hide	{
+		while( !.inventory_hidden )	{
+			.inventory_move(1);
+		}
+	}
+	inventory_show	{
+		while( !.inventory_showed )	{
+			.inventory_move(-1);
+		}
+	}
+	gui_mousemove	{
+		if( !bHOInventory && .advstdstate && grgotopckstack.empty && !.inventory_playing )	{
+			|int x, int y| = mouse.getpos;
+			if( .inventory_hidden && invshow.isin(x,y) )
+				.inventory_in;
+			else if ( .inventory_showed && !invhide.isin(x,y) && .inventory_unblocked )
+				.inventory_out;
+		}
+		.update_loupepos;
+	}
+	inventory_unblocked	{	guinventory.blockout == false;	}
+	unblock_inventory(int delay)	{
+		if( delay<=0 ) guinventory.blockout=(false);
+		else {
+			timunblockinventory.setdelay(delay);
+			timunblockinventory.play;
+		}
+	}
+	bool gui_mouselclick	{
+		if( guimov.moving )	{
+			.isadvclass ? guimov.onmouselclick(0,0) :  guimov.onmouselclick;
+			false;
+		} else true;
+	}
+	advinitial	{
+		.advmsunlock;
+		.advsetstdstate;
+	}
+	int subloadadventure(string sdb, int irow, int icol, string sord)	{
+		@s[2];
+		match(sord)	{
+			"popup:" => {
+				
+			}
+			? => ;
+		}
+		icol;
+	}
+	remove_from_loupe(string san)	{
+		ftguiloupe.removeblend(san);
+		grguiloupe.remove(san);
+		if( grguiloupe.empty )
+			guiloupemask.hide;
+	}
+	show_itempopup(string sitem, string san)	{ <gameapi.getgamename> (sitem,san) {
+		(string sitem, string san)
+		
+		@s = "anpopup_"+sitem;
+		@s2 = s+"_blysk";
+		@sim = "_img"+sitem;
+		@stxtnew = "_txtnewitem"+sitem;
+		@stxtitem = "_txtitem"+sitem;
+		@sgr = "_gr_"+sitem;
+		@spopex = s + "_exit";
+		
+		if( !.hasvar(s) )	{
+			.copyanima("globalpopup", s);
+			<s>.Button_isin;
+			butgame.add(s);
+			.copyanima("globalpopup", s2);
+			<s2>.setframe(1,0);
+			new img <sim>;
+			<sim>.vars2(A, "swnd", s, "sblysk", s2, "sanima", san, "sgr", sgr, "sitem", sitem, "spopexit", spopex);
+			
+			.newtext(stxtnew, dbgame.dbget("newitem"), "fnthogui", .guifontcolor);
+			.newtext(stxtitem, dbitems.dbget(sitem), "fnthogui", .guifontcolor);
+			new gmimgvec <sgr>;
+			<sgr>.addlist(A, s, s2, stxtnew, stxtitem);
+			
+			.copyanima("globalpopup", spopex);
+			<spopex>.setframe(2,0);
+			<spopex>.hide;
+			<spopex> (s, sitem) { (@swnd, @sitem)
+				.vars2(A, "swnd", swnd, "sitem", sitem); 
+				.addmethod("isbutin", func { (@x, @y)
+					.isin(x,y,1,1) || ( <swnd>.isvisible && !<swnd>.isin(x,y,1,0) );
+					} );
+				.addmethod("butmoveon", func {
+					advmouse.setact;
+					.setframe(-1,1);
+					} );
+				.addmethod("butmoveoff", func {
+					advmouse.setstd;
+					.setframe(-1,0);
+					} );
+				.addmethod("butclick", func {
+					@s = "popup_"+sitem+"_clickexit";
+					if( <gameapi.getgamename>.hasmet(s) )
+						<gameapi.getgamename>.<s>;
+					else
+						.hide_itempopup(sitem);
+					} );
+				butgame.add(this);
+			};
+		}
+		int x = <san>.getcx - <s>.getw/2;
+		int y = <san>.getcy - <s>.geth/2;
+		<s>.setpos(x,y);
+		<s2>.setpos(x,y);
+		<spopex>.setpos(x,y);
+		@dh = 0.12;
+		<stxtnew>.setpos( <s>.getcx - <stxtnew>.getw/2, <s>.getpy + dh*<s>.geth );
+		<stxtitem>.setpos( <s>.getcx - <stxtitem>.getw/2, <s>.getey - dh*<s>.geth - <stxtitem>.geth );
+		@z = <s2>.getz + 5;
+		<san>.setz( z );
+		<sim>.setz( z );
+		<stxtnew>.setz( z );
+		<stxtitem>.setz( z );
+		<spopex>.setz( z );
+		butgame.sort;
+		<sgr>.show;
+		<sim>.imgbuildfromlist(A, s, s2, stxtnew, stxtitem, san);
+		//<sim>.imgbuildfromvec(sgr);
+		<sgr>.hide;
+		<san>.hide;
+		
+		<sim>.anzoomfadeinout(ishowpouptime,1,1, func {
+			.hide;
+			<sgr>.show;
+			<sanima>.show;
+			<spopexit>.show;
+			butgame.onmousemove;
+			<gameapi.getgamename>.<"popup_"+sitem+"_in">;
+			} );
+	}; }
+	hide_itempopup(string sitem) { <gameapi.getgamename> (sitem) {
+		(string sitem)
+		
+		@s = "anpopup_"+sitem;
+		@s2 = s+"_blysk";
+		@sim = "_img"+sitem;
+		@stxtnew = "_txtnewitem"+sitem;
+		@stxtitem = "_txtitem"+sitem;
+		@sgr = "_gr_"+sitem;
+		@spopex = s + "_exit";
+		
+		if( clsave.bis("taken_"+sitem) )
+			<sim>.imgbuildfromlist(A, s, stxtnew, stxtitem);
+		else	{
+			<sim>.imgbuildfromlist(A, s, s2, stxtnew, stxtitem, <sim>.sanima);
+			< <sim>.sanima>.hide;
+		}
+		<sgr>.hide;
+		<spopex>.hide;
+		
+		<sim>.anzoomfadeinout(ishowpouptime,-1,-1, func {
+			.hide;
+			<gameapi.getgamename>.<"popup_"+sitem+"_out">;
+			} );
+	}; }
+	isvisible_itempopup(string sitem)	{
+		<gameapi.getgamename>.hasvar("anpopup_"+sitem) && <"anpopup_"+sitem>.isvisible;
+	}
+	getitempopupshadow(string sitem)	{	"anpopup_"+sitem+"_blysk";		}
+	hideitempopupshadow(string sitem)	{	<.getitempopupshadow(sitem)>.hide;	}
+	def guifontcolor	{	.grey(240);	}
+}
+
+class classadvstdgame2 : ClassGameController, classadvstdgame, BanGui	{
+	init	{
+		bHOInventory = false;
+		ClassGameController::init;
+		new Button butgame;
+		BanGui::init;
+		banguisrc.load;
+		classadvstdgame::init;
+		.initadventure;
+		.initgui;
+		
+		new Film film1;
+		film1.addmethod("onfinish", func {
+			.advsetstdstate;
+			.free;
+			_ = .playbehif("beh_END_FILM");
+			} );
+		
+		classadvcontroller::playbehoninit;
+	}
+	playbehoninit	{}
+	playfilm(string spath, string sfilm, int x, int y)	{
+		.advsetstate("state_playfilm");
+		clsave.set("film", spath);
+		film1.setpos(x,y);
+		film1.playfilm("scripts/"+spath+"/", sfilm);
+	}
+	setasbanbeh(string smet)	{	advbanbeh::<"setas"+smet>;	}
+	int subloadbeh(string sord, string sbeh, string sdb, int irow, int icol)	{
+		string s[2];
+		int i[2];
+		sord = sord.strsubes(":");
+		match( sord )	{
+			"popin", "popout" => {
+				s1 = <sdb>.get(irow,icol); icol++;
+				if( s1=="(" )	{
+					i0=icol;
+					s1 = <sdb>.get(irow,icol);
+					while( s1!=")" )	{
+						s1 = <sdb>.get(irow,icol);
+						icol++;
+					}
+				} else "beh popin: no ( error"->print;
+				<sbeh>.setasbanbeh(sdb, irow, i0, sord, "popup");
+			}
+			"openbook" =>	{
+				s1 = <sdb>.get(irow,icol); icol++;
+				<sbeh>.setasbanbeh(s1, sord);
+			}
+			"closebook" => {
+				<sbeh>.setasbanbeh(sord);
+			}
+			? => icol--;
+		}
+		icol;
+	}
+	mousemove	{
+		ClassGameController::mousemove;
+		.gui_mousemove;
+		classadvstdgame::mousemove;
+	}
+	mouselclick	{
+		__grobj.eval("onmouselclick");
+		if( .advstdstate && .gui_mouselclick )	{
+			.advmsclick;
+		}
+		.mouse_LCLICK;
+	}
+	mouselrel	{
+		__grobj.eval("onmouselrel");
+		classadvcontroller::mouselrel;
+	}
+}
+
+

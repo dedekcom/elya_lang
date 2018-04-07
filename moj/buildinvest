@@ -1,0 +1,3 @@
+./kompiluj ./srcinvest/invest.prj
+#cp ./srcinvest/invest.odd /home/dedek/projekty/rysunki_gimp/invest/project/scripts/
+awk -f optimize.awk ./srcinvest/invest.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/invest/project/scripts/invest.odd

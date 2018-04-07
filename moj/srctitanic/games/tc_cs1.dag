@@ -1,0 +1,90 @@
+
+
+game Cs1Pad : StdGame	{
+	init	{
+		StdGame::init("cs1_pad");
+		
+		.imgs = (A, "bg.jpg", "pad.pyz 10", "foto.pyz 20");
+		
+		//.lang_db("dbm", "mail_");
+		
+		//init(string sfont, int isize, string sdbfile, int r, int g, int b, int x, int y, int dy, int z, string sdir)	{
+		new TextDb tdmail(null, 12, "$lang:mail_", .grey(20),
+			anpad.getpx + 0.18*anpad.getw, anpad.getpy + 0.3*anpad.geth, 5,250, "left");
+		anfoto.move(80, -60);
+		
+		//new tcramka tcr("tdmail");
+		
+		.lang_db("dbp", "zatwierdz_");
+		new font fnbold;
+		fnbold.load(sgmfontbold, 14);
+		.newtext("txtpot", dbp.get(0,0), "fnbold" /*.stdfont(14)*/, .blue);
+		txtpot {
+			.setpos( tdmail.getpx - 5, tdmail.getpy + tdmail.geth + 20 );
+			.setz(10);
+			.Button_isin;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				.mprzejdzclick("Pokojlilian");
+				} );
+			but1.add(this);
+		};
+		
+		mus.playstr("tablice.ogg -l -v 60");
+		
+		ccs.enter( func { ; } );
+	}
+}
+
+game Cs2Batyskaf : StdGame	{
+	init	{
+		StdGame::init("cs2_batyskaf");
+		
+		.imgs = (A, "bkg.jpg", "battyl.pyz 5", "szyby.pyz 10", "dzwig.pyz 15", "batprzod.pyz 20", "swiatla1.pyzH 25",
+			"swiatla2.pyzH 25", "drzwi.pyz 30", "maskaprzed.pyz 35", "panel.pyz 40", "czapka.pyz 45");
+		
+		mus.playstr("bgrdok.ogg -l -v 60");
+		.sfxs = (A, "mechanizm", "zanurzanie 50");
+		
+		andrzwi.addmethod("onfinish", func {
+			if( .actionnr(-1)==0 )	{
+				ccs.playfin( null, func { andrzwi.play(1); } );
+			} else {
+				answiatla1.play(0);
+				answiatla2.play(0);
+				.timplay("tim2", 2000, func {
+					fxmechanizm.play;
+					fxzanurzanie.play;
+					andzwig.play(0);
+					});
+			}
+			} );
+		
+		new gmimgvec grbat;
+		grbat.addlist(A, "anbatprzod", "answiatla1", "answiatla2", "andrzwi");
+		
+		.copyanima("andzwig", "andz2");
+		andz2.hide;
+		andzwig.addmethod("onendframe", func {
+			@y = .getpy - andz2.getpy;
+			andz2.setframe(-1, .framenr);
+			grbat.move(0, y);
+			} );
+		andzwig.addmethod("onfinish", func {
+			answiatla2.anhide;
+			grbat.hide;
+			.timplay("tim3", 3000, func { anbattyl.play(0); });
+			} );
+		
+		anbattyl.addmethod("onfinish", "mend" );
+		
+		ccs.enter( func { .timplay("tim1", 2000, func {
+				andrzwi.play(0);
+				} );
+			} );
+	}
+	mend	{
+		.mprzejdz("Dziob");
+	}
+}

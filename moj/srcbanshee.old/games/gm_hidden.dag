@@ -1,0 +1,134 @@
+
+game Hidden : StdGame	{
+	init	{
+		StdGame::init("hidden");
+		
+		.imgs = (A, "bkg.pyz", "fire.pyzP 5", "firemask.pyz 8", "take.pyzG 100", "els.pyzG",
+			"zaslony.pyzG 30", "maskajablka.pyz 40", "sagan.pyz 110",
+			"maskanalewka.pyz 25");
+		
+		.sfxs = (A, "ogienN 70", "przesuwa2 50", "founditem2", "muruje1");
+		
+		new Button but1;
+		new gmimgvec grob;
+		
+		grzaslony.eval( func {
+			.Button_isinalpha;
+			.Button_moveonms;
+			.Button_moveoff;
+			.addmethod("butclick" , func {
+				if( igmstate!=1 ) return;
+				fxprzesuwa2.play;
+				.setframe(-1,1);
+				@s = .actionname;
+				if( s.getb(0,3)!="new") {
+					s = grels.getsac(s);
+					<s>.bactive = (true);
+					grob.add(s);
+				}
+				but1.removebut(this);
+				but1.onmousemove;
+				igmstate = 3;
+				} );
+			but1.add(this);
+			} );
+		
+		new int ielsz = 20;
+		grels.eval( func {
+			.setz(ielsz);
+			.var("bactive");
+			if( grzaslony.findsac(.actionname)>=0 )	{
+				bactive = false;
+			} else {
+				bactive = true;
+				grob.add(this);
+			}
+			.addmethod("isbutin", func { (@x, @y)
+				bactive && .isin(x,y,1,1);
+				} );
+			.Button_moveoff;
+			.Button_moveonms;
+			but1.add(this);
+			} );
+		
+		grtake.eval( func {
+			.Button_isinalpha;
+			.Button_moveoff;
+			.Button_moveonms;
+			but1.add(this);
+			} );
+		
+		new DelayMover cmov;
+		new classplacepointer2 clp;
+		
+		.sounds = (A, ":kokosz1", "To co najpierw jemy czy szukamy sk³adniki?", func { .cbplay("kajko1"); },
+			":kajko1", "A jak my¶lisz?", func { .cbplay("kokosz2"); },
+			":kokosz2", "Dobra ¿artowa³em; Potrzebujemy m±kê owsian± czosnek cebulê miód nalewkê ¿urawinê i jaki¶ mo¼dzierz z t³uczkiem w którym utrê lekarstwo", func { .cbplay("sndnar1"); clp.showob(grtake.get(2), "uu"); },
+			"sndnar1", "Odnajd¼ potrzebne sk³adniki na planszy i przenie¶ je na te pola", func { clp.stoph; .mgame; },
+			":kokosz3", "Mam wszystko co potrzebne; Jest tylko jeden problem", func { .cbplay("kajko2"); },
+			":kajko2", "Jaki?", func { .cbplay("kokosz4"); },
+			":kokosz4", "Nigdzie nie by³o m±ki owsianej; Zabra³em tylko ziarna owsa", func { .cbplay("kajko3"); },
+			":kajko3", "Co¶ wymy¶limy; Zjedzmy tê zupê i dzia³amy dalej", "mend"
+			);
+		
+		ccs.enter( func { .cbplay("kokosz1"); } );
+	}
+	mgame	{
+		igmstate = 1;
+		cmov.unlock;
+	}
+	cmov_GET	{
+		if( igmstate==3 ) {
+			igmstate = 1;
+			return;
+		}
+		
+		if( igmstate!=1 ) return;
+		if( grob.isin(mouse.getpos,1,1) )	{
+			@s = grob.getsfound;
+			grob.remove(s);
+			<s>.setz(200);
+			.mssetobj( s );
+			fxmuruje1.play;
+		}
+	}
+	cmov_PUT	{
+		string s = .getfree;
+		if( grtake.isin(mouse.getpos,1,1) && <grtake.getsfound>.actionname == <s>.actionname )	{
+			fxfounditem2.play;
+			<s>.hide;
+			but1.removebut(s);
+			@s2 = grtake.getsfound;
+			<s2>.setframe(-1,1);
+			grtake.remove(s2);
+			but1.removebut(s2);
+			but1.onmousemove;
+			if( grtake.empty )	{
+				igmstate = 2;
+				.cbplay("kokosz3");
+			} else {
+				
+			}
+		} else {
+			.mretob(s);
+			fxmuruje1.play;
+		}
+	}
+	mretob(string s)	{
+		<s>.setz(ielsz);
+		<s>.setpos(0,0);
+		grob.add(s);
+	}
+	mend	{
+		igmstate = 2;
+		ccs.close( func { 
+			.gotoadv("adtown", "gameadtown2");
+			} );
+	}
+	mouse_rclick	{
+		if( igmdebug )	{
+			//.mend;
+			.cactsndstop(true);
+		}
+	}
+}

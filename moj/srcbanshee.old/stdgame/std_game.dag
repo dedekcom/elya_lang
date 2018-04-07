@@ -1,0 +1,113 @@
+new string sAskerGame;
+class StdGame : classadv, GameController, Localize	{
+	init(string s)	{
+		AdventureGame = false;
+		igmstate = 0;
+		sgmstate = "init";
+		classadv::init;
+		GameController::init(s);
+		Localize::init;
+		clbuts.setcursorpos(0, 0);
+		claskexit.setcursorpos(0, 0);
+		.path = (s);
+		.setwavpath(SNDPATH);
+		clmusic.play;
+		clbuts.reset;
+		claskexit.reset;
+		advmouse.setstd;
+		new Music mus;
+		new Button butgame;
+		
+		new string sNextGamePath;
+		new string sNextGame;
+		new string sNextGameType;
+		
+		if( PrzygodaMode )	{
+			classadvcontroller::advsaveonstart;
+			classadvstdgame::advsave_game;
+		}
+	}
+	//-------------- adv -------------------------------
+	cutscene	{
+		new CutScene ccs(0, 0, iResX, iResY);
+		ccs.setz(2000);
+	}
+	stdstart	{
+		ccs.enter( "advsetstdstate" );
+	}
+	stdexitdefadv(string spath, string sgame)	{
+		sNextGame = sgame;
+		sNextGamePath = spath;
+		sNextGameType = "-def";
+		._stdexit;
+	}
+	stdexitadvadv(string spath, string sgame)	{
+		sNextGame = sgame;
+		sNextGamePath = spath;
+		sNextGameType = "-adv";
+		._stdexit;
+	}
+	stdexit(string sgame)	{
+		sNextGame = sgame;
+		sNextGamePath = null;
+		sNextGameType = "-mg";
+		._stdexit;
+	}
+	_stdexit	{
+		sgmstate = "end";
+		match(sNextGameType)	{
+			"-def" => .gotoadv(sNextGamePath, sNextGame);
+			"-adv" => .gotoadv2(sNextGamePath, sNextGame);
+			? => gameapi.play(sNextGame);
+		}
+		ccs.buildfromscreen;
+		/*mus.fadeout(1000);
+		.timplay("_timstdexit", 1000, func {
+			match(sNextGameType)	{
+				"-def" => .gotoadv(sNextGamePath, sNextGame);
+				"-adv" => .gotoadv2(sNextGamePath, sNextGame);
+				? => gameapi.play(sNextGame);
+			}
+			ccs.buildfromscreen;
+			} );*/
+	}
+	gotoadv(string spath, string sgame)	{
+		sgmlastscene = gameapi.getgamename;
+		sgmglobpath = spath;
+		sgmgame = sgame;
+		gameapi.play("gameadvdef");
+	}
+	gotoadv2(string spath, string sgame)	{
+		sgmlastscene = gameapi.getgamename;
+		sgmglobpath = spath;
+		sgmgame = null;
+		gameapi.play(sgame);
+	}
+	Button_stdoff	{
+		.addmethod("butmoveoff", func {
+			if( sgmstate!="play" ) return;
+			advmouse.setstd;
+			} );
+	}
+	//-------------- helpful -------------------------------
+	crect	{	new Rect rec(600,196,403,497);	}
+	crect2	{	new Rect rec2(6,174,1012,530);	}
+	cshowbut(string sbut, @dir)	{
+		clbuts (sbut, dir) { (string sbut, @dir)
+			clp.show( buts.callimgfun( sbut, "getcx"), buts.callimgfun( sbut, "getcy"), dir ); 
+		};
+	}
+	//-------------- sys -------------------------------
+	key_down	{
+		if( igmdebug && keyboard.iskeydown("lctrl") && keyboard.iskey("r") )	.crestart;
+	}
+	public askrestart	{	claskexit.askrestart;	}
+	onmusicfin      {	mus.play;	}
+	exit	{
+		.game_exit;
+		if( igmsubtitle )	{
+			subtitle.reset;
+		}
+	}
+}
+

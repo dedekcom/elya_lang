@@ -1,0 +1,148 @@
+
+/***************************************************************************/
+
+public winsave(string sval)	{
+	if( igmenablesave )	{
+		new db _db_win;
+		_db_win.load("output.db");
+		@id = _db_win.addrow-1;
+		_db_win.add(id, sval);
+		_db_win.save("output.db");
+		delete _db_win;
+	}
+}
+
+/***************************************************************************/
+
+public saveexist(string sfile)	{	engine.fileexist( .getsavepath + sfile );	}
+
+public vecsave(string sfile)	{	if( igmenablesave ) .save(.getsavepath + sfile);	}
+
+public vecload(string sfile)	{	.load( .getsavepath + sfile );	}
+
+class classfullsave	{
+	init(string sfile)	{
+		new db dbsav;
+		dbsav.setseparator("|");
+		new string sstdfile;
+		.setfile(sfile);
+		//.var2("saveonset",0);
+		new bool saveonset = 0;
+	}
+	public save(string sfile)	{
+		if( igmenablesave )
+			dbsav.save( .getsavepath + sfile );
+	}
+	
+	_load(string sfile)	{
+		if( engine.fileexist(sfile) )	{
+			dbsav.free;
+			dbsav.load(sfile);
+		}
+	}
+	public load(string sfile)	{	._load( .getsavepath + sfile );	}
+	public print()	{	dbsav.print();	}
+	public printvar(string svar)	{	engine.print(this + ".var: "+svar+" = " +.get(svar));	}
+	public setfile(string sf)	{	sstdfile = sf;	}
+	public stdload()	{	this.load(sstdfile);	}
+	public stdsave()	{	this.save(sstdfile); }
+	public free()	{	dbsav.free();	}
+	public set(string sname, string svar)	{
+		int id = dbsav.findbyrow(sname);
+		if( id>=0 )	{
+			dbsav.set(id,1,svar);
+		} else {
+			id = dbsav.addrow()-1;
+			dbsav.add( id, sname );
+			dbsav.add( id, svar );
+		}
+		if( saveonset )
+			this.stdsave();
+	}
+	public bset(string sname)	{	this.set(sname,true);	}
+	public bunset(string sname)	{	this.set(sname,false);	}
+	public string get(string sname)	{
+		int id = dbsav.findbyrow(sname);
+		id>=0?dbsav.get(id,1):null;
+	}
+	public bool is(string sname, string svar)	{
+		int i = dbsav.findbyrow(sname);
+  		i>=0?dbsav.get(i,1)==svar:false;
+	}
+	//public bool bis(string sname)	{	return this.is(sname,true);	}
+	public bool bis(string sname)	{
+		int i = dbsav.findbyrow(sname);
+		i>=0?dbsav.get(i,1)!=false:false;
+	}
+	public bool sbis(string sname)	{
+		if( sname.getb(0,1)=="!" ) !.bis(sname.strsubb(1));
+		else .bis(sname);
+	}
+	public bool bislist(string s)	{
+		new vector vtmp;
+		vtmp.type("string");
+		vtmp.vecbuildfromstring(s," ");
+		bool b = false;
+		if( vtmp.size )	{
+			b = .sbis(vtmp.first);
+			int i = 1;
+			while( i<vtmp.size )	{
+				match(vtmp.get(i))	{
+					"&" => {
+						b = b && .sbis(vtmp.get(i+1));
+						i+=2;
+					}
+					"|" => {
+						b = b || .sbis(vtmp.get(i+1));
+						i+=2;
+					}
+					? => i++;
+				}
+			}
+		}
+		delete vtmp;
+		b;
+	}
+	public bool bisand2(string spref, int iend)	{	.bisand(spref,1,iend,"");	}
+	public bool bisand(string spref, int istart, int iend, string ssuf)	{
+		bool b = true;
+		while( istart <= iend )	{
+			b = b && .bis( spref + istart + ssuf );
+			istart++;
+		}
+		b;
+	}
+	public bool has(string sname)	{ dbsav.findbyrow(sname) >= 0; }
+	public bool bgo(string sname)	{
+		if( !.bis(sname) )	{
+			.bset(sname);
+			true;
+		} else false;
+	}
+	public saveonset=(bool b)	{	saveonset=b;	}
+	public remove(string sname)	{
+		int i = dbsav.findbyrow(sname);
+		if( i>=0 ) {
+			dbsav.removerow(i);
+			if( saveonset )
+				this.stdsave();
+		}
+	}
+	public replace(string snamedest, string snamesrc)	{
+		if( .has(snamesrc) )	{
+			.set(snamedest,.get(snamesrc));
+		} else .remove(snamedest);
+	}
+	public add(string sname, int val)	{
+		if( !.has(sname) )
+			.set(sname, val);
+		else .set( sname, val + .get(sname) );
+	}
+	public inc(string sname)	{	.add(sname,1);	}
+	public dec(string sname)	{	.add(sname,-1);	}
+	public string getdef(string sname, string sval)	{
+		int id = dbsav.findbyrow(sname);
+		id>=0?dbsav.get(id,1):sval;
+	}
+}
+

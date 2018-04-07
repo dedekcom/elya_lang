@@ -1,0 +1,252 @@
+/* classadv : klasa do przygodowek	*/
+
+new int PrzygodaNumer = 0;
+new int PrzygodaMode = dbconf.dbgetint("PrzygodaMode:");
+
+new classfullsave clsave("save.txt");
+new string sgmlastscene = null;
+new string sgmglobpath = null;	// dla gier, ktore sa w innym katalogu niz ich nazwa
+new string sgmgame = null;		// jezeli .adv inaczej sie nazywa niz game
+
+new CutScene ccs(0, 0, igmappw, igmapph);
+ccs.setz(2000);
+new int igmvoicevolume = 100;
+
+new img imgpause;
+imgpause.create( igmappw, igmapph, .black, 200);
+imgpause.setz( 6000 );
+imgpause.rle;
+imgpause.hide;
+new timer timwindowmode;
+timwindowmode.setdelay(2000);
+timwindowmode.addmethod("onfinish", func {
+	imgpause.hide;
+	gtxtpause.hide;
+	} );
+
+class classadv : classgame, GameController {
+	init(string s)	{
+		engine.setloopdelay(igmdelay);
+		classgame::init();
+		.setwavpath(SNDPATH);
+		GameController::init(s);
+		
+		new string _s_game_path;
+		new bool bmslock = false;
+		
+		new Music mus;
+		new Button butgame;
+		
+		igmstate = 0;
+		sgmstate = "init";
+		
+		.wczytajglosnosc;
+	}
+	wczytajglosnosc	{
+		engine.setsndvol( clsmen.get("sound_volume") );
+		mus.globalvolume=( clsmen.get("music_volume") );
+		igmvoicevolume = clsmen.get("voice_volume");
+	} 
+	butenable	{	butgame.addbut(this);		}
+	butdisable	{	butgame.removebut(this);	}
+	butrefresh	{	butgame.onmousemove;	}
+	//--------------- zgodnosc advcontroller z bangui
+	advmslock			{	bmslock=true;	}
+	advmsunlock			{	bmslock=false;	}
+	advgetlock			{	bmslock;	}
+	advmssetlock(bool block)	{	block ? .advmslock : .advmsunlock;	}
+	//-------------------
+	switch_path(string spath)	{
+		_s_game_path = <gameapi.getgamename>.getgraphpath;
+		<gameapi.getgamename>.setgraphpath(spath);
+	}
+	restore_path	{	<gameapi.getgamename>.setgraphpath(_s_game_path);	}
+	/**************************************************************************/
+	newclpathf(string spt, string san, string sfile, int x, int y, real rstep, int ityp)	{
+		new classpathf <spt>;
+		<spt>.build(san, this.getgraphpath() + sfile, x, y, rstep, ityp);
+	}
+	newclpathfcopy(string spt, string san, string sptf, real rstep)	{
+		new classpathf <spt>;
+		<spt>.buildfrom( san, sptf, rstep );
+	}
+	newpathf(string spathf, string sfile, int x, int y)	{
+		new path <spathf>;
+		<spathf>.build( this.getgraphpath() +sfile, x, y, 2.0, 1 );
+	}
+	/**************************************************************************/
+	newclbut(string sbut, string sfile, int z, string smouse)	{
+		new classbutton <sbut>;
+		<sbut>.build( this.getgraphpath() + sfile, z, smouse );
+	}
+	newclmask(string sm, string sfile, string smouse)	{
+		new classmask <sm>;
+		<sm>.buildmask( this.getgraphpath() + sfile, smouse );
+	}
+	newclmaskfunc(string sm, string sfile, string smouse, string sfunc)	{
+		new classmask <sm>;
+		<sm>.buildmaskfunc( this.getgraphpath() + sfile, smouse, sfunc );
+	}
+	//---------------------- SAVE ----------------------
+	advsaveonstart	{
+		clsave.set("GAME_game", gameapi.getgamename);
+		clsave.set("GAME_sgmgame", sgmgame);
+		clsave.set("GAME_sgmglobpath", sgmglobpath);
+		clsave.set("GAME_sgmlastscene", sgmlastscene);
+		clsave.set("GAME_ccs", ccs.isvisible);
+		.advautosave;
+	}
+	advautosave	{
+		clsave.save("autosave.txt");
+		modadvglob.savepck("autosave");
+	}
+	advautoload	{	._advload("autosave");	}
+	advcacheload	{	._advload("cache");	}
+	advcachesave	{	._advsave("cache");	}
+	_advload(string s)	{
+		modadvglob.delheros;
+		modadvglob.loadpck(s);
+		
+		clsave.load(s+".txt");
+		sgmgame = clsave.get("GAME_sgmgame");
+		sgmglobpath = clsave.get("GAME_sgmglobpath");
+		sgmlastscene = clsave.get("GAME_sgmlastscene");
+		if( clsave.bis("GAME_ccs") ) ccs.show; else ccs.hide;
+		gameapi.play( clsave.get("GAME_game") );
+	}
+	_advsave(string s)	{
+		new classfullsave _saver(s + ".txt");
+		_saver.load("autosave.txt");
+		_saver.stdsave;
+		delete _saver;
+		new vector _vcsave;	_vcsave.type("string");
+		new vector _vcsv2;	_vcsv2.type("string");
+		_vcsave.vecload("grpck_autosave.txt");
+		_vcsave.vecsave("grpck_"+s+".txt");
+		@s2;
+		for( int i=0; i<_vcsave.size; i++)	{
+			s2 = _vcsave.get(i);
+			_vcsv2.vecload(s2 + "autosave_name.txt" );
+			_vcsv2.vecsave(s2 + s + "_name.txt" );
+			_vcsv2.vecload(s2 + "autosave_file.txt" );
+			_vcsv2.vecsave(s2 + s + "_file.txt" );
+		}
+		delete _vcsave;
+		delete _vcsv2;
+// 		arPocket.save( "saves/" + this+sfilepref + "_name.txt" );
+// 		arPocketFile.save( "saves/" + this+sfilepref + "_file.txt" );
+	}
+	getsavename	{	"save"+PrzygodaNumer;	}
+	advload_game	{	._advload(.getsavename);	}
+	advsave_game	{	._advsave(.getsavename);	}
+	//-------------- STAN GRY --------------
+	advstdstate		{	sgmstate=="stdadv";	}
+	advsetstdstate		{	.advsetstate("stdadv");	}
+	advsetstate(string s)	{	sgmstate = s;	}
+	setstdstate	{
+		.advsetstdstate;
+		butgame.refresh;
+	}
+	//-------------- przejscia -----------
+	stdexitdefadv(string spath, string sgame)	{
+		clsave.set("GAME_snextgame", sgame);
+		clsave.set("GAME_snextgamepath", spath);
+		clsave.set("GAME_snextgametype", "-def");
+		.stdexitgame;
+	}
+	stdexitadvadv(string spath, string sgame)	{
+		clsave.set("GAME_snextgame", sgame);
+		clsave.set("GAME_snextgamepath", spath);
+		clsave.set("GAME_snextgametype", "-adv");
+		.stdexitgame;
+	}
+	stdexit(string sgame)	{
+		clsave.set("GAME_snextgame", sgame);
+		clsave.set("GAME_snextgamepath", null);
+		clsave.set("GAME_snextgametype", "-mg");
+		.stdexitgame;
+	}
+	stdexitgame	{
+		if( clsave.bis("GAME_fadeout_music") )	{
+			clsave.set("GAME_fadeout_music",false);
+			mus.fadeout(1000);
+		}
+		ccs.buildfromscreen;
+		sgmstate = "end";
+		string sNextGame = clsave.get("GAME_snextgame");
+		match(clsave.get("GAME_snextgametype"))	{
+			"-def" => .gotoadv(clsave.get("GAME_snextgamepath"), sNextGame);
+			"-adv" => .gotoadv2(clsave.get("GAME_snextgamepath"), sNextGame);
+			? => gameapi.play(sNextGame);
+		}
+	}
+	gotoadv(string spath, string sgame)	{
+		sgmlastscene = gameapi.getgamename;
+		sgmglobpath = spath;
+		sgmgame = sgame;
+		gameapi.play("gameadvdef");
+	}
+	gotoadv2(string spath, string sgame)	{
+		sgmlastscene = gameapi.getgamename;
+		sgmglobpath = spath;
+		sgmgame = null;
+		gameapi.play(sgame);
+	}
+	//-------------------
+	onmusicfin      {	mus.play;	}
+	virtual game_exit	{}
+	exit	{
+		.game_exit;
+		if( igmsubtitle )	{
+			subtitle.reset;
+		}
+		modadvglob.onexit;
+		if ( gameapi.getnextgame=="exit" && (clsave.bis("GAME_survey_mode") || igmdemo) )	{
+			@command =  "start \""+  dbsurvey.dbget("survey_link") + "\"";
+			engine.system(command);
+			//command.print;
+		}
+	}
+	//appmouseoff	{	.appdeactivate;	}
+	//appmouseon	{	.appactivate;	}
+	appdeactivate	{
+		gameapi.pause();
+		.cputtxtpause("pause");
+		timwindowmode.stop(false);
+	}
+	appactivate	{
+		gameapi.resume();
+		imgpause.hide;
+		gtxtpause.hide;
+	}
+	cputtxtpause(string s)	{
+		gtxtpause.txtsetcol( dbgame.dbget(s), .guifontcolor );
+		gtxtpause.txtcenterscreen;
+		imgpause.show;
+		gtxtpause.show;
+	}
+	changefullscreen	{
+		int bful = clsmen.get("fullscreen");
+// 		if( 0 )	{
+		if( !bful || .canchangetowindow )	{
+			bful = !bful;
+			clsmen.set("fullscreen", bful);
+			engine.setfullscreen(bful);
+		} else {
+			.cputtxtpause("noresolution");
+			//clpause.pause;
+			timwindowmode.play;
+		}
+	}
+	clpause_resume	{
+		imgpause.hide;
+		gtxtpause.hide;
+		advmouse.refresh;
+	}
+	keydown		{
+		if( (keyboard.iskeydown("lalt") || keyboard.iskeydown("ralt")) && keyboard.iskeydown("enter") )	{
+			.changefullscreen;
+		} else
+			.gmcontrol_keydown;
+	}
+}

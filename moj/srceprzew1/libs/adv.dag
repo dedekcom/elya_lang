@@ -1,0 +1,126 @@
+/* classadv : klasa do przygodowek	*/
+
+class classadv : classgame {
+	init()	{
+		classgame::init();
+	}
+	/**************************************************************************/
+	newclpathf(string spt, string san, string sfile, int x, int y, real rstep, int ityp)	{
+		new classpathf <spt>;
+		<spt>.build(san, this.getgraphpath() + sfile, x, y, rstep, ityp);
+	}
+	newclpathfcopy(string spt, string san, string sptf, real rstep)	{
+		new classpathf <spt>;
+		<spt>.buildfrom( san, sptf, rstep );
+	}
+	newpathf(string spathf, string sfile, int x, int y)	{
+		new path <spathf>;
+		<spathf>.build( this.getgraphpath() +sfile, x, y, 2.0, 1 );
+	}
+	cwalkto(string spt, string san, int dx, int dy)	{
+		<spt>.walkto(<san>.actionname(), <san>.getcx() + dx, <san>.getcy()+dy);
+	}
+	cwalkto2(string spt, string san, string sname, int dx, int dy)	{
+		<spt>.walkto(sname, <san>.getcx() + dx, <san>.getcy()+dy);
+	}
+	/**************************************************************************/
+	newclbut(string sbut, string sfile, int z, string smouse)	{
+		new classbutton <sbut>;
+		<sbut>.build( this.getgraphpath() + sfile, z, smouse );
+	}
+	newclmask(string sm, string sfile, string smouse)	{
+		new classmask <sm>;
+		<sm>.buildmask( this.getgraphpath() + sfile, smouse );
+	}
+	newclmaskfunc(string sm, string sfile, string smouse, string sfunc)	{
+		new classmask <sm>;
+		<sm>.buildmaskfunc( this.getgraphpath() + sfile, smouse, sfunc );
+	}
+	/**************************************************************************/
+	cherotalk2(string ssnd, string sfuncfin, string stalk, string saction, string sshutup)	{
+		if( sshutup!=null)	{
+			<sshutup>.stop(false);
+			<sshutup>.setframe(-1,0);
+		}
+		this.cherotalk(ssnd, sfuncfin, stalk, saction);
+	}
+	cherotalk(string ssnd, string sfuncfin, string stalk, string saction)	{
+		if( stalk!=null)	{
+			<stalk>.play( saction );
+		}
+		this.cbplaywithfin(ssnd, sfuncfin);
+	}
+	cherosay(string shero, int istate, string ssnd, string sdir, string scompherofunc, int bhero)	{
+		igmstate = istate;
+		this.cbplay( ssnd );
+		if ( bhero==true )	{
+			<shero>.play("talk"+sdir);
+			if( scompherofunc!=null)	{
+				this.<scompherofunc>();
+			}
+		} else if (bhero==false)	{
+			if( scompherofunc!=null)	{
+				this.<scompherofunc>();
+			}
+			<shero>.play("stand"+sdir);
+		}
+	}
+	/**************************************************************************/
+	string cgetanbyaction(string san, int iile, string saction)	{
+		int pos = this.canfindact2(san, iile, saction);
+		if(pos>=0)	{
+			return san+pos;
+		} else {
+			return null;
+		}
+	}
+	string cgetelembyaction(string saction)	{
+		return this.cgetanbyaction("anbg", anbg0.nofactions(), saction);
+	}
+	caddelemtomask(string smask, string sstr, string sact, string sname, string sfuncclick)	{
+		new string <sstr> = this.cgetanbyaction( "anbg", anbg0.nofactions(), sact);
+		<smask>.addadvmask( [sstr], sname, "imglobcurs", sfuncclick);
+	}
+	_cstdelemframe()	{	this.setz( this.getey() ); }
+	cstdelemframe(string san)	{
+		<san>.addmethod("onsetframe", "_cstdelemframe");
+	}
+	cplayelem(string san)	{
+		this.cstdelemframe(san);
+		<san>.play(-1);
+	}
+	cplayelemfin(string san, string sfunc)	{
+		<san>.addmethod("onfinish", sfunc );
+		this.cplayelem(san);
+	}
+	canplayfin(string san, string sfunc)	{
+		<san>.addmethod("onfinish", sfunc);
+		<san>.play(-1);
+	}
+	/**************************************************************************/
+	_movybkg(int dy, string sgr)	{
+		if( imgbkg.getpy() + dy <= 0 && imgbkg.getey() + dy >= 600)	{
+			<sgr>.move(0,dy);
+		}
+	}
+	_movxbkg(int dx, string sgr)	{
+		if( imgbkg.getpx() + dx <= 0 && imgbkg.getex() + dx >= 800)	{
+			<sgr>.move(dx,0);
+		}
+	}
+	cmovybkg(int y, int y1, int y2, int dy, string sgr)	{
+		if ( y<y1 )	{
+			this._movybkg(dy, sgr);
+		} else if( y>y2) {
+			this._movybkg(-dy, sgr);
+		}	
+	}
+	cmovxbkg(int x, int x1, int x2, int dx, string sgr)	{
+		if ( x<x1 )	{
+			this._movxbkg(dx, sgr);
+		} else if( x>x2) {
+			this._movxbkg(-dx, sgr);
+		}	
+	}
+	/**************************************************************************/
+}

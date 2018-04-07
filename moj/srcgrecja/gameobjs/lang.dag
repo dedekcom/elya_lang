@@ -1,0 +1,21 @@
+
+class Localize	{
+	init	{}
+	_lang_db(string sname, string sfile, string sfunload)	{
+		new db <sname>;
+		<sname>.<"load"+sfunload>( .lang_path(sfile) + ".db");
+	}
+	lang_db(string sname, string sfile)	{ ._lang_db(sname,sfile,"");	}
+	lang_dbscript(string sname, string sfile)	{ ._lang_db(sname,sfile,"script");	}
+	lang_dbbeh(string sname, string sfile)	{ ._lang_db(sname,sfile,"beh");	}
+	lang_path(string sfile)	{ "lang/" + gameapi.getgamename + "_" + sfile + LANG; }
+	lang_imgobj(string simg, string stype, string sfile, int z)	{
+		new <stype> <simg>;
+		if( sfile.contains(".") )
+			<simg>.load( "lang/" + sfile.strsube(4) + LANG + "." + sfile.gete(0,3) );
+		else <simg>.load( "lang/" + sfile + LANG + ".pyz" );
+		<simg>.setz(z);
+	}
+	lang_img(string simg, string sfile, int z)	{	.lang_imgobj(simg, "img", sfile, z);	}
+	lang_an(string san, string sfile, int z)	{	.lang_imgobj(san, "anima", sfile + ".pyz", z);	}
+}

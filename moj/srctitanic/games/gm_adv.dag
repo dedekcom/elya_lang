@@ -1,0 +1,472 @@
+
+new int PrzygodaNumer = 1;
+new int PrzygodaMode = 0;
+
+class classadvstdgame : classadvcontroller	{
+	init	{
+		clbuts.reset;
+		classadvcontroller::init;
+		.advsave_game;
+		
+		new gmimgvec __grhelp;
+		new anima __anhp;
+		__anhp.load("scripts/common/aktywny.pyz");
+		__anhp.hide;
+		for( int i=0; i<100; i++ )	{
+			string s = "__anhp"+i;
+			.copyanima("__anhp", s);
+			<s>.setz(2700);
+			__grhelp.add(s);
+		}
+		
+		new img _im_podbg;
+		_im_podbg.create(iResX,1,.black,255);
+		_im_podbg.setpos(0,iResY-1);
+		_im_podbg.setz(-2000);
+		new img _im_podbg2;
+		_im_podbg2.create(1,iResY,.black,255);
+		_im_podbg2.setpos(iResX-1,0);
+		_im_podbg2.setz(-2000);
+		
+		new int _m_czytaj_tresc = 0;
+	}
+	clbuts_help_butclick	{
+		int id = 0;
+		for( int i=0; i<grbuts.size; i++)	{
+			string s = grbuts.get(i);
+			string s2;
+			string s3 = <s>.gettyp;
+			if( (s3=="item" || s3=="but" || s3=="doors") && <s>.enabled && (<s>.isvisible || <s>.ismask)  )	{
+				s2 = __grhelp.get(id); id++;
+				<s2>.setpos(<s>.getcx, <s>.getcy);
+				if( s3=="doors" )	{
+					//<s2>.setz(2700);
+					<s2>.play(1);
+				} else  {
+					//<s2>.setz(<s>.getz);
+					if( <gameapi.getgamename>.hasvar(_stalkpref+s) )
+						<s2>.play(2);
+					else <s2>.play(0);
+				}
+				clcamera.removefrombgr(s2);
+				s3 = clcamera.findinbgr(s);
+				if( s3!=null )	{
+					clcamera.addtobgr(s3, s2);
+				}
+			}
+		}
+	}
+	/*********************************************/
+	advload_game	{	._advload("save"+PrzygodaNumer);	}
+	advsave_game	{	._advsave("save"+PrzygodaNumer);	}
+	/*********************************************/
+	/*********************************************/
+	m_new_powrot	{	.newanima("ansubadvpowrot", "$scripts/common/powrot.pyz", 2600);	}
+	m_del_powrot	{	delete ansubadvpowrot;	}
+	m_on_powrot	{	ansubadvpowrot.isin(mouse.getpos,1,1);	}
+	/*********************************************/
+	m_przepis_in	{ <gameapi.getgamename> {
+		new snd _sndsklad;
+		_sndsklad.setstartstopflag(false,true);
+		new gmimgvec _grels;
+		"_grels" .* "$scripts/common/przepis.pyz";
+		_grels.setz(2500);
+		new string _s_played = null;
+		
+		.m_new_powrot;
+		
+		igmstate = 1;
+	}; }
+	m_przepis_out	{ <gameapi.getgamename> {
+		_grels.deleteloaded;
+		delete _grels;
+		delete _sndsklad;
+		delete _s_played;
+		
+		.m_del_powrot;
+		
+		igmstate = 0;
+	}; }
+	m_czytaj	{	_m_czytaj_tresc = 1; }
+	m_zaklecie_in	{ <gameapi.getgamename> {
+		bool bczytaj = false;
+		if( _m_czytaj_tresc ) {
+			bczytaj = true;
+		}
+		.newanima("_anzaklecie", "$scripts/common/zaklecie.pyz", 2600);
+		.copyanima("_anzaklecie", "_ansayzak1");
+		_ansayzak1.setframe(1,0);
+		new snd _sndzak;
+		new db _dbelik;
+		_dbelik.load("lang/zaklecie.db");
+		new gmimgvec _grelik;
+		new gmimgvec _grelist;
+		new string _selik = null;
+		new int _ielik = 0;
+		@x = 343; @y = 177;
+		.newfont("_felik", sgmfontitalic, 14);
+		string s;
+		for( int i=0; i< _dbelik.getcolsno(0); i++)	{
+			s = "_txfel" + i;
+			.newtext(s, "", "_felik", .black);
+			<s>.txtset(_dbelik.get(0,i));
+			<s>.setpos(x,y);
+			<s>.setz(2600);
+			y+= <s>.geth + 4;
+			_grelist.add(s);
+		}
+		y+=25;
+		for( i=1; i<_dbelik.getrowsno; i++)	{
+			s = "_txfelik" + i;
+			.newtext(s, "", "_felik", .black);
+			<s>.txtset(_dbelik.get(i,0));
+			<s>.setpos(x,y);
+			<s>.setz(2600);
+			y+= <s>.geth + 4;
+			_grelik.add(s);
+		}
+		
+		.m_new_powrot;
+		igmstate = 2;
+		
+		if( bczytaj )
+			_sndzak._msndplay("jaga_32");
+	}; }
+	m_zaklecie_out	{ <gameapi.getgamename> {
+		delete _ansayzak1;
+		delete _anzaklecie;
+		_sndzak.stop(false);
+		delete _sndzak;
+		delete _dbelik;
+		delete _selik;
+		delete _ielik;
+		
+		_grelist.deleteallgm;
+		_grelik.deleteallgm;
+		delete _grelik;
+		delete _grelist;
+		
+		delete _felik;
+		
+		.m_del_powrot;
+		igmstate = 0;
+	}; }
+	_m_out_elik	{
+		if( _selik!=null )	{
+			<_selik>.createtxt(.black);
+			_selik = null;
+		}
+	}
+	m_tabliczka_in	{ <gameapi.getgamename> {
+		.newanima("_antabliczka", "$scripts/adkor/tabzoom.pyz", 2600);
+		new db _dbtab;
+		_dbtab.load("lang/tabliczka.db");
+		new gmimgvec _grtab;
+
+		@fsize = 18;
+		.newfont("_ftab", sgmfontitalic, fsize);
+		string s[2];
+		int x = _antabliczka.getcx;
+		int y = _antabliczka.getpy + 70;
+		for( int i=0; i< _dbtab.getrowsno; i++)	{
+			s0 = _dbtab.get(i,0);
+			if( s0!=" ")	{
+				s1 = "_txtab" + i;
+				.newtext(s1, "", "_ftab", .black);
+				<s1>.txtset(_dbtab.get(i,0));
+				<s1>.setpos(x - <s1>.getw/2,y);
+				<s1>.setz(2600);
+				_grtab.add(s1);
+			}
+			y+=fsize + 4;
+		}
+		
+		igmstate = 3;
+	}; }
+	m_tabliczka_out	{ <gameapi.getgamename> {
+		_grtab.deleteallgm;
+		delete _grtab;
+		delete _antabliczka;
+		delete _ftab;
+		delete _dbtab;
+		
+		igmstate = 0;
+	}; }
+	mouse_MOVE	{
+		match(igmstate )	{
+			1 => {
+				if( _grels.isin(mouse.getpos,1,1) && _grels.getfound > 0 )	{
+					@s = <_grels.getsfound>.actionname;
+					if( !(s==_s_played && _sndsklad.isplaying) )	{
+						_s_played = s;
+						_sndsklad.load("sounds/jaga_" + s + ".wav");
+						_sndsklad.play;
+					}
+				}
+			}
+			2 => {
+				if ( _grelik.isin(mouse.getpos,1,0) )	{
+					@s = _grelik.getsfound;
+					if( s!=_selik) {
+						_ielik = _grelik.getfound;
+						._m_out_elik;
+						_selik = s;
+						<s>.createtxt(.red);
+					}
+				} else ._m_out_elik;
+			}
+			? => ;
+		}
+	}
+	_msndplay(string s)	{
+		.load( "sounds/" + s + ".wav" );
+		.play;
+	}
+	mouse_LCLICK	{
+		match( igmstate )	{
+			1 => { if( .m_on_powrot )	.m_przepis_out; }
+			2 => {
+				if( .m_on_powrot )	{
+					.m_zaklecie_out;
+					if( _m_czytaj_tresc )	{
+						_m_czytaj_tresc = 0;
+						.playbeh("behpowrotczytlist");
+					}
+				} else if ( _ansayzak1.isin(mouse.getpos,1,1) )	{
+					_sndzak._msndplay("jaga_32");
+				} else if ( _selik!=null )	{
+					_sndzak._msndplay("jaga_" + (33+_ielik));
+				} else _sndzak.stop(false);
+			}
+			? => ;
+		}
+	}
+}
+
+game gameadvdef : classadvstdgame	{
+	init	{
+		classadvstdgame::init;
+	}
+}
+
+game gameadjaga0 : classadvstdgame	{
+	init	{
+		classadvstdgame::init;
+		match( clsave.get("epizod") )	{
+			"e5Lubawa" => {
+				.e5_adjaga_mgla;
+				.e5_gesi;
+			}
+			"e7Eliksir" => {
+				.e7_labadek;
+			}
+			? => ;
+		}
+	}
+	e5_adjaga_mgla	{
+		.newanima("anmgla", "e5mgla.pyz", -1050);
+		.copyanima("anmgla", "anmgla2");
+		bgrgrod.add("anmgla");
+		bgrgrod.add("anmgla2");
+		anmgla2.ansetbpos(anmgla.getpx-anmgla.getw, anmgla.getpy);
+		anmgla.addmethod("onendframe", func {
+			string s = "anmgla";
+			string s2;
+			if( anmgla2.getpx < anmgla.getpx )	{
+				s = "anmgla2";
+				s2 = "anmgla";
+			} else s2 = "anmgla2";
+			if( <s>.getex <= 0 ) {
+				<s>.ansetbpos( <s2>.getex, <s2>.getpy );
+			}
+			<s>.move(-1,0);
+			<s2>.move(-1,0);
+			} );
+		anmgla.play(0);
+	}
+	e5_gesi	{
+		.newanima("angesi", "e5gesi.pyz", -1090);
+		angesi.move(150,0);
+		bgrchmury1.add("angesi");
+		angesi.play(0);
+		.cycle = ("timgesi", func {
+			angesi.move(-1,0);
+			if( angesi.getex < -1000 )
+				angesi.ansetbpos( iResX + 100, angesi.getpy);
+			.play;
+			} );
+		timgesi.play;
+	}
+	e7_labadek	{
+		.newanima("anlabadek", "e7labadek.pyz", -1000);
+		bgrgrod.add("anlabadek");
+		anlabadek.anplayfin(0, func {
+			.move(1,0);
+			if( .getpx > 1500 )
+				.move( -500 - .getw - .getpx, 0 );
+			.play(-1);
+			} );
+	}
+}
+
+game gameaddomkk0 : classadvstdgame	{
+	init	{
+		classadvstdgame::init;
+	}
+	kajko_VISIT	{
+		ptkajko	{
+			int id = .getidanpath;
+			string sg = gameapi.getgamename;
+			if( id==11 && !<sg>.behplaying && !clsave.bis("e6_piesek_je"))	{
+				<sg>.playbeh("behpiesekszczeka");
+			}
+		};
+	}
+}
+
+game Mapa : StdGame	{
+	init	{
+		StdGame::init("mapa");
+		clsave.set("mapscene", sgmlastscene);
+		new Buttons butm("mapa.pyz");
+		
+		new string sepizod = clsave.get("epizod");
+		
+		mus.playstr("founditem1.ogg -v 60");
+		
+		match( sepizod )	{
+			"e11Dziad" => {
+				.newsnd("kajkotosoon", "kajko_239.wav");
+				1;
+			}
+			"e14Zwiad" => {
+				.newsnd("kajkotosoon", "kajko_280a.wav");
+				1;
+			}
+			? => 0;
+		}
+		new string sprzygoda = _;
+		new string sgame;
+		
+	}
+	butm_lclick	{
+		if( ccs.isplaying ) return;
+		
+		match( sepizod )	{
+			"e11Dziad", "e14Zwiad" => {
+				if( sobject=="warownia" )	{
+					.cbplay("kajkotosoon");
+					return;
+				}
+			}
+			? => ;
+		}
+		
+		sgmlastscene = "Mapa";
+		sgame = "ad"+sobject;
+		sprzygoda = "gamead"+sobject+sprzygoda;
+		mus.fadeout(1000);
+		ccs.close( func {
+			.gotoadv(sgame, sprzygoda);
+			} );
+	}
+}
+
+
+game gameadwyspa2 : classadvstdgame	{
+	init	{
+		classadvstdgame::init;
+		
+		.newanima("anmewab", "mewab.pyz", -1);
+		anmewab.play(0);
+		anmewab.setframe(-1, anmewab.nofframes(-1)->rand);
+		anmewab.onendframe;
+		anmewab.addmethod("onendframe", func {
+			if( .framenr<35 || .framenr>77 )	{
+				.setz(-1);
+			} else {
+				.setz(30);
+			}
+			} );
+		
+		.newanima("anlopata2", "lopata2.pyz", 10);
+		new filter ftlopata;
+		ftlopata.link("anlopata2");
+		ftlopata.setpivottype(0);
+		anlopata2.setpos(471,161);
+		
+		.newgrimg("grchm", "chmury", -1);
+		new vector vchm; vchm.type("real");
+		vchm.beginadd("begin", 0.34, 0.4, 0.48, 0.7, 0.9, 1.3, 1.6);
+		
+		new int ikierunekwiatru;
+		if( clsave.is("kierunek_wiatru", "left") )
+			ikierunekwiatru=-1;
+		else ikierunekwiatru=1;
+		
+		real r = 0.3*ikierunekwiatru;
+		for( int i=0; i<vchm.size; i++)	{
+			vchm.set( i, r*vchm.get(i) );
+			SetAnMover::setas(grchm.get(i), vchm.get(i), 0);
+		}
+		.cycle = ("timchmury", func {
+			grchm.eval( func {
+				.sam_move;
+				if( ikierunekwiatru<0 )	{
+					if( .getex < -10 )	.setpos( iResX-.lodx, 0 );
+				} else {
+					if( .getpx > iResX )	.setpos( -.lodx-.getw, 0 );
+				}
+				} );
+			.play;
+			} );
+		timchmury.play;
+		
+		.cycle = ("timlopata", func {
+			ftlopata.rotate(-1*ikierunekwiatru);
+			anlopata2.setpos(471,161);
+			.play;
+			} );
+		timlopata.setcycle(2);
+		
+// 		clsave.bset("uruchomili_wiatrak_na_wyspie");
+		
+		if( clsave.bis("uruchomili_wiatrak_na_wyspie") )	{
+			.newsfx("fxwiatrak", "wiatrak1.wav");
+			fxwiatrak.setvol(50);
+			fxwiatrak.playloop;
+			timlopata.play;
+		} else anlopata2.setpos(471,161);
+	}
+}
+
+game gameadmlyn2 : classadvstdgame	{
+	init	{
+		classadvstdgame::init;
+		
+		.newanima("ansmiglo", "smiglo2.pyz", 10);
+		new filter ftlopata;
+		ftlopata.link("ansmiglo");
+		ftlopata.setpivottype(0);
+		
+		new int ikierunekwiatru;
+		if( clsave.is("kierunek_wiatru", "left") )
+			ikierunekwiatru=1;
+		else ikierunekwiatru=-1;
+		
+		ansmiglo.move(bgr1.getpx, bgr1.getpy);
+		bgr1.add("ansmiglo");
+		
+		.cycle = ("timlopata", func {
+			ftlopata.rotate(2*ikierunekwiatru);
+			.play;
+			} );
+		timlopata.setcycle(3);
+		if( clsave.bis("uruchomili_wiatrak_na_wyspie") )	{
+			timlopata.play;
+			.newsfx("fxwiatrak", "wiatrak1.wav");
+			fxwiatrak.playloop;
+		}
+	}
+}
+

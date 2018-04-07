@@ -1,0 +1,279 @@
+game Ubior : DziejeGame	{
+	init	{
+		DziejeGame::init("ubior");
+		
+		.EgiptSave("moda");
+		
+		.gamebg;
+		.sfxs = (A, "getpuz 40", "putpuz 40");
+		new DelayMover cmov;
+		
+		.imgs = (A, "bkg.pyz", "princess.pyz 5", "powrot.pyz 10");
+		.copyanima("anprincess", "anmaska");
+		anmaska.setz(50);
+		anmaska.setframe(1,0);
+		
+		new Button butgo;
+		anpowrot.Button_std;
+		anpowrot.addmethod("butclick", func {
+			if( igmstate!=1 ) return;
+			if( skos==null ) .cbplay("cynth_kos");
+			else if (swac==null) .cbplay("cynth_wac");
+			else if (sber==null) .cbplay("cynth_ber");
+			else if (sper==null) .cbplay("cynth_per");
+			else {
+				igmstate = 3;
+				new classfullsave csav("saves/bal.db");
+				csav.set("wac", <swac>.actionname);
+				csav.set("ber", <sber>.actionname);
+				csav.set("per", <sper>.actionname);
+				csav.set("kos", <skos>.actionname);
+				csav.stdsave;
+				ccs.close( func { gameapi.play("Balkon"); } );
+			}
+			} );
+		butgo.add("anpowrot");
+		
+		new gmimgvec grels;
+		"grels" .* "els.pyz";
+		grels.setz(10);
+		//wac, ber, per, kos
+		new string swac = null;
+		new string sber = null;
+		new string sper = null;
+		new string skos = null;
+		
+		.sounds = (A,
+			":cynth_snd1", "Có¿ za piêkny i szlachetny m³odzieniec; Ubiorê swoje najpiêkniejsze szaty", "mstart",
+			":cynth_wac", "Bez wachlarza nie pokarzê siê publicznie", null,
+			":cynth_ber", "Muszê mieæ jakie¶ ber³o; Wszak jestem ksiê¿niczk±", null,
+			":cynth_per", "Ojej nie poka¿ê siê Chetiemu bez nakrycia g³owy", null,
+			":cynth_kos", "A gdzie mój kostium?", null
+			);
+		ccs.enter( func { .cbplay("cynth_snd1"); } );
+	}
+	mput(string s)	{
+		<s>.setframe(-1,0);
+		<s>.setz(10);
+		<s>.setpos(0,0);
+	}
+	mzdejmij(string s)	{
+		.mput(s);
+		<"s"+ <s>.actionname->getb(0,3) > = null;
+	}
+	mubierz(string s)	{
+		@sac = "s" + <s>.actionname->getb(0,3);
+		@sold = [sac];
+		if( sold != null )	.mzdejmij( sold );
+		<sac> = s;
+		<s>.setframe(-1,1);
+		<s>.setpos(0,0);
+		if( sac=="swac" ) <s>.setz(3);
+		else <s>.setz(10);
+	}
+	cmov_GET	{
+		if( grels.isin(mouse.getpos,1,1) )	{
+			fxgetpuz.play;
+			@s = grels.getsfound;
+			if( <s>.framenr ) {
+				@x = <s>.getpx;
+				@y = <s>.getpy;
+				.mzdejmij(s);
+				<s>.ansetbpos(x,y);
+			}
+			<s>.setz(100);
+			.mssetobj(s);
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		fxputpuz.play;
+		if( anprincess.isin(mouse.getpos,1,1) )	{
+			.mubierz( s );
+		} else .mput( s );
+	}
+	mstart	{
+		igmstate = 1;
+		cmov.unlock;
+	}
+	mouse_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}
+
+game Balkon : DziejeGame	{
+	init	{
+		DziejeGame::init("balkon");
+		
+		.gamebg;
+// 		bgdaje.pyz  chand.pyz  chmura.pyz  khand.pyz    maska.pyz  pierscien.pyz  ship.pyz
+// bkg.pyz     cheti.pyz  els.pyz     ksiezyc.pyz  oczy.pyz   poliki.pyz
+		.imgs = (A, "bkg.pyz", "chmura.pyz 5", "ksiezyc.pyz 2", "ship.pyz 10", "maska.pyz 20", "chetiP.pyz 40", "polikiH.pyz 30", "oczyP.pyz 30" );
+		anchmura.advclip;
+		anship.advclip;
+		anship.anconstmove(3, 1, 0);
+		anchmura.anconstmove(13,-1,0);
+		
+		.sfx = ("bgrnilN 60");
+		
+		new gmimgvec grels;
+		"grels" .* "els.pyz";
+		grels.hide;
+		grels.setz(20);
+		.mshow("cynthia");
+		.mshow("naszyjnik");
+		new classfullsave csav("saves/bal.db");
+		csav.stdload;
+		.mshow(csav.get("wac"));
+		.mshow(csav.get("ber"));
+		.mshow(csav.get("per"));
+		.mshow(csav.get("kos"));
+		
+		.sounds = (A,
+			"snd1", "Bal trwa³ do pó¼nej nocy a Ksiê¿niczka Cynthia i Cheti nie odrywali od siebie oczu; Na koniec Cynthia poprosi³a Chetiego by wyszed³ z ni± na balkon; Kiedy stanêli na tle piêknego egipskiego krajobrazu powiedzia³a",
+				func { .cbplay("cynthia1"); },
+			":cynthia1", "Spêdzi³am z tob± Cheti najpiêkniejsze chwile mojego ¿ycia; Przyjmij ode mnie ten pier¶cieñ na pami±tkê naszego spotkania", func {
+				ancheti.anplayfin(1, func { <GAME> {
+					.imgs = (A, "bgdaje.pyz 100", "chand.pyz 110", "pierscien.pyzH 120", "khand.pyz 130");
+					anchand.advclip;
+					anpierscien.advclip;
+					ankhand.advclip;
+					//326,516
+					ankhand.move(-326,-516);
+					.cycle = ("cykk", func {
+						if( istate==0 )	{
+							ankhand.move(rdx, rdy);
+							if( ankhand.getpy>=ankhand.lody )	{
+								istate=1;
+								anpierscien.show;
+								rdx = 0.0;
+							}
+							.play;
+						} else if (istate==1)	{
+							ankhand.move(-rdx,-rdy);
+							if( ankhand.getpy<=ankhand.lody-516 )	{
+								istate = 2;
+							}
+							.play;
+						} else if (istate==2)	{
+							anchand.move(0,rdy);
+							anpierscien.move(0,rdy);
+							if( anchand.getpy>Y2 )	{
+								ccs.playfin( func {
+									delete anbgdaje;
+									delete anchand;
+									delete ankhand;
+									delete anpierscien;
+									ancheti.play("stoi");
+									}, func { .cbplay("cheti1"); } );
+							} else .play;
+						}
+						} );
+					cykk.vars2(A,"rdx",6.0*(326.0/516.0),"rdy",6,"istate",0);
+					cykk.play;
+					}; } );
+				},
+				":cheti1", "Jestem bardzo wzruszony ksiê¿niczko Cynthio; Czy jeszcze siê zobaczymy?", func { .cbplay("cynthia2"); },
+				":cynthia2", "Nie wiem Cheti nale¿ê do królewskiego rodu i nie mogê spotykaæ siê z lud¼mi z ni¿szych klas; Bardzo chcia³abym spotykaæ siê z tob± codziennie ale nie wiem co bêdzie nam dane", func { .cbplay("cheti2"); anpoliki.show; },
+				":cheti2", "W takim razie zachowam ten pier¶cieñ i zawsze kiedy na niego spojrzê przypomni mi piêkne chwile które spêdzi³em z tob± Cynthio; Teraz muszê wracaæ na okrêt do swoich ludzi; ¯egnaj piêkna ksiê¿niczko", func { .cbplay("cynthia3"); },
+				":cynthia3", "¯egnaj drogi Cheti; Wierzê ¿e siê jeszcze zobaczymy", func { ccs.close( func { gameapi.play("Areszt1"); } ); }
+			);
+		
+		ccs.enter( func { .cbplay("snd1"); } );
+	}
+	mshow(string s)	{
+		@id = grels.findsac(s);
+		if( id>=0 )	{
+			<grels.get(id)>.show;
+		}
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Areszt1 : DziejeGame	{
+	init	{
+		DziejeGame::init("areszt1");
+		
+		.gamebg;
+		.imgs = (A, "bgnoc.pyz", "chetinoc.pyz 10",  "maska.pyz 20", "noc.pyz 40",  "ship.pyz 5", "pomost.pyz 10");
+		new gmimgvec grels;
+		grels.addlist(A, "anchetinoc", "anmaska", "anship");
+		new vector vkol;
+		grels.move(0,-2);
+		grels.evalclip;
+		
+		.sfx = ("bgrnilN 60");
+		
+		vkol.beginadd("begin", 1, 1, 0, 0, 0, 0, 0, -1, -1, 0, 0, 0, 0);
+		new int ilicz = 0;
+		.timer = ("timkol", 200, func {
+			grels.move(0, vkol.get(ilicz) );
+			ilicz++;
+			if( ilicz>=vkol.size ) ilicz=0;
+			.play;
+			} );
+		timkol.play;
+		
+		.sounds = (A,
+			"snd1", "Cheti wróci³ na statek i d³ugo jeszcze rozmy¶la³ o niezwyk³ej Cynthii", func {.cbplay("snd2"); anchetinoc.play(1); },
+			"snd2", "Za³oga spa³a pod pok³adem ale ¿e noc by³a ciep³a postanowi³ przespaæ siê na zewn±trz", func {	ccs.close( func { gameapi.play("Areszt2"); } ); }
+			);
+		
+		ccs.enter( func { .cbplay("snd1"); } );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Areszt2 : DziejeGame	{
+	init	{
+		DziejeGame::init("areszt2");
+		
+		.gamebg;
+		.imgs = (A, "barimask.pyz 8",  "bari.pyzH 7",  "bgdzien.pyz", "cheti.pyz 10", "maska.pyz 20", "ship.pyz 5", "statek.pyz 2", "woje.pyzH 10");
+		.copyanima("anwoje", "anwoj2");
+		.sfx = ("bgrbrzegN 40");
+		anwoj2.hide;
+		anwoj2.setz(60);
+		anwoj2.setframe(1,0);
+		anwoj2.advclip;
+		anstatek.anconstmove(3, -1, 0);
+		anstatek.advclip;
+		.sounds = (A,
+			"snd1", "O ¶wicie ca³a za³oga smacznie spa³a", func {.cbplay("snd2"); anbari.show; anwoje.show; anwoj2.show; ancheti.play(1); },
+			"snd2", "Nagle na pok³ad wtargnêli stra¿nicy pa³acu królewskiego i brutalnie obudzili Chetiego", func { .cbplay("snd3"); },
+			"snd3", "Gadaj prêdko! Gdzie ksiê¿niczka?", func { .cbplay("cheti1"); },
+			":cheti1", "Nie rozumiem; Co siê sta³o?", func { .cbplay("snd4"); },
+			"snd4", "Wczoraj widzia³e¶ j± ostatni! Gdzie ona jest?", func { .cbplay("cheti2"); },
+			":cheti2", "Tak rozmawia³em z ksiê¿niczk± Cynthi± ale potem siê po¿egnali¶my; Czy co¶ siê jej sta³o?", func { .cbplay("snd5"); },
+			"snd5", "Wyt³umaczysz siê przed kap³anami; Braæ go!", func { ancheti.play(2); .cbplay("cheti3"); },
+			":cheti3", "Jestem niewinny; Pozwólcie mi poszukaæ ksiê¿niczki z wami", func { <GAME> {
+					.cbplay("snd6");
+					.imgs = (A, "bg2.pyz 100", "ring2.pyz 110");
+				}; },
+			"snd6", "Patrzcie! To pier¶cieñ ksiê¿niczki Cynthii! Ju¿ my z ciebie wyci¶niemy co z ni± zrobi³e¶; Do lochu z nim!", func {
+				anbg2.hide;	anring2.hide;
+				.cbplay("cheti4");
+				},
+			":cheti4", "To pomy³ka pozwólcie mi wyt³umaczyæ; Dosta³em ten pier¶cieñ", func {
+				ccs.playfin( func { ancheti.hide; anwoje.hide; anwoj2.hide; anbari.show; }, func { anbari.anplayfin(0, func { .cbplay("bari1"); }); } );
+				},
+			":bari1", "Ale siê porobi³o; Muszê uwolniæ Chetiego i pomóc mu odnale¼æ ksiê¿niczkê", func { ccs.close( func {
+				clsave.free;
+				.EgiptSave("bari");
+				.gotoadv("loch", "gameloch1");
+				} ); }
+			);
+		
+		ccs.enter( func { .cbplay("snd1"); } );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

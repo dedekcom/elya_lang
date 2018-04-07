@@ -1,0 +1,325 @@
+
+game cs1 : DziejeGame	{
+	init	{
+		DziejeGame::init("cs1");
+		new img gsq	{
+			.setpos(X1,Y1);
+			.create(X2-X1,Y2-Y1,.black,255);
+			.setz(100);
+		};
+		.advbg;
+		.imgs=(A,"wstep1.pyz 10", "wejscie.pyzH 10", "robsH.pyz 20", "hankH.pyz 30", "inzH.pyz 30", "profH.pyz 35", "latarkaH.pyz 25",
+			"roslinyH.pyz 40", "fotoH.pyz 45", "cien.pyz 50", "blyskH.pyz 60");
+		.copyanima("anwejscie", "anwej2");	anwej2.setframe(1,0);
+		.copyanima("anrosliny", "anros2");	anros2.setframe(1,0);
+		new gmimgvec gral;
+		gral.addlist(A, "anwejscie", "anwej2", "anrobs", "anhank", "aninz", "anprof", "anlatarka", "anrosliny", "anros2", "anfoto");
+		gral.gklipuj;
+		new classfadeinout clfio;
+		
+		anwstep1.addmethod("onfinish", "wstep1end" );
+		anrobs.addmethod("onfinish", func {	fxwysypuje1.play; anwej2.play(-1);	} );
+		anwej2.addmethod("onfinish", func {
+			.cbplay("mich3");
+			gral.nplay(-1);
+			} );
+		gameapi.playmusic("sounds/bgr/dzungla.wav");
+		gameapi.setmusicvol(80);
+		anfoto.addmethod("onfinish", func {
+			fxpstryk.play;
+			anblysk.anplayfin(-1, func { .cbplay("mich5");	} );
+			} );
+		.sfxs=(A,"muruje1", "kopie2", "wysypuje1", "pstryk", "otwieradrzwi1", "wlacznik 50", "pik2", "ciezarowa1 30");
+		.sounds =(A,
+			"sndstart", "Stacja archeologiczna 2236 4; Egipt 18 marca 2008 roku", func {
+				.timer=("tim2", 1000, func {
+					txteg1.hide;
+					txteg2.hide;
+					clfio.imgtransparency(2, -5, "gsq", func {
+						gsq.hide;
+						.cvol=(30);
+						.cvplay("mich1");
+						gameapi.setmusicvol(60);
+						anwstep1.addmethod("onendframe", func {
+							@vol = 30 + 10*.framenr;
+							mich1.setvol(vol);
+							eng1.setvol(vol);
+							.cvol=(vol);
+							gameapi.setmusicvol(60-2*.framenr);
+							} );
+						anwstep1.play(0);
+						} );
+					} );
+					tim2.play;
+				},
+			":mich1", "Wedlug moich obliczen powinnismy kopac tutaj", func { .cvplay("eng1"); },
+			":eng1", "Profesorze juz trzy ekipy przeszukiwaly ten teren i nic nie znaleziono",
+				func { gameapi.setmusicvol(30);	.cvplay("mich2"); },
+			":mich2", "To sie okaze; Hank przytrzymaj latarke; Chlopaki zaczynajcie", "wstep1end",
+			":mich3", "Hah! Mia³em nosa! Panowie przed nami brama!", func { .cbplay("eng2");	},
+			":eng2", "Profesorze gratulujê! Nawet ja w±tpi³em a tu takie odkrycie", func { .cbplay("mich4"); },
+			":mich4", "Spróbujmy j± otworzyæ", func { .cbplay("foto1");	},
+			":foto1", "Panowie sekunda; Chwila dla prasy", func { anfoto.play(0); },
+			":mich5", "Inzynierze Drucki Pan idzie ze mna; Zrobimy pierwsze ogledziny; Dokladne badania rozpoczniemy jutro", func {
+				<GAME> {
+					delete gsq;
+					ccs.playfin( 
+						func {
+							gral.deleteallgm;
+							delete anrobs;
+							delete anwej2;
+							delete anfoto;
+							delete ancien;
+							gral.free;
+							
+							.imgs = (A, "nr2.pyz 10", "nr3.pyzH 10");
+							annr2.klipuj;
+							annr3.klipuj;
+							annr3.addmethod("onfinish", func { .cbplay( .actionnr(-1)==2 ? "eng4" : "mich7" ); } );
+							
+							annr2.addmethod("onfinish", func {
+								ccs.playfin( func { annr2.hide; annr3.show; gameapi.setmusicvol(10); }, func { .cbplay("eng3"); } );
+								} );
+						} ,
+						func { annr2.play(0); } );
+				};	
+				},
+			":eng3", "Profesorze jeste¶my pierwszymi od tysiêcy lat lud¼mi którzy oddychaj± tym powietrzem", func { .cbplay("mich6"); annr3.setframe(1,0); fxwlacznik.play; },
+			":mich6", "Dwa sarkofagi; Czy¿by jaka¶ ksi±¿êca para? Spójrzmy na ¶ciany", func { annr3.play(2); },
+			":eng4", "Hieroglify", func { annr3.play(3); },
+			":mich7", "Doskonale; Jutro rozpocznê odczytywanie hieroglifów i poznamy historiê spoczywaj±cych tu ludzi", func {
+					ccs.playfin( func {
+						delete annr2;
+						delete annr3;
+						gameapi.stopmusic;
+						.img = ("gazeta.pyz 10");
+						angazeta.klipuj;
+						} ,	 func { .cbplay("spiker1");}	 );
+					},
+			":spiker1", "Wiadomo¶æ z ostatniej chwili; Ekipa archeologów pod kierownictwem profesora Micha³owskiego odnalaz³a nienaruszony grób pary ma³¿eñskiej z okresu staro¿ytnego Egiptu; Na miejscu jest nasz reporter Andy Oleigh; Andy jakie s± wie¶ci?", func { .cbplay("foto2");	},
+			":foto2", "Witaj Ben; Wczoraj wieczorem archeolodzy otworzyli drzwi prowadz±ce do grobowca; Dzi¶ od rana profesor Micha³owski i jego ekipa prowadz± prace inwentaryzacyjne; Jestem na miejscu i bêdê pañstwa informowa³ o najwa¿niejszych odkryciach", func { .cbplay("spiker2");	},
+			":spiker2", "Dziêkujê Andy bêdziemy siê z tob± jeszcze ³±czyæ", func { .cbplay("spiker3"); clfio.sndvolume(8, -5, "spiker3", null); },
+			":spiker3", "Przechodzimy teraz do spraw krajowych; Przewodnicz±cy zwi±zków zawodowych z kopalni Jaszczomp zagrozi³ ¿e", func {
+					ccs.playfin( func {
+						delete angazeta;
+						.imgs = (A, "c4gora.pyz 10",  "c4n1.pyz 5",  "c4nak.pyz 50",   "c4p2.pyz 30",  "c4p4.pyz 20",    "c4sam.pyz 40",
+							"c4hor.pyz 8",   "c4n2.pyz 6",  "c4p2_2.pyz 30",  "c4p3.pyz 25",  "c4prof.pyz 60", "c4ros4.pyz 20", "c4rosnak.pyz 48",
+							"c4p0_1.pyz 70", "c4p0_2.pyz 80");
+						new img imgniebo;
+						imgniebo.clone("anc4n2");
+						delete anc4n2;
+						gral.addlist(A, "anc4gora",  "anc4n1",  "anc4nak",   "anc4p2",  "anc4p4",    "anc4sam", 
+							"anc4hor",   "imgniebo",  "anc4p2_2",  "anc4p3",  "anc4prof", "anc4ros4", "anc4rosnak",
+							"anc4p0_1", "anc4p0_2");
+						gral.gklipuj;
+						
+						new CameraPos campos(621->igetsc, 0);
+						
+						new classadvcamera camera;
+						camera.setborders((iResX+(iResX-X2)), iResY);
+						camera.countcenter;
+						camera.setactor("campos");
+						
+						new classbgplan plan0;
+						camera.addbgr("plan0", 1.9, 0);
+						plan0.add("anc4p0_2");
+						new classbgplan plan1;
+						camera.addbgr("plan1", 1.5, 0);
+						plan1.add("anc4prof");
+						plan1.add("anc4p0_1");
+						new classbgplan plan2;
+						camera.addbgr("plan2", 1.2, 0);
+						plan2.add("anc4p2");
+						plan2.add("anc4p2_2");
+						plan2.add("anc4nak");
+						plan2.add("anc4sam");
+						plan2.add("anc4rosnak");
+						new classbgplan plan3;
+						camera.addbgr("plan3", 1.1, 0);
+						plan3.add("anc4p3");
+						new classbgplan plan4;
+						camera.addbgr("plan4", 1.05, 0);
+						plan4.add("anc4p4");
+						plan4.add("anc4ros4");
+						new classbgplan plan5;
+						camera.addbgr("plan5", 1, 0);
+						plan5.add("anc4gora");
+						new classbgplan plan6;
+						camera.addbgr("plan6", 0.4, 0);
+						plan6.add("anc4hor");
+						
+						camera.scalemodifiers(0.02, 0.02);
+						//camera.funxedge( func { .cbplay("mich8"); camera.funxedge(null); campos.setpos(0,0); } );
+						//camera.start;
+						camera.funxedge( "ciezarend" );
+						gameapi.playmusic("sounds/bgr/pracuja2.wav");
+						gameapi.setmusicvol(50);
+						} ,	 func {
+							clfio.imgtransparency(1, -3, "imgniebo", func { imgniebo.hide; } );
+							.cbplay("eng5");
+							anc4sam.play(0);
+							fxciezarowa1.play;
+							} );
+				},
+			":eng5", "Jest ciê¿arówka ze sprzêtem mo¿emy zaczynaæ", /*func { campos.setpos(621,0); }*/func { camera.start; .cbplay("mich8"); },
+			":mich8", "Bardzo dobrze; Fotograficy na miejscu?", func { /*camera.setactor("mouse");*/ .cbplay("eng6"); },
+			":eng6", "Tak profesorze", func { .cbplay("mich9"); },
+			":mich9", "OK; Chod¼my zatem do grobowca", "ciezarend",
+			":mich10", "Tu spoczywa wielka ksiê¿na Cynthia i jej ma³¿onek dzielny Cheti; Bardzo ciekawa inskrypcja; Czy¿by mê¿czyzna nie pochodzi³ z królewskiego rodu? Muszê spojrzeæ na hieroglify", func {
+				ccs.playfin( func {
+					delete ann5go;
+					.imgs = (A, "c6bg.pyz 10", "c6prof.pyz 20");
+					anc6bg.klipuj;
+					anc6prof.klipuj;
+					anc6prof.addmethod("onfinish", func { 
+						if( .actionnr(-1)==0 ) .cbplay("mich12");
+						else {
+							ccs.playfin( func {
+								delete anc6bg;
+								delete anc6prof;
+								.imgs = (A, "c7bg.pyz 10", "c7prof.pyz 20", "c8suszaH.pyz 10");
+								anc7bg.klipuj;
+								anc7prof.klipuj;
+								new img imgpole;
+								imgpole.clone("anc7bg");
+								imgpole.klipuj;
+								anc8susza.klipuj;
+								delete anc7bg;
+								anc7prof.addmethod("onfinish", func {
+									.hide;
+									anc8susza.show;
+									clfio.imgtransparency(1, -3, "imgpole", func {
+										imgpole.hide;
+										.cbplay("mich14");
+										} );
+									} );
+								}, func {
+								.cbplay("mich13");
+								} );
+						}
+						} );
+					}, func {
+					anc6prof.play(0);
+					.cbplay("mich11");
+					} );
+				},
+			":mich11", "hmmm mmm mm mm", null,
+			":mich12", "Bardzo ciekawie zapowiada siê ta opowie¶æ; Zacznijmy od pocz±tku", func { anc6prof.play(1); },
+			":mich13", "Historia Chetiego zaczyna siê na zwyk³ym gospodarstwie", func { anc7prof.play(0); },
+			":mich14", "Mieszka³ tam z rodzicami i braæmi; Przez wiele tygodni wszyscy z niecierpliwo¶ci± oczekiwali na wylew Nilu", func {
+				ccs.playfin( func {
+						delete imgpole;
+						delete anc7prof;
+						delete anc8susza;
+						.setgraphpath("scripts/pole/");
+						.imgs = (A, "niebo.pyz 10", "pole.pyz 20");
+						anniebo.klipuj;
+						anpole.klipuj;
+						new gmimgvec grmask;
+						"grmask" ..< "maska.pyz";
+						grmask.setz(30);
+						grmask.gklipuj;
+						new gmimgvec grprzedmioty;
+						"grprzedmioty" .* "przedmioty.pyz";
+						grprzedmioty.setz(25);
+						<grprzedmioty.get(1)>.setframe(1,1);
+						grprzedmioty.gklipuj;
+						} ,	 func { .cbplay("mich15");}	 );
+					},
+			":mich15", "Wreszcie którego¶ dnia poziom wody zacz±³ rosn±æ i rzeka rozla³a siê na spalone s³oñcem pola", func {
+				.cbplay("mich16");
+				anpole.play(0);
+				},
+			":mich16", "Jak zwykle ustêpuj±ca woda pozostawi³a bardzo ¿yzny mu³; Cheti z ojcem przyst±pili do prac", func {
+				ccs.playfin( func {
+						//gameapi.play("gamepole");
+						.EgiptSave("pole");
+						sgmgame = "gamepole0";
+						sgmglobpath = "pole";
+						gameapi.play( modadv.get("defaultadv:",1) );
+						} , null );
+					}
+			);
+		new @fontsize = 32->igetsc;
+		@sfont = .stdfont(fontsize);
+		.lang_db("dbcs1", "wstep");
+		new @stxt = "txteg1";
+		
+		new @streg = dbcs1.get(0,0);
+		.newtext("txteg1", streg, sfont, .grey(222));
+		.newtext("txteg2", "", sfont, .grey(222));
+		
+		txteg1 {
+			.setpos(X2-.getw-10->igetsc, Y2-2*(fontsize+5->igetsc)-30->igetsc);
+			.txtset("");
+			.setz(110);
+			.timer=("timtik", 50, func {
+				if( <stxt>.get->length == streg.length )	{
+					if(streg==dbcs1.get(0,0) )	{
+						streg = dbcs1.get(1,0);
+						stxt = "txteg2";
+						txteg2.txtset(streg);
+						txteg2.setpos(X2-txteg2.getw-10->igetsc, Y2-fontsize-35->igetsc);
+						txteg2.txtset("");
+						txteg2.setz(110);
+						.play;
+					}
+				} else {
+					<stxt>.txtset( streg.getb(0, <stxt>.get->length+1) );
+					fxpik2.play;
+					.play;
+				}
+				} );
+			timtik.play;
+			.cbplay("sndstart");
+		};
+		
+		// tmp
+		/*gameapi.stopmusic;
+		gral.deleteallgm;
+		gral.free;
+		delete anwstep1;
+		delete ancien;
+		delete gsq;
+		new CutScene ccs(X1,Y1,X2,Y2);
+		ccs.setz(150);
+		.cbplay("mich10");*/
+	}
+	gklipuj { .each( func { (@id) .clip(X1,Y1,X2,Y2); } ); }
+	klipuj	{ .clip(X1,Y1,X2,Y2);	}
+	ciezarend	{
+		if( (this=="timcamera" && !.cisplaying) || (this=="mich9" && camera { if (_lastx||_lasty) 0; else 1; } ) )	{
+			.timer = ("tim3", 1500, func {
+			ccs.playfin( func {
+				gameapi.playmusic("sounds/bgr/pracuja.wav");
+				gameapi.setmusicvol(50);
+				camera.stop;
+				delete camera;
+				gral.deleteallgm;
+				gral.free;
+				.imgs=(A, "n5go.pyz 10");
+				ann5go.klipuj;
+				ann5go.addmethod("onfinish", func {
+					.cbplay("mich10");
+					gameapi.setmusicvol(30); } );
+				}, func { ann5go.play(-1); } );
+			} );
+			tim3.play;
+		}
+	}
+	wstep1end	{
+		if( (this == "anwstep1" && !.cisplaying) || (this=="mich2" && anwstep1.isplaying(-1)==false) )	{
+			anwstep1.hide;
+			gral.show;
+			gral.remove("anrobs");
+			gral.remove("anwej2");
+			gral.remove("anfoto");
+			anrobs.play(-1);
+			anfoto.hide;
+		}
+	}
+	mouse_lclick	{
+		if( igmdebug )	.cactsndstop(true);
+	}
+}
+

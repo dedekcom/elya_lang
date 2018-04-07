@@ -1,0 +1,498 @@
+game gamegoldenaxe : classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		this.setgraphpath("scripts/part3/goldenaxe/");
+		this.cstdbkg();
+		this.cloadbgelem( "elems.pyz" );
+		
+		igmstate = 1;
+		new int ipiasx = 10;
+		new int ipiasy = 8;
+		new int ibylkey = false;
+		new int iuderza = false;
+		new int iscx1 = 10;
+		new int iscx2 = 790;
+		new int iscy1 = 470;
+		new int iscy2 = 590;
+		new int ipolscy = ( iscy1 + iscy2 )/2;
+		new int iiloscwojow;
+		new classwalker cltr;
+		
+		new classlives clliv;
+		clliv.set(40,5, 20,20,7, 245,43,45,255, 245,212,45,255, 2, "left");
+		
+		this.newanima("anpiast", "piast.pyz", 0 );
+		anpiast.addmethod("onendframe", "mpiastframe");
+		anpiast.addmethod("onfinish", "mpiastfin");
+		
+		new int ibumpy = this.cfinddyactf("anpiast", 0, "buml", 5);
+		anpiast.setpos( 300, 400 );
+		anpiast.play("standp");
+		
+		new vector vmgla;
+		new int imgla = 0;
+		vmgla.beginadd("begin", 1, 0, 0, 0, -1, -1, -1, -1, 0,0, 0, 0, 0, 0, 0, 0, 1, 1, 1);
+		this.newstdanima("anmgla", "mgla.pyz", 1);
+		anmgla.setdelay(15);
+		anmgla.addmethod("onendframe", "mmgla");
+		
+		new gmobjvec grall;
+		grall.add("imgbkg");
+		grall.add("anmgla");
+		
+		int ile = anbg0.nofactions();
+		for(int i=0; i<ile; i++)	{
+			grall.add("anbg"+i);
+		}
+		
+		if( igmeasy==true )	{
+			this.newdb("dbl", "easygold.db");
+		} else {
+			this.newdb("dbl", "gold.db");
+		}
+		new int idbl = 0 ;
+		this.newdb("dbwoj", "woje.db");
+		
+		new int ilebgsteps;
+
+		ile = 15;
+		this.newancounterh( "cnbum", "anbum", "bumy.pyz", 800, ile);
+		for( i=0; i<ile; i++)	{
+			this.hideonfinish( "anbum"+i );
+		}
+		this.newancounterh( "cnap", "anap", "apteczka.pyz", 20, 30);
+		
+		string s;
+		int ile = 10;
+		new vector vecy;
+		vecy.add(0);
+		for(int j=1; j<=7; j++)	{
+			this.newancounter( "cnw"+j, "anwo"+j, "ludek"+j+".pyz", 20, ile);
+			for(i=0; i<ile;i++)	{
+				s = "anwo"+j+i;
+				<s>.hide();
+				<s>.addmethod("onfinish", "mwojfin");
+				<s>.addmethod("onendframe", "mwojframe");
+				<s>.setdelay(2);
+				<s>.mbuildwoj( j );
+				grall.add(s);
+			}
+			vecy.add( this.cfinddyactf( s, 0, "buml", this.cfindframe(s, "buml", "pac") ) );
+		}
+		this.cloadwavs("dbwav", "snds.db");
+		igmstate = 0;
+		sndstart.play();
+		//anpiast.addmethod("onsetframe", "mpsetf");
+	}
+	mpsetf()	{
+		engine.print( this.actionname() + " "+this.framenr() );
+	}
+	/******************************************************/
+	mgoldstart()	{
+		igmstate = 1;
+		this.mloadscript();
+	}
+	mnar1()	{	gameapi.play("gamerzeka");	}
+	mnar2()	{	this.crestart();	}
+	mcheckend()	{
+		iiloscwojow--;
+		if( iiloscwojow<=0 )	{
+			this.mloadscript();
+		}
+	}
+	mloadscript()	{
+		int i[3], string s[4];
+		i1 = 0;
+		s0 = dbl.get( idbl, i1 );	i1++;
+		iiloscwojow = 0;
+		if( s0=="mov" )	{
+			ilebgsteps = 20;
+			igmstate = 2;
+			anpiast.play("gop");
+		} else if (s0=="atk")	{
+			i0 = dbl.getcolsno( idbl );
+			while( i1 < i0 )	{
+				s1 = dbl.get( idbl, i1 );	i1++;
+				s2 = s1.getb(1,1);
+				s1 = s1.getb(0,1);
+				s3 = <"cnw"+s1>.getf();
+				i2 = i2.rand( 120 ) + iscy1 - <s3>.geth();
+				if( s2=="l")	{
+					<s3>.play("standp");
+					<s3>.setpos( -<s3>.getw(), i2 );
+					<s3>.mwait();
+				} else {
+					<s3>.setpos( 800, i2 );
+					<s3>.play("standl");
+					<s3>.mwait();
+				}
+				iiloscwojow++;
+			}
+		} else if (s0=="finish")	{
+			this.mfinish();
+		}
+		idbl++;
+	}
+	mfinish()	{
+		this.cbplay("sndnar1");
+	}
+	/******************************************************/
+	mrplay(string sact)	{
+		if( this.isplaying(sact)==false )	{
+			this.play(sact);
+		}
+	}
+	msetf(string sact)	{
+		this.setframe( sact, this.framenr() );
+	}
+	mmovyp(int dy)	{
+		int y = this.getey()+dy;
+		if( dy < 0 &&  y>= iscy1 )	{
+			this.move( 0, dy);
+		} else if ( dy > 0 &&  y <= iscy2 )	{
+			this.move( 0, dy );
+		}
+	}
+	mmovxp(int dx)	{
+		if( dx < 0 && this.getpx()+dx >= iscx1 )	{
+			this.move( dx, 0);
+		} else if ( dx >0 &&  this.getex()+dx <= iscx2 )	{
+			this.move( dx, 0);
+		}
+	}
+	int mcheckbum()	{
+		if( keyboard.iskeydown("rctrl")==true )	{
+			this.mrplay( "bum"+this.mgetdir() );
+			ibylkey=true;
+			iuderza = true;
+			this.setz(this.getey());
+			return true;
+		}	
+		return false;
+	}
+	moutwoj(string swoj)	{
+		<swoj>.mbumwoj();
+	}
+	mpiastframe()	{
+		string s = engine.getimg( this.getcx(), this.getey(), true, true, 450, 600 );
+		if( s.getb(2,2)=="ap" )	{
+			clliv.heal( 1 );
+			<s>.hide();
+			grall.remove(s);
+			sfxprzelyk.playif();
+		}
+		if( igmstate == 2 )	{		// przesun ekran
+			this.mprzesun();
+			return;
+		} else if( igmstate!=1) 	{	return;	}
+		s = this.actionname();
+		if( s.getb(0,2)=="jm" )	{
+			if( keyboard.iskeydown("right")==true )	{
+				this.msetf("jmpp");
+				this.mmovxp( ipiasx );
+			} else if( keyboard.iskeydown("left")==true )	{
+				this.msetf("jmpl");
+				this.mmovxp( -ipiasx );
+			}
+		} else {
+			if( iuderza==true )	{
+				if( this.framename()=="pac")	{
+					int x, int y;
+					if( this.mgetdir()=="p" )	{
+						x = this.getex()+1;
+						y = this.getpy() + ibumpy;
+					} else {
+						x = this.getpx() - 1;
+						y = this.getpy() + ibumpy;
+					}
+					s = engine.getimg( x, y, true, true, 400, 600 );
+					if( s.getb(2,2)=="wo" )	{
+						<cnbum.get()>.anplaypos3( x, y, x.rand(5) );
+						this.moutwoj(s);
+					}
+				}
+				return;
+			} else if( this.mcheckbum()==true) {
+				return;
+			}
+			if( keyboard.iskeydown("right")==true )	{
+				this.mrplay("gop");
+				this.mmovxp( ipiasx );
+				ibylkey=true;
+			} else if( keyboard.iskeydown("left")==true )	{
+				this.mrplay("gol");
+				this.mmovxp( -ipiasx );
+				ibylkey=true;
+			} 
+			if( keyboard.iskeydown("up")==true )	{
+				this.mrplay("go"+this.mgetdir() );
+				this.mmovyp( -ipiasy );
+				ibylkey=true;
+			} else if( keyboard.iskeydown("down")==true )	{
+				this.mrplay("go"+this.mgetdir());
+				this.mmovyp( ipiasy );
+				ibylkey=true;
+			}
+			if( keyboard.iskeydown("rshift")==true )	{
+				ibylkey = false;
+				this.play("jmp"+this.mgetdir() );
+			} else {
+				if( ibylkey==false && iuderza==false)	{
+					this.mrplay("stand"+this.mgetdir());
+				} else {
+					ibylkey = false;
+				}
+			}
+			this.setz(this.getey());
+		}
+	}
+	mpiastfin()	{
+		if( igmstate==4)	{		// uderzony
+			igmstate = 1;
+		}
+		if( igmstate==1)	{
+			if( ibylkey==false || iuderza==true)	{
+				if( this.mcheckbum()==false )	{
+					this.play("stand"+this.mgetdir());
+					iuderza = false;
+				}
+			} else {
+				ibylkey = false;
+				this.play(-1);
+			}
+		} else {
+			this.play(-1);
+		}
+	}
+	mbuildwoj(int id)	{
+		new int _id = id;
+		new string _st = "miq"+dbwoj.get( id, 5);	// taktyka
+		new int _is = dbwoj.get( id, 0 );		// sila
+		new int _im = 1;		// misja 0-nie osiagnal 1-osiagnal cel 2-ulatuje z ekranu
+		new int _idx;
+		new int _idy;
+		new real _rstep = dbwoj.get( id, 6 );
+	}
+	mwalkto(int x, int y, int destx, int desty)	{
+		if( cltr.countsteps(x, y, destx, desty, _rstep )==0 )	{
+			_idx = 0;
+			_idy = 0;
+			this.mwait();
+		} else {
+			_idx = cltr.getdx();
+			_idy = cltr.getdy();
+			if( _idx < 0 )	{
+				this.play("gol");
+			} else {
+				this.play("gop");
+			}
+		}
+	}
+	mspacer(int x, int y)	{
+		this.mwalkto( x, y, 50+x.rand( 700 ), iscy1 + y.rand( 120 ) );
+	}
+	muciekaj(int x, int y)	{
+		int xpos , int ypos;
+		if( anpiast.getcx() >= 400 )	{
+			xpos = iscx1 + xpos.rand( 70 );
+		} else {
+			xpos = iscx2 - xpos.rand( 70 );
+		}
+		if( anpiast.getcy() >= ipolscy )	{
+			ypos = iscy1 + ypos.rand( 70 );
+		} else {
+			ypos = iscy2 - ypos.rand( 70 );
+		}
+		this.mwalkto( x, y, xpos, ypos );
+	}
+	mpodejdz(int x, int y)	{
+		int yp;
+		string s = anpiast.actionname();
+		if( s.getb(0,2)=="jm")	{
+			yp = this.getpy();
+		} else {
+			yp = anpiast.getcy();
+		}
+		this.mwalkto( x, y, anpiast.getcx(), yp );
+	}
+	mwait()	{
+		_im = 1;
+		_idx = 0;
+		_idy = 0;
+		this.play("stand"+this.mgetdir() );
+	}
+	miqs()	{
+		int x = this.getcx();	int y = this.getcy();
+		int i = x.rand(6);
+		if( i<3 )	{
+			this.mwait();
+		} else if(i==3) {
+			this.mpodejdz(x,y);
+		} else {
+			this.mspacer(x,y);
+		}
+	}
+	miqa()	{
+		int x = this.getcx();	int y = this.getcy();
+		int i = x.rand(3);
+		if( i==0 )	{
+			this.mwait();
+		} else if(i==1) {
+			this.mpodejdz(x,y);
+		} else {
+			this.mspacer(x,y);
+		}
+	}
+	miqc()	{
+		int x = this.getcx();	int y = this.getcy();
+		int i = x.rand(5);
+		if( i==0 )	{
+			this.mwait();
+		} else if( i==1 ) {
+			this.mspacer(x,y);
+		} else {
+			if( this.mgetdir()!=anpiast.mgetdir() && cllen.ilen3(this.getname(), "anpiast") <= 150 )	{
+				this.muciekaj(x,y);
+			} else {
+				this.mpodejdz(x,y);
+			}
+		}
+	}
+	mgetdir()	{
+		string s = this.actionname();
+		return s.gete(0, 1);
+	}
+	miqr()	{
+		int i;
+		i = i.rand(10);
+		if( i<=4 )	{	this.miqc();	}
+		else if( i<=8 )	{	this.miqa();	}
+		else {	this.miqs();	}
+	}
+	int mdotarl()	{
+		int x;
+		if( x.rand(6)==0	)	{	return true;	}
+		return cltr.reached( this.getcx(), this.getcy() );
+	}
+	mwojsay( int id )	{
+		string s = "snden" + (1+_id);
+		if( id==1 )	{
+			this.crbgplay( s );
+		} else {
+			<s>.stop(false);
+			<"snden" + (id+_id)>.play();
+		}
+	}
+	mwojfin()	{	
+		if( _im!=2 )	{
+			if( this.mdotarl()==true )	{
+				this.<_st>();
+				if( _im.rand( 15 )==0 )	{
+					this.mwojsay( 1 );
+				}
+			} else {
+				this.play(-1);
+			}
+			
+		} else if (_im==2) {
+			this.play(-1);
+		}
+	}
+	mbumwoj()	{	
+		string s;
+		if( _im.rand(2)==0 )	{
+			s = cnap.get();
+			<s>.setpos( this.getcx(), this.getey() );
+			<s>.anputgr();
+			<s>.show();
+			grall.addonce(s);
+		}
+		_im = 2;
+		s = anpiast.mgetdir();
+		if( s=="l" )	{
+			_idx = 2*dbwoj.get( _id, 1 );
+			_idy = 2*dbwoj.get( _id, 2 );
+		} else {
+			_idx = 2*dbwoj.get( _id, 3 );
+			_idy = 2*dbwoj.get( _id, 4 );
+		}
+		this.play("au"+s);
+		this.mwojsay( 8 );
+		this.crandplay("cpok", 2, "r");
+		cfbum.bgplay();
+	}
+	mbumwpiast(int x, int y, string sdir, int sila)	{
+		if( this.isin(x,y,true,true)==true )	{
+			<cnbum.get()>.anplaypos3( x, y, x.rand(5) );
+			igmstate = 4;
+			this.mrplay("au"+sdir);
+			clliv.damage( sila );
+			this.cbplay("cpau");
+			cfmb.bgplay();
+			if( clliv.destroyed()==true )	{
+				grall.remove("imgbkg");
+				grall.stop(false);
+				igmstate = 6;
+				this.cbplay("sndnar2");
+			}
+		}
+	}
+	mwojframe()	{
+		if( _im==2)	{
+			this.move( _idx, _idy );
+			int w = this.getw()/2;
+			int h = this.geth()/2;
+			if( clsurf.isin( this.getcx(), this.getcy(), -w, -h, 800+w, 600+h)==false )	{
+				this.stop(false);
+				this.hide();
+				<"cnw"+_id>.retf( this.getname() );
+				<"sfxout"+w.rand(4)>.playif();
+				this.mcheckend();
+			}
+		} else {
+			this.setz(this.getey());
+			string s =this.actionname();
+			if( s.getb(0,2)!="bu" )	{
+				this.mmovxp(_idx);
+				this.mmovyp(_idy);
+				s = s.gete(0,1);
+				if( cllen.ilen4( anpiast.getcy(), this.getcy() ) <= 20 && _idx.rand(4)>0 )	{
+					int x = anpiast.getcx() - this.getcx();
+					if( x<0 && x > -this.getw()/2-2 )	{
+						this.play("buml");
+						cfmach.bgplay();
+					} else if( x>=0 && x < this.getw()/2+2 )	{
+						this.play("bump");
+						cfmach.bgplay();
+					}
+				}
+			} else {
+				if( this.framename()=="pac" )	{
+					int y = this.getpy()+ vecy.get(_id);
+					if( s.gete(0,1)=="p" )	{
+						anpiast.mbumwpiast( this.getex()+1, y, "l" , _is );
+					} else {
+						anpiast.mbumwpiast( this.getpx()-1, y, "p" , _is );
+					}
+				}
+			}
+		}
+	}
+	/******************************************************/
+	mmgla()	{
+		anmgla.move( 0, vmgla.get( imgla ) );
+		imgla = (imgla+1)%vmgla.size();
+	}
+	mprzesun()	{
+		this.cmovxbkg(20, 0, 10, ipiasx, "grall");
+		ilebgsteps--;
+		if ( ilebgsteps<=0 )	{
+			igmstate = 1;
+			this.mloadscript();
+		}
+	}
+	/******************************************************/
+
+}
+
+

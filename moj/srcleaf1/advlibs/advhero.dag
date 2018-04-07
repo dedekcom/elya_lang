@@ -1,0 +1,359 @@
+/*
+	klasa bazowa, zawiera podstawowe metody i zmienne bohatera przygodowki
+	Dominik Dagiel 3 III 2006
+*/
+
+class classadvanhero	{
+	init()	{}
+	public setashero(string sanima, string sfunonfinish)	{
+		<sanima>.addmethod("buildhero", "buildhero");
+		<sanima>.addmethod("onendframe", "heroendframe1");
+		<sanima>.buildhero();
+		<sanima>.addmethod("buildheroframe", "buildheroframe");
+		<sanima>.addmethod("onfinish", "herofinish");
+		<sanima>.addmethod("getdir", "getdir");
+		<sanima>.addmethod("setdir", "setdir");
+		<sanima>.addmethod("thisfinish", "thisfinish");
+		<sanima>.addmethod("playspec", "playspec");
+		<sanima>.addmethod("playspec2", "playspec2");
+		<sanima>.addmethod("herostop", "herostop");
+		<sanima>.addmethod("herostart", "herostart");
+		<sanima>.addmethod("herostand", "herostand");
+		<sanima>.addmethod("setstdfin", "setstdfin");
+		<sanima>.addmethod("getpocket", "getpocket");
+		<sanima>.addmethod("haspocket", "haspocket");
+		<sanima>.addmethod("setstandbase", "setstandbase");
+		<sanima>.setstdfin( sfunonfinish );
+	}
+	buildheroframe(string san)	{	<san>.addmethod("onendframe", "heroendframe");	}
+	setstdfin(string s)	{	this.addmethod("onstdfinish", s);	}
+	setstandbase(string s)	{	_sstandbase = s;	}
+	buildhero()	{
+		new string _sbase;	// baza akcji
+		new int _istate = 0;	// 0 - neutral, 1 - start, 2 - body, 3 - stop
+		new string _sfinfun;	// metoda do wywolania na finish akcji bohatera
+		new string _sobfin;	// obiekt na ktorym wywolac metode na finish (jak null to this)
+		new bool _bplaystop;	// czy odegrac stop
+		new int _iiloscsek;	// ilosc sekwencji
+		new int _itypsort;		// 0 - po kolei, 1 - random
+		new int idsort;		// kolejny nr kawalka
+		new string _sobstart;	// obiekt na finish start
+		new string _sfunfinstart;	// metoda na finish start
+		new bool bthisfin = false;	// czy finish jest w animacji a nie z zewnatrz
+		new string _sstandbase = "stand";
+	}
+	getpocket()	{	return _spocketpref + this.getname(); }
+	bool haspocket()	{	return engine.varexist(_spocketpref+this.getname());	}
+	thisfinish(bool bfin)	{	bthisfin=bfin;	}
+	string getdir()	{	return this.actionname()->gete(0,2);	}
+	setdir(string sdir)	{	.setframe( .actionname->strsube(2) + sdir, .framenr );	}
+	playspec(string sbase, int iloscsek, int itypsort, bool bstart, string sobstart, string sfunfinstart,
+		bool bstop, string sobfin, string sfinfun, string sdir)	{
+		_sbase = sbase;
+		_iiloscsek = iloscsek;
+		_itypsort = itypsort;
+		_bplaystop = bstop;
+		_sobfin = sobfin;
+		_sfinfun = sfinfun;
+		_sobstart = sobstart;
+		_sfunfinstart = sfunfinstart;
+		if( iloscsek > 0 )	{
+			if( itypsort==0 )	{	idsort = 1;	}
+			else if (itypsort==1)	{	idsort = iloscsek.rand + 1; }
+		}
+		if( bstart )	{
+			_istate = 1;
+			this.play( sbase + "start" + sdir );
+		} else {
+			this.setframe( sbase + (iloscsek>0?"1"+sdir:sdir), 0 );
+			this.herostart();
+		}
+	}
+	playspec2(string sact, string sobfin, string sfinfun)	{
+		string s = ( sact.length()<2 ) ? "" : sact.strsube(2);
+		this.playspec( s, 0, 0, false, null, null, false, sobfin, sfinfun, sact.gete(0,2));
+	}
+	herostop()	{
+		_istate = 3;
+		if( _bplaystop )	{
+			_bplaystop = false;
+			this.thisfinish(true);
+			this.play( _sbase + "stop" + this.getdir() );
+		} else {
+			this.stop(true);
+		}
+	}
+	herostart()	{
+		_istate = 2;
+		this.play( _sbase + (_iiloscsek>0 ? idsort : "") + this.getdir() );
+	}
+	herofinish()	{
+		if( _istate==2 && bthisfin )	_istate=3;
+		if (_istate==0 )	{		// standardowy finish
+			this.herostand();	// 28.V.2006
+			this.onstdfinish();
+// 			this.< this.getname() + "_FINISH">();
+			string sanimo = this.getname();
+			string sevent = <sanimo>.actionname();
+			this.<sanimo+"_FINISH">();
+			this.<sanimo+"_ACTION_"+sevent+"_FINISH">();
+		} else if( _istate==1)	{
+			this.herostart();
+			this.callfun(_sobstart,_sfunfinstart);
+		} else if( _istate==2 )	{
+			string s;
+			if( _iiloscsek > 0 )	{
+				if( _itypsort==0)	{	idsort = (idsort%_iiloscsek)+1;	}
+				else if (_itypsort==1)	{	idsort = _iiloscsek.rand + 1; }
+				s = _sbase + idsort + this.getdir();
+			} else s = this.actionname();
+			this.play( s );
+		} else if ( _istate==3 )	{		// koniec stop
+			_istate = 0;
+			this.herostand();	// 28.V.2006
+			this.thisfinish(true);
+			this.callfun(_sobfin,_sfinfun);
+		}
+	}
+	herostand()	{
+		string s = _sstndpref + this.getname();
+		if( engine.varexist(s) )	{
+			this.play( _sstandbase + this.actionname()->gete(0,2) );
+			<s>.play();
+		}
+	}
+	heroendframe1()	{	this.< this.getname() + "_ENDFRAME" >();	}
+	heroendframe()	{
+		this.setz( this.getposy()-clcamera.getposy );
+		if( this.haspocket() )	{
+			<this.getpocket()>.pocketpos( this.getposx(), this.getposy() - this.geth()/2);
+		}
+		this.< this.getname() + "_ENDFRAME" >();
+	}
+}
+
+/******************************************************/
+
+class classadvhero 	{
+	init()	{
+		new string _sanim;		// podlinkowana animacja
+		new bool _bisvecile = false;	// czy operacja sklada sie z kawalkow
+		
+		new string _sbase = null;		// bazowa nazwa akcji
+		new string _sbase2 = null;
+		new int izakres = 0;		// length of string _sbase
+		
+		new string _sbs2;
+		new string _sbutoper;
+		new string _smetpart;
+		
+		new string _simgbut;	// button z ktorego czyta dane
+		new string _sptfname = this.getname();
+	}
+	string getptfname()	{	return _sptfname;	}
+	public link(string sanim)	{	_sanim = sanim;	}
+	public link2(string sanima, string sbase)	{
+		this.link(sanima);
+		this.checkamounts( sbase );
+	}
+	public anstand()	{	<_sanim>.play("stand"+this.getdir());	}
+	public ansay()		{	<_sanim>.play("talk"+this.getdir());	}
+	public string getdir()	{	<_sanim>.actionname()->gete(0, 2);	}
+	public int nofpieces()	{	return this.nofpiecesdir( this.getdir() ); }
+	public int nofpiecesdir(string sdir)	{return _bisvecile ? vecile.get( vecdirs.find(sdir) ) : 0;	}
+	public setbase2(string sbase, string sbase2)	{
+		this.setbase(sbase);
+		_sbase2 = sbase2;
+	}
+	public setbase(string sbase)	{
+		_sbase = sbase;
+		izakres = sbase.length();
+	}
+	public getpropdir(string sdir)	{	return sdir=="auto" ? this.getdir() : sdir;	}
+	/*****************************/
+	_buildamounts()	{
+		if( !_bisvecile )	{
+			_bisvecile = true;
+			new vector vecdirs;
+			vecdirs.type("string");
+			vecdirs.beginadd("begin", "uu", "ru", "rr", "rd", "dd", "ld", "ll", "lu" );
+			new vector vecile;
+		}
+	}
+	_clearvecile()	{
+		vecile.free();
+		vecile.resize( 8, 0 );
+	}
+	public checkamounts(string sbase)	{
+		this.setbase(sbase);
+		this._buildamounts();
+		this._clearvecile();
+		if( _sanim == null )	return;
+		int ile = <_sanim>.nofactions();
+		string s1, int i1;
+		
+		for(int  i=0; i < ile; i++)	{
+			s1 = <_sanim>.nameofaction(i);
+			if( s1.getb(0,izakres) == sbase )	{
+				i1 = s1.getb( izakres, 10 );
+				if( i1>0 )	{	// jest kolejna animacja gadania
+					vecile.vecinc( vecdirs.find( s1.gete(0,2) ) );
+				}
+			}
+		}
+	}
+	public getanim	{	_sanim;	}
+	/********************************/
+	virtual calllastfun()	{
+		this.< this.getcallfin() >();
+		<_simgbut>.checkonce;
+	}
+	_calllastfunfin()	{
+		this.calllastfunfin();
+		this.advmsunlock();
+	}
+	virtual calllastfunfin()	{	this.< this.getcallfin() + "_FINISH" >();	}
+	virtual string getcallfin()	{	return _sanim+_smetpart+_sbutoper;	}
+	_cplay(string sbase, string sfun, string sdir)	{
+		this.advmslock();		// blokuj mysz
+		<_sanim>.thisfinish(true);
+		if( sbase==null )	{
+			<_sanim>.setdir( .getpropdir(sdir) );
+			if( sfun!=null )	this.<sfun>();
+		} else {
+			<_sanim>.playspec( sbase, 0, 0, false, null, null, false, 
+				this.getname(), sfun, this.getpropdir(sdir) );
+		}
+	}
+	_cplay1(string sbase, string sdir)	{	this._cplay(sbase,"_cplay1_2", sdir);	}
+	_cplay1_2()	{
+		this.calllastfun();
+		this._callbehs();
+	}
+	_callbehs()	{
+		this.advmsunlock();
+		this.callbehs();
+	}
+	virtual callbehs()	{
+		string s = this.getcallfin();
+		this.behexist("beh_"+s) ? this.playbehobfin( "beh_" + s, this.getname(), "_calllastfunfin" ) : this._calllastfunfin();
+	}
+	_cplay2_2()	{
+		this.calllastfun();
+		this._cplay(_sbs2, "_callbehs", this.getdir() );
+	}
+	_cplay2(string sbase1, string sbase2, string sdir)	{
+		_sbs2 = sbase2;
+		this._cplay(sbase1, "_cplay2_2", sdir);
+	}
+	bool no_turn(string sfun)	{
+		string sptf = _spathpref + _sanim;
+		string sdir = .getpropdir( <_simgbut>.getbutdir );
+		if( engine.varexist(sptf) && .getdir != sdir )	{
+			<sptf>.heroturn(sdir, this, sfun);
+			false;
+		} else true;
+	}
+	_heroplay1	{	.heroplay1(_simgbut);	}
+	_heroplay2	{	.heroplay2(_simgbut);	}
+	public heroplay1(string simg)	{
+		_simgbut=simg;
+		if( .no_turn("_heroplay1") )	{
+			_sbutoper = <simg>.getbutname();
+			this._cplay1( <simg>.getbase1(), this.getpropdir( <simg>.getbutdir() ) );
+		}
+	}
+	public heroplay2(string simg)	{
+		_simgbut=simg;
+		if( .no_turn("_heroplay2") )	{
+			_sbutoper = <simg>.getbutname();
+			this._cplay2( <simg>.getbase1(), <simg>.getbase2(), this.getpropdir( <simg>.getbutdir() ) );
+		}
+	}
+	_setbase2(string styp)	{	this.setbase2( modadv.get(styp,1), modadv.get(styp,2) );	}
+	_setbase(string styp)	{	this.setbase( modadv.get( styp, 1 ) );	}
+	public heroplay3(string simg, string sb)	{
+		<simg>.setbutbase1(modadv.get(sb,1));
+		<simg>.setbutbase2(modadv.get(sb,2));
+		this.heroplay2(simg);
+	}
+	/********************************/
+}
+
+/******************************************************/
+new snd _fxtakeitem;
+class classherotaker : classadvhero	{
+	init() {
+		classadvhero::init();
+		_smetpart = "_PICKUP_";
+	}
+	public herotake(string simg)	{	this.heroplay2(simg);	}
+	virtual calllastfun()	{
+		if( <_sanim>.haspocket() )	{
+			_fxtakeitem.play;
+			if( <_simgbut>.hideontake )
+				<_simgbut>.hide();		// zabranie przedmiotu
+			else <_simgbut>.setbuttyp("but");
+			< <_sanim>.getpocket() >.additem( _sbutoper, <_simgbut>.getpocket );
+		}
+		classadvhero::calllastfun();
+	}
+}
+
+/******************************************************/
+
+class classherolooker : classadvhero	{
+	init()	{
+		classadvhero::init();
+		_smetpart = "_OPERATE_";
+	}
+	public herolook(string simg)	{	this.heroplay2(simg);	}
+	public herooperate(string simg)	{	this.heroplay2(simg);	}
+	public heroopendoor(string simg)	{	this.heroplay3(simg,"open:");	}
+	public heroclosedoor(string simg)	{	this.heroplay3(simg,"close:");	}
+}
+
+/******************************************************/
+
+class classherouser : classadvhero	{
+	init()	{
+		classadvhero::init();
+		new string _stool;
+	}
+	public herouse(string stool, string simg)	{
+		//_stool = this.getusetool();
+		_stool = stool;
+		_smetpart = "_USE_"+_stool+"_ON_";
+		< <_sanim>.getpocket() >.itemhide();
+		//this.heroplay2(simg);
+		_simgbut=simg;
+		_sbutoper = <simg>.getbutname();
+		this._cplay2( <simg>.baseuse1, <simg>.baseuse2, this.getpropdir( <simg>.getbutdir() ) );
+	}
+	virtual calllastfun()	{
+		this.< _sanim + "_USE_" + _stool>();
+		this.< _sanim + "_USE_ON_" + _sbutoper>();
+		this.< this.getcallfin() >();
+	}
+	virtual calllastfunfin()	{
+		this.< _sanim + "_USE_" + _stool + "_FINISH">();
+		this.< _sanim + "_USE_ON_" + _sbutoper + "_FINISH">();
+		this.< this.getcallfin() + "_FINISH" >();
+	}
+	virtual callbehs()	{
+		string s = this.getname();
+		if( this.behexist( "beh_" + this.getcallfin() ) )	{
+			this.playbehobfin( "beh_" + this.getcallfin(), s, "_calllastfunfin" );
+		} else  if( this.behexist( "beh_" + _sanim + "_USE_ON_" + _sbutoper ) )	{
+			this.playbehobfin( "beh_" + _sanim + "_USE_ON_" + _sbutoper, s, "_calllastfunfin" );
+		} else  if( this.behexist( "beh_" + _sanim + "_USE_" + _stool ) )	{
+			this.playbehobfin( "beh_" + _sanim + "_USE_" + _stool, s, "_calllastfunfin" );
+		} else if ( this.behexist( "beh_"+_sanim+"_USE" ) )	{
+			this.playbehobfin( "beh_" + _sanim + "_USE", s,"_calllastfunfin" );
+		} else {
+			this._calllastfunfin();
+		}
+	}
+}
+
+/******************************************************/

@@ -1,0 +1,10 @@
+path:
+	srckrzyzacy/
+
+src:
+
+all:
+	dd1.dag
+
+out:
+	srckrzyzacy/krzyzacy.odd

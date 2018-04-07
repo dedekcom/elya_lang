@@ -1,0 +1,137 @@
+
+game Dziupla : StdGame	{
+	init	{
+		StdGame::init("dziupla");
+		
+		.imgs = (A, "bkg.pyz", "hak.pyz 10", "pokrywa.pyz 10", "nak.pyz 20");
+		
+		.sounds = (A, ":kokosz1", "Ho ho ciocia zgromadzi³a tu same pyszno¶ci; Widzia³e¶ t± golonkê?",
+				func { .cbplay("kajko1"); },
+			":kajko1", "Szukaj lepiej ma¶ci ¿ar³oku", "mdalej",
+			":kokosz2", "Ciekawe do czego s³u¿y ten hak", "mdalej",
+			":kokosz3", "To wieko co¶ przykrywa", func { if(bbylhak) .cbplay("kokosz4"); else igmstate=1; },
+			":kokosz4", "Podniosê wieko hakiem", func { anhak.play(1); }
+			);
+		
+		anhak.addmethod("onfinish", func { .hide; fxwykreca.play; anpokrywa.play(1); });
+		anpokrywa.addmethod("onfinish", func {	ccs.close( func {
+				gameapi.play("Wieko");
+				});
+			} );
+		
+		new Button but1;
+		
+		new bool bbylabeczka = false;
+		new bool bbylhak = false;
+		
+		anpokrywa {
+			.Button_isinalpha;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 )
+					return;
+				if( !bbylhak && !bbylabeczka )	{
+					igmstate = 2;
+					bbylabeczka = true;
+					.cbplay("kokosz3");
+				} else if (bbylhak)	{
+					igmstate = 2;
+					if( bbylabeczka )	{
+						.cbplay("kokosz4");
+					} else {
+						bbylabeczka=true;
+						.cbplay("kokosz3");
+					}
+				}
+				} );
+			but1.add(this);
+		};
+		anhak {
+			.Button_isinalpha;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 )
+					return;
+				if( !bbylabeczka && !bbylhak ) {
+					igmstate=2;
+					bbylhak=true;
+					.cbplay("kokosz2");
+				} else if( bbylabeczka ) {
+					igmstate=2;
+					.cbplay("kokosz4");
+				}
+				});
+			but1.add(this);
+		};
+		
+		.sfxs = (A,"bgrsowaN 40", "bgrzabyN 30", "wykreca");
+		
+		.cbplay("kokosz1");
+	}
+	mdalej	{ igmstate=1; }
+	mouse_rclick	{
+		if(igmdebug) .cactsndstop(1);
+	}
+}
+
+game Wieko : StdGame	{
+	init	{
+		StdGame::init("wieko");
+		
+		.imgs = (A, "woda.pyzP", "bg.pyz 10", "wmasc.pyzH 20", "wrobaki.pyzH 20", "wogorki.pyzH 20",
+			"robaki.pyzH 30", "masc.pyzH 30", "ogorki.pyzH 30", "reka.pyzH 40");
+		
+		new Button but1;
+		
+		anrobaki.mbuton;
+		anmasc.mbuton;
+		anogorki.mbuton;
+		new string sbeczka = null;
+		
+		.sounds = (A, ":kokosz1", "Tylko woda; Gdzie mo¿e byæ ta ma¶æ?", func { .cbplay("kajko1"); },
+			":kajko1", "Poszukajmy w wodzie", func { igmstate=1; },
+			":kokosz2", "Co¶ tu jest; Wyci±gam", "mdalej",
+			":kokosz2b", "Uwaga otwieram", func { <sbeczka>.play(1); fxwciska1.play; .<sbeczka+"_lclick">; },
+			":kokosz3", "Fuu; Robaki £amignata do ³owienia ryb", "mdalej",
+			":kajko2", "Ogórki kiszone Jagi; Szukaj dalej", "mdalej", 
+			":kokosz4", "Jest! To ma¶æ latania! Biorê", func { anreka.play(0); }
+			);
+		anreka.addmethod("onfinish", func {
+			ccs.close( func { .gotoadv("adjaga", "gameadjaga1"); } );
+			} );
+		
+		.sfxs = (A,"bgrsowaN 40", "bgrzabyN 30", "wino1", "wciska1 70", "splash1");
+		
+		ccs.enter( func { .cbplay("kokosz1"); } );
+	}
+	mdalej	{	igmstate=1; }
+	mbuton	{
+		.Button_isinvisalpha;
+		.Button_moveonms;
+		.Button_moveoffms;
+		.addmethod("butclick", func {
+			if( igmstate!=1 || .isplaying(-1)!=false ) return;
+			if( .actionnr(-1)==1 ) return;
+			if( .isvisible==false ) {
+				igmstate = 2;
+				.play(0);
+				<"anw" + this->strsubbs("an")>.play(0);
+				.cbplay("kokosz2");
+				fxwino1.play;
+			} else {
+				igmstate = 2;
+				sbeczka = this;
+				.cbplay("kokosz2b");
+			}
+			} );
+		but1.add(this);
+	}
+	anrobaki_lclick	{ .cbplay("kokosz3"); }
+	anmasc_lclick	{ .cbplay("kokosz4"); }
+	anogorki_lclick	{ .cbplay("kajko2"); }
+	mouse_rclick	{
+		if( igmdebug ) anreka.play(0);
+	}
+}

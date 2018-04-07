@@ -1,0 +1,31 @@
+/***************************************************************************/
+class classgamepause	{
+	init()	{
+		new button butpause;
+		butpause.setrect( 0, 0, iResX, iResY );
+		butpause.addmethod("onclick", "resume");
+		butpause.disable();
+	}
+	resume()	{
+		butpause.disable();
+		gameapi.resume();
+	}
+	pause()	{
+		gameapi.pause();
+		butpause.enable();
+		butpause.resume();
+	}
+}
+
+class TicksCounter	{
+	init()	{
+		new int istart;
+	}
+	start()	{	istart = engine.getticks();	}
+	stop()	{	istart = engine.getticks() - istart;	}
+	get()		{	return istart;	}
+	int stopget()	{	this.stop();	return this.get();	}
+	print(string s)	{	engine.print(s+" delay: "+this.stopget()+" ms");	}
+	put()	{	.print("");	}
+}
+

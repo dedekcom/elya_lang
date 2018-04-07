@@ -1,0 +1,18 @@
+
+
+// advpocket.dag
+new snd _fx_pocket;
+_fx_pocket.load("sounds/sfx/harfa.wav");
+
+// buttons.dag
+new snd sndfxmoveonms;
+sndfxmoveonms.load("sounds/sfx/butmoveon.ogg");
+sndfxmoveonms.setvol(30);
+
+new snd sndfxmoveon2;
+sndfxmoveon2.load("sounds/sfx/butmoveon2.ogg");
+sndfxmoveon2.setvol(50);
+
+new snd sndfxbutclick1;
+sndfxbutclick1.load("sounds/sfx/butclick1.ogg");
+sndfxbutclick1.setvol(50);

@@ -1,0 +1,818 @@
+
+game Obrazy : Computro	{
+	init	{
+		Computro::init("obrazy");
+		
+		new int izadanie = 1;
+		new int izad2 = 0;
+		new int irpn = 3;
+		new vector vc1;	vc1.type("string");
+		new vector vc2;	vc2.type("string");
+		new vector vc3;	vc3.type("string");
+		
+		new vector vv1;	vv1.type("string");
+		new vector vv2;	vv2.type("string");
+		new vector vv3;	vv3.type("string");
+		new string Code;
+		Lexer::setas("Code");
+		Code.consts = (A, "(", ")", "/", "%", "*","+","-");
+		new RPN rpn;
+		new RPN rpn1;
+		new RPN rpn2;
+		new RPN rpn3;
+		rpn.addmethod("_rpn", "_rpn");
+		new real Cr1;
+		new real Cg1;
+		new real Cb1;
+		new real Ct1;
+		new int Cc1;
+		new int Cc2;
+		new int Cc3;
+		
+		new bool bylenter;
+		
+		.imgs = (A, "bkg.pyz", "z1.pyz 10");
+		anz1.setpos(19,19);
+		new img imz2;
+		.mloadz2;
+		
+		new img imz3;
+		imz3.create( anz1.getw, anz1.geth, .black, 255 );
+		imz3.convert("anz1");
+		imz3.setpos( imz2.getex+20, imz2.getpy );
+		imz3.setz(240);
+		imz3.hide;
+		
+		new gfxSquare ghis(0, 0, 400, 250);
+		ghis {
+			.set(.grey(224),255);
+			.build;
+			.border(2, 2, .black, 255);
+			.setz(500);
+			@x = (.getw-256)/2;
+			for( int i=x-1; i<x+257; i++)	{
+				imggfx.putrgb(i, 25, .blue);
+				imggfx.putrgb(i, 226, .blue);
+			}
+			x--;
+			for( i=25; i<227; i++)	{
+				imggfx.putrgb(x, i, .blue);
+				imggfx.putrgb(x+257, i, .blue);
+			}
+			
+			new img imgx;
+			imgx.create(256, 200, .white, 255);
+			imgx.setpos(x+1,26);
+			//imggfx.blit("imgx");
+			imgx.hide;
+			.hide;
+			.setpos(200, 100);
+		};
+		new vector vhis;
+		
+		new @ifontsize = 10;
+		.monofont("fnkod", ifontsize);
+		new @stdfont = .snewfont(sgmfontfile, ifontsize);
+		new TextBoxTyper ttk("fnkod", ifontsize, 0.6*ifontsize, .black, "", 500,30, 290,500, 2);	//int x, int y, int w, int h, int dy)	{
+		new img imgred	{
+			.create( 290, ifontsize, .red, 192 );
+			.setz(5);
+			.hide;
+		};
+		ttk.setz(100);
+		.newtext("txtr", "r2 = ", stdfont, .red);
+		.newtext("txtg", "g2 = ", stdfont, .green);
+		.newtext("txtb", "b2 = ", stdfont, .blue);
+		.newtext("txtk", "t1 = ", stdfont, 128,128,0);
+		txtk.hide;
+		.newtext("txtrh", "", stdfont, .grey(70) );
+		.newtext("txtgh", "", stdfont, .grey(70) );
+		.newtext("txtbh", "", stdfont, .grey(70) );
+		new gmimgvec grhelpy;
+		grhelpy.addlist(A, "txtrh", "txtgh", "txtbh");
+		
+		.loadzad;
+		
+		//ttp.load( .getgraphpath + "savedprog.db");
+		new classplacepointer2 clp;
+		
+		.sounds = (A,
+			"sndintro", "Witam w lekcji po¶wiêconej grafice komputerowej; Poznacie na niej najprostsze operacje przetwarzaj±ce obrazy",
+				func { .cbplay("snd1"); clp.showob("anz1", "ll"); },
+			"snd1", "Bêdziemy przetwarzaæ to zdjêcie", func { .cbplay("snd2"); clp.showob("imz2", "rr"); },
+			"snd2", "A efekty ogl±daæ na tym obrazie", func { clp.show(550, 50, "rr"); .cbplay("snd3"); },
+			"snd3", "Programista napisa³ tutaj program który", func { clp.stoph; .cbplay("snd4"); .mline(6); },
+			"snd4", "Dla ka¿dej kolumny obrazka pierwszego", func { .cbplay("snd5"); .mline(7); },
+			"snd5", "I dla ka¿dego wiersza", func { .cbplay("snd6"); .mline(8); },
+			"snd6", "Pobiera kolor kolejnego piksela i zapamiêtuje go w zmiennych r 1 g 1 i b 1",
+				func { .cbplay("snd7"); clp.show( txtg.getex, txtg.getpy-5, "rd" ); .mln; },
+			"snd7", "Twoim zadaniem jest wyliczenie nowych warto¶ci kolorów piksela i przypisanie ich do zmiennych r 2 g 2 i b 2",
+				func { clp.show( ttk.idpx(16)+20, ttk.idpy(16), "rd" ); .cbplay("snd8"); },
+			"snd8", "Nowo wyliczone kolory bêd± automatycznie ograniczone do zakresu od 0 do 255; Je¶li na przyk³ad wyliczysz now± warto¶æ sk³adowej czerwonej jako 300 to zostanie ona przyciêta do maksymalnej dozwolonej warto¶ci 255", func { clp.stoph; .mline(21); .cbplay("snd9"); },
+			"snd9", "Na koniec program wstawia do drugiego obrazka nowo wyliczony piksel", func { .mln; .cbplay("snd10"); <GAME>.nextex; clp.showob("tdz","ld"); },
+			"snd10", "Zaczynamy; Przeczytaj pierwsze zadanie i wpisz odpowiednie warto¶ci kolorów",
+				func { .cshowbut("ok","rd"); .cbplay("snd11"); },
+			"snd11", "Kiedy uznasz ¿e nowe kolory odpowiadaj± tre¶ci zadania kliknij przycisk OK",
+				func { .cshowbut("help","rd"); .cbplay("snd12"); },
+			"snd12", "Je¶li nie mo¿esz poradziæ sobie z zadaniem najed¼ na przycisk pomoc", func { clp.stoph; .mstart; },
+			"sndok", "Zadanie wykonane poprawnie", func { <GAME>.nextex; },
+			"sndnon", "Co¶ nie tak; Spróbuj ponownie", "mstart",
+			"sndenter", "Podaj przynajmniej jedn± warto¶æ i wci¶nij klawisz enter", "mstart",
+			"sndcheck", "Generujê poprawny obrazek do porównania", func { <GAME>.mcheck; },
+			"sndprog", "Poznamy teraz kolejny algorytm; Progowanie", func { bylenter=false; <GAME>.nextzad; .mline(6); .cbplay("snd13"); },
+			"snd13", "Tutaj podasz warto¶æ od 0 do 255 i wci¶niesz klawisz enter; Liczba bêdzie odcieniem szarego koloru którego nazywamy progiem", func { .mline(13); .cbplay("snd14"); },
+			"snd14", "Pobieramy z obrazka 1 piksel i wyliczamy dla niego odpowiednik w szarym kolorze", func { .mline(15); .cbplay("snd15"); },
+			"snd15", "Je¶li szary kolor jest ciemniejszy ni¿ podany przez ciebie kolor progowy to zamieniamy go na czarny", func { .mline(16); .cbplay("snd16"); },
+			"snd16", "Je¶li jest ja¶niejszy od koloru progowego zamieniamy go na bia³y", func { .mline(18); .cbplay("snd17"); },
+			"snd17", "I zapisujemy na obrazku 2", func {.mstart; .mln; },
+			"sndzoom", "Poka¿ê teraz jak w prosty sposób pomniejszyæ obrazek", func { bylenter=false; <GAME>.nextzad; .mline(7); .cbplay("snd18");	},
+			"snd18", "Tutaj wpiszesz ile razy pomniejszyæ obrazek i wci¶niesz klawisz enter", func { .mln; .cbplay("snd19"); },
+			"snd19", "Zobaczmy teraz jak dzia³a algorytm je¶li wpiszesz na przyk³ad 5", func { <GAME> {
+				new int tmpw = 0.3*anz1.getw+5;
+				new int tmph = 0.45*anz1.geth+7;
+				new img im7;
+				new img im4 {
+					.create(780, 500, 200,200,255, 255);
+					new img im5;
+					@x1 = anz1.getpx;
+					@y1 = anz1.getpy;
+					anz1.move(-x1,-y1);
+					int c[3];
+					for( int i=0; i<20; i++)	{
+						for( int j=0; j<37; j++)	{
+							|c0, c1, c2| = anz1.getrgb(tmpw+j, tmph+i);
+							im5.create(20, 20, c0, c1, c2, 255);
+							im5.setpos( 20 + j*im5.getw, 20 + i*im5.geth );
+							.blit("im5");
+						}
+					}
+					delete im5;
+					anz1.move(x1,y1);
+					.setz(600);
+					.move(10, 10);
+				};
+				.cbplay("snd20");
+				}; },
+			"snd20", "Oto powiêkszony wycinek obrazka na którym widzimy oko", func { <GAME> {
+				new img im5;
+				im5.create( 100, 100, .white, 32 );
+				im5.setpos( im4.getpx+20, im4.getpy + 20);
+				im5.setz(im4.getz+10);
+				.cbplay("snd21");
+				clp.showob("im5", "ll");
+				}; },
+			"snd21", "Poniewa¿ chcemy pomniejszyæ obraz piêciokrotnie pobieramy piksele z kwadratu 5 na 5", func {
+				clp.stoph;
+				<GAME> {
+					.newtext("tx1", "R = (", stdfont, .red);
+					.newtext("tx2", "G = (", stdfont, .green);
+					.newtext("tx3", "B = (", stdfont, .blue);
+					.newtext("tx4", "", stdfont, .black);
+					tx1.setpos( im4.getpx + 10, im4.getey - 80 );
+					tx2.setpos( im4.getpx + 10, im4.getey - 65 );
+					tx3.setpos( im4.getpx + 10, im4.getey - 50 );
+					tx4.setpos( im4.getpx + 10, im4.getey - 35 );
+					tx1.setz( im5.getz + 10 );
+					tx2.setz( tx1.getz );
+					tx3.setz( tx1.getz );
+					tx4.setz( tx1.getz );
+					.getpix(tmpw, tmph);
+					.cbplay("snd22");
+				};
+				},
+			"snd22", "Pikseli jest 25; Dodajemy ich sk³adowe R G B i wyliczamy ¶redni kolor tych pikseli", func { <GAME> {
+				new img im6;
+				new int tmpiw = 37/5;
+				new int tmpih = 20/5;
+				new int tmpliczw = 0;
+				new int tmpliczh = 0;
+				im6.create(tmpiw*20+10, tmpih*20+10, .black, 255);
+				im6.setpos( im4.getex - im6.getw - 15 , im4.getey - im6.geth - 15 );
+				im6.setz( im4.getz + 10 );
+				clp.showob("im6", "rd");
+				.cbplay("snd23");
+				}; },
+			"snd23", "Na tym obrazku bêdziemy umieszczali wyliczone ¶rednie piksele", func {	<GAME> {
+					clp.stoph;
+					_ = .putpix;
+					.timer=("timcyk", 500, func {
+						if( .putpix ) .play;
+						else .cbplay("snd24");
+					} );
+					timcyk.play;
+				}; },
+			"snd24", "W ten sposób otrzymali¶my piêciokrotnie pomniejszone oko; Choæ wydaje siê ono ca³kowicie nieczytelne zobaczmy jaki bêdzie efekt w normalnej skali",
+				func { <GAME> {
+					.withlist(A, "tmpiw", "tmpih", "tmpliczw", "tmpliczh", "tx1", "tx2", "tx3", "tx4", "im4",
+						"im5", "im6", "im7", "timcyk", "tmpw", "tmph", "vardel");
+					.mstart;
+				}; },
+			"snd25", "Teraz dowiesz siê co to jest histogram; Histogram ³atwiej bêdzie nam zrozumieæ to na przyk³adzie szarego obrazka", func { .generategrey; .cbplay("snd26"); },
+			"snd26", "Szary kolor ma 256 odcieni; Od czerni której odpowiada warto¶æ 0 do bieli której odpowiada 255; Je¶li policzymy wszystkie odcienie dla danego obrazka i wstawimy je do wykresu otrzymamy histogram", func { .cbplay("snd27"); <GAME>.vardel("imgrey"); },
+			"snd27", "Policzmy zatem odcienie szaro¶ci prawego obrazka", func { <GAME>.showhis; .cbplay("snd28"); clp.show(273, 324, "ld"); },
+			"snd28", "Oto histogram naszego obrazka; Po lewej stronie znajduj± siê ciemne kolory; Pierwszy s³upek od lewej oznacza liczbê pikseli czarnych czyli o kolorze 0; Jak widzisz nasz obrazek nie posiada w ogóle czarnych pikseli", func { clp.show(330, 324, "ld"); .cbplay("snd29"); },
+			"snd29", "Wiêksza grupa ciemnych pikseli nale¿±cych g³ównie do t³a obrazka znajduje siê dopiero w okolicach odcienia szaro¶ci o warto¶ci 60",
+				func { clp.show(435, 324, "uu"); .cbplay("snd30"); },
+			"snd30", "Najczê¶ciej wystêpuj±cym kolorem jest do¶æ jasny szary o warto¶ci 162", func { clp.show(528, 324,"rd"); .cbplay("snd31"); },
+			"snd31", "Podobnie jak czarny równie¿ czysto bia³y kolor nie wystêpuje w tym obrazku", func { clp.stoph; <GAME>.nextzad; .cbplay("snd32"); },
+			"snd32", "Na przyk³adzie tej starej fotografii poka¿ê wam jakie korzy¶ci p³yn± z analizy histogramu; Fotografia jest bardzo nieczytelna; Obejrzyjmy jej histogram",
+				func { <GAME>.showhis;	.cbplay("snd33");	},
+			"snd33", "Widzimy ¿e piksele maj± podobne odcienie i brakuje zarówno jasnych jak i ciemnych pikseli; Spróbujmy przyciemniæ zdjêcie dziel±c warto¶ci kolorów przez 2",	func { <GAME>.nextzad; .cbplay("snd34");	},
+			"snd34", "Zdjêcie nie sta³o siê wyra¼niejsze; Spójrzmy na histogram", func { <GAME>.showhis; .cbplay("snd35"); },
+			"snd35", "Histogram przesun±³ siê w kierunku pikseli ciemniejszych i zwê¿y³; Rozja¶nijmy teraz obrazek o 25 procent",
+				func { <GAME>.nextzad; .cbplay("snd36"); },
+			"snd36", "Wygl±da trochê lepiej; Spójrzmy na histogram", func { <GAME>.showhis; .cbplay("snd37");	},
+			"snd37", "Lekko rozci±gniêty kszta³t ale tym razem przesuniêty w kierunku odcieni jasnych; Rozja¶nijmy zatem o 50 procent",
+				func { <GAME>.nextzad; .cbplay("snd38");	},
+			"snd38", "Tym razem obrazek jeszcze mniej wyra¼ny; Sprawd¼my histogram", func { <GAME>.showhis; .cbplay("snd39");	},
+			"snd39", "No tak czê¶æ pikseli osi±gnê³a maksymaln± jasno¶æ i biel zdominowa³a obrazek", func { ghis.hide; .cbplay("snd40");	},
+			"snd40", "Komputer wykona teraz algorytm zwany wyrównaniem histogramu; Algorytm rozci±gnie histogram na ca³± szeroko¶æ skali; Zobaczmy jeszcze raz oryginalny obrazek",
+				func { <GAME>.nextzad; .cbplay("snd41");	},
+			"snd41", "I jego histogram", func { <GAME>.showhis; .cbplay("snd42");	},
+			"snd42", "Rozpoczynamy rozci±gnie histogramu", func { <GAME>.nextzad; .cbplay("snd43");	},
+			"snd43", "Nasza stara fotografia jest teraz wyra¼niejsza; Zobaczmy na histogramie co siê sta³o", func { <GAME>.showhis; .cbplay("snd44");	},
+			"snd44", "Jak widzicie algorytm roz³o¿y³ piksele od czarnych do bia³ych i dziêki temu fotografia uzyska³a kontrast", func {
+				ghis.hide;
+				.timer = ("timend", 2500, func { ccs.close( func {
+					if( PrzygodaMode )
+						.gotoadv("adxvsala", "gameadxvsala2");
+					else gameapi.play("Menu");
+					} );} );
+				timend.play;
+				}
+			);
+		ccs.enter( func { .cbplay("sndintro"); } );
+		
+		//.cbplay("snd19");
+	}
+	meval2	{	_ = <GAME>.meval;	}
+	bool putpix	{
+		.getpix( tmpw+tmpliczw*5, tmph+tmpliczh*5 );
+		|int x, int y| = im6.getpos;
+		im6.move(-x, -y);
+		im7.setpos( im6.getpx+5+tmpliczw*im7.getw, im6.getpy+5+tmpliczh*im7.geth );
+		im6.blit("im7");
+		
+		im5.setpos( im4.getpx+20+tmpliczw*im5.getw, im4.getpy + 20+tmpliczh*im5.geth);
+		
+		tmpliczw++;
+		if( tmpliczw>=tmpiw )	{
+			tmpliczh++;
+			tmpliczw=0;
+		}
+		im6.move(x,y);
+		
+		return tmpliczh<tmpih;
+	}
+	getpix(int w, int h)	{
+		int k[3];	k0 = 0;	k1 = 0;	k2 = 0;
+		int c[3];
+		tx1.txtset("R = (");
+		tx2.txtset("G = (");
+		tx3.txtset("B = (");
+		@x1 = anz1.getpx;
+		@y1 = anz1.getpy;
+		anz1.move(-x1,-y1);
+		for(int i=0; i<5; i++) 	{
+			for (int j=0; j<5; j++)	{
+				|c0, c1, c2| = anz1.getrgb(w+j, h+i);
+				k0 += c0;
+				k1 += c1;
+				k2 += c2;
+				tx1.set( tx1.get + c0 + "+" );
+				tx2.set( tx2.get + c1 + "+" );
+				tx3.set( tx3.get + c2 + "+" );
+			}
+		}
+		k0/=25;
+		k1/=25;
+		k2/=25;
+		tx1.txtset( tx1.get->strsube(1) + ") / 25 = " + k0);
+		tx2.txtset( tx2.get->strsube(1) + ") / 25 = " + k1);
+		tx3.txtset( tx3.get->strsube(1) + ") / 25 = " + k2);
+		tx4.txtset("new RGB = ("+k0+","+k1+","+k2+")");
+		anz1.move(x1,y1);
+		im7.create( 20, 20, k0, k1, k2, 255 );
+		im7.hide;
+	}
+	mloadz2	{
+		imz2.create( anz1.getw, anz1.geth, .black, 255 );
+		imz2.convert("anz1");
+		imz2.setpos( anz1.getex+20, anz1.getpy );
+	}
+	mstart	{	igmstate=1; ttp.enable;	}
+	mstop	{	igmstate=2; ttp.disable;	}
+	mline(int id)	{
+		imgred.setpos( ttk.idpx(id-2), ttk.idpy(id-2)+2 );
+		imgred.show;
+	}
+	mln	{ imgred.hide;	}
+	togrey(real r)	{	.togrey2(r,false);	}
+	togrey2(real r, bool bhis)	{
+		@w = anz1.getw;
+		@h = anz1.geth;
+		@x1 = anz1.getpx;
+		@y1 = anz1.getpy;
+		anz1.move(-x1,-y1);
+		@x = imz2.getpx;
+		@y = imz2.getpy;
+		imz2.move(-x,-y);
+		int i, int j, int c[3];
+		for( i=0; i<h; i++)	{
+			for( j=0; j<w; j++)	{
+				|c0, c1, c2| = anz1.getrgb(j, i);
+				c0 = r*(0.3*c0 + 0.59*c1 + 0.11*c2);
+				if( bhis )	{
+					c0 = vD.get( c0 );
+				}
+				imz2.putrgb(j, i, c0, c0, c0);
+			}
+			anz1.move(x1,y1);
+			imz2.move(x,y);
+			engine.redraw;
+			anz1.move(-x1,-y1);
+			imz2.move(-x,-y);
+		}
+		imz2.move(x,y);
+		anz1.move(x1,y1);
+	}
+	loadzad	{
+		ttk.load( .getgraphpath + "p" + izadanie + ".db" );
+		.rgbpos;
+	}
+	ttkpos(string s)	{
+		for( int i=0; i<ttk.Rows; i++ )	{
+			if( ttk.getid(i)==s )	return ttk (i) {(@id)
+				.setid("", id);
+				<grtt.get(id)>.getpy;
+				};
+		}
+		0;
+	}
+	rgbpos	{
+		int x  = ttk.X;
+		string s;
+		match(izadanie)	{
+			1 => {
+				x += 2*ifontsize;
+				txtr.setpos( x, .ttkpos("#r") );
+				txtg.setpos( x, .ttkpos("#g") );
+				txtb.setpos( x, .ttkpos("#b") );
+				txtrh.setpos(txtr.getpx+txtr.getw, txtr.getpy);
+				txtgh.setpos(txtg.getpx+txtg.getw, txtg.getpy);
+				txtbh.setpos(txtb.getpx+txtb.getw, txtb.getpy);
+				s = "txtr";
+			}
+			2, 3 => {
+				if( izadanie==2) txtk.txtset("zoom = ");
+				else txtk.txtset("t1 = ");
+				txtk.setpos( x, .ttkpos("#t1") );
+				txtk.show;
+				txtr.hide; txtg.hide; txtb.hide;
+				s = "txtk";
+			}
+			? => ;
+		}
+		.deletegmobj("ttp");
+		new TextBoxTyper ttp("fnkod", ifontsize, 0.6*ifontsize, .black, "at0 ()-+/=*.%",
+			<s>.getex, <s>.getpy, 200, irpn*(ifontsize+2), 2);	//int x, int y, int w, int h, int dy)	{
+		//ttp.enable;
+	}
+	merror(string s)	{
+	}
+	merror2(string s1, string s2)	{
+		.merror(s1 + " " + s2);
+	}
+	bool meval	{
+		if( igmstate==1 )	{
+			igmstate = 2;
+			ttp.disable;
+			string s; int j, string s2, string s3, string s1;
+			bool berror = false;
+			//.debug=(1);
+			for( int i=0; i < irpn; i++)	{
+				s = ttp.getid(i);
+				s.clear;
+				rpn.start;
+				if( s.length>0 && berror==false)	{
+					Code.start(s);
+					s = "vc" + (i+1);
+					s2 = "rpn" + (i+1);
+					s1 = "vv"+(i+1);
+					<s1>.free;
+					<s2>.start;
+					Code.gettoken( s, true);
+					for( j=0; j< <s>.size; j++)	{
+						match( <s>.get(j) )	{
+							"$int", "$real" => { j++; rpn.num(<s>.get(j)); <s2>.num( <s>.get(j) ); }
+							"$const" => { j++;	rpn.op(<s>.get(j)); <s2>.op( <s>.get(j) ); }
+							"$alpha" => { j++;
+								s3 = <s>.get(j);
+								if( izadanie==1 && s3.in(A,"r1","g1","b1") )	{
+									rpn.num(1);
+									<s2>.num(1);
+									<s2>.var("C"+<s>.get(j));
+									<s1>.add( <s2>.size-1 );
+									<s1>.add( "C"+<s>.get(j) );
+								} else {
+									.merror("novar");
+									return false;
+								}
+							}
+							? => { .merror("noperator"); return false; }
+						}
+					}
+				} else {
+					.merror("empty");
+					return false;
+				}
+				if( berror==false )	{
+					if( rpn.end && rpn.error==0 )	{
+						_ = <s2>.end;
+						_ = rpn.count;
+						if( rpn.error==0 )	{
+							<s>.veccopy(s2);
+							rpn.start;
+						} else {
+							.merror2("count", rpn.perror);
+							return false;
+						}
+					} else {
+						.merror2("count", rpn.perror);
+						return false;
+					}
+				}
+			}
+			if( berror==false )	{
+				@w = anz1.getw;
+				@h = anz1.geth;
+				@x1 = anz1.getpx;
+				@y1 = anz1.getpy;
+				anz1.move(-x1,-y1);
+				@x = imz2.getpx;
+				@y = imz2.getpy;
+				imz2.move(-x,-y);
+				int k, string s, int n, int m;
+				
+				//.tickstart;
+				
+				match(izadanie)	{
+					3 => {
+						rpn.copyvars("rpn1");
+						k = .between(0, rpn.count, 255);
+						Cc1 = k; Cc2 =k; Cc3 = k;
+					}
+					2 => {
+						rpn.copyvars("rpn1");
+						k = .between(1, rpn.count, 10);
+					}
+					? => ;
+				}
+				int c[3];
+				if( izadanie==2 )	{
+					int k2 = k*k;
+					for( i=0; i<h; i+=k)	{
+						for( j=0; j<w; j+=k)	{
+							c0 = 0;
+							c1 = 0;
+							c2 = 0;
+							for( m=i; m<i+k; m++) {
+								for( n=j; n<j+k; n++ ) {
+									|Cr1, Cg1, Cb1| = anz1.getrgb(n, m);
+									c0+=Cr1;
+									c1+=Cg1;
+									c2+=Cb1;
+								}
+							}
+							imz2.putrgb(j/k, i/k, c0/k2, c1/k2, c2/k2);
+						}
+						anz1.move(x1,y1);
+						imz2.move(x,y);
+						engine.redraw;
+						anz1.move(-x1,-y1);
+						imz2.move(-x,-y);
+					}
+				} else {
+					for( i=0; i<h; i++)	{
+						for( j=0; j<w; j++)	{
+							|Cr1, Cg1, Cb1| = anz1.getrgb(j, i);
+							match(izadanie)	{
+								1 => {
+									c0 = rpn._rpn1;
+									c1 = rpn._rpn2;
+									c2 = rpn._rpn3;
+								}
+								3 => {
+									c0 = 0.3*Cr1 + 0.59*Cg1 + 0.11*Cb1;
+									c0 = ( c0 < k ? 0 : 255);
+									c1 = c0;
+									c2 = c0;
+								}
+								? => ;
+							}
+							imz2.putrgb(j, i, c0, c1, c2);
+							//imz2.putrgb;
+						}
+						anz1.move(x1,y1);
+						imz2.move(x,y);
+						engine.redraw;
+						anz1.move(-x1,-y1);
+						imz2.move(-x,-y);
+					}
+				}
+				
+				anz1.move(x1,y1);
+				imz2.move(x,y);
+				//.tickstop;
+				
+				true;
+			} else return false;
+		} else return false;
+	}
+	real _rpn1	{
+		vout.copy("vc1");
+		for( int i=0; i< vv1.size; i+=2) {	vout.set( vv1.get(i), [vv1.get(i+1)] );		}
+		.countok;
+	}
+	real _rpn2	{
+		vout.copy("vc2");
+		for( int i=0; i< vv2.size; i+=2) {	vout.set( vv2.get(i), [vv2.get(i+1)] );		}
+		.countok;
+	}
+	real _rpn3	{
+		vout.copy("vc3");
+		for( int i=0; i< vv3.size; i+=2) {	vout.set( vv3.get(i), [vv3.get(i+1)] );		}
+		.countok;
+	}
+	real _rpn(int id)	{
+		//ierror = 0;
+		//vout.veccopy("vc"+id);
+		vout.copy("vc"+id);
+		string s = "vv"+id;
+		for( int i=0; i< <s>.size; i+=2) {
+			vout.set( <s>.get(i), [<s>.get(i+1)] );
+		}
+		.countok;
+	}
+	showhis	{
+		ghis {
+			.setpos(0,0);
+			imggfx.blit("imgx");
+			.show;
+		};
+		vhis.resize(256, 0);
+		@w = imz2.getw;
+		@h = imz2.geth;
+		@x1 = imz2.getpx;
+		@y1 = imz2.getpy;
+		@x2 = anz1.getpx;
+		@y2 = anz1.getpy;
+		anz1.move(-x2,-y2);
+		int i, int j, int id;
+		int r, int g, int b;
+		imz2.move(-x1, -y1);
+		for( i=0; i<h; i++)	{
+			for( j=0; j<w; j++)	{
+				//|id,_,_| = imz2.getrgb(j, i);
+				|id,_,_| = imz2.getrgb(j, i);
+				vhis.set( id, vhis.get(id)+1 );
+			}
+		}
+		j = 1;
+		for( i=0; i<256; i++)	{
+			if( vhis.get(i)>j ) j=vhis.get(i);
+		}
+		real r = 200.0/j;
+		ghis (r) { (real r)
+			@x = (ghis.getw-256)/2;
+			int y=225, int i, int j, int id;
+			for( i=0; i<256; i++)	{
+				id = r*vhis.get(i);
+				for( j=0; j<id; j++)
+					imggfx.putrgb(x+i, y-j, .black);
+			}
+			.setpos(200,100);
+		};
+		imz2.move(x1, y1);
+		anz1.move(x2,y2);
+	}
+	mouse_lclick	{
+		.cactsndstop(true);
+		/*if( igmstate==2 )	{
+			igmstate=1;
+			ttp.enable;
+		}*/
+	}
+	nextzad	{
+		if( izadanie<3 )	{
+			izadanie++;
+			match(izadanie)	{
+				2, 3 => 1;
+				? => 3;
+			}
+			irpn = _;
+			.loadzad;
+		} else {
+			igmstate=1;
+			izadanie++;
+			ghis.hide;
+			match(izadanie)	{
+				4=> {
+					.mloadan("z1");
+					ttk.disable;
+					ttk.hide;
+					txtk.hide;
+					ttp.disable;
+					ttp.hide;
+					.togrey(1);
+					.cbplay("snd25");
+				}
+				5 => {
+					.mloadan("z2");
+					.togrey(1);
+				}
+				6 => {
+					.togrey(0.5);
+				}
+				7 => {
+					.togrey(1.25);
+				}
+				8 => {
+					.togrey(1.5);
+				}
+				9 => .togrey(1);
+				10 => {
+					ghis.hide;
+					new vector vD;
+					vD.type("real");
+					real r = imz2.getw*imz2.geth;
+					vD.add( vhis.get(0) );
+					real rD = 0;
+					for( int i=1; i<256; i++)	{
+						vD.add(vD.get(i-1)+vhis.get(i));
+						if( rD==0 && vD.last!=0 ) rD = vD.last;
+					}
+					rD/=r;
+					if( rD>0 && rD<1 )	{
+						for( i=0; i<256; i++) {
+							vD.set( i, ((vD.get(i)/r - rD)/(1.0-rD) ) * 255.0 );
+							//LUT(i) = ((D(i) - D0) / (1 - D0)) * (k - 1)
+						}
+						.togrey2(1,true);
+						.showhis;
+					}
+				}
+				? => ;
+			}
+		}
+	}
+	mloadan(string s)	{
+		anz1.load(.getgraphpath+s+".pyz");
+		anz1.setz(20);
+		imz2.setpos(0,0);
+		imz2.clone("anz1");
+		anz1.setpos(20, 20);
+		imz2.setpos(anz1.getex+10, 20);
+	}
+	generategrey	{
+		<GAME>	{
+			new img imgrey	{
+				.create(780, 500, 200,200,255, 255);
+				new img imc;
+				int id = 0;
+				bool dielaj = true;
+				int x=15, int y=15;
+				int w = 30;
+				int h = 15;
+				int dt = 5;
+				new text tnr;
+				tnr.setfont("fnkod");
+				while( dielaj )	{
+					imc.create(w, h, .grey(id), 255);
+					tnr.txtsetcol(id, .grey(43));
+					imc.setpos(x, y);
+					tnr.setpos(imc.getex+dt, y);
+					.blit("imc");
+					.blit("tnr");
+					y+=imc.geth + dt;
+					if( y>= 485-dt ) {
+						y = 15;
+						x+= (w+dt)*2;
+					}
+					id++;
+					if( id==256 ) dielaj=false;
+				}
+				.setz(400);
+				.ansetcpos(400, 300);
+			};
+		};
+	}
+	ttp_boxontype	{
+		if( .mzadnext && keyboard.iskey("enter") && igmstate==1 )	{
+			bylenter = true;
+			if( <GAME>.meval )	{
+				.mstart;
+			} else .cbplay("sndnon");
+		}
+	}
+	cbhelp_MOVEON	{
+		if( igmstate==1 && izadanie==1 )	{
+			match(izad2)	{
+				1 => .mhrgb("r1", "g1", "b1");
+				2 => .mhrgb("r1 - 30", "g1 - 30", "b1 - 30");
+				3 => .mhrgb("1.2 * r1", "1.2 * g1", "1.2 * b1");
+				4 => .mhrgb("r1", "g1", "0");
+				5 => .mhrgb("255 - r1", "255 - g1", "255 - b1");
+				6 => .mhrgb("(r1+g1+b1)/3", "(r1+g1+b1)/3", "(r1+g1+b1)/3");
+				7 => .mhrgb("0.33*r1+0.59*g1+0.11*b1", "0.33*r1+0.59*g1+0.11*b1", "0.33*r1+0.59*g1+0.11*b1");
+				? => .mhrgb(0,0,0);
+			}
+			grhelpy.show;
+		}
+	}
+	cbhelp_MOVEOFF	{
+		grhelpy.hide;
+	}
+	mhrgb(string sr, string sg, string sb)	{
+		txtrh.txtset(sr);
+		txtgh.txtset(sg);
+		txtbh.txtset(sb);
+	}
+	cbok_CLICK		{
+		if( igmstate!=1 || izad2>9) return;
+		if( izadanie.in(A,2,3) && !bylenter )	{
+			.cbplay("sndenter");
+			igmstate=3;
+			return;
+		}
+		if( <GAME>.meval )	{
+			if( izad2<8 ) .cbplay("sndcheck");
+			else if (izad2>=9 )	{
+				tdz.hide;
+				.nextzad;
+			} else <GAME>.mcheck;
+		} else .cbplay("sndnon");
+	}
+	mzadnext	{	izad2.in(A, 8, 9);	}
+	mcheck	{
+		if( izad2>=8 )	{
+			.nextex;
+			return;
+		}
+		@w = anz1.getw;
+		@h = anz1.geth;
+		@x1 = anz1.getpx;
+		@y1 = anz1.getpy;
+		anz1.move(-x1,-y1);
+		@x = imz3.getpx;
+		@y = imz3.getpy;
+		imz3.move(-x,-y);
+		imz3.show;
+		int i, int j, int c[3], int k[3];
+		for( i=0; i<h; i++)	{
+			for( j=0; j<w; j++)	{
+				|c0, c1, c2| = anz1.getrgb(j, i);
+				match( izad2 )	{
+					1 => {	k0 = c0;	k1 = c1; k2 = c2; }
+					2 => {	k0 = c0 - 30;	k1 = c1 - 30;	k2 = c2 - 30;	}
+					3 => {	k0 = 1.2*c0;	k1 = 1.2*c1;	k2 = 1.2*c2;		}
+					4 => {	k0 = c0;	k1 = c1;	k2 = 0;	}
+					5 => {	k0 = 255-c0;	k1 = 255-c1;	k2 = 255-c2;	}
+					6 => {	k0 = (c0+c1+c2)/3;	k1 = k0;	k2 = k0;	}
+					7 => {	k0=0.33*c0+0.59*c1+0.11*c2;	k1=k0;	k2=k0;	}
+					? => ;
+				}
+				imz3.putrgb(j, i, k0, k1, k2);
+			}
+			anz1.move(x1,y1);
+			imz3.move(x,y);
+			engine.redraw;
+			anz1.move(-x1,-y1);
+			imz3.move(-x,-y);
+		}
+		imz3.move(x,y);
+		anz1.move(x1,y1);
+		if( imz2.equal("imz3") )	{
+			.cbplay("sndok");
+		} else {
+			.cbplay("sndnon");
+		}
+		imz3.hide;
+	}
+	nextex	{
+		izad2++;
+		.deletegmobj("tdz");
+		new TextDb tdz(stdfont, 12, "$path:"+.lang_path("zad"+izad2)+".db", 10,10,192, 20,335, 2,50, "left");
+		match(izad2)	{
+			8 => .cbplay("sndzoom");
+			9 => {
+				.cbplay("sndprog");
+				.mloadan("z3");
+			}
+			? => .mstart;
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndok");
+	}
+}

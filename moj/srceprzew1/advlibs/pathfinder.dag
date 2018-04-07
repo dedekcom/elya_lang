@@ -1,0 +1,256 @@
+/**	metody rozpoczynajace sie na "c" sa metodami klasy, natomiast na "ob" dotycza obiektu "pathf" **/
+
+class classpathf : classadvhero	{
+	init()	{ 
+		classadvhero::init();
+		new path ptf;
+		new string swalkto = null;
+		new string _sfunnopath = null;
+		new string _sfunvisit = null;
+		new int destx;	// dla startgo
+		new int desty;	// jezeli jest startgo
+		new bool bzmien = false;
+		new bool bzatrzym = false;
+		new string _sitem=null;
+		new int _istep;
+		ptf.addmethod("onfinish", "_cptffin");
+		ptf.addmethod("onvisit","_cptvisit");
+		this.addsigs("_cptfstdreach", "_cptfstdarrive");
+		this._setbase( "go:" );
+	}
+	_buildan(string san)	{
+		ptf.linkanima(san);
+		this.link(san);
+	}
+	public build(string san, string sfile, int x, int y, int istep, int ityp)	{
+		_istep = istep;
+		ptf.build(sfile, x, y, istep, ityp);
+		this._buildan(san);
+	}
+	public buildfrom(string san, string spathf, int istep)	{
+		_istep = istep;
+		ptf.copy(spathf, istep );
+		this._buildan(san);
+	}
+	public addsigs(string sreach, string sarrive)	{
+		if(sreach!=null)	{
+			ptf.addmethod("onreach", sreach);
+		}
+		if(sarrive!=null)	{
+			ptf.addmethod("onarrive", sarrive);
+		}
+	}
+	public sigonnopath(string snopath)	{	_sfunnopath = snopath;	}
+	public sigonvisit(string svisit)	{	_sfunvisit = svisit;	}
+	_cptfstdreach(string s)	{}
+	_cptfstdarrive()	{}
+	/************************** funkcje dla pathf ***************************************/
+	public move(int x, int y)	{	ptf.move( x, y );	}
+	public setpos(int x, int y)	{	ptf.setpos(x,y);	}
+	public show()	{	ptf.show();	}
+	public hide()	{	ptf.hide();	}
+	public enable(int id)	{	ptf.enable(id);	}
+	public disable(int id)	{	ptf.disable(id);	}
+	public setanstep(int step)	{	_istep=istep; ptf.setanstep(step);	}
+	public int getanstep()	{	return _istep;	}
+	public int getposx()	{	return ptf.getposx(); }
+	public int getposy()	{	return ptf.getposy(); }
+	public int getpx()	{	return ptf.getpx(); }
+	public int getpy()	{	return ptf.getpy(); }
+	public int getidan()	{	return ptf.getidan(); }
+	public int getidan2()	{	return ptf.getidan2(); }
+	public int getidgo()	{	return ptf.getidgo(); }
+	public int getidanpath()	{	return ptf.getidanpath(); }
+	public int getidan2path()	{	return ptf.getidan2path(); }
+	public int getidgopath()	{	return ptf.getidgopath(); }
+	public excludev(int id)	{	ptf.excludev(id);	}
+	public linkfilter()	{	ptf.linkfilter();	}
+	public unlinkfilter()	{	ptf.unlinkfilter();	}
+	public setscalepower(real rs)	{	ptf.setscalepower(rs);	}
+	public setzsize(real rs)	{	ptf.setzsize(rs);	}
+	public bool iswayto(int x, int y)	{	return ptf.iswayto(x,y);	}
+	public scalean()	{	ptf.scalean();	}
+	/*****************************************************************/
+	public walkto2(string simg, int x, int y)	{
+		swalkto = simg;
+		if( this.cangoto(x,y)==true )	{
+			x = ptf.goto( x, y );
+		} else if ( _sfunnopath!=null )	{
+			this.<_sfunnopath>();
+		}
+	}
+	public int walkto(string simg, int x, int y)	{
+		swalkto = simg;
+		if( this.iswalking()==true )	{
+			if( ptf.iswayto(x,y)==true )	{
+				bzmien = true;
+				destx = x;
+				desty = y;
+				return 0;
+			} else {
+				bzatrzym = true;
+				return -1;
+			}
+		} else {
+			return ptf.goto( x, y );
+		}
+	}
+	public int goto(int x, int y)	{
+		return this.walkto( null, x, y );
+	}
+	public int gotorel(int x, int y)	{
+		return this.goto( <_sanim>.getpx() + x, <_sanim>.getey() + y );
+	}
+	public int iswalking()	{	return ptf.iswalking();	}
+	public stand()	{	ptf.stand(); 	}
+	public int getidpath(int x, int y)	{	return ptf.getidpath( x, y);	}
+	public bool cangoto(int x, int y)	{
+		int id = ptf.getidpath(x,y);
+		if( id == -1 )	{	return false;	}
+		return ptf.isenabled(id);
+	}
+	/************** wyjscia do zaawansowanego chodzenia ***********************/
+	_cptfreachbut()	{
+		<this.getptfname()+"look">.herolook(swalkto);
+	}
+	_cptfreachdoors()	{
+		<this.getptfname()+"look">.herooperate(swalkto);
+	}
+	_cptfreachitem()	{
+		<this.getptfname()+"take">.herotake(swalkto);
+	}
+	_cptfherofin()	{
+		this.stand();
+		if( swalkto!=null )	{
+			this.<_sanim + "_REACH_" + <swalkto>.getbutname() >();	
+			if( this.ismainhero( _sanim )==true )	{
+				string s = < <_sanim>.getpocket()>.getitem();
+				if( s!=null )	{
+					<this.getptfname()+"use">.herouse(s,swalkto);
+				} else {
+					this.< "_cptfreach" + <swalkto>.gettyp() >();
+				}
+			}
+			swalkto=null;
+		} else {
+			this.<_sanim+"_ARRIVE">();
+			this._cptheroendpath();
+		}
+	}
+	_cptheroendpath()	{
+		if( _sfinfun!=null )	{
+			if( _sfinob==null )	{	this.<_sfinfun>();	}
+			else { <_sfinob>.<_sfinfun>();	}
+			_sfinfun = null;
+			_sfinob = null;
+		}
+	}
+	_cptfnopath()	{	this.< _sanim+"_NOPATH">();	}
+	_cptfvisit()	{	this.<_sanim+"_VISIT">();	}
+	public prepareforhero()	{
+		ptf.addmethod("onfinish", "_cptfherofin");
+		new string _sfinob;
+		new string _sfinfun;
+		this.sigonnopath("_cptfnopath");
+		this.sigonvisit("_cptfvisit");
+	}
+	public herowalkto2(int x, int y, string sob, string sfinfun)	{
+		this.herowalkto(null,x,y,sob,sfinfun);
+	}
+	public herowalkto(string simg, int x, int y, string sob, string sfinfun)	{
+		_sfinob = sob;
+		_sfinfun = sfinfun;
+		int id = this.walkto(simg, x,y);
+	}
+	public advgoto(int x, int y)	{
+		this.herowalkto2(x,y,null,null);
+	}
+	public advwalkto(string simg, int x, int y)	{
+		this.herowalkto(simg,x,y,null,null);
+	}
+	public advvisit(string simg)	{
+		this.advwalkto( simg, <simg>.getgox(), <simg>.getgoy() );
+	}
+	public herostand()	{
+		<_sanim>.play( _sbase + "stop" + this.getdir() );
+	}
+	/*****************************************************************/
+	_cptvisit()	{
+		if( bzmien==true )	{
+			bzmien = false;
+			int id = this.goto(destx, desty);
+			if( id==-1 )	{
+				this.<_sfunnopath>();
+			}
+		} else if (bzatrzym==true)	{
+			bzatrzym=false;
+			this.stop(true);
+		} else {
+			this.<_sfunvisit>();
+		}
+	}
+	_cptffin()	{
+		if( swalkto!=null )	{
+			ptf.onreach(swalkto);		// dotarcie do zadanego obiektu
+			swalkto=null;
+		} else {
+			ptf.onarrive();		// dotarcie do punktu
+		}
+	}
+}
+
+class classwalkerqueue	{
+	init()	{
+		new timer timwq;
+		timwq.settick(1);
+		timwq.setcycle(1);
+		timwq.addmethod("onfinish","_timwqfin");
+		new vector vecpt;
+		vecpt.type("string");
+	}
+	_timwqfin()	{
+		this.checkqueue();
+		this.play();
+	}
+	public start()	{	timwq.play();	}
+	public stop()	{	timwq.stop(false);	}
+	public add(string spt)	{	vecpt.add(spt);	}
+	public goto(int x, int y)	{
+		this.walkto(null,x,y);
+	}
+	public visit(string simg)	{
+		this.walkto(simg, <simg>.getgox(), <simg>.getgoy() );
+	}
+	public walkto(string simg, int x, int y)	{
+		int ile = vecpt.size();
+		if( ile<=0 )	{	return;	}
+		int j, string s;
+		for( int i=0; i<ile; i++)	{
+			s = vecpt.get(i);
+			<s>.advwalkto(simg,x,y);
+			for( j=i+1; j<ile; j++)	{
+				<vecpt.get(j)>.excludev( <s>.getidgo() );
+			}
+		}
+	}
+	public checkqueue()	{
+		int ile = vecpt.size();
+		if( ile<=1 )	{	return;	}
+		int j, string s[2], int ian, int ian2;
+		for( int i=0; i<ile; i++)	{
+			s0 = vecpt.get(i);
+			if( <s0>.iswalking()==true )	{
+				ian = <s0>.getidan();
+				ian2 = <s0>.getidan2();
+				for( j=i+1; j<ile; j++)	{
+					s1 = vecpt.get(j);
+					if( <s1>.iswalking()==true )	{
+						<s1>.excludev( ian );
+						<s1>.excludev( ian2 );
+					}
+				}
+			}
+		}
+	}
+}
+

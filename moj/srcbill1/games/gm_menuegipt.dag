@@ -1,0 +1,288 @@
+
+game MainMenu : DziejeGame	{
+	init	{
+		DziejeGame::init("mainmenu");
+		
+		.imgs = (A, "bkg.pyz", "$scripts/quiz/prof.pyz 10", "menu1.pyz 5", "menu2.pyz 5", "menu3.pyz 5", "menu4.pyz 5");
+		anprof.move(3,-8);
+		.sfxs = (A, "putpuz2 50");
+		.sounds = (A,
+			"sndgo", "Witam w programie Dzieje Ludzi Egipt", "mendpro",
+			"sndmenu1", "¯ycie ludzi w staro¿ytnym Egipcie", "mendpro",
+			"sndmenu2", "Niesamowite przygody Chetiego", "mendpro",
+			"sndmenu3", "Wielki test wiedzy o Egipcie", "mendpro",
+			"sndmenu4", "Gry nagrody za rozwi±zanie quizu", "mendpro"
+			);
+		string s[2];
+		new Button buts;
+		
+		int ifont = 24;
+		new string sfont = .stdbold(ifont);
+		
+		.lang_db("dbtyt", "tytuly");
+		
+		for( int i=1; i<=4; i++)	{
+			s0 = "anmenu"+i;
+			<s0>.setframe("podklad",0);
+			s1 = "ankon"+i;
+			.copyanima(s0,s1);
+			<s1>.setz(20);
+			<s1>.setframe("kontur",0);
+			s1 = "angomenu"+i;
+			.copyanima(s0,s1);
+			<s1>.hide;
+			<s1>.setz(10);
+			<s1>.setdelay(6);
+			
+			s1 = "annapmenu"+i;
+			.newanima(s1,"napis"+i+".pyz",100);
+			
+			<s0>.Button_isin;
+			<s0>.addmethod( "butmoveon", func {
+				advmouse.setact;
+				@s = this->strsubb(2);
+				<"annap"+s>.setframe(-1,1);
+				<"ango"+s>.play("up");
+				fxputpuz2.play;
+				if( igmdemo && (s=="menu3" || s=="menu4") )	{
+					.inpiecz(.getcx, .getcy-80);
+				}
+				if( !sndgo.isplaying )	{
+					s = "snd"+s;
+					if( !this.cisplaying() || this.cgetactsnd()!=s )	.mprof(s);
+				}
+				} );
+			<s0>.addmethod("butmoveoff", func {
+				advmouse.setstd;
+				@s = this->strsubb(2);
+				<"annap"+s>.setframe(-1,0);
+				<"ango"+s>.play("down");
+				if( igmdemo && (s=="menu3" || s=="menu4") )	{
+					.outpiecz;
+				}
+				} );
+			<s0>.addmethod("butclick", func {
+				if( igmdemo && (this=="anmenu3"||this=="anmenu4")) return;
+				match(this)	{
+					"anmenu1" => "Egipt";
+					"anmenu2" => "MenuBaj";
+					"anmenu3" => "MenuTest";
+					"anmenu4" => "MenuGry";
+					? => ;
+				}
+				gameapi.play;
+				} );
+			buts.add(s0);
+		}
+		mus.playstr("eg1wstep.ogg -v 50 eg1petla.ogg -v 50 -l");
+		if( igmbegin )	{
+			igmbegin = 0;
+			.mprof("sndgo");
+		}
+	}
+	mprof(string s)	{
+		.cactsndstop(false);
+		.cbplay(s);
+		anprof.play("talk");
+	}
+	mendpro	{	anprof.play("stand"); }
+}
+
+game MenuGry : DziejeGame	{
+	init	{
+		DziejeGame::init("menugry");
+		.path = ("menus");
+		.sfxs = (A, "putpuz2 50");
+		.subgamebg;
+		.img = ("grybelka.pyz");
+		new Buttons cbut("grybuts.pyz");
+		new classfullsave csav("saves/quizy.db");
+		csav.stdload;
+		new gmimgvec grstop;
+		"grstop" .* "stopy.pyz";
+		grstop.setz(100);
+		for( int i=0; i<grstop.size; i++)	{
+			/*if( igmdebug )	{
+				csav.bset("enable_"+ <grstop.get(i)>.actionname);
+			}*/
+			if( csav.bis("enable_"+ <grstop.get(i)>.actionname) )
+				<grstop.get(i)>.hide;
+		}
+		.sounds = (A,
+			"sndarcheo", "Aby zagraæ w tê grê musisz zaliczyæ ³atwy quiz", null,
+			"sndszkielety", "Aby zagraæ w tê grê musisz zaliczyæ ¶redni quiz", null,
+			"sndkonstruktor", "Aby zagraæ w tê grê musisz zaliczyæ trudny quiz", null
+			);
+	}
+	cbut_lclick	{
+		if( csav.bis( "enable_"+sobject) )	{
+			sSubMenu = sobject;
+			gameapi.play("SubMenu");
+		} else .cbplay("snd"+sobject);
+	}
+	cbut_moveon	{
+		fxputpuz2.play;
+	}
+}
+
+// cytra.pyz  dzban.pyz  obrazek.pyz  pisarz.pyz
+new string sSubMenu = "archeo";
+game SubMenu : DziejeGame	{
+	init	{
+		DziejeGame::init("submenu");
+		.path = ("menus");
+		.subgamebg;
+		.sfxs = (A, "putpuz2 50");
+		.img = ("belka"+sSubMenu+".pyz");
+		new Buttons cbut(sSubMenu+"buts.pyz");
+	}
+	cbut_lclick	{
+		match( sSubMenu )	{
+			"archeo" => {
+				sArcheo = sobject;
+				gameapi.play("Archeo");
+				}
+			"szkielety" => {
+				sSzkielet = sobject;
+				gameapi.play("Szkielety");
+				}
+			"konstruktor" => {
+				match( sobject)	{
+					"rydwan" => "Rydwan";
+					"lutnia" => {		"Lutnia";	sLutnia = "lutnia";	}
+					"gitara" => {		"Lutnia";	sLutnia = "gitara";	}
+					"ship" => "Ship";
+					"swiatynia" => "Swiatynia";
+					"wejscie" => "Wejscie";
+					? => ;
+				}
+				gameapi.play;
+				}
+			? => ;
+		}
+	}
+	cbut_moveon	{
+		fxputpuz2.play;
+	}
+}
+
+game MenuTest : DziejeGame	{
+	init	{
+		DziejeGame::init("menutest");
+		.path = ("menus");
+		.sfxs = (A, "putpuz2 50");
+		//.subgamebg;
+		.imgs = (A, "bgtest.pyz", "napisytest.pyzH 10");
+		new Buttons cbut("menutest.pyz");
+	}
+	cbut_moveon	{
+		annapisytest.setframe( sobject, 0 );
+		annapisytest.show;
+		fxputpuz2.play;
+	}
+	cbut_moveoff	{
+		annapisytest.hide;
+	}
+	cbut_lclick	{
+		match( sobject )	{
+			"latwy" => "l";
+			"sredni" => "s";
+			"trudny" => "t";
+			? => ;
+		}
+		QuizMode = _;
+		gameapi.play("Quiz");
+	}
+}
+
+new bool bMenubaj = true;
+game MenuBaj : DziejeGame	{
+	init	{
+		if( igmdebug ) .EgiptSet;
+	
+		DziejeGame::init("menubaj");
+		.imgs = (A, "bkg.pyz", "start.pyz 10");
+		.sfxs = (A, "globbutmovon 50");
+		
+		new Button buts;
+		anstart.Button_isinalpha;
+		anstart.addmethod("butmoveon", func {
+			.cbselfplay("sndstart");
+			advmouse.setbut;
+			.setframe(-1,1);
+			fxglobbutmovon.play;
+			} );
+		anstart.Button_moveoff;
+		anstart.addmethod("butclick", func {	gameapi.play("cs1"); });
+		.sounds = (A,
+			"sndgo", "Rozpocznij przygody Chetiego od nowa lub wczytaj ostatni± grê", null,
+			"sndstart", "Rozpocznij grê", null
+			);
+		new gmimgvec grels;
+		"grels" .* "buts.pyz";
+		new classfullsave csav("saves/bajka.db");
+		csav.stdload;
+		grels.each( func { (@id)
+			.Button_stdalpha;
+			if( !csav.bis(.actionname) )	.hide;
+			if( igmdemo && id>0)	{
+				new anima anp;
+				anp.copy("anpieczatka");
+				anp.setpos( .getcx, .getcy);
+				anp.show;
+			}
+			.addmethod("butclick", func {
+				if( igmstate!=0 || igmdemo ) return;
+				.cactsndstop(false);
+				igmstate = 1;
+				clsave.free;
+				match( .actionname )	{
+					//"pole" => .madv("pole", "gamepole1");
+					"pole" =>	ccs.close( func { .gotoadv("pole", "gamepole0"); } );
+					"gospodarstwo" => ccs.close( func {	.madv("gospodarstwo", "gamegospodarstwo");	} );
+					"dom" =>	ccs.close( func {.madv("domek", "gamedomek"); } );
+					"kanaly" =>	ccs.close( func {gameapi.play("Kanaly"); } );
+					"kamieniolom" =>	{
+						ccs.close( func {.gotoadv("namiestnik", "gamenamiestnik"); } );
+						}
+					"liczby" =>	{
+						ccs.close( func {.gotoadv("kam3", "gamekam3"); } );
+					}
+					"sztabki" =>	{
+						ccs.close( func {
+							clsave.set("epizod", "namiestnik_sztabki");
+							.gotoadv("namiestnik", "gamenamiestnik"); } );
+					}
+					"statek" =>	{
+						ccs.close( func {BajkaNr = 2;
+							gameapi.play("Bajka"); } );
+					}
+					"swiatynia" =>	{
+						ccs.close( func {BajkaNr = 3;
+							gameapi.play("Bajka"); } );
+					}
+					"maluje" => {
+						ccs.close( func {.madv("sw2", "gamesw2"); } );
+					}
+					"naszyjnik" =>	{	ccs.close( func {BajkaNr=4; gameapi.play("Bajka"); } );	}
+					"moda" =>	ccs.close( func {gameapi.play("Bal"); } );
+					"bari" =>	ccs.close( func {gameapi.play("Areszt1"); } );
+					"miasto" =>	ccs.close( func {gameapi.play("City"); } );
+					"golden" =>	ccs.close( func {gameapi.play("MK1"); } );
+					? => ;
+				}
+				} );
+			} );
+		buts.add("anstart");
+		buts.addgroup("grels");
+		if( bMenubaj )	{
+			bMenubaj = false;
+			.cbplay("sndgo");
+		}
+	}
+	madv(string spath, string sgame)	{
+		sgmglobpath = spath;
+		sgmgame = sgame;
+		gameapi.play(sgame);
+	}
+}

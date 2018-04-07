@@ -1,0 +1,23 @@
+public transparent	{	return 0,0,0,0;	}
+public red			{	return 255,0,0;	}
+public green		{	return 0,255,0;	}
+public blue			{	return 0,0,255;	}
+public white		{	return 255,255,255; }
+public black		{	return 0,0,0;		}
+public grey(int c)	{	return c,c,c;		}
+public yellow		{	return 255,255,0;	}
+
+class Color	{
+	init	{
+		.vars(A,"r","g","b","a");
+	}
+	operator=(string scol)	{	this.set( <scol>.get() );	}
+	img=(@simg)	{
+		|r,g,b,a| = <simg>.getrgba( classansearcher::firstnotrx1y(simg) );
+	}
+	get			{	return r,g,b,a;	}
+	set(int r2, int g2, int b2, int a2)	{	|r,g,b,a| = r2,g2,b2,a2;	}
+	rgb=(int r2, int g2, int b2)	{	|r,g,b|=r2,g2,b2;	}
+	rgb	{	return r,g,b;	}
+	print	{	engine.print("Color::" + this + " (r,g,b,a) = ("+r+","+g+","+b+","+a+")");	}
+}

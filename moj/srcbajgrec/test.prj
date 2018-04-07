@@ -1,0 +1,11 @@
+path:
+	srcbajgrec/
+
+src:
+	games/gm_test.odd
+
+all:
+	dd1.dag
+
+out:
+	srcbajgrec/test.odd

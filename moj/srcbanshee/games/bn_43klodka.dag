@@ -1,0 +1,148 @@
+
+game mg43_klodka :Banshee {
+	init{
+		Banshee::init("mg43_klodka");
+		.imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2","lancuch.pyz 3", "klodka_close.pyz 4", "klodka_open.pyzH 6","skobel.pyz 7", "oliwienie.pyzH 8", "klucz_open.pyz 9","oliwiarka.pyzH 10", "oliwiarka_push.pyzH 11", "ramka.pyz 12","popexit.pyz 13" );
+		.butpopexit;
+		.butpopexitisinramka; 
+		.sfxs = (A,"bgrsala2N 10", "skrzypienie_podlogiN 10", "oil", "odklucza2", "szufladaklik") ;
+	 	/*if (!clsave.bis("e1_mg43_klodka_oliwiarka_dodana")) //testy
+		{
+			.addtopck("oliwiarka"); 
+			clsave.bset("e1_mg43_klodka_oliwiarka_dodana");
+		}  
+		*/ 
+		.newsndfree("snd_cantopen", "kinnat_c4d4_37a");
+		snd_cantopen.addmethod("onfinish", "advsetstdstate");
+
+		.newsndfree("snd_naoliwione", "kinnat_c4d4_37b");
+		snd_naoliwione.addmethod("onfinish", "advsetstdstate");		
+		
+		 
+		
+		if (!clsave.bis("e1_mg43_klodka_otwarta"))
+		{
+			anklucz_open{
+				.Button_isin;
+				.addmethod("butmoveon", func {
+					 
+					if(!clsave.bis("e1_mg43_klodka_naoliwiona") )
+						 advmouse.set("use");
+					else
+						advmouse.set("take");	
+				} );
+				.addmethod("butmoveoff", func {
+ 
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+					if( !.advstdstate ) return;
+					 
+					if(clsave.bis("e1_mg43_klodka_naoliwiona") )
+					{
+						advmouse.setstd;
+						butgame.removebut(this);
+						.play(0);		
+						clsave.bset("e1_mg43_klodka_otwarta");  
+						fxodklucza2.play; 
+					}
+					else
+						.cbplay("snd_cantopen");
+					
+				.addmethod("onfinish", func { 
+					anklodka_close.anfadeout(500,null);
+					anklodka_open.anfadein(500, null );
+					anoliwienie.anfadeout(500,null);
+					.hide;
+						 
+				});	 
+				} );
+				butgame.add(this);
+			};
+		}
+		anklodka_open	{
+			.Button_isin;
+			.addmethod("butmoveon", func {
+				 
+				advmouse.set("take");
+				 
+			} );
+			.addmethod("butmoveoff", func {
+				 
+				  advmouse.setstd;
+				} ); 
+			.addmethod("butclick", func {
+				if( !.advstdstate || !clsave.bis("e1_mg43_klodka_naoliwiona")) return;
+				advmouse.setstd;
+				.stdpiorko("n033"); 
+				.set_mg_finished; 
+				anklodka_open.play(1);
+				anlancuch.anfadeout(1000,"timfinito");
+				anklodka_open.anfadeout(1000, null); 
+				fxszufladaklik.play;  
+				butgame.removebut(this);
+					
+			} );
+			butgame.add(this);
+		};
+		
+		 
+		
+		anoliwienie.addmethod("onfinish", func { anoliwiarka.anfadeout(500,null);anoliwiarka_push.anfadeout(500,null);.advsetstdstate; .cbplay("snd_naoliwione"); });
+		 
+		if (clsave.bis("e1_mg43_klodka_otwarta"))
+		{
+			anklodka_close.hide;
+			anklodka_open.show;
+			anoliwienie.hide;
+			anklucz_open.hide;
+			
+		}
+		
+		if (clsave.bis("e1_mg43_klodka_naoliwiona") && !clsave.bis("e1_mg43_klodka_otwarta"))
+		{
+			anoliwienie.setframe(0,7);
+			anoliwienie.show;
+		}
+		 
+		.stdstart;  
+		 
+		}// koniec init 
+  
+	mend	{
+		.stdexitdefadv("ad43_pokoj", "gamead43_pokoj0"); 
+	}
+	
+	USE_oliwiarka	{
+		.advsetstdstate; 
+		if(anklucz_open.isin(mouse.getpos,0,0) ){
+			clsave.bset("e1_mg43_klodka_naoliwiona");
+			.removefrompck("oliwiarka");
+			anoliwiarka.anfadein(800,func{anoliwiarka_push.anfadein(800,func{anoliwienie.play(0); }); }); 
+			fxoil.play; 
+			advmouse.set("take");  
+		} 
+		else {
+		  .item_gotopck;
+		}
+	}  
+  
+	HINT_CLICK {
+		if (clsave.bis("ma_oliwiarka"))
+		{
+			.showhintitem("oliwiarka");
+			.showhint("anklucz_open"); 
+		} 
+		else if (clsave.bis("e1_mg43_klodka_naoliwiona"))
+		{
+			.showhint("anklucz_open"); 
+		}
+		else if (clsave.bis("e1_mg43_klodka_otwarta"))
+		{
+			.showhint("anklodka_open"); 
+		}
+		else
+			.showhint("anpopexit");   
+	}
+}
+ 

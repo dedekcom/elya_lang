@@ -1,0 +1,86 @@
+class classquest	{
+	init()	{
+		new vector vqst;
+		vqst.type("string");
+	}
+	int isdone(string sqst)	{	return vqst.contains(sqst);	}
+	int notdone( string sqst )	{	return !vqst.contains(sqst);	}
+	done(string sqst)	{	if( !vqst.contains(sqst) )	vqst.add(sqst);		}
+	reset()	{	vqst.free();	}
+	save(string sfile)	{	vqst.save( sfile );	}
+	load(string sfile)	{	vqst.load( sfile );	}
+}
+
+new classquest clqs;
+
+/***************************************************************************/
+
+public winsave(string sval)	{
+	new db _db_win;
+	_db_win.load("output.db");
+	@id = _db_win.addrow-1;
+	_db_win.add(id, sval);
+	_db_win.save("output.db");
+	delete _db_win;
+}
+
+public saveexist(string sfile)	{
+	/*if( igmwinlocal ) engine.fileexist( .getwinpath(sfile) );
+	else engine.fileexist(sfile);*/
+	engine.fileexist( .getsavepath + sfile );
+}
+
+public vecsave(string sfile)	{
+	.save( .getsavepath + sfile );
+}
+public vecload(string sfile)	{
+	.load( .getsavepath + sfile );
+}
+
+
+class classfullsave	{
+	init(string sfile)	{
+		new db dbsav;
+		new string sstdfile;
+		.setfile(sfile);
+	}
+	public save(string sfile)	{
+		if( .saveexist(sfile) )
+			dbsav.save( .getsavepath + sfile );
+	}
+	public load(string sfile)	{
+		if( .saveexist(sfile) )
+			dbsav.load( .getsavepath + sfile );
+	}
+	public print()	{	dbsav.print();	}
+	public setfile(string sf)	{	sstdfile = sf;	}
+	public stdload()	{	this.load(sstdfile);	}
+	public stdsave()	{	this.save(sstdfile); }
+	public free()	{	dbsav.free();	}
+	public set(string sname, string svar)	{
+		int id = dbsav.findbyrow(sname);
+		if( id>=0 )	{
+			dbsav.set(id,1,svar);
+		} else {
+			id = dbsav.addrow()-1;
+			dbsav.add( id, sname );
+			dbsav.add( id, svar );
+		}
+		this.stdsave();
+	}
+	public bset(string sname)	{	this.set(sname,true);	}
+	public string get(string sname)	{
+		int id = dbsav.findbyrow(sname);
+		return id>=0?dbsav.get(id,1):null;
+	}
+	public bool is(string sname, string svar)	{
+		int i = dbsav.findbyrow(sname);
+  		return i>=0?dbsav.get(i,1)==svar:false;
+	}
+	//public bool bis(string sname)	{	return this.is(sname,true);	}
+	public bool bis(string sname)	{
+		int i = dbsav.findbyrow(sname);
+		return i>=0?dbsav.get(i,1)!=false:false;
+	}
+}
+

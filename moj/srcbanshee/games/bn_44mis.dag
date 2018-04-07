@@ -1,0 +1,128 @@
+
+game mg44_mis : Banshee	{
+	init	{
+		Banshee::init("mg44_mis");
+		//  .addtopck("sztylet"); //testy
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2","misio_mask.pyzH 3",  "misio_rozpruty.pyzH 4", "eliksir_czerwony.pyzH 5","szew_anim.pyzH 6","ciecie_anim.pyzH 7",
+			"popexit.pyz 45", "ramka.pyz 42");
+		.butpopexit;
+		.butpopexitisinramka; 
+		.sfxs = (A,"bgrszumN 10", "bgrwiatrN 10", "skrzypienie_podlogiN 10", "noz" , "hofound 40") ;
+		 
+		anciecie_anim.addmethod("onfinish",func{anciecie_anim.anfadeout(500,null); anmisio_rozpruty.show;aneliksir_czerwony.butenable;});
+		 
+		 
+
+		//if (!clsave.bis(save_prefix+"intro_spoken"))
+		//{
+			.newsndfree("snd_intro", "kinnat_c4d4_40");
+			snd_intro.addmethod("onfinish", "advsetstdstate");  
+		//	.cbplay("snd_intro"); 
+		//	clsave.bset(save_prefix+"intro_spoken");			
+		// }  	 
+
+		if (!clsave.bis("taken_eliksir_czerwony") )
+		{
+			.setasitemtopck("aneliksir_czerwony");
+			aneliksir_czerwony.show();
+			if (!clsave.bis("e1_mg44_mis_rozpruty"))
+			{
+				aneliksir_czerwony.butdisable;  
+				aneliksir_czerwony.hide;
+			}
+			
+		} 
+		 
+		
+		if(!clsave.bis("e1_mg44_mis_rozpruty"))
+		{
+			anmisio_mask{
+				.addmethod("isbutin", func { (int x, int y)
+    			   .isin(x,y,0,1) &&  !clsave.bis("e1_mg44_mis_rozpruty");
+    				} );  
+				.addmethod("butmoveon", func {
+					if( (!.advstdstate  && sgmstate!="getitem" )  || clsave.bis("e1_mg44_mis_rozpruty")) return;
+						advmouse.set("use");
+					 
+				} );
+				.addmethod("butmoveoff", func {
+					 
+					  advmouse.setstd;
+					} ); 
+					
+				.addmethod("butclick", func {
+					if( !.advstdstate ) return;
+						if(!clsave.bis("e1_mg44_mis_rozpruty"))
+							.cbplay("snd_intro"); 
+					} );	
+				 
+				 
+				
+				butgame.add(this);
+			};   	
+		}
+		
+		if (clsave.bis("e1_mg44_mis_rozpruty"))
+		{
+			anmisio_rozpruty.show;	
+		}
+		else
+		{
+			anszew_anim.anopacityframe;   
+			anszew_anim.play(0);
+			advmouse.set("use");
+		}
+		
+		
+		.stdstart;
+	}
+	
+	mend	{
+		.stdexitdefadv("ad44_strych", "gamead44_strych0");
+	}
+	
+	aneliksir_czerwony_TAKE	{	
+		.set_mg_finished;
+		.popitem_gotocenter("eliksir_czerwony");	
+	}
+	
+	aneliksir_czerwony_INPCK {
+      .addtopck("eliksir_czerwony");
+	  .timfinito;
+    }  
+	
+	USE_sztylet	{
+		.advsetstdstate();
+		if( anmisio_mask.isin(mouse.getpos,0,0) && !clsave.bis("e1_mg44_mis_rozpruty") )	{
+		 
+			.removefrompck("sztylet");
+			anciecie_anim.play(0); 
+			clsave.bset("e1_mg44_mis_rozpruty"); 
+			anszew_anim.stop(true);
+			anszew_anim.hide;
+			aneliksir_czerwony.anfadein(1500,func{fxhofound.play;}); 
+			advmouse.setstd;	
+		} else {
+			.item_gotopck;
+		}
+	}  	 
+	
+	
+	HINT_CLICK	{
+		if (clsave.bis("ma_sztylet"))
+		{
+			.showhint("anmisio_mask"); 
+			.showhintitem("sztylet");
+			 
+		} 
+		else if(clsave.bis("e1_mg44_mis_rozpruty"))
+		{
+			.showhint("aneliksir_czerwony");
+		}
+
+		else	
+			.showhint("anpopexit");
+	}
+	 
+}
+

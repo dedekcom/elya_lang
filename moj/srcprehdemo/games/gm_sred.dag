@@ -1,0 +1,32 @@
+game Sredniowiecze : Epoka	{
+	init	{
+		Epoka::init("sredniowiecze");
+	}
+	mouse_move	{
+		.lekcjamove;
+	}
+	mouse_lclick	{
+		.lekcjaclick;
+	}
+}
+
+game Prehistoria : Epoka	{
+	init	{
+		if( igmdemo )	{
+			new vector vblok;
+			vblok.type("string");
+			vblok.beginadd("begin", "mamuty", "lbizon", "ltrzcina", "ozdoby", "stone",
+				"mlotek", "jaskinia", "igla", "lmamut", "ogien", "siekiera", "maczuga", "domek", "ubrania", "mapa");
+		}
+		Epoka::init("prehistoria");
+	}
+	mouse_move	{
+		.lekcjamove;
+	}
+	mouse_lclick	{
+		.lekcjaclick;
+	}
+	keydown	{
+// 		if( igmdebug && keyboard.iskey("space") )	gameapi.play("Opowiesc");
+	}
+}

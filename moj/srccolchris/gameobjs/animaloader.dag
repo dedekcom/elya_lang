@@ -1,0 +1,62 @@
+
+public animaloader_load(string sdbfile)	{
+	new db _dbanl;
+	_dbanl.loadbeh( .getpath(sdbfile) );
+	string s[3];
+	int col;
+	for( int i=0; i< _dbanl.getrowsno; i++) 	{
+		if( _dbanl.getcolsno(i) > 0 )	{
+			col = 0;
+			match(_dbanl.get(i,col))	{
+				"an:" => {
+					col++;
+					s0 = _dbanl.get(i,col); col++;
+					if( s0.contains(".pyz") )	{
+						s1 = "an" + s0.strsubes(".pyz");
+						.newanima(s1, s0, 0);
+					} else {
+						.copyanima( _dbanl.get(i,col) , s0 );
+						col++;
+					}
+					for( int j=col; j<_dbanl.getcolsno(i); j++)	{
+						match( _dbanl.get(i,j) )	{
+							"-z" => {
+								j++;
+								<s1>.setz( _dbanl.get(i,j) );
+							}
+							"-hide" => <s1>.hide;
+							"-opacityframe" => <s1>.anopacityframe;
+							"-nplay" => {
+								j++;
+								<s1>.play( _dbanl.get(i,j)->to_i );
+							}
+							"-play" => {
+								j++;
+								<s1>.play( _dbanl.get(i,j) );
+							}
+							"-delay" => {
+								j++;
+								<s1>.setdelay( _dbanl.get(i,j) );
+							}
+							"-drawmode" => {
+								s0 = _dbanl.get(i,j);	j++;
+								if( s0=="lineardodge" )	{
+									<s1>.setdrawmode(1);
+								}
+							}
+							"-hideonstart" => {
+								<s1>.anhideonsetframe;
+							}
+							? => j = .animaloader_an(s1, "_dbanl", i, j);
+						}
+					}
+				}
+				? => ;
+			}
+		}
+	}
+}
+
+public animaloader_an(string san, string sdb, int row, int col)	{
+	col;
+}

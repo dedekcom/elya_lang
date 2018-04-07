@@ -1,0 +1,14 @@
+/*************************************************************************/
+class LangTxt	{
+	init(string sdbfile)	{
+		.lang_db("dblt", sdbfile);
+	}
+	get(string s)	{	dblt.get( dblt.findbyrow(s), 1 );	}
+	getvec(string svec, string s)	{
+		@id = dblt.findbyrow(s);
+		<svec>.free;
+		for( int i=1; i< dblt.getcolsno(id); i++)	{
+			<svec>.add( dblt.get(id, i) );
+		}
+	}
+}

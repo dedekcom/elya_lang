@@ -1,0 +1,108 @@
+
+game Wedka : StdGame	{
+	init	{
+		StdGame::init("wedka");
+		
+// 		wedka.pyz  linka.pyz  klucz.pyz  mirmil.pyz  drzewo.pyz  bkg.pyz
+		
+		.imgs = (A, "bkg.pyz", "drzewo.pyz 50", "mirmil.pyzP 10", "klucz.pyz 20", "linka.pyz 60", "wedka.pyz 70", "haczyk.pyzH");
+		
+		.sounds = (A, ":kajko1", "Rany Kokosz nie zahacz tylko Mirmi³a bo zrobi± z nas zamachowców", func { .cbplay("kokosz1"); },
+			":kokosz1", "Nie doceniasz moich wêdkarskich talentów; Ja spróbujê z³owiæ klucz a ty patrz czy nikt nie nadchodzi",
+				func { igmstate=1; },
+			":kokosz2", "Mam go!", func { .cbplay("kajko2"); },
+			":kajko2", "¦wietnie! Przyci±gnij powoli wêdkê", func { timend.play; },
+			":kajko3", "Czasami mnie zaskakujesz; Wspania³a robota Kokosz!", func { .cbplay("kokosz3"); },
+			":kokosz3", "Z pe³nym brzuchem jestem m±dry jak ciotka Jaga; Ta sama krew!",
+				func { ccs.close( func { .gotoadv("adbudowa", "gameadbudowa0"); } ); }
+			);
+		
+		new filter ftlina;
+		ftlina.link("anlinka");
+		ftlina.setpivottype(2);
+		new filter fthak;
+		fthak.link("anhaczyk");
+		fthak.setpivottype(2);
+		
+		anwedka.play(0);
+		anwedka.addmethod("onsetframe", "updatelinka");
+		.updatelinka;
+		
+		new vector vrot;
+		vrot.beginadd("begin", 5,5,9,9,12,12,14,14,14,15,15,15);
+		for( int i=vrot.size; i>0; i--)	vrot.add(vrot.get(i-1));
+		for( int i=vrot.size; i>0; i--)	vrot.add(-vrot.get(i-1));
+		new int idvrot = 0;
+		.cycle = ("timrot", func {
+			if( igmstate==1 || igmstate==0 )	{
+				ftlina.setrotate(vrot.get(idvrot));
+				fthak.setrotate(vrot.get(idvrot));
+				idvrot = (idvrot+1)%vrot.size;
+			} else if ( igmstate==2 )	{
+				ftlina.setrotate(0);
+				//fthak.setrotate(0);
+			}
+			.play;
+			} );
+		timrot.play;
+		anwedka.addmethod("onfinish", func {
+			if( .actionname == "up" )	{
+				if( igmstate == 3 )	{
+					//igmstate = 4;
+					.cbplay("kokosz2");
+				} else {
+					fthak.link("anhaczyk");
+					.play(0);
+					igmstate = 1;
+				}
+			}
+			} );
+		.cycle = ("timend", func {
+			anwedka.move(-10,10);
+			.updatelinka;
+			if( anwedka.getpy > 600 )	{
+				.cbplay("kajko3");
+			} else .play;
+			} );
+		
+		.sfxs = (A, "bgrout2N 70", "zamach2", "mlot1 40");
+		.timer = ("timmlot", 1000, func {
+			fxmlot1.play; .play; } );
+		timmlot.play;
+		
+		ccs.enter( func { .cbplay("kajko1"); } );
+	}
+	updatelinka	{
+		anlinka.setpos(anwedka.getex-10, anwedka.getpy+2);
+		anhaczyk.setpos(anwedka.getex-10, anwedka.getpy+2);
+		
+		if( igmstate==2 )	{
+			if( anklucz.isin(anhaczyk.getcx, anhaczyk.getcy,0,0) )	{
+				igmstate = 3;
+				anklucz.setz(anlinka.getz-1);
+				mus.playstr("zwyciestwo.ogg -v 50");
+			}
+		}
+		if (igmstate == 3)	{
+			anklucz.ansetbpos(anhaczyk.getpx-13, anhaczyk.getpy);
+		}
+	}
+	mouse_move	{
+		if( igmstate==1 || igmstate==0 )	{
+			anwedka.setpos(mouse.getpx, .between(100, mouse.getpy, iResY));
+			.updatelinka;
+		}
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+		if( igmstate==1 )	{
+			igmstate = 2;
+			anwedka.play(1);
+			fthak.setrotate(0);
+			fthak.unlink;
+			.updatelinka;
+			fxzamach2.play;
+		}
+	}
+}
+

@@ -1,0 +1,332 @@
+
+game mg08_doniczki :Banshee {
+	init{
+    Banshee::init("mg08_doniczki");
+    
+  //  mus.playstr("adventure_loop -v 30 -l");
+    .sfxs = (A, "bgrwiatrN 30", "wlewa1", "swist1");
+    .imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2","wyspa.pyzH 3", "doniczka1.pyz 3", "doniczka2.pyz 4", "doniczka3.pyz 5", "ziarenko1.pyzH 5", "ziarenko2.pyzH 6", "ziarenko3.pyzH 7", "elixir1.pyzH 8", "roslinka1.pyzH 9", "elixir2.pyzH 10", "roslinka2.pyzH 11", "elixir3.pyzH 12", "roslinka3.pyzH 13", "ramka.pyz 14",   "popexit.pyz 25");
+      
+    /*  if (!clsave.bis("e1_ad08_doniczki_items_added")) //testy
+      {
+        .addtopck("ziarno"); 
+        .addtopck("elixir");
+        
+        clsave.bset("e1_ad08_doniczki_items_added");
+      }  
+	*/
+	
+    anpopup_bkg {
+  		.Button_isinalpha;
+  		butgame.add(this);
+  	};
+    
+	.butpopexit;  
+    
+	anelixir1.addmethod("onfinish",func{ .hide; .advsetstdstate;}); 
+    anelixir2.addmethod("onfinish",func{ .hide; .advsetstdstate;}); 
+    anelixir3.addmethod("onfinish",func{ .hide; .advsetstdstate;}); 
+   
+	.newsndfree("snd_ziarenka", "kinnat_c1d1_26g");
+	snd_ziarenka.addmethod("onfinish", "advsetstdstate");  
+	
+	.newsndfree("snd_eliksir", "kinnat_c1d1_26gh");
+	snd_eliksir.addmethod("onfinish", "advsetstdstate"); 
+  
+  
+	imgbkg {
+		.Button_isinalpha;
+		.addmethod("butclick", func {
+		if( !.advstdstate || sgmstate == "getitem" || sgmstate == "anim" ) return;
+			.mend;
+		} );
+		butgame.add(this);
+	};       
+	    
+       
+     
+     if (clsave.bis("e1_ad08_doniczka1_ziarno_in"))
+     {
+        anziarenko1.show();
+     }
+     
+     if (clsave.bis("e1_ad08_doniczka2_ziarno_in"))
+     {
+        anziarenko2.show();
+     }
+     
+     if (clsave.bis("e1_ad08_doniczka3_ziarno_in"))
+     {
+        anziarenko3.show();
+     }
+     
+      if (clsave.bis("e1_ad08_doniczka1_elixir_in"))
+     {
+        anroslinka1.play(1);
+     }
+     
+     if (clsave.bis("e1_ad08_doniczka2_elixir_in"))
+     {
+         anroslinka2.play(1);
+     }
+     
+     if (clsave.bis("e1_ad08_doniczka3_elixir_in"))
+     {
+         anroslinka3.play(1);
+     }
+	 
+	if (clsave.bis("e1_wyspa_wleciala"))
+    {
+		anwyspa.show();
+	}
+     
+     if (!clsave.bis("e1_ad08_doniczka1_elixir_in"))
+        andoniczka1{
+			.Button_isinvis;
+			.addmethod("butmoveon", func {
+					if( (!.advstdstate && sgmstate!="getitem") || clsave.bis("e1_ad08_doniczka1_elixir_in")) return;
+					  if (!clsave.bis("e1_ad08_doniczka1_elixir_in"))
+						advmouse.set("use"); 
+				else
+				   advmouse.setstd;  
+			} );
+			.addmethod("butmoveoff", func {
+				 
+				  advmouse.setstd;
+			} );
+			.addmethod("butmoveoff", func {
+				advmouse.setstd;
+			} );
+			
+			.addmethod("butclick", func {
+				if (!clsave.bis("e1_ad08_doniczka1_ziarno_in"))
+					.cbplay("snd_ziarenka");	
+				else if (!clsave.bis("e1_ad08_doniczka1_elixir_in"))
+					.cbplay("snd_eliksir");		
+			} );
+			 
+			 		
+			butgame.add(this);
+      }; 
+      
+      if (!clsave.bis("e1_ad08_doniczka2_elixir_in"))
+        andoniczka2{
+        .Button_isinvis;
+        .addmethod("butmoveon", func {
+  				if( (!.advstdstate && sgmstate!="getitem") || clsave.bis("e1_ad08_doniczka2_elixir_in")) return;
+  				  if (!clsave.bis("e1_ad08_doniczka2_elixir_in"))
+              advmouse.set("use"); 
+            else
+               advmouse.setstd;  
+        } );
+		
+		.addmethod("butmoveoff", func {
+			advmouse.setstd;
+		} ); 
+		
+		.addmethod("butclick", func {
+			if (!clsave.bis("e1_ad08_doniczka2_ziarno_in"))
+				.cbplay("snd_ziarenka");	
+			else if (!clsave.bis("e1_ad08_doniczka2_elixir_in"))
+				.cbplay("snd_eliksir");		
+		} );
+		
+        butgame.add(this);
+      };
+      if (!clsave.bis("e1_ad08_doniczka3_elixir_in"))
+        andoniczka3{
+        .Button_isinvis;
+        .addmethod("butmoveon", func {
+  				if( (!.advstdstate && sgmstate!="getitem") || clsave.bis("e1_ad08_doniczka3_elixir_in")) return;
+  				  if (!clsave.bis("e1_ad08_doniczka3_elixir_in"))
+              advmouse.set("use"); 
+            else
+               advmouse.setstd;  
+        } );
+		
+		.addmethod("butmoveoff", func {
+			 advmouse.setstd;
+		} ); 
+		.addmethod("butclick", func {
+			if (!clsave.bis("e1_ad08_doniczka3_ziarno_in"))
+				.cbplay("snd_ziarenka");	
+			else if (!clsave.bis("e1_ad08_doniczka3_elixir_in"))
+				.cbplay("snd_eliksir");		
+		} );
+          
+		butgame.add(this);
+      }; 
+
+ 
+      
+    .stdstart; 
+  } // koniec init 
+   
+   
+  
+  ziarno_completed()
+  {
+   clsave.bislist("e1_ad08_doniczka1_ziarno_in & e1_ad08_doniczka2_ziarno_in & e1_ad08_doniczka3_ziarno_in");
+  }
+  
+  elixir_completed()
+  {
+   clsave.bis("e1_ad08_doniczka1_elixir_in") && clsave.bis("e1_ad08_doniczka2_elixir_in") && clsave.bis("e1_ad08_doniczka3_elixir_in");
+  }
+   
+  
+   USE_ziarno {
+        .advsetstdstate; 
+        if( andoniczka1.isin(mouse.getpos,1,0) && !clsave.bis("e1_ad08_doniczka1_ziarno_in") )	{
+			clsave.bset("e1_ad08_doniczka1_ziarno_in");
+			anziarenko1.play(1);
+			if (!.checktouchpad)
+			{
+				.advsetstate("getitem");
+				guimov.setmoved("anitem_ziarno");
+			}
+			else
+			{
+				.item_gotopck; 
+			}
+          fxswist1.play;
+          if(.ziarno_completed)
+          { 
+            .removefrompck("ziarno");
+             guimov.free;
+            .advsetstdstate; 
+          }
+          else
+              anitem_ziarno.anfadeout(200,func{anitem_ziarno.anfadein(800,func{.advsetstdstate;} );}); 
+              
+        } else if( andoniczka2.isin(mouse.getpos,1,0) && !clsave.bis("e1_ad08_doniczka2_ziarno_in") )	{
+    			clsave.bset("e1_ad08_doniczka2_ziarno_in");
+    		    anziarenko2.play(1);
+				if (!.checktouchpad)
+				{
+					.advsetstate("getitem");
+					guimov.setmoved("anitem_ziarno");
+				}
+				else
+				{
+					.item_gotopck; 
+				}
+				fxswist1.play;
+          if(.ziarno_completed)
+          { 
+            .removefrompck("ziarno");
+             guimov.free;
+            .advsetstdstate; 
+          }
+          else
+              anitem_ziarno.anfadeout(200,func{anitem_ziarno.anfadein(800,func{.advsetstdstate;} );}); 
+              
+        } else if( andoniczka3.isin(mouse.getpos,1,0) && !clsave.bis("e1_ad08_doniczka3_ziarno_in") )	{
+    			 clsave.bset("e1_ad08_doniczka3_ziarno_in");
+           anziarenko3.play(1);
+			if (!.checktouchpad)
+			{
+				.advsetstate("getitem");
+				guimov.setmoved("anitem_ziarno");
+			}
+			else
+			{
+				.item_gotopck; 
+			}
+           fxswist1.play;
+           if(.ziarno_completed)
+           { 
+            .removefrompck("ziarno");
+             guimov.free;
+            .advsetstdstate; 
+            }
+            else
+              anitem_ziarno.anfadeout(200,func{anitem_ziarno.anfadein(800,func{.advsetstdstate;} );}); 
+            
+        }  else .item_gotopck; 
+         
+    } 
+    
+    
+    
+    go_to_next_location{
+		clsave.set("sysmap_actmap",2);
+		.watch_film("cs08_doniczki", "-def", "ad12_latajacecosna");    
+    }
+    
+    elixir_on_doniczka(int id)	{
+	if( <"andoniczka"+id>.isin(mouse.getpos,1,0) && clsave.bis("e1_ad08_doniczka"+id+"_ziarno_in") && !clsave.bis("e1_ad08_doniczka"+id+"_elixir_in") )	{
+		clsave.bset("e1_ad08_doniczka"+id+"_elixir_in");
+		<"anelixir"+id>.play(1);
+		<"anroslinka"+id>.play(0);
+		 
+		if (!.checktouchpad)
+		{
+			.advsetstate("getitem");
+			guimov.setmoved("anitem_elixir");
+		}	
+		butgame.removebut("andoniczka"+id);
+		fxwlewa1.play;
+		if(.elixir_completed)	{ 
+			.removefrompck("elixir");
+			guimov.free;
+			.advsetstdstate;
+			.set_mg_finished(); 
+			.go_to_next_location();
+			 
+		} else
+		{
+			if (.checktouchpad)
+			{
+				.item_gotopck; 
+			}
+			advmouse.setstd;	
+			anitem_elixir.anfadeout(200,func{anitem_elixir.anfadein(800,func{.advsetstdstate; advmouse.setstd; } );});
+		}
+		true;
+	} else false;
+    }
+    USE_elixir {
+        .advsetstdstate; 
+        if( .elixir_on_doniczka(1) ) {}
+        else if( .elixir_on_doniczka(2) ) {}
+        else if( .elixir_on_doniczka(3) ) {}
+	else .item_gotopck; 
+    }
+  
+  
+  mend	{
+    if (.is_mg_finished)
+      .stdexitdefadv("ad12_latajacecosna", "gamead12_latajacecosna0");
+    else
+      .stdexitdefadv("ad08_latajacecospod", "gamead08_latajacecospod0");
+  }
+  
+  HINT_CLICK {
+	if( clsave.bis("ma_ziarno") )	{
+		if (!clsave.bis("e1_ad08_doniczka1_ziarno_in") ) {
+			.showhintitem("ziarno");
+			.showhint("andoniczka1");
+		} else if (!clsave.bis("e1_ad08_doniczka2_ziarno_in") ) {
+			.showhintitem("ziarno");
+			.showhint("andoniczka2");
+		} else if (!clsave.bis("e1_ad08_doniczka3_ziarno_in") ) {
+			.showhintitem("ziarno");
+			.showhint("andoniczka3");
+		}
+	} else if ( clsave.bis("ma_elixir") )	{
+		if (!clsave.bis("e1_ad08_doniczka3_elixir_in") )	{
+			.showhintitem("elixir");
+			.showhint("andoniczka3");
+		} else if (!clsave.bis("e1_ad08_doniczka2_elixir_in") )	{
+			.showhintitem("elixir");
+			.showhint("andoniczka2");
+		} else if (!clsave.bis("e1_ad08_doniczka1_elixir_in") )	{
+			.showhintitem("elixir");
+			.showhint("andoniczka1");
+		}  
+	} else
+		.showhint("anpopexit"); 
+  }       
+}
+ 

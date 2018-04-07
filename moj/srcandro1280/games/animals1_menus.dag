@@ -1,0 +1,112 @@
+
+new string sChosenAnimal = "panda";
+
+
+if( sgmproject.in(A, "AnimalPuzCol_Asia1", "Arcade_NelaZoo") )	{
+	new img imglobg;
+	imglobg.load("scripts/"+sgmpuzpref+"/menu/bgmenu.jpg");
+	new anima anbutstmp;
+	anbutstmp.load("scripts/"+sgmpuzpref+"/menu/buts.pyz");
+	for( int i=0; i<anbutstmp.nofactions; i++ )	{
+		anbutstmp.setframe(i,0);
+		imglobg.blit("anbutstmp");
+	}
+	delete anbutstmp;
+	new img imgbg2;
+	imgbg2.create(igmappw, igmapph, 129,181,10, 128);
+	imgbg2.setpos(imglobg.getpx, imglobg.getpy );
+	imglobg.blit("imgbg2");
+	delete imgbg2;
+	imglobg.hide;
+}
+
+game MenuAnimals : MermaidStd	{
+	init	{
+		imglobg.hide;
+		MermaidStd::init("menu");
+		
+		.imgs = (A, "bgmenu.jpg", "buts.pyzG 10", "butkolo.pyzH 30", "butpuz.pyzH 30");
+		.sfxs = (A, "lasergunshot1 40");
+		
+		anbutpuz.Button_addstdalpha;
+		anbutkolo.Button_addstdalpha;
+		
+		grbuts.eval( func {
+			if( .actionname->in(A, "slon", "malpa", "wielblad", "wol", "panda", "tygrys", "tukan", "rys",
+				"orangutan", "waran", "szop", "ges") )	{
+				.Button_stdalpha;
+				.addmethod("butclick", func {
+					if( .advstdstate )	{
+						sChosenAnimal = .actionname;
+						//.imgsetoverlay(.yellow,128);
+						//.stdexit("WyborAnimal");
+						<GAME> {
+							imgbgmenu.hide;
+							grbuts.hide;
+							imglobg.show;
+							.newanima("anzwierz", "$"+.getgamepath + "puzle/puz_"+sChosenAnimal+".pyz", 20);
+							.advsetstate("state_showbuts");
+							anzwierz.anzoomin(idymekdelay, func {
+								.advsetstate("state_checkgametype");
+								fxlasergunshot1.play;
+								anbutpuz.anzoomin(idymekdelay,null);
+								anbutkolo.anzoomin(idymekdelay,null);
+								} );
+						};
+					}
+					} );
+				butgame.add(this);
+				}
+			} );
+		
+		.cbutexit;
+		.loadasker;
+		.stdenter;
+	}
+	butclick_anbutexit	{	.askfor("OutroAnimals");	}
+	butclick_nostdstate_anbutexit	{
+		if( .advisstate("state_checkgametype") )
+			gameapi.play("MenuAnimals");
+	}
+	butclick_anbutpuz	{
+		if( .advisstate("state_checkgametype") ) {
+			sPuzleAnimalsExit = "MenuAnimals";
+			.stdexit("PuzleAnimals"); 
+		}
+	}
+	butclick_anbutkolo	{
+		if( .advisstate("state_checkgametype") ) {
+			sKoloAnimalsExit = "MenuAnimals";
+			.stdexit("KoloAnimals"); 
+		} 
+	}
+}
+
+
+game IntroAsia1 : MermaidStd	{
+	init	{
+		MermaidStd::init("intro");
+		
+		music.smixer = ("engine");
+		music.playstr("bgrlas1 -l -v 30");
+		
+		.img = ("bgintro.jpg");
+		ccs.enter(func {
+			.timplay("timend", 3000, "mend");
+			} );
+	}
+	mend	{	.stdexit("MenuAnimals");	}
+	mouse_lclick	{	.mend;	}
+}
+
+game OutroAnimals : MermaidStd	{
+	init	{
+		MermaidStd::init("outro");
+		.img = ("bgoutro.jpg");
+		ccs.enter(func {
+			.timplay("timend", 5000, "mend");
+			} );
+	}
+	mend	{	.stdexit("exit");	}
+	mouse_lclick	{	.mend;	}
+}

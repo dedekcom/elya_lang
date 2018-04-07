@@ -1,0 +1,380 @@
+
+game Dok : Kajuta	{
+	init	{
+		Kajuta::init("41dok");
+		.setsndbase("dok");
+		
+		.titsounds = (A, "lilian1", "Maj± batyskafy. Byæ mo¿e uda siê wypo¿yczyæ jeden.", "stdret",
+			":lilian2","Panel sterujacy uruchamiany jest na has³o. Rozjerzê siê w pobli¿u mo¿e znajde jak±¶ wskazókê dotycz±c± has³a.", "stdret",
+			":lilian3", "Chyba ju¿ mam wskazówkê i mogê spróbowaæ uruchomiæ panel sterujacy batyskafem.","stdret",
+			":lilian4", "Panel uruchomiony teraz mogê otworzyæ drzwi i mogê p³yn±æ.", "stdret"
+			);
+		
+		.imgs = (A, "41dok.jpg");
+		
+		mus.playstr("bgrdok.ogg -l -v 60");
+		.mexits;
+		
+		if (clsave.is("epizod", "e3_powrot") )	{
+			if( clsave.bis("haslo_wpisane") )	{
+				.dititblock(A, "42dokpanel", "41ho_dok");
+				.hodone("42dokpanel");
+				.hodone("41ho_dok");
+				.extohint("45dziob");
+			} else if( clsave.bis("e3_wzielamape") )	{
+				if( clsave.bis("e3_mafragmenthasla") )	{
+					.titblock(A, "45dziob", "41ho_dok");
+					.disablexit("41ho_dok");
+					.hodone("41ho_dok");
+					.extohint("42dokpanel");
+				} else {
+					.titblock(A, "45dziob", "42dokpanel");
+					.extohint("41ho_dok");
+				}
+			} else {
+				.titblock(A, "42dokpanel", "45dziob", "41ho_dok");
+				.extohint("34pokojadministracyjny");
+			}
+		}
+		
+		ccs.enter( func {
+			if (clsave.is("epizod", "e3_powrot") )	{
+				if( clsave.bgo("e3_dokenter") ) .txtplay("lilian1");
+				else if (clsave.bis("e3_wzielamape") && clsave.bgo("e3_dokszukahaslo") ) .txtplay("lilian2");
+				else if (clsave.last=="HODok")	.txtplay("lilian3");
+				else if (clsave.last=="HasloA") .txtplay("lilian4");
+				else igmstate=1;
+			}
+			} );
+	}
+	click_41ho_dok	{
+		clsave.bset("e3_mafragmenthasla");
+		.mprzejdz("HODok");
+	}
+	click_42dokpanel	{
+		.mprzejdz("HasloA");
+	}
+	click_45dziob	{
+		//.mprzejdz("Dziob");
+		.mprzejdz("Cs2Batyskaf");
+	}
+	click_34pokojadministracyjny	{
+		.mprzejdz("Pokojadministracyjny");
+	}
+	click_04podwodnemuzeum	{
+		.mprzejdz("Podwodnemuzeum");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Dokpanel : Kajuta	{
+	init	{
+		Kajuta::init("42dokpanel");
+		
+		.imgs = (A, "42dokpanel.jpg");
+		
+		//mus.playstr("titanic2.ogg -l -v 60");
+		.mexits;
+		.tohint(A, "grext");
+		.mstdenter;
+	}
+	click_41dok	{
+		.mprzejdz("Dok");
+	}
+	click_puzzle	{
+		.mprzejdz("Puzzle");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Szczelina : Kajuta1	{
+	init	{
+		Kajuta1::init("43szczelina");
+		.setsndbase("szczelina");
+		
+		.titsounds=(A, ":lilian1", "Mam ju¿ wszystkie zdjêcia. Magiczny fotograf uwieczni³ na kliszy ludzi i dzieki temu pozwoli³ im odej¶æ w spokoju. Magicznym miejscem jest Titanic.", "stdret",
+			":lilian2", "Wp³ywam do ¶rodka wraku.", "mend"
+			);
+		
+		.imgs = (A, "43szczelina.jpg");
+		
+		mus.playstr("mapa2.ogg -l -v 60");
+		.mexits;
+		//.tohint(A, "grext");
+		
+		.mbatyskaf;
+		
+		.mtimhelper;
+		
+		ccs.enter( func { .txtplay("lilian1"); } );
+	}
+	mend	{	.mprzejdz("Wnetrze");	}
+	click_44wnetrze	{
+		igmstate=0;
+		.txtplay("lilian2");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Wnetrze : Kajuta	{
+	init	{
+		Kajuta::init("44wnetrze");
+		.setsndbase("wnetrze");
+		
+		.loadsnddb;
+		.sounds = (A, ":duchoficera5","Witaj Lilian; Odkry³a¶ moj± tajemnicê; Nawet nie wiesz jak bardzo czeka³em na ciebie; Zrobi³em straszn± rzecz która poci±gnê³a za sob± tak wiele ¶mierci; Kiedy zorientowa³em siê; ¿e przez moje za¶lepienie zginê³o tak wielu ludzi rozpacz wypala moj± duszê; Nie pomog³em wtedy i d³ugo czeka³em na kogo¶ takiego jak ty aby pomóc im teraz",
+				func { .txtplay("lilian22"); },
+			":lilian22","Mam dla ciebie pier¶cionek Margaret", "stdret",
+				/*func {
+					anitemring.setpos( iResX/2, 0.35*iResY );
+					tcr.ahide;
+					clsave.set("item_ring",0);
+					.timplay("tim3", 2000, func { clduch.hideitem( "anitemring", func {
+						anitemring.hide;
+						.txtplay("duchoficera6");
+						} );
+						} );
+				},*/
+			":duchoficera6","Bo¿e! To jest pier¶cionek zarêczynowy który da³em Margaret; Zrobi³em straszn± rzecz; Jak mog³em byæ tak za¶lepiony; Ja j± kocha³em",
+				func { .txtplay("lilian23"); },
+			":lilian23","Daj mi proszê ostatni klucz, naprawiê czê¶æ twojego b³êdu z przesz³o¶ci",
+				func { .txtplay("duchoficera7"); },
+			":duchoficera7","Proszê oto skrzynka w której jest klucz; Dziêkujê ci za pomoc; Ja zostanê tu na wieki i bêdê siê opiekowa³ duszami ludzi które tak jak ja zosta³y tutaj",
+				func { <GAME> {
+					anduch7.play(0);
+					clduch.showitem("anduch7", func {
+						clduch.freeitem;
+						.txtplay("margaret1"); } );
+				}; },
+			":margaret1","John! Wybaczam ci; Wiem ¿e zrobi³e¶ to z wielkiej mi³o¶ci; Chod¼ ze mn±; Wybaczanie to wielka si³a która mo¿e uleczyæ ka¿d± dusze",
+				func { .txtplay("duchoficera8"); },
+			":duchoficera8","Margaret! Ja nie zas³uguje na wybaczenie; Zrobi³em wiele z³ego",
+				func { .txtplay("margaret2"); },
+			":margaret2","Chod¼ ze mn± John",
+				func { <GAME> {tcr.ahide;
+					clduch.hideitem("anduch7", func { <GAME> {
+						anduch7.anhide;
+						clduch.hideitem("anduch", func {
+							clduch.freeitem;
+							anduch.anhide;
+							.timplay("tim2", 1000, func { .mprzejdz("HOWrak"); });
+							} );
+						}; }); 
+				}; }
+			);
+
+		new imganima anwnetrze;
+		anwnetrze.load("bg", "jpg", 0, 5, 7);
+		anwnetrze.play;
+		
+		mus.playstr("tytan_wnetrze.ogg -l -v 60");
+		//.mexits;
+		
+		.imgs = (A, "duch.pyzH 10", "duch7.pyzH 10");
+		anduch.setpos( 0.2*iResX, 0.1*iResY );
+		anduch7.setpos( 0.6*iResX, 0.1*iResY );
+		
+		new itemadder clduch;
+		
+		.mbatyskaf;
+		
+		if( clsave.bis("item_ring") )	{
+			new DelayMover cmov;
+			cmov.unlock;
+			.sfxs = (A, "lampka");
+			//.antohint("anitemring");
+		}
+		
+		ccs.enter( func { 
+			.timplay("tim1", 1000, func { anduch.play(0); clduch.showitem("anduch",
+				func { clduch.freeitem; .txtplay("duchoficera5"); }); 
+				} );
+			} );
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		if( anitemring.isin(mouse.getpos,1,1) )	{
+			.mssetobj("anitemring");
+			anitemring.setz(1000);
+			fxlampka.play;
+			igmstate=2;
+		}
+	}
+	cmov_PUT	{
+		if( anduch.isin(mouse.getpos,1,1) )	{
+			.free;
+			clsave.set("item_ring",0);
+			.timplay("timring", 1000, func {
+				clduch.hideitem( "anitemring", func { anitemring.hide; .txtplay("duchoficera6"); } );
+				} );
+			fxshowhint.play;
+		} else {
+			igmstate=1;
+			.retobj;
+		}
+	}
+	hint_click	{
+		if( clsave.bis("item_ring") )	{
+			.playhints("anitemring", "anduch");
+		}
+	}
+	anwnetrze_finish	{	.play;	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Dziob : Kajuta1	{
+	init	{
+		Kajuta1::init("45dziob");
+		.setsndbase("dziob");
+		
+		.titsounds=(A, ":lilian1", "Niesamowity widok. Tyle lat pod wod± a ci±gle robi wra¿enie. Muszê poszukaæ jakiej¶ szczeliny w kad³ubie aby dostac siê do ¶rodka.", "stdret"
+			);
+		
+		.imgs = (A, "45dziob.jpg");
+		
+		mus.playstr("mapa2.ogg -l -v 60");
+		.mexits;
+		//.tohint(A, "grext");
+		.mbatyskaf;
+		
+		.mtimhelper;
+		
+		ccs.enter( func { .txtplay("lilian1"); } );
+	}
+	click_43szczelina	{
+		//.mprzejdz("HOSzczelina");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+		if( igmstate==1 )	{
+			igmstate=8;
+		} else if (igmstate==8 )	{
+			igmstate=0;
+			.mprzejdz("HOSzczelina");
+		}
+	}
+}
+
+game Pokojadministracyjny : Kajuta	{
+	init	{
+		Kajuta::init("34pokojadministracyjny");
+		.setsndbase("pokojadministracyjny");
+		
+		.imgs = (A, "34pokojadministracyjny.jpg", "obraz.pyz 10", "rama.pyz 5", "bable.pyzP 2");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian17","Witaj Robercie! Co za zbieg okoliczno¶ci!", func { .txtplay("robert1"); },
+			":robert1","Lilian? Co ty tutaj robisz? No tak; zapomnia³em ¿e w tym feralnym rejsie p³ynê³a twoja prababcia",
+				func {.txtplay("lilian18"); },
+			":lilian18","Tak siê cieszê ¿e ciebie w³a¶nie tu spotka³am; Chcia³abym zwiedziæ wrak; Czy mo¿esz mi udostêpniæ batyskaf?", func { .txtplay("robert2"); },
+			":robert2","Z wielk± rado¶ci±; Pop³ynê z tob±", func { .txtplay("lilian19"); },
+			":lilian19","Wola³abym sama tam pop³yn±æ", func { .txtplay("robert3"); },
+			":robert3","Wiele razem p³ywali¶my w takich batyskafach ale nie mogê ciê pu¶ciæ samej; Wyjdê przygotowaæ batyskaf a ty we¼ proszê ze skrytki za obrazem mapy wraku; Szyfr do skrytki jest prost± ³amig³ówk± któr± kiedy¶ sama zaprojektowa³a¶; Informacje znajdziesz na biurku; Dasz sobie radê", func {.txtplay("lilian20"); },
+			":lilian20","Poradzê sobie; Jak wezmê mapy to przyjdê do doku", func { tcr.ahide; 
+				ccs.playfin( func { grludzie1.hide; }, func { igmstate=1; });
+				},
+			":lilian21", "Przeszukam biurko, mo¿e tam znajdê jak±¶ wsakzówkê.", "stdret",
+			":lilian22","Mam fotografiê to teraz moge spróbowaæ otworzyæ skrytkê.", "stdret",
+			":lilian23", "Uda³o siê otworzyc skrytkê. Teraz zbieram mapê i ide do doku.", "stdret",
+			":lilian24", "I think I see the map in that secret opening.","stdret"
+			);
+		
+		//mus.playstr("titanic2.ogg -l -v 60");
+		.mexits;
+		
+		if (clsave.is("epizod", "e3_powrot") )	{
+			if( !clsave.bis("e3_weszlapokojadmi") )	{
+				.img = ("ludzie1.pyzG 20");
+			}
+			if( clsave.bis("e3_hopokojadmi") )	{
+				.diblockexit("35ho_pokojadministracyjny");
+				.hodone("35ho_pokojadministracyjny");
+			} else {
+				.diblockexit("roznice");
+			}
+			if( clsave.bis("e3_otwartyobraz") )	{
+				.diblockexit("roznice");
+				anobraz.setframe(1,0);
+				if( !clsave.bis("e3_wzielamape") )	{
+					new itemadder clmap;
+					.imgs = (A, "mapa.pyz 15");
+					anmapa	{
+						.Button_stdalpha;
+						.addmethod("butclick", func {
+							if( igmstate!=1 ) return;
+							igmstate = 2;
+							.hide;
+							clsave.bset("e3_wzielamape");
+							<GAME>.addnewitem("mapa");
+							anitemmapa.setframe(1,0);
+							anitemmapa.setpos(0,0);
+							grhint.remove("anmapa");
+							.extohint("41dok");
+							.timplay("tim1", 1500, func {
+								anitemmapa.itemonpos;
+								@x = anitemmapa.getpx;
+								@y = anitemmapa.getpy;
+								@h = anitemmapa.geth;
+								anitemmapa.setframe(1,0);
+								anitemmapa.setpos(0,0);
+								clmap.gotodest("anitemmapa", h, x, y, 15, func {
+									anitemmapa.itemonpos;
+									igmstate = 1; 
+									} );
+								} );
+							} );
+						but1.add(this);
+					};
+					.antohint("anmapa");
+				} else {
+					.hodone("roznice");
+					.extohint("41dok");
+				}
+			}
+		}
+		
+		ccs.enter( func {
+			if( !clsave.bis("e3_weszlapokojadmi") )	{
+				clsave.bset("e3_weszlapokojadmi");
+				.txtplay("lilian17");
+			} else if( clsave.last=="Roznice" )	{
+				.txtplay("lilian23");
+			} else igmstate=1;
+			} );
+	}
+	hint_click	{
+		if( !clsave.bis("e3_hopokojadmi") ) {
+			igmstate=0; 
+			.txtplay("lilian21");
+			.playexhint("35ho_pokojadministracyjny");
+		} else if( !clsave.bis("e3_wzielamape") )	{
+			igmstate=0;
+			if( clsave.bis("e3_otwartyobraz") )
+				.txtplay("lilian24");
+			else .txtplay("lilian22");
+			.playexhint("roznice");
+		}
+	}
+	click_roznice	{
+		clsave.bset("e3_otwartyobraz");
+		.mprzejdz("Roznice");
+	}
+	click_35ho_pokojadministracyjny	{
+		clsave.bset("e3_hopokojadmi");
+		.mprzejdz("HOPokojadministracyjny");
+	}
+	click_41dok	{
+		.mprzejdz("Dok");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}

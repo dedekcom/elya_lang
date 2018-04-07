@@ -1,0 +1,1420 @@
+
+game IntroNelaZoo : MermaidStd	{
+	init	{
+		MermaidStd::init("intro");
+		.img = ("bgintro.jpg");
+		ccs.enter(func {
+			.timplay("timend", 3000, "mend");
+			} );
+		.playmainmusic;
+	}
+	mend	{	.stdexit("MainMenuNelaZoo");	}
+	mouse_lclick	{	.mend;	}
+}
+
+game MainMenuNelaZoo : MermaidStd	{
+	init	{
+		MermaidStd::init("mainmenu");
+		
+		sPuzleAnimalsExit = "MenuNelaZooAnimals";
+		sKoloAnimalsExit = "MenuNelaZooAnimals";
+		
+		.cbutexit;
+		.loadasker;
+		
+		.imgs = (A, "bgmenu.jpg", "buts.pyzG 10");
+		
+		grbuts.eval( func {
+			.Button_stdstate;
+			.addmethod("butclick", func {
+				if( .advstdstate ) {
+					match( .actionnr(-1) )	{
+						0 => {
+							.stdexit("NelaZooMenuZoo");
+						}
+						1 =>	{
+							.stdexit("NelaZooFeed");
+						}
+						2 => {
+							sMenuNelaZooAnimalsGame = "PuzleAnimals";
+							.stdexit("MenuNelaZooAnimals");
+						}
+						3 => {
+							sMenuNelaZooAnimalsGame = "KoloAnimals";
+							.stdexit("MenuNelaZooAnimals"); 
+						}
+						? => ;
+					}
+				}
+				} );
+			butgame.add(this);
+			} );
+		.stdenter;
+	}
+	butclick_anbutexit	{	.askfor("OutroStd");	}
+}
+
+new string sMenuNelaZooAnimalsGame = "PuzleAnimals";
+game MenuNelaZooAnimals : MermaidStd	{
+	init	{
+		imglobg.hide;
+		MermaidStd::init("menu");
+		
+		.imgs = (A, "bgmenu.jpg", "buts.pyzG 10", "butkolo.pyzH 30", "butpuz.pyzH 30");
+		.sfxs = (A, "lasergunshot1 40");
+		
+		grbuts.eval( func {
+			if( .actionname->in(A, "slon", "malpa", "wielblad", "wol", "panda", "tygrys", "tukan", "rys",
+				"orangutan", "waran", "szop", "ges") )	{
+				.Button_stdalpha;
+				.addmethod("butclick", func {
+					if( .advstdstate )	{
+						sChosenAnimal = .actionname;
+						<GAME> {
+							imgbgmenu.hide;
+							grbuts.hide;
+							imglobg.show;
+							.newanima("anzwierz", "$"+.getgamepath + "puzle/puz_"+sChosenAnimal+".pyz", 20);
+							.advsetstate("state_showbuts");
+							anzwierz.anzoomin(idymekdelay, func {
+								.advsetstate("state_checkgametype");
+								.timplay("timgo", 500, func {
+									.stdexit(sMenuNelaZooAnimalsGame);
+									} );
+								} );
+						};
+					}
+					} );
+				butgame.add(this);
+				}
+			} );
+		
+		.cbutexit;
+		.loadasker;
+		.stdenter;
+	}
+	butclick_anbutexit	{	.stdexit("MainMenuNelaZoo");	}
+}
+
+new int iNelaZooZooLevel = 1;
+game NelaZooMenuZoo : MermaidStd	{
+	init	{
+		MermaidStd::init("menuzoo");
+		.imgs = (A, "bgmenu.jpg", "butsmode.pyzG 10");
+		
+		.cbutexit;
+		
+		grbutsmode.eval( func {
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					match(.actionname)	{
+						"pacman" => {
+							clsave.set("nelazoo_mode","pacman");
+							.mgo;
+						}
+						"feed" => {
+							clsave.set("nelazoo_mode","feeder");
+							.mgo;
+						}
+						? => ;
+					}
+				}
+				} );
+			butgame.add(this);
+			.hide;
+			} );
+		ccs.enter( func {
+			grbutsmode.eval( func { .show; .anzoomin(idymekdelay, "advsetstdstate"); } );
+			} );
+	}
+	mgo {
+		.stdexit("NelaZooMenuPac");
+	}
+	butclick_anbutexit	{	.stdexit("MainMenuNelaZoo");	}
+}
+
+game NelaZooMenuPac : MermaidStd	{
+	init	{
+		MermaidStd::init("menuzoo");
+		.imgs = (A, "bgmenu.jpg", "butslevel.pyzG 10", "butstrud.pyz 10", "butshero.pyz 10");
+		
+		if( clsave.get("nelazoo_mode")=="pacman" )	{
+		
+		} else {
+			anbutstrud.hide;
+			.newanima("anstars", "$"+.getgamepath + "zoo/stars.pyz", 20);
+			anstars.setframe(1,0);
+			new classfullsave csave("arcade_zoo_records.db");
+			csave.stdload;
+			for( int i=1; i<=10; i++ )	{
+				if( csave.has("last_recstars_"+i) )	{
+					@s = grbutslevel.get(i-1);
+					int ile = csave.get("last_recstars_"+i);
+					for( int j=0; j<ile; j++ )	{
+						@sim = "imstar"+i+"_"+j;
+						new img <sim>;
+						<sim>.imgclonezoom("anstars",0.7);
+						<sim>.setpos( <s>.getpx + j*(0.7*<sim>.getw)+10->igetsc, <s>.getey-<sim>.geth-20->igetsc );
+					}
+				}
+			}
+			anstars.hide;
+		}
+		
+		if( clsave.has("nelazoo_trud") )
+			anbutstrud.setframe( clsave.get("nelazoo_trud"), 0 );
+		else clsave.set("nelazoo_trud", anbutstrud.actionname );
+		anbutstrud.ansetbpos( igmappw - anbutstrud.getw, igmapph-anbutstrud.geth );
+		anbutstrud.Button_addstdstate;
+		
+		if( clsave.has("nelazoo_hero") )	{
+			anbutshero.setframe( clsave.get("nelazoo_hero")->to_i, 0 );
+		} else {
+			anbutshero.setframe(3->rand,0);
+			clsave.set("nelazoo_hero", anbutshero.actionnr(-1) );
+		}
+		anbutshero.ansetbpos( 0, igmapph-anbutshero.geth );
+		anbutshero.Button_addstdstate;
+		
+		.cbutexit;
+		
+		grbutslevel.eval( func {
+			.Button_stdalpha;
+			butgame.add(this);
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					iNelaZooZooLevel = .actionnr(-1)+1;
+					.advsetstate("state_waitgo");
+					.timplay("timwait",idymekdelay, func {
+						.stdexit("NelaZooZoo");
+						} );
+				}
+				} );
+			} );
+		.stdenter;
+	}
+	butclick_anbutexit	{	.stdexit("NelaZooMenuZoo");	}
+	butclick_anbutstrud	{	.stdexit("NelaZooMenuTrud");	}
+	butclick_anbutshero	{	.stdexit("NelaZooMenuHero");	}
+}
+
+game NelaZooMenuTrud : MermaidStd	{
+	init	{
+		MermaidStd::init("menuzoo");
+		.imgs = (A, "bgwybortrud.jpg", "butstrud.pyzG 10");
+		grbutstrud.eval( func {
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					clsave.set("nelazoo_trud", .actionname );
+					.stdexit("NelaZooMenuPac");
+				}
+				} );
+			butgame.add(this);
+			} );
+		.cbutexit;
+		.stdenter;
+	}
+	butclick_anbutexit	{	.stdexit("NelaZooMenuPac");	}
+}
+
+game NelaZooMenuHero : MermaidStd	{
+	init	{
+		MermaidStd::init("menuzoo");
+		.imgs = (A, "bgwyborhero.jpg", "butshero.pyzG 10");
+		grbutshero.eval( func {
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					clsave.set("nelazoo_hero", .actionnr(-1) );
+					.stdexit("NelaZooMenuPac");
+				}
+				} );
+			butgame.add(this);
+			} );
+		.cbutexit;
+		.stdenter;
+	}
+	butclick_anbutexit	{	.stdexit("NelaZooMenuPac");	}
+}
+
+game NelaZooZoo : MermaidStd	{
+	init	{
+		MermaidStd::init("zoo");
+		
+		.imgs = (A, "bkg.jpg", "els.pyz 5");
+		
+		new bool bpacmode = clsave.get("nelazoo_mode")=="pacman";
+		
+		if( bpacmode )	{
+			.imgs = (A, "zpac.pyz 3", "zdrap.pyz 3");
+		} else {
+			.imgs = (A, "zzwierze.pyz 3", "zzarcie.pyz 2", "tabliczkaH.pyz 200", "stars.pyzH 210");
+			.copyanima("antabliczka", "antexit"); 		antexit.setframe("exit",0);
+			.copyanima("antabliczka", "antrestart"); 	antrestart.setframe("restart",0);
+			.copyanima("antabliczka", "antnext");		antnext.setframe("next",0);
+			
+			antexit.Button_stdalpha;
+			antexit.addmethod("butclick", func { if( .advisstate("state_enpoints") ) .butclick_anbutexit; } );
+			butgame.add("antexit");
+			
+			antrestart.Button_stdalpha;
+			antrestart.addmethod("butclick", func { if( .advisstate("state_enpoints")) .stdexit(GAME); } );
+			butgame.add("antrestart");
+			
+			antnext.Button_stdalpha;
+			antnext.addmethod("butclick", func { if( .advisstate("state_enpoints")) .mnextlevel; } );
+			butgame.add("antnext");
+			
+			new gmimgvec grstarbg;
+			grstarbg.ancopiesname("anstars", "anstarbg", 4);
+			new gmimgvec grstar;
+			grstar.ancopies("anstars", 4);
+		}
+		// karmienie, zbieranie do klatek, ucieczka przed dzikimi- pac man, 
+		
+		.sfxs = (A, "askerups 40", "rekord 50", "pedzel 75" );
+		.mkfxset("butmoveon2", 8, 40);
+		.mkfxset("mikrofalaend", 4, 50);
+		
+		.cbutexit;
+		
+		new gmimgvec grels;
+		grels.add("imgbkg");
+		
+		new bool bzoodebug = false;
+		new int iPoints = 0;
+		new string sfooder = null;
+		
+		new int iwsq = 55->igetsc;
+		new int ihsq = 63->igetsc;
+		new int ispeedx = 10->igetsc;
+		
+		new string sedgeobj = "imgbkg";
+		new int iedgex = 0;
+		
+		new int iilesq = 0;
+		new img imsq;
+		imsq.create( iwsq, ihsq, .transparent );
+		imsq.imgborders(2,.black,192);
+		
+		// level 1: 55x62
+		
+		if( bzoodebug )	{
+			.newtext("txpom", "", .stdfont(14), .black);
+		} else
+			imsq.hide;
+		
+		new gmimgvec grsq;
+		new gmimgvec grnd;
+		new gmimgvec grpac;	// do pacmana
+		new gmimgvec grzwierz;	// animy chodzace do zastopowania
+		new gmimgvec grdrap;	// drapiezniki do pacmana
+		
+		.mloadid(iNelaZooZooLevel);
+		.newfont("fntimer", .cfontpath, 40->igetsc);
+		
+		.newanima("anplayer", "zplayer.pyz", 10);
+		anplayer.setframe(clsave.get("nelazoo_hero")->to_i,0);
+		anplayer.msetaswalker;
+		anplayer.icomptype = (0);	// oznaczenie, ze nie jest komputerem
+		
+		if( bpacmode )	{
+			.newtext("txlevel", "Level "+iNelaZooZooLevel, "fntimer", .red);
+			txlevel.setpos( anbutexit.getex + 20->igetsc, anbutexit.getpy );
+			txlevel.setz(50);
+			
+			new img implayer0;
+			implayer0.imgclonezoom("anplayer",0.5);
+			implayer0.setpos( 20->igetsc, igmapph - implayer0.geth - 5->igetsc );
+			implayer0.setz(5);
+			new gmimgvec grlives;
+			grlives.add("implayer0");
+			match( iNelaZooZooLevel )	{
+				1 => {
+					anplayer.mputplayer(0,1);
+					.madddrap("lew", 6, 16);
+					.madddrap("hiena", 3, 10);
+					.madddrap("hiena", 1, 12);
+					.mlives(8);
+				}
+				2 => {
+					anplayer.mputplayer(3,14);
+					.madddrap("tygrys", 1, 5);
+					.madddrap("krokodyl", 5, 2);
+					.madddrap("hiena", 6, 26);
+					.madddrap("lew", 1, 26);
+					.mlives(8);
+				}
+				3 => {
+					anplayer.mputplayer(6,4);
+					.madddrap("lampart", 0, 0);
+					.madddrap("krokodyl", 6, 18);
+					.madddrap("krokodyl", 5, 25);
+					.madddrap("krokodyl", 2, 18);
+					.madddrap("krokodyl", 1, 29);
+					.mlives(8);
+				}
+				4 => {
+					anplayer.mputplayer(2,5);
+					.madddrap("lampart", 2, 32);
+					.madddrap("tygrys", 2, 33);
+					.madddrap("lew", 2, 34);
+					.madddrap("krokodyl", 2, 36);
+					.madddrap("hiena", 2, 37);
+					.mlives(8);
+				}
+				5 => {
+					anplayer.mputplayer(2,5);
+					.madddrap("lampart", 2, 32);
+					.madddrap("lampart", 2, 40);
+					.madddrap("tygrys", 2, 33);
+					.madddrap("lew", 2, 34);
+					.madddrap("krokodyl", 2, 36);
+					.mlives(8);
+				}
+				6 => {
+					anplayer.mputplayer(2,5);
+					.madddrap("lampart", 2, 32);
+					.madddrap("tygrys", 2, 40);
+					.madddrap("tygrys", 2, 33);
+					.madddrap("lew", 2, 34);
+					.madddrap("krokodyl", 2, 36);
+					.madddrap("hiena", 2, 37);
+					.mlives(8);
+				}
+				7 => {
+					anplayer.mputplayer(2,5);
+					.madddrap("lampart", 2, 32);
+					.madddrap("lampart", 2, 40);
+					.madddrap("tygrys", 2, 33);
+					.madddrap("lew", 2, 34);
+					.madddrap("krokodyl", 2, 36);
+					.madddrap("hiena", 2, 37);
+					.mlives(8);
+				}
+				8 => {
+					anplayer.mputplayer(6,2);
+					.madddrap("lampart", 4, 32);
+					.madddrap("lampart", 4, 38);
+					.madddrap("tygrys", 4, 33);
+					.madddrap("lew", 4, 34);
+					.madddrap("krokodyl", 4, 36);
+					.madddrap("hiena", 4, 37);
+					.madddrap("hiena", 4, 35);
+					.mlives(8);
+				}
+				9 => {
+					anplayer.mputplayer(4,41);
+					.madddrap("lampart", 0, 0);
+					.madddrap("lampart", 2, 5);
+					.madddrap("tygrys", 6, 17);
+					.madddrap("tygrys", 0, 17);
+					.madddrap("lew", 4, 20);
+					.madddrap("krokodyl", 6, 29);
+					.madddrap("krokodyl", 0, 39);
+					.madddrap("hiena", 2, 26);
+					.mlives(9);
+				}
+				10 => {
+					anplayer.mputplayer(0,0);
+					.madddrap("lampart", 0, 24);
+					.madddrap("lampart", 0, 25);
+					.madddrap("tygrys", 0, 26);
+					.madddrap("tygrys", 0, 27);
+					.madddrap("lew", 0, 28);
+					.madddrap("lew", 0, 29);
+					.madddrap("krokodyl", 0, 30);
+					.madddrap("krokodyl", 0, 31);
+					.madddrap("hiena", 0, 32);
+					.madddrap("hiena", 0, 33);
+					.mlives(10);
+				}
+				? => anplayer.mputplayersq(grsq.first);
+			}
+		} else {
+			new classfullsave csave("arcade_zoo_records.db");
+			csave.saveonset=(true);
+			csave.stdload;
+			new bool bisrekord;
+			if( csave.has("last_rec_"+iNelaZooZooLevel) )	{
+				bisrekord = csave.get("last_rec_"+iNelaZooZooLevel);
+				new string srecord = clstrdigit::gettime(bisrekord, "ms");
+			} else bisrekord = false;
+			
+			new int icurtime = 0;
+			.newtext("txtime", "", "fntimer", .red);
+			.mprinttime;
+			txtime.setpos( anbutexit.getex + 20->igetsc, 8->igetsc );
+			.timer = ("timczas", 1000, func {
+				icurtime++;
+				.mprinttime;
+				.play;
+				} );
+		
+			new db dbfood;
+			dbfood.dbbuild(A,
+				"lampart","udziec", "hiena","udziec", "krokodyl","udziec", "lew","udziec", 
+				"orangutan","banan", "pingwin","ryba", "wielblad","kapusta", "lemur","banan",
+				"ara","ziarno", "goryl","banan", "makak","banan", "tamaryna","banan", "papuga",
+				"ziarno", "kangur","kapusta", "nosorozec","kapusta", "tukan","ziarno",
+				"szympans","banan", "slon","kapusta", "zyrafa","kapusta", "bizon","kapusta",
+				"zebra","kapusta", "wiewiorka","orzech", "kameleon","owad", "strus","kapusta",
+				"wilk","udziec", "zajac","kapusta", "waz","udziec", "tygrys","udziec",
+				2);
+			new vector vzwierz; vzwierz.type("string");
+			for( int i=0; i<dbfood.getrowsno; i++ )
+				vzwierz.add(dbfood.get(i,0));
+			vzwierz.remove("pingwin");
+			new gmimgvec grsq2;
+			grsq2.copy("grnd");
+			new gmimgvec grfood;
+			match( iNelaZooZooLevel )	{
+				1 => {	.mzwierze(A, "bizon", "waz", "zyrafa"); }
+				2 => {	.mzwierze(A, "strus", "zajac", "tygrys", "wielblad", "szympans"); }
+				3 => {	.mzwierze(A, "goryl", "nosorozec", "slon", "wiewiorka", "ara", "zebra", "kameleon"); }
+				4 => {	.mzwierze(A, "lampart", "kangur", "wilk", "zyrafa", "tukan", "makak", "hiena", "tamaryna"); }
+				5 => {	.mzwierze(A, "krokodyl", "lew", "orangutan", "lemur", "papuga", "bizon", "zajac", "waz", "nosorozec"); }
+				6 => {	.mzwierze(A, "tygrys", "szympans", "goryl", "slon", "ara", "zebra", "zajac", "kangur", "wiewiorka"); }
+				7,8,9,10 => .mloszwierz(iNelaZooZooLevel+3);
+				? => ;
+			}
+			new int iilezwierz = grfood.size;
+			anplayer.mputplayersq(grsq2.first);
+			anzzarcie.hide;
+			anzzwierze.hide;
+			
+			.newtext("txpoints", "", "fntimer", .red);
+			txpoints.hide;
+			.timer = ("timpoints",70, func {
+				ipetla--;
+				iPoints+=raddpoints;
+				//.mprinttime;
+				.mprintpoints;
+				.fxsetplay("butmoveon2");
+				if( ipetla > 0 )	{
+					.play;
+				} else {
+					timstars.play;
+				}
+				} );
+			.timer = ("timstars", 500, func {
+				.setdelay(200);
+				iilestars--;
+				<grstar.first>.show;
+				grstar.removeat(0);
+				.fxsetplay("mikrofalaend");
+				if( iilestars > 0 )	{
+					.play;
+				} else {
+					if( brekord )	{
+						.timplay("timrekord", 1500, func {
+							fxrekord.play;
+							<GAME>.img = ("rekord.png "+(antabliczka.getz+20));
+							imgrekord.setpos( (igmappw-imgrekord.getw)/2, antabliczka.getpy - imgrekord.geth/2 );
+							imgrekord.anzoomin(idymekdelay, func {
+								txpoints.txtset(iPoints);
+								txpoints.txtcenter(this);
+								txpoints.setz(.getz+5);
+								txpoints.move(0,25->igetsc);
+								.advsetstate("state_enpoints");
+								} );
+							} );
+					} else .advsetstate("state_enpoints");
+				}
+				} );
+		}
+		if( bzoodebug )	{
+			txpom.hide;
+			imsq.hide;
+		}
+		
+		.cycle=("timpos", func {
+			.msetbgpos;
+			.play;
+			} );
+		timpos.play;
+		
+		.timer = ("timblink", 200, func {
+			if( iidtick > 0 )	{
+				if( iidtick%2 )
+					anplayer.ansetopacity(64);
+				else anplayer.ansetopacity(255);
+				iidtick--;
+				.play;
+			} else {
+				anplayer.unlink_internal_filter;
+			}
+			} );
+		timblink.vars2(A, "iiletick", 15, "iidtick", 0);
+		
+		anels.hide;
+		if( bpacmode )	{
+			anzdrap.hide;
+			anzpac.hide;
+		}
+		ccs.enter( func {
+			.advsetstdstate;
+			grdrap.eval("mdrapstart");
+			if( bpacmode )	{
+			} else timczas.play;
+			} );
+	}
+	mprintpoints	{
+		txpoints.txtset("Points: "+iPoints);
+		txpoints.txtcenter("antabliczka");
+		txpoints.move(0, -60->igetsc);
+	}
+	mprinttime	{
+		if( bisrekord )
+			txtime.txtset("Level "+iNelaZooZooLevel+"  Record: "+srecord+" , "+clstrdigit::gettime(icurtime, "ms"));
+		else
+			txtime.txtset("Level "+iNelaZooZooLevel+"  "+clstrdigit::gettime(icurtime, "ms"));
+	}
+	mloszwierz(int ile)	{
+		vzwierz.hash;
+		for( int i=0; i<ile; i++ )	{
+			.maddzwierz(vzwierz.get(i));
+		}
+	}
+	mlives(int ile)	{
+		match(clsave.get("nelazoo_trud"))	{
+			"medium" => ile-=2;
+			"hard" => ile-=4;
+			? => ;
+		}
+		for( int i=1; i<ile; i++ )	{
+			@s = "implayer"+i;
+			new img <s>;
+			<s>.copy("implayer0");
+			<s>.setpos( <"implayer"+(i-1)>.getex + 3->igetsc1, implayer0.getpy );
+			grlives.add(s);
+		}
+	}
+	mdrapstart	{
+		sstate = "dotarl";
+		snextgnd = sactgnd;
+		.mnextgnd;
+	}
+	madddrap(string sname, int row, int col)	{
+		@s = "andrap"+grdrap.size;
+		.copyanima("anzdrap", s);
+		<s>.setframe(sname,0);
+		<s>.msetaswalker;
+		<s>.icomptype=(1);
+		grdrap.add(s);
+		<s>.mputplayer(row,col);
+	}
+	mzwierze	{	.withlist("maddzwierz");	}
+	maddzwierz(string sname)	{
+		@s = "anzwierz"+grdrap.size;
+		.copyanima("anzzwierze", s);
+		<s>.setframe(sname,0);
+		<s>.msetaswalker;
+		<s>.icomptype=(2);
+		string sac = dbfood.dbgets(<s>.actionname, 1);
+		<s>.vars2(A, "myfood", sac, "carryfood",null);
+		grdrap.add(s);
+		@sq = grsq2.rand;
+		grsq2.remove(sq);
+		<s>.mputplayersq(sq);
+		
+		
+		s = "anfeed"+grfood.size;
+		.copyanima("anzzarcie", s);
+		<s>.setframe(sac,0);
+		sq = grsq2.rand;
+		grsq2.remove(sq);
+		<s>.mputplayersq(sq);
+		
+		< <sq>.sfield>.spac = (s);	// zapamietaj zarcie
+		
+		grfood.add(s);
+		<s>.setz(5);
+		grels.add(s);
+	}
+	mnextgnd	{
+		while( sstate=="dotarl" )	{
+			sdestgnd = grnd.randdiff(sactgnd);
+			.mcalcstep;
+		}
+	}
+	msetaswalker	{
+		.vars2(A, "sstate", "std", "sdestgnd", null, "sactgnd",null, "snextgnd",null, "icomptype", 0);
+		new real rgndlen = 0.0;
+		.setasanmover;
+		new real rspeedx;
+		new real rspeedy;
+		.addmethod("onendframe", "mstdframe");
+		.addmethod("onfinish", func {
+			if( sstate=="moving" )	{
+				.mputplayersq(snextgnd);
+				if( .advstdstate )	{
+					if( snextgnd != sdestgnd )	{
+						.mcalcstep;
+					} else {
+						match( icomptype )	{
+							1 => .mnextgnd;
+							2 => { .mnextgnd; .mputcarryfood(carryfood);	}
+							0 => sstate = "std";	// player
+							? => ;
+						}
+					}
+				}
+			}
+			} );
+		grzwierz.add(this);
+		grels.add(this);
+	}
+	mstdframe	{
+		if( sstate=="moving" )	{
+			.movereal( rspeedx, rspeedy );
+			if( icomptype==0 )	{		// player
+				if( sfooder!=null )	{
+					anplayer.mputfood;
+				}
+			} else if( icomptype==1 )	{	// tryb pacman, zwierz zyrny
+				if( !timblink.isplaying && 0->length(.getposx-anplayer.getposx, .getposy-anplayer.getposy) <= .getw && sactgnd==anplayer.sactgnd )	{
+					@s = grlives.last;
+					grlives.remove(s);
+					<s>.anfadeout(idymekdelay, null);
+					if( grlives.empty )	{
+						.mstoppac;
+						.advsetstate("state_pacfault");
+						fxaskerups.play;
+						.timplay("timendfault", 1500, "butclick_anbutexit" );
+					} else {
+						timblink.iidtick = (timblink.iiletick);
+						timblink.play;
+					}
+				}
+			} else if( icomptype==2 )	{	// tryb feed, zwierzak
+				if( carryfood!=null )	{
+					.mputcarryfood(carryfood);
+				} else if( sfooder!=null && <sfooder>.actionname==myfood && 0->length(.getposx-anplayer.getposx, .getposy-anplayer.getposy) <= .getw && sactgnd==anplayer.sactgnd )	{
+					carryfood = sfooder;
+					sfooder = null;
+					.mputcarryfood(carryfood);
+					.fxsetplay("mikrofalaend");
+					if( grfood.empty )	{
+						timczas.stop(false);
+						<GAME>.mfinfeed;
+					}
+				}
+			}
+		}
+	}
+	mfinfeed	{
+		.advsetstate("state_showtabliczka");
+		
+		new bool brekord;
+		if( bisrekord==false || icurtime < bisrekord )	{
+			brekord = true;
+			csave.set("last_rec_"+iNelaZooZooLevel, icurtime);
+		} else brekord = false;
+		
+		new real raddpoints = icurtime.to_r / iilezwierz.to_r;
+		new int iilestars;
+		if( raddpoints < 4.0 )	{
+			iilestars = 4;
+		} else if( raddpoints < 5.5 )	{
+			iilestars = 3;
+		} else if( raddpoints < 8.0 )	{
+			iilestars = 2;
+		} else {
+			if( raddpoints > 9.0 )
+				raddpoints = 9.0;
+			iilestars = 1;
+		}
+		if( csave.get("last_recstars_"+iNelaZooZooLevel)->to_i < iilestars )
+			csave.set("last_recstars_"+iNelaZooZooLevel, iilestars);
+		
+		raddpoints = 100.0 * (10.0-raddpoints);
+		new int ipetla = 20;
+		
+		antabliczka.anzoomin(idymekdelay, func {
+			.advsetstate("state_showstars");
+			.mprintpoints;
+			txpoints.show;
+			txpoints.setz( antabliczka.getz+5 );
+			grstarbg.each( func { (int id)
+				.show;
+				int w = id * (.getw + 10->igetsc1);
+				int h = 10->igetsc;
+				.move( w, h );
+				@s = grstar.get(id);
+				<s>.setframe(1,0);
+				<s>.move( w, h );
+				} );
+			timpoints.play;
+			} );
+		antexit.anzoomin(idymekdelay,null);
+		antrestart.anzoomin(idymekdelay,null);
+		antnext.anzoomin(idymekdelay,null);
+	}
+	mputsqs	{
+		.withlist2("mputsq");
+	}
+	mputsq(int row, int col)	{
+		@s = "imsq"+row+"_"+col;
+		iilesq++;
+		
+		new img <s>;
+		<s>.copy("imsq");
+		<s>.setpos( col * iwsq - iwsq/2, igmapph - row * ihsq );
+		if( bzoodebug )	{
+			txpom.txtcenter(s);
+			txpom.txtset(""+row+","+col);
+			imgbkg.blit("txpom");
+		}
+		grels.add(s);
+	}
+	msetbgpos	{	._msetbgpos(anplayer.getcx, anplayer.getcy);	}
+	_msetbgpos(int x, int y)	{
+		x -= (igmappw/2);
+		if( x.abs > 4*ispeedx )	{
+			if( x < 0 && imgbkg.getpx <= -ispeedx )	{
+				grels.move(ispeedx,0);
+			} else if( x > 0 && <sedgeobj>.getex >= igmappw /*+ispeedx*/ )	{
+				grels.move(-ispeedx,0);
+			}
+		}
+	}
+	mloadid(int id)	{	.mload("level"+id+".db");	}
+	mload(string sfile)	{
+		new db dbsav;
+		if( engine.fileexist( .getpath(sfile) ) )	{
+			dbsav.load( .getpath(sfile) );
+			
+			int starty = 293->igetsc + imgbkg.getpy;
+			int startx = iwsq/2 + imgbkg.getpx;
+			int rows = 7;
+			
+			for( int i=0; i<dbsav.getrowsno; i++ )	{
+				int row = dbsav.get(i,0);
+				int col = dbsav.get(i,1);
+				
+				string srec = "imsq"+row+"_"+col;
+				new ImgRect <srec>;
+				<srec>.create(iwsq, ihsq);
+				<srec>.setpos( col*iwsq + startx, row*ihsq + starty );
+				<srec>.vars2(A, "saction", null, "row", row, "col", col, "bisroad", false, "spac", null);
+				grsq.add(srec);
+				
+				@s = "imat"+row+"_"+col;
+				new img <s>;
+				<s>.vars2(A, "sfield", srec, "saction", null, "row", row, "col", col);
+				<s>.msetelac(dbsav.get(i,2));
+				if( <s>.saction == "ziemia" )	{
+					imgbkg.blit(s);
+					<s>.hide;
+					<srec>.bisroad = (true);
+					grnd.add(s);
+					if( bpacmode )	{
+						string spac = "impac"+ grpac.size;
+						new img <spac>;
+						<spac>.imgclone("anzpac");
+						<spac>.ancenterimg(srec);
+						<spac>.vars2(A, "smysq", srec);
+						grpac.add(spac);
+						<srec>.spac = (spac);
+						grels.add(spac);
+					}
+				} else {
+					<s>.setz( 10*row );
+				}
+				if( <s>.getex > iedgex )	{
+					iedgex = <s>.getex;
+					sedgeobj = s;
+				}
+				grels.add(s);
+				grels.add(srec);
+			}
+		}
+		delete dbsav;
+	}
+	msetelac(string sac)	{
+		anels.setframe(sac,0);
+		.msetel;
+	}
+	msetel	{
+		.imgclone("anels");
+		.setpos( <sfield>.getpx + anels.lodx, <sfield>.getpy + anels.lody );
+		.setz( 5 );
+		saction = ( anels.actionname );
+	}
+	mnextlevel	{
+		if( iNelaZooZooLevel<10 )	{
+			iNelaZooZooLevel++;
+			.stdexit(GAME);
+		} else {
+			.butclick_anbutexit;
+		}
+	}
+	mouse_rclick	{
+		.mnextlevel;
+	}
+	mputplayersq(string sq)	{	.mputplayer(<sq>.row, <sq>.col);	}
+	mputplayer(int row, int col)	{
+		@s = "imsq"+row+"_"+col;
+		if( <GAME>.hasvar(s) )	{
+			//.ancenterimg(s);
+			.setpos(<s>.getcx, <s>.getcy );
+			.setz( 10*row+5 );
+			if( .hasvar("sactgnd") )	{
+				sactgnd = (s);
+				if( icomptype==0 )	{	// player
+					.setz( .getz-2 );
+					if( bpacmode )	{
+						if( <s>.spac != null )	{	// pacman mode
+							iPoints++;
+							@spac = <s>.spac;
+							<s>.spac = (null);
+							grpac.remove(spac);
+							grels.remove(spac);
+							<spac>.hide;
+							if( grpac.empty )	{
+								.mfinpac;
+							}
+						}
+					} else {
+						if( sfooder==null && <s>.spac != null )	{	// spac = food
+							@sfood = <s>.spac;
+							<s>.spac = (null);
+							grfood.remove(sfood);
+							sfooder = sfood;
+							anplayer.mputfood;
+							fxpedzel.play;
+						} else anplayer.mputfood;
+					}
+				} else if( icomptype==2 )	{
+					.mputcarryfood(carryfood);
+				}
+			}
+		}
+	}
+	mputfood	{	.mputcarryfood(sfooder);	}
+	mputcarryfood(string sf)	{
+		if( sf!=null )	{
+			<sf>.setpos(.getex-<sf>.getw/2,.getpy+<sf>.geth/2);
+			<sf>.setz(.getz+1);
+		}
+	}
+	mstoppac	{
+		grzwierz.stop(false);
+	}
+	mfinpac	{
+		.mstoppac;
+		.advsetstate("state_finishpac");
+		
+		// test
+		.mnextlevel;
+	}
+	mgetclickedsq	{
+		int id = grsq.find_closest( null, func {(string s) 0->length(.getcx-mouse.getpx,.getcy-mouse.getpy); } );
+		anplayer.sdestgnd = (grsq.get(id));
+	}
+	mlen(string sq1, int row, int col)	{	.mlen2(sq1,"imsq"+row+"_"+col);	}
+	mlen2(string sq1, string sq2)	{
+		if( <GAME>.hasvar(sq2) && <sq2>.bisroad )	{
+			0.0->length(<sq1>.getcx-<sq2>.getcx, <sq1>.getcy-<sq2>.getcy);
+		} else -1.0;
+	}
+	mlen3(int row, int col)	{	.mlen(sdestgnd,row,col);	}
+	mcalcstep	{
+		if( sactgnd != sdestgnd )	{
+			rgndlen = .mlen2(sdestgnd, sactgnd);
+			snextgnd = sactgnd;
+			int row = <sactgnd>.row;
+			int col = <sactgnd>.col;
+			
+			.mcalclen(row-1,col);
+			.mcalclen(row,col+1);
+			.mcalclen(row+1,col);
+			.mcalclen(row,col-1);
+			
+			if( snextgnd != sactgnd )	{
+				real r = .nofframes(-1);
+				rspeedx = (<snextgnd>.getcx - .getposx)/r;
+				rspeedy = (<snextgnd>.getcy - .getposy)/r;
+				sactgnd = snextgnd;
+				sstate = "moving";
+				.play(-1);
+			} else {
+				sstate = "dotarl";
+				if( icomptype>0 )	{
+					.mnextgnd;
+				}
+			}
+		} else {
+			if( icomptype>0 )	{
+				sstate = "dotarl";
+				.mnextgnd;
+			} else if ( !bpacmode )	{
+				.mputfood;
+			}
+		}
+	}
+	mcalclen(int row, int col)	{
+		@s = "imsq"+row+"_"+col;
+		real r2 = .mlen2(sdestgnd,s);
+		if( r2 >= 0.0 )	{
+			if( rgndlen > r2 )	{
+				snextgnd = s;
+				rgndlen = r2;
+			}
+		}
+	}
+	mouse_lclick	{
+		if( .advstdstate )	{
+			.mgetclickedsq;
+			anplayer.mcalcstep;
+		}
+	}
+	key_down	{
+		if( igmdebug )	{
+			if( keyboard.iskey("e") && keyboard.iskeydown("lctrl") )	{
+				gameapi.play("NelaZooEdytor");
+			} else if (keyboard.iskey("space") )	{
+				gameapi.play(GAME);
+			}
+		}
+	}
+	butclick_anbutexit	{	.stdexit("NelaZooMenuPac");	}
+	butclick_nostdstate_anbutexit	{
+		.butclick_anbutexit;
+	}
+}
+
+game NelaZooEdytor : MermaidStd	{
+	init	{
+		MermaidStd::init("zoo");
+		
+		new img imbg;
+		imbg.create(igmappw, igmapph, .white, 255);
+		
+		new real rzoomer = 0.48;
+		
+		new int iwsq = rzoomer*55+0.5;
+		new int ihsq = rzoomer*63+0.5;
+		
+		new img imgbkg;
+		imgbkg.imgloadzoom("bkg.jpg", rzoomer);
+		imgbkg.ancenterscreen;
+		
+		new anima anels;
+		anels.loadzoom( .getpath("els.pyz"), rzoomer, rzoomer );
+		new gmimgvec grels;
+		for( int i=0; i<anels.nofactions; i++ )	{
+			anels.setframe(i,0);
+			@s = "imgel"+anels.actionname;
+			new img <s>;
+			<s>.imgclone("anels");
+			
+			<s>.setpos( 50+(iwsq+10)*i + anels.lodx, 50 + anels.lody );
+			<s>.vars2(A, "ilodx", anels.lodx, "ilody", anels.lody, "startx", <s>.getpx, "starty", <s>.getpy, "saction", anels.actionname );
+			grels.add(s);
+		}
+		anels.hide;
+		
+		.newtext("txpom", "", .stdfont(9), .black);
+		
+		new gmimgvec grsq;
+		new gmimgvec grmat;
+		int cols = (2*1280 / 55);
+		int starty = rzoomer * 293 + imgbkg.getpy;
+		int startx = iwsq/2 + imgbkg.getpx;
+		for( int row = 0; row<7; row++ )	{
+			for( int col = 0; col < cols; col++ )	{
+				@s = "imsq"+row+"_"+col;
+				new img <s>;
+				<s>.create(iwsq, ihsq, .transparent);
+				<s>.imgborders(1,.black,192);
+				txpom.txtset(""+row+","+col);
+				<s>.setpos( col*iwsq + startx, row*ihsq + starty );
+				txpom.txtcenter(s);
+				<s>.blit("txpom");
+				grsq.add(s);
+				
+				@s2 = "imat"+row+"_"+col;
+				<s>.var2("schild",s2);
+				new img <s2>;
+				<s2>.imgclone(s);
+				<s2>.vars2(A, "sbuild",s, "saction", null, "row", row, "col", col);
+				grmat.add(s2);
+				<s>.setz( 20 );
+			}
+		}
+		new int isqx = <grsq.first>.getpx;
+		new int isqy = <grsq.first>.getpy;
+		new int isqex = <grsq.last>.getex;
+		new int isqey = <grsq.last>.getey;
+		txpom.hide;
+		/*for( int y = rzoomer*290; y
+		for( int x = iwsq/2*/
+		new DelayMover cmov;
+		cmov.b2clicks = (true);
+		cmov.unlock;
+		
+		new int iilemaps = 10;
+		int x = 20;
+		int y = igmapph - 100;
+		for( int i=1; i<=iilemaps; i++ )	{
+			@s = "butload"+i;
+			.newtxtbut(s, "load "+i);
+			<s>.vars2(A, "myid",i);
+			<s>.addmethod("butclick_"+s, func {
+				if( .advstdstate ) 	{
+					.mloadid(myid);
+				}
+				} );
+			<s>.setpos(x, y);
+			
+			s = "butsave"+i;
+			.newtxtbut(s, "save "+i);
+			<s>.vars2(A, "myid",i);
+			<s>.addmethod("butclick_"+s, func {
+				if( .advstdstate ) 	{
+					.msaveid(myid);
+				}
+				} );
+			<s>.setpos(x, y+<s>.geth + 5);
+			x += <s>.getw + 10; 
+		}
+		
+		.advsetstdstate;
+	}
+	cmov_GET	{
+		if( .advstdstate && grels.isin(mouse.getpos,0,0))	{
+			string s = grels.getsfound;
+			<s>.setz(150);
+			.mssetobj( s );
+		}
+	}
+	msetelac(string sac)	{	.msetel("imgel"+sac);	}
+	msetel(string simel)	{
+		.imgclone(simel);
+		.setpos( <sbuild>.getpx + <simel>.ilodx, <sbuild>.getpy + <simel>.ilody );
+		.setz( 5 );
+		.saction = ( <simel>.saction );
+	}
+	mfind(string smover)	{
+		grsq.find_closest( smover, func {(string smover) 0->length(.getpx-<smover>.getpx,.getey-<smover>.getey); } );
+	}
+	cmov_PUT	{
+		_b_skip_mouselclick = true;
+		if( .advstdstate )	{
+			@s = .getmover;
+			if( clsurf::commonimgsurf(s, isqx, isqy, isqex, isqey) )	{
+				string s2 = grsq.get( .mfind(s) );
+				@s3 = <s2>.schild;
+				<s3>.msetel(s);
+			} else {
+				.free;
+				<s>.setpos( <s>.startx, <s>.starty );
+			}
+		}
+	}
+	mloadid(int id)	{	.mload("level"+id+".db");	}
+	msaveid(int id)	{	.msave("level"+id+".db");	}
+	msave(string sfile)	{
+		new db dbsav;
+		for( int i=0; i<grmat.size; i++ )	{
+			@s = grmat.get(i);
+			if( <s>.saction!=null )	{
+				dbsav.dbaddrow(A, <s>.row, <s>.col, <s>.saction );
+			}
+		}
+		dbsav.save( .getpath(sfile) );
+		delete dbsav;
+	}
+	mload(string sfile)	{
+		new db dbsav;
+		for( int i=0; i<grmat.size; i++ )	{
+			<grmat.get(i)>.mresetmat;
+		}
+		if( engine.fileexist( .getpath(sfile) ) )	{
+			dbsav.load( .getpath(sfile) );
+			for( i=0; i<dbsav.getrowsno; i++ )	{
+				<"imat"+dbsav.get(i,0)+"_"+dbsav.get(i,1)>.msetelac(dbsav.get(i,2));
+			}
+		}
+		delete dbsav;
+	}
+	mresetmat	{
+		if( saction!=null )	{
+			.imgclone( sbuild );
+			saction = null;
+		}
+	}
+	mouse_lclick	{
+		if( .advstdstate )	{
+			if( grsq.isin(mouse.getpos,0,0) )	{
+				@id = grsq.getfound;
+				<grmat.get(id)>.mresetmat;
+			}
+		}
+	}
+}
+
+game NelaZooFeed : MermaidStd	{
+	init	{
+		MermaidStd::init("feed");
+		
+		new string skontynent = "afro";
+		
+		.sfxs = (A, "rekord 50", "pedzel 75", "blink 80", "mikrofalaend 50" );
+		
+		.cbutexit;
+		.cbuthelp;
+		.loadasker;
+		.cloadrecord("arcade_zoo_records.db", "feed_record");
+		txtime.setpos( anbuthelp.getex + 20->igetsc, 8->igetsc );
+		
+		.imgs = (A, "bg"+skontynent+".jpg", "help"+skontynent+".jpgH 100", "butlevok.pyz 20", "butkarma.pyzG 30", "butstart.pyz 50");
+		.newgrimg("grels", "els"+skontynent, 10);
+		int i=0;
+		while(i<grels.size)	{
+			@s = grels.get(i);
+			if( <s>.nofframes(-1) > 1 )	{
+				<s>.setframe(-1,1);
+				<s>.setasanmover;
+				i++;
+			} else grels.removeat(i);
+		}
+		
+		new int iilequest = 20;
+		new int iidquest = 1;
+		new gmimgvec grquest;
+		int x = 15->igetsc;
+		int y = 627->igetsc;
+		for( i=1; i<=iilequest; i++ )	{
+			@s = "anlevokbg"+i;
+			.copyanima("anbutlevok",s);
+			<s>.setpos(x,y);
+			
+			@s2 = "anlevok"+i;
+			.copyanima("anbutlevok",s2);
+			<s2>.setframe("ok",0);
+			<s2>.setpos(x,y);
+			<s2>.hide;
+			
+			x += anbutlevok.getw;
+		}
+		anbutlevok.hide;
+		
+		new DelayMover cmov;
+		cmov.setclickrel(false);
+		cmov.unlock;
+		
+		new classfadeinout clfio;
+		
+		new string sanimal = null;
+		new real ranimalx;
+		new real ranimaly;
+		new int iilesteps = 10;
+		new int iidstep;
+		.cycle = ("timgoanimal", func {
+			if( iidstep >= iilesteps )	{
+				if( .advisstate("state_hideanimal") )	{
+					<sanimal>.setframe(-1,1);
+					<sanimal>.setpos(0,0);
+					if( iidquest < iilequest )	{
+						iidquest++;
+						.mshowanimal;
+					} else {
+						<GAME>.mfinish;
+					}
+				} else if( .advisstate("state_showanimal") )	{
+					<sanimal>.setframe(-1,0);
+					<sanimal>.setpos(0,0);
+					.advsetstdstate;
+				}
+			} else {
+				<sanimal>.movereal(ranimalx, ranimaly);
+				iidstep++;
+				.play;
+			}
+			} );
+		
+		new db dbfood;
+		dbfood.dbbuild(A,
+			"strus", "kapusta",
+			"lew", "udziec",
+			"wielblad", "kapusta",
+			"slon", "kapusta",
+			"lampart", "udziec",
+			"zebra", "kapusta",
+			"krokodyl", "udziec",
+			"szympans", "banan",
+			"hiena", "udziec",
+			"hipopotam", "udziec",
+			"zyrafa", "kapusta",
+			"gibon", "banan",
+			"goryl", "banan",
+			"nosorozec", "kapusta",
+			"kameleon", "owad",
+			2);
+		
+		.copyanima("anbutstart", "anstart");
+		anstart.setframe(1,0);
+		anstart.Button_isinalpha;
+		butgame.add("anstart");
+		anstart.addmethod("butclick", func {
+			if( .advisstate("state_waitstart") )	{
+				.advsetstate("state_endwaitstart");
+				.anzoomout(idymekdelay, null);
+				anbutstart.anzoomout(330, func {
+					.hide;
+					anstart.hide;
+					.advsetstdstate;
+					.mshowanimal;
+					timsecrecord.play;
+					} );
+			}
+			} );
+		
+		ccs.enter( func {
+			.advsetstate("state_waitstart");
+			} );
+	}
+	mshowanimal	{
+		.advsetstate("state_showanimal");
+		if( sanimal==null )	{
+			sanimal = grels.rand;
+		} else sanimal = grels.randdiff(sanimal);
+		.mgotimer(0,1);
+	}
+	mhideanimal	{
+		.advsetstate("state_hideanimal");
+		.mgotimer(1,0);
+	}
+	mgotimer(int ifr1, int ifr2)	{
+		<sanimal>.setframe(-1,ifr1);
+		real x = <sanimal>.getpx;
+		real y = <sanimal>.getpy;
+		<sanimal>.setframe(-1,ifr2);
+		ranimalx = (x - <sanimal>.getpx)/iilesteps;
+		ranimaly = (y - <sanimal>.getpy)/iilesteps;
+		iidstep = 1;
+		timgoanimal.play;
+	}
+	cmov_GET	{
+		if( .advstdstate && grbutkarma.isin(mouse.getpos,1,1))	{
+			.advsetstate("state_foodtaken");
+			@s = grbutkarma.getsfound;
+			.mssetobj( s );
+			<s>.setz( 50 );
+			fxpedzel.play;
+		}
+	}
+	cmov_PUT	{
+		if( .advisstate("state_foodtaken") )	{
+			@s = .getfree;
+			if( sanimal!=null && clsurf::commonimgs(sanimal,s) )	{
+				int id = dbfood.findbyrow(<sanimal>.actionname);
+				@slevok = "anlevok"+iidquest;
+				if( dbfood.get(id,1)==<s>.actionname )	{
+					<slevok>.setframe("ok",0);
+					fxmikrofalaend.play;
+				} else {
+					<slevok>.setframe("no",0);
+					fxblink.play;
+					.csettime(10);
+				}
+				<slevok>.show;
+				.mhideanimal;
+			} else {
+				.advsetstdstate;
+				fxblink.play;
+			}
+			<s>.setz( 30 );
+			<s>.setpos(0,0);
+		}
+	}
+	butclick_anbutexit	{	.askfor("MainMenuNelaZoo");	}
+	butclick_nostdstate_anbutexit	{
+		//if( .advisstate("state_finito") || .advisstate("state_waitstart") )
+			.stdexit("MainMenuNelaZoo");
+	}
+	butclick_anbuthelp	{
+		if( .advstdstate )	{
+			.advsetstate("state_helpshow");
+			<"imghelp"+skontynent>.show;
+			clfio.imgtransparency(1, 20, "imghelp"+skontynent, func { .advsetstate("state_helpshown"); } );
+		}
+	}
+	mouse_lclick	{
+		if( .advisstate("state_helpshown") )	{
+			.advsetstate("state_hidehelp");
+			clfio.imgtransparency(1, -20, "imghelp"+skontynent, func { <"imghelp"+skontynent>.hide; .advsetstdstate; });
+		}
+	}
+	//mouse_rclick	{	if( igmdebug) .mfinish;	}
+	mfinish	{
+		.advsetstate("state_finito");
+		timsecrecord.stop(false);
+		
+		.img = ("$"+.getgamepath+"zoo/tabliczkaH.pyz 200");
+		.copyanima("antabliczka", "antexit"); 		antexit.setframe("exit",0);
+		.copyanima("antabliczka", "antrestart"); 	antrestart.setframe("restart",0);
+		antexit.Button_stdalpha;
+		antexit.addmethod("butclick", func { if( .advisstate("state_enpoints") ) .stdexit("MainMenuNelaZoo"); } );
+		butgame.add("antexit");
+		
+		antrestart.Button_stdalpha;
+		antrestart.addmethod("butclick", func { if( .advisstate("state_enpoints")) .stdexit(GAME); } );
+		butgame.add("antrestart");
+		
+		@w = antexit.getw/2;
+		antexit.move(w,0);
+		antrestart.move(w,0);
+		
+		.newtext("txcurtime", "Your time: "+clstrdigit::gettime(icurtime, "ms"), "fntsecrecord", .red);
+		txcurtime.txtcenter("antabliczka");
+		txcurtime.setz( antabliczka.getz + 5 );
+		txcurtime.hide;
+		new bool brekord = false;
+		if( csave.has("feed_record") )	{
+			txcurtime.move(0, -ifontrecordsize/2 );
+			new int icurec = csave.get("feed_record");
+			.newtext("txcurec", "Record: "+clstrdigit::gettime(icurec, "ms"), "fntsecrecord", .red);
+			txcurec.hide;
+			txcurec.setz( antabliczka.getz + 5 );
+			txcurec.txtcenter("antabliczka");
+			txcurec.move( 0, ifontrecordsize/2 );
+			if( icurtime < icurec )	{
+				brekord = true;
+				csave.set("feed_record", icurtime);
+			}
+		} else {
+			csave.set("feed_record", icurtime);
+			brekord = true;
+		}
+		
+		.advsetstate("state_showtabliczka");
+		antabliczka.anzoomin(idymekdelay, func { <GAME> {
+			txcurtime.show;
+			if( .hasvar("txcurec") )
+				txcurec.show;
+			if( brekord )	{
+				.img = ("$"+.getgamepath+"zoo/rekord.pngH "+(antabliczka.getz+20));
+				imgrekord.setpos( (igmappw-imgrekord.getw)/2, antabliczka.getpy - imgrekord.geth/2 );
+				.timplay("timend", 1000, func {
+					fxrekord.play;
+					imgrekord.show;
+					imgrekord.anzoomin(idymekdelay, func {
+						txtime.txtset(clstrdigit::gettime(icurtime, "ms"));
+						txtime.txtcenter("imgrekord");
+						txtime.move(0,20->igetsc);
+						txtime.setz( imgrekord.getz + 5 );
+						.advsetstate("state_enpoints");
+						} );
+					} );
+			} else .advsetstate("state_enpoints");
+			}; } );
+		antexit.anzoomin(idymekdelay,null);
+		antrestart.anzoomin(idymekdelay,null);
+	}
+}

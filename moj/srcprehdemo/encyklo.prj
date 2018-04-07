@@ -1,0 +1,56 @@
+path:
+	srcprehdemo/
+
+src:
+	libs/system.dag
+	libs/collections.dag
+	libs/music.dag
+	libs/vars.dag
+	libs/mouse.dag
+	libs/length.dag
+	libs/packs.dag
+	libs/containers.dag
+	libs/sounds.dag
+	libs/game.dag
+	libs/buttons.dag
+	libs/masks.dag
+	libs/basetypes.dag
+	libs/gametools.dag
+	libs/gamecontroller.dag
+	libs/adv.dag
+	libs/saves.dag
+	gameobjs/painter.dag
+	gameobjs/asker.dag
+	gameobjs/placepointer.dag
+	gameobjs/fadeinout.dag
+	gameobjs/counter.dag
+	gameobjs/gfxobjects.dag
+	gameobjs/texttyper.dag
+	gameobjs/delaytaker.dag
+	gameobjs/imgmover.dag
+	gameobjs/rewinder.dag
+	gameobjs/buttons.dag
+	gameobjs/textbox.dag
+	gameobjs/lexer.dag
+	gameobjs/anfx.dag
+	templates/tmenu.dag
+	templates/tpainter.dag
+	templates/troznice.dag
+	games/advmouse.dag
+	games/advkomputro.dag
+	games/main.dag
+	games/gm_menugry.dag
+	games/gm_sred.dag
+	games/gm_opo.dag
+	games/gm_puzzle.dag
+	games/gm_wstaw.dag
+	games/gm_menupreh.dag
+	games/gm_epoki.dag
+	games/gm_konstruktor.dag
+	games/gm_quiz.dag
+
+all:
+	dd1.dag
+
+out:
+	srcprehdemo/encyklo.odd

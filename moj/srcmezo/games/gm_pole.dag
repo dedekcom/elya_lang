@@ -1,0 +1,284 @@
+
+class advegipt : classadvcontroller	{
+	init	{
+		|new int X1, new int Y1, new int X2, new int Y2| = 117, 85, 916, 684;
+		clbuts.reset;
+		claskexit.reset;
+		clbuts.setcursorpos(0, 0);
+		claskexit.setcursorpos(0, 0);
+		classadvcontroller::init;
+		//if( igmdebug )	moddbg.enable;
+	}
+	evalclip	{
+		.eval( func { .clip(X1, Y1, X2, Y2); } );
+	}
+	mouse_LCLICK	{
+		if( igmdebug ) moddbg.updatetxtpos(mouse.getpos);
+	}
+}
+
+game gameadvdef : advegipt	{
+	init	{
+		advegipt::init;
+	}
+}
+
+game gamepole1 : advegipt	{
+	init	{
+		advegipt::init;
+		new string GAME = this;
+	}
+	mdzialaj	{
+		<GAME>	{
+			//.advmslock;
+			modstnd.pause;
+			igmstate = 2;
+			.img = ("zurbg.pyz 1010");
+			new gmimgvec grmask;
+			"grmask" .* "zurmask.pyz";
+			grmask.setz(1100);
+			grmask.hide;
+			.mshow("kamienie");
+			<grmask.getsac("kamienie")>.setz(1011);
+			
+			new gmimgvec grels;
+			"grels" .* "zurels.pyz";
+			grels.setz(1050);
+			new Rect rec(anzurbg.getcx-40, anzurbg.getpy+10, anzurbg.getw/2, anzurbg.geth-20);
+			rec.fitgrouprand("grels");
+			
+			new ImgMover cmov;
+			new int zurx;
+			new int zury;
+			
+			new db dbc;
+			dbc.dbaddstringrow("slupek2"," ");
+			dbc.dbaddstringrow("slupek1"," ");
+			dbc.dbaddstringrow("sznurek drag"," ");
+			dbc.dbaddstringrow("wezel poprzeczka"," ");
+			dbc.dbaddstringrow("drag poprzeczka"," ");
+			dbc.dbaddstringrow("poprzeczka slupek1 slupek2"," ");
+			
+			.sndplayfin("cheti_30", func { igmstate=3; });
+		};
+	}
+	bool mcontains(string s)	{
+		@row = dbc.findbyrow(<s>.actionname);
+		for( int i=1; i< dbc.getcolsno(row); i++)	{
+			if( grels.findsac( dbc.get(row,i) )>=0 ) return false;
+		}
+		true;
+	}
+	mshow(string s)	{
+		<grmask.getsac(s)>.show;
+	}
+	mouse_LCLICK	{
+		if( igmstate==3 )	{
+			if( grels.isin( mouse.getpos, 1, 1 ) )	{
+				@s = grels.getsfound;
+				zurx = <s>.getposx;
+				zury = <s>.getposy;
+				<s>.setz(1200);
+				cmov.mssetobj(s);
+			}
+		}
+	}
+	mouse_LREL	{
+		if( igmstate==3 )	{
+			@s = cmov.getfree;
+			if( s!=null )	{
+				if( <s>.aninlod(100) && .mcontains(s) )	{
+					grels.remove(s);
+					<s>.setpos(0, 0);
+					<s>.setz(1050);
+					@id = grmask.findsac( <s>.actionname );
+					if( id>=0 )	{
+						<grmask.get(id)>.show;
+					}
+					if( grels.empty )	{
+						igmstate = 2;
+						.sndplayfin("cheti_31", func {
+							.playnewgamepath("gamepole2", "pole");
+							} );
+					}
+				} else {
+					<s>.setpos(zurx, zury);
+					<s>.setz(1050);
+				}
+			}
+		}
+	}
+	mouse_MOVE	{
+		if( igmstate==3 )	{
+			cmov.msmove;
+		}
+	}
+}
+
+game gamepole2 : advegipt	{
+	init	{
+		advegipt::init;
+		anzboze.addmethod("onsetframe", func {
+			if( .actionnr(-1)==2 )	{
+				<ansnop.get(.framenr)>.show;
+			}
+			if( .framenr>0 ) .setz(10);
+			} );
+	}
+}
+
+game gamegospodarstwo : advegipt	{
+	init	{
+		if( igmdemo )	{
+			gameapi.play("MenuBaj");
+		} else {
+			advegipt::init;
+			cheti.subload("scripts/gospodarstwo/cheti1.pyz");
+			cheti.subload("scripts/gospodarstwo/cheti2.pyz");
+			anbyczek.clip(0,0,anplot1.getex,768);
+			
+			.EgiptSave("gospodarstwo");
+		}
+	}
+	cheti_VISIT	{
+		ptcheti	{
+			int id2 = .getidan2path;
+			if( clsave.bis("wynosi") )	{
+				match( .getidanpath )	{
+					101 => if( id2==100 ) .walkbase("kosz1");
+					102 => if( id2==110) .walkbase("kosz4");
+					112 => if( id2==111) .walkbase("kosz3");
+					? => ;
+				}
+			} else {
+				match( .getidanpath )	{
+					100 => if( id2==101 ) .walkbase("go");
+					101 => if( id2==100 ) .walkbase("go3");
+					102 => if( id2==110) .walkbase("go2");
+					112 => if( id2==110) .walkbase("go5");
+						else if (id2==111) .walkbase("go");
+					113 => if( id2==111) .walkbase("go4");
+					? => ;
+				}
+			}
+		};
+	}
+	mendscene	{
+		ccs.playfin( func {
+			lociec.play("standll");
+			lociec.setpos( 543,680 );
+			ptcheti.unlinkfilter;
+			cheti.setpos( 409,700 );
+		} ,  func {
+			.playbeh("behendscene");
+		} );
+	}
+	anbyczek_ENDFRAME	{
+		.setadvbutpos(.getpx, .getey);
+		.setz(555);
+	}
+}
+
+game gamedomek : advegipt	{
+	init	{
+		advegipt::init;
+		.EgiptSave("dom");
+		cheti.subload("scripts/domek/cheti1.pyz");
+	}
+}
+
+game gamedomek2 : advegipt	{
+	init	{
+		advegipt::init;
+		annew.evalclip;
+		//annew.eval( func { if (.actionnr(-1)>6 ) .setz(10); } );
+		annew.eval( func { .setz( .actionnr(-1)*10 );	} );
+		<annew.get(2)>.setz(5);
+	}
+	mgoniec	{
+		ccs.playfin( func {
+				.newanima("anchet", "cheti3.pyz", 500);
+				.newanima("angoniec", "goniec.pyz", 490);
+			}, func {
+				.playbeh("behendscene");
+			} );
+	}
+}
+
+game gamesw2 : advegipt	{
+	init	{
+		advegipt::init;
+	}
+}
+game gameloch2 : advegipt	{
+	init	{
+		advegipt::init;
+	}
+	bari_VISIT	{
+/*#	1 - start
+#	2 - drabina22 dol
+#	3 - drabina22 srodek
+#	4 - drabina22 wysoko
+#	5 - drabina2 gora
+#	6 - drabina2 srodek
+#	7 - drabina2 dol, lina
+#	8 - mkdziura ll
+#	9 - dach kot
+#	10 - kot rr
+#	102 - lina
+#	12 - klapa road
+#	13 - klapa open,end lina2
+#	14 - drabina222
+#	15 - dziura
+	8-11-13 - lina
+ */
+		ptbari	{
+			int id2 = .getidan2path;
+			match( .getidanpath )	{
+				2 => if( id2==16 ) .walkbase("wspina");
+					else .walkbase("go");
+				3 => if( id2==4 ) .walkbase("wspina");
+					else .walkbase("wspina2");
+				4 => if(id2==3) .walkbase("wspina2");
+					else .walkbase("go");
+				16 => if (id2==2) .walkbase("wspina2");
+					else .walkbase("wspina");
+				102 => if( id2==116 ) .walkbase("wspina");
+					else .walkbase("go");
+				103 => if( id2==104 ) .walkbase("wspina");
+					else .walkbase("wspina2");
+				104 => if(id2==103) .walkbase("wspina2");
+					else .walkbase("go");
+				116 => if (id2==102) .walkbase("wspina2");
+					else .walkbase("wspina");
+				8 => if (id2==11) .mwalkbase("zjazd");
+					else .mwalkbase("go");
+				11,13 => if(id2==11 || id2==13) .mwalkbase("zjazd");
+					else .mwalkbase("go");
+				? => ;
+			}
+		};
+	}
+	mwalkbase(string s)	{
+		if(s=="zjazd") {
+			.walkbase("zjazd");
+			<_sanim>.setstandbase("zjazd");
+		} else {
+			.walkbase("go");
+			<_sanim>.setstandbase("stand");
+		}
+	}
+	bari_ARRIVE	{	.walkbase("go");	}
+	mpodazaj(int id, string s)	{
+		andrabina22.copyposfrompt("ptbari",id);
+		andrabina22.setbutdir(s);
+	}
+	ptbari_WALKTO_andrabina22	{
+		@v1 = ptbari.lengthver(2);
+		@v2 = ptbari.lengthver(4);
+		if( v1<0 ) .mpodazaj(4,"ll");
+		else if( v2<0 ) .mpodazaj(2,"rr");
+		else if( v1<v2 )	.mpodazaj(2,"rr");
+		else .mpodazaj(4,"ll");
+	}
+}

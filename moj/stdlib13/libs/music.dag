@@ -1,0 +1,101 @@
+
+/***************************************************************************/
+
+class Music	{
+	init	{
+		new vector vmus;
+		vmus.type("string");
+		new int ilastid;
+		.vars2(A, "musicvolume", 100, "globalvolume", 100);
+		new string smixer = "gameapi";
+		//onmusicfin      {       mus.play;       }
+	}
+	smixer	{	 smixer;	}
+	smixer=(string s)	{
+		smixer = s;
+		.updatevolume;
+	}
+	playdb(string s, int row, int icol)	{
+		vmus.free;
+		while (icol < <s>.getcolsno(row) )	{
+			vmus.add( <s>.get(row, icol) );
+			icol++;
+		}
+		ilastid = 0;
+		.play;
+	}
+	playvec(string s, int id)	{
+		vmus.free;
+		while( id< <s>.size )	{
+			vmus.add( <s>.get(id) );
+			id++;
+		}
+		ilastid = 0;
+		.play;
+	}
+	playstr(string s)	{
+		vmus.vecbuildfromstring(s, " ");
+		ilastid = 0;
+		.play;
+	}
+	play	{
+		if( ilastid >= vmus.size ) return;
+		
+		string s = MUSICPATH + vmus.get(ilastid);
+		if( s.gete(0,3)!="ogg" && s.gete(0,3)!="wav" ) s+=".ogg";
+		if( !engine.fileexist(s) )	{
+			s = SFXPATH + vmus.get(ilastid);
+		}
+		
+		ilastid++;
+		
+		bool bloop=false;
+		int fin=0;
+		int fout = 0;
+		musicvolume = globalvolume;
+		
+		for( int i=ilastid; i<vmus.size; i++)	{
+			@s1 = vmus.get(i);
+			match(s1)	{
+				"-l" => bloop = true;
+				"-v", "-vol" => { i++;
+					musicvolume = vmus.get(i);
+					}
+				"-fin" => { i++; fin = vmus.get(i); }
+				"-fout" => { i++; fout = vmus.get(i); }
+				"-p" => ;
+				? => { ilastid=i; i = vmus.size; }
+			}
+		}
+		.updatevolume;
+		if( bloop ) {
+			ilastid = vmus.size;
+			if( smixer=="engine" && engine.ismusicplaying && engine.getactmusic==s ) {
+			} else {
+				<smixer>.playmusic(s);
+			}
+		} else {
+			<smixer>.loadmusic(s);
+			if (fin) <smixer>.fadeinmusic(fin);
+			else {
+				<smixer>.startmusic;
+			}
+			if (fout) <smixer>.fadeoutmusic(fout);
+		}
+	}
+	getvol	{	(globalvolume * musicvolume) / 100;	}
+	fadeout(int ms)	{
+		if( <smixer>.ismusicplaying ) {
+			<smixer>.fadeoutmusic(ms);
+			ilastid=vmus.size;
+		}
+	}
+	updatevolume	{
+		<smixer>.setmusicvol(.getvol);
+	}
+	isplaying	{	<smixer>.ismusicplaying;	}
+	getactmusic	{	engine.getactmusic;	}
+	stop	{
+		<smixer>.endmusic(false);
+	}
+}

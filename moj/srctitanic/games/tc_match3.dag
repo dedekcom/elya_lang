@@ -1,0 +1,571 @@
+
+class Match3 {
+	m3init	{
+		@sp = .getgraphpath;
+		.path = ("match3");
+		.imgsgr = (A, "m3bg.pyz 700", "m3e.pyzH 710", "m3bum.pyzH 720", "m3ramka.pyzH 715",
+			"m3bg2.pyzG 705", "m3oknolewe.pyz 700", "m3oknoprawe.pyz 700",
+			"m3grall");
+		
+		.copyanima("anm3ramka", "anm3ramka2");
+		.copyanima("anm3ramka", "anm3ramka3"); anm3ramka3.setframe(1,0); anm3ramka3.setz(705);
+		.copyanima("anm3ramka", "anm3ramka4"); anm3ramka4.setframe(1,0); anm3ramka4.setz(705);
+		anm3ramka.var2("sram", "anm3ramka3");
+		anm3ramka2.var2("sram", "anm3ramka4");
+		
+		new int m3rows = 10;
+		new int m3cols = 10;
+		new int im3w = anm3e.getw;
+		new int im3h = anm3e.geth;
+		new int im3level = dbconf.confmode("match3_level");
+		
+		new gmimgvec grm3;
+		new gmimgvec grm3w;
+		new gmimgvec grm3b;
+		new gmimgvec grm3c;
+		new vector vecm3;
+		new int im3state = 20;
+		
+		.newsfx("m3fxmove", "szufladaopen.ogg");
+		.newsfx("m3fxhit1", "hit1.ogg"); m3fxhit1.setvol(60);
+		
+// 		.debug = (1);
+		
+		int i[3];
+		string s[2];
+		for( int i=0; i<m3rows; i++)	{
+			for( int j=0; j<m3cols; j++)	{
+				vecm3.free;
+				for( i0=0; i0<im3level; i0++)
+					vecm3.add(i0);
+				
+				@s = .m3el(i,j);
+				.copyanima("anm3e", s);
+				<s>.vars2(A, "irow", i, "icol", j, "bbum", 0, "bonplace", 1);
+				
+				i0 = .m3get(i,j-2);
+				if( i0==.m3get(i, j-1) )
+					vecm3.remove(i0);
+				i0 = .m3get(i-2,j);
+				if( i0==.m3get(i-1, j) )
+					vecm3.remove(i0);
+				vecm3.hash;
+				<s>.play( vecm3.first );
+				<s>.setframe( -1, <s>.nofframes(-1)->rand );
+				<s>.ansetbpos( .m3px(j), .m3py(i) );
+				//<s>.clip( anm3bg.getpx, anm3bg.getpy, anm3bg.getex, anm3bg.getey );
+				
+				grm3.add(s);
+				
+				s0 = .m3elbum(i,j);
+				.copyanima("anm3bum", s0);
+				<s0>.addmethod("onstart", func { if( !iGameMute ) m3fxhit1.playif; } );
+				<s0>.addmethod("onfinish", func {
+					.hide;
+					grm3b.remove(this);
+					if( grm3b.empty )	{
+						<GAME>.m3spadek;
+					}
+					} );
+				<s0>.setpos( <s>.getcx, <s>.getcy );
+				grm3w.add(s0);
+			}
+		}
+		m3grall.add("grm3");
+		
+		.cycle = ("m3tim1", func {
+			if( icykl==0 )	{
+				rdx = (<sela>.getpx - <sel2>.getpx)->to_r/rspeed;
+				rdy = (<sela>.getpy - <sel2>.getpy)->to_r/rspeed;
+				restx = 0.0;
+				resty = 0.0;
+			}
+			if( icykl == rspeed )	{
+				@id = <sela>.actionnr(-1);
+				<sela>.play( <sel2>.actionnr(-1) );
+				<sel2>.play(id);
+				<sela>.m3retpos;
+				<sel2>.m3retpos;
+				anm3ramka.hide;
+				anm3ramka2.hide;
+				anm3ramka3.hide;
+				anm3ramka4.hide;
+				if( bclick )	{
+					/*if( <sela>.m3is3 || <sel2>.m3is3 )	{
+						_ = .m3usun;
+					} else {*/
+					if( !.m3usun ) {
+						.m3change(sela, 0);
+						.m3change(sel2, 0);
+					}
+				} else {
+					im3state = 0;
+				}
+			} else {
+				restx += rdx;
+				resty += rdy;
+				int px = restx;
+				int py = resty;
+				if( px||py )	{
+					<sela>.move(-px, -py );
+					<sel2>.move(px, py );
+					restx -= px;
+					resty -= py;
+				}
+				icykl++;
+				.play;
+			}
+			} );
+		m3tim1.vars2(A, "rdx", 0.0, "rdy", 0.0, "rspeed", 10.0, "sela", null, "sel2", null, "icykl", 0, "restx", 0.0, "resty", 0.0,
+			"bclick", 0);
+		
+		.cycle = ("m3tim2", func {
+			grm3c.eval( func {
+				if( !bonplace )	{
+					.move(0, 5);
+					if( .getpy >= .m3py(irow) )	{
+						.m3retpos;
+						bonplace=1;
+					}
+				}
+				} );
+			for( int i=0; i<grm3c.size; i++)	{
+				if( !<grm3c.get(i)>.bonplace )	{
+					.play;
+					return;
+				}
+			}
+			grm3c.free;
+			if( !.m3usun ) {
+				.m3initial;
+			}
+			} );
+		
+		.newfont("m3fnt", sgmfontmonobold, 23);
+		
+		@size = 28;
+		@dx = 20;
+		@dy = 23;
+		new int im3time = dbconf.confmode("match3_time");
+		new TextTimeCounter m3ttc("m3fnt",size, .m3pointcol,
+			anm3oknolewe.getpx+dx+4, anm3oknolewe.getpy+dy,701, 
+			"ms", im3time, -1);
+		
+		
+		new int im3points = 0;
+		new int im3pointlimit = dbconf.confmode("match3_points");
+		.newtextposz("m3txtpoints", im3points, "m3fnt", .m3pointcol,
+			anm3oknoprawe.getpx+dx, anm3oknoprawe.getpy+dy, 701);
+		.m3points(0);
+		
+		m3grall.addlist(A, "m3txtpoints", "m3ttc");
+		
+		.path = (sp);
+		
+		m3grall.move( 0, -anm3bg.getey );
+		.cycle = ("m3timkurt", func {
+			m3grall.move(0, idir);
+			if( idir>0 && anm3bg.getpy>=anm3bg.lody )	{
+				@dy = anm3bg.lody-anm3bg.getpy;
+				m3grall.move(0, dy);
+				grm3.eval( func {
+					.clip( anm3bg.getpx, anm3bg.getpy, anm3bg.getex, anm3bg.getey );
+					} );
+				im3state = 15;
+				.m3play("start");
+			} else if (idir<0 && anm3bg.getey < 0 )	{
+				timendmatch3.play;
+			} else .play;
+			} );
+		m3timkurt.var2("idir", 50);
+		m3timkurt.addmethod("onstart", func {
+			if( !iGameMute ) m3fxmove.play; 
+			} );
+		m3timkurt.play;
+		
+		
+		new tcramka m3tcr;
+		
+		new db dbmatch3;
+		dbmatch3.load( LANGDIR + "match3_"+LANG+".db");
+		new db m3dbts;
+		
+		.newanima("anm3skip", "$scripts/common/skip.pyz", 720);
+		new img im3skip; 
+		if( LANG=="ger" )	{
+			.newanima("anm3skip3", "$scripts/common/next3.pyz", 720);
+			im3skip.clone("anm3skip3");
+			delete anm3skip3;
+		} else {
+			im3skip.clone("anm3skip");
+		}
+		.txtonbutton( dbmatch3.dbget("txtskip"), "im3skip");
+		im3skip.hide;
+		new img im3again;
+		if( LANG.in(A, "fra", "esp", "ger") )	{
+			.newanima("anm3skip2", "$scripts/common/next2.pyz", 720);
+			im3again.clone("anm3skip2");
+			delete anm3skip2;
+		} else {
+			im3again.clone("anm3skip");
+		}
+		.txtonbutton( dbmatch3.dbget("txtagain"), "im3again");
+		im3again.hide;
+		delete anm3skip;
+	}
+	m3restart	{
+		.m3points(-im3points);
+		im3pointlimit = dbconf.confmode("match3_points");
+		m3ttc.reset;
+		m3ttc.update(0);
+		m3ttc.play;
+	}
+	m3play(string s)	{	<GAME> (s) { (string s)
+		/*sndm3start1|You must get
+		sndm3start2|points.
+		sndm3start3|Available time: 
+		sndm3start4|Good luck!
+		sndm3win|Congratulations! You won! Mission accomplished.
+		sndm3fail1|Oups... It looks like the time has finished.
+		sndm3fail2|You were very close - try again!
+		sndm3fail3|You can try again!*/
+		m3dbts.free;
+		match(s)	{
+			"start" => {
+				m3dbts.dbbuild(A,
+					dbmatch3.dbget("sndm3start1")+" "+im3pointlimit+" "+dbmatch3.dbget("sndm3start2"),
+					dbmatch3.dbget("sndm3start3")+" "+ m3ttc.sgettime,
+					dbmatch3.dbget("sndm3start4"),
+					1 );
+			}
+			"ok" => {
+				m3dbts.dbaddlast( dbmatch3.dbget("sndm3win") );
+			}
+			"nobut" => {
+				m3dbts.dbbuild(A,
+					dbmatch3.dbget("sndm3fail1"),
+					dbmatch3.dbget("sndm3fail2"),
+					1 );
+			}
+			"no" => {
+				m3dbts.dbbuild(A, 
+					dbmatch3.dbget("sndm3fail1"),
+					dbmatch3.dbget("sndm3fail3"),
+					1);
+			}
+			? => ;
+		}
+		new TextDb tdsnd(null, 16, "$var:m3dbts", .grey(20),
+					0.2*iResX,iResY, 5,750, "center");
+		m3tcr.view("tdsnd");
+		.deletegmobj("tdsnd");
+		m3tcr.ashow;
+	}; }
+	m3pointcol	{	return 220,220,220;	}
+	m3ttc_finish	{
+		.stop;
+		if( im3state!=2 )	{
+			im3state = 2;
+			if( grm3b.empty && !m3tim2.isplaying )	{
+				<GAME>.m3finish1;
+			}
+		}
+	}
+	m3is3	{
+		@i1 = .actionnr(-1);
+		@ia1 = .m3get(irow, icol-2);
+		@ia2 = .m3get(irow, icol-1);
+		@ia3 = .m3get(irow, icol+1);
+		@ia4 = .m3get(irow, icol+2);
+		@ib1 = .m3get(irow-2, icol);
+		@ib2 = .m3get(irow-1, icol);
+		@ib3 = .m3get(irow+1, icol);
+		@ib4 = .m3get(irow+2, icol);
+		((ia1==ia2 && ia1==i1 ) || (ia2==i1 && i1==ia3) || (i1==ia3 && ia3==ia4)) ||
+		( (ib1==ib2 && ib1==i1 ) || (ib2==i1 && i1==ib3) || (i1==ib3 && ib3==ib4) );
+	}
+	m3points(int ip)	{
+		im3points+=ip;
+		m3txtpoints.txtset(""+im3points+"/"+im3pointlimit);
+	}
+	m3initial	{
+		anm3ramka.hide;
+		anm3ramka2.hide;
+		anm3ramka3.hide;
+		anm3ramka4.hide;
+		if( im3points>=im3pointlimit && m3ttc.isplaying )	{
+			m3ttc.stop;
+			im3state=2;
+		}
+		if( im3state==2 )	{
+			.m3finish1;
+		} else if( im3state!=15 && im3state!=13 && im3state!=14) {
+			im3state=0;
+		}
+	}
+	m3finish1	{
+		im3state = 13;
+		if( im3points>=im3pointlimit )	{
+			.m3play("ok");
+		} else {
+			if ( im3points.to_r/im3pointlimit.to_r >= 80.0 )
+				.m3play("nobut");
+			else .m3play("no");
+			im3state = 1333;
+		}
+	}
+	m3tcr_show	{
+		if( im3state==1333 )	{
+			//@x = anskip.getpx - anskip.getw/2;
+			@x = anskip.getcx - ( im3again.getw + im3skip.getw ) /2;
+			im3again.setpos( x, anskip.getpy );
+			im3again.show;
+			im3skip.setpos( im3again.getex+2, anskip.getpy );
+			im3skip.show;
+			m3tcr.hideskip;
+			im3state = 13;
+		}
+	}
+	m3finish	{
+		m3timkurt.idir = (-m3timkurt.idir);
+		if( m3timkurt.idir < 0 )	{
+			grm3.eval( func {
+				.clip( 0, 0, iResX, iResY );
+				} );
+		}
+		anm3ramka.anhide;
+		anm3ramka2.anhide;
+		anm3ramka3.anhide;
+		anm3ramka4.anhide;
+		m3timkurt.play;
+	}
+	m3retpos	{
+		.ansetbpos( .m3px(icol), .m3py(irow) );
+	}
+	m3get(int ir, int ic)	{
+		if( ir<0 || ir>=m3rows || ic<0 || ic>=m3cols )	-1;
+		else <"anm3"+ir+"_"+ic>.actionnr(-1);
+	}
+	m3px(int c)	{
+		anm3bg.getpx + c * im3w;
+	}
+	m3py(int r)	{
+		anm3bg.getpy + r * im3h;
+	}
+	m3edge	{	anm3bg.getpy; }
+	m3exit	{
+		delete im3again;
+		delete im3skip;
+	
+		delete m3fxhit1;
+		delete m3fxmove;
+		
+		m3tcr.free;
+		.deletegmobj("m3tcr");
+		delete m3dbts;
+		delete dbmatch3;
+		delete m3timkurt;
+		delete im3time;
+		delete im3points;
+		delete im3pointlimit;
+		delete m3txtpoints;
+		.deletegmobj("m3ttc");
+		delete m3fnt;
+		grm3.deleteallgm;
+		delete grm3;
+		grm3w.deleteallgm;
+		delete grm3w;
+		delete vecm3;
+		delete grm3b;
+		delete grm3c;
+		
+		grm3bg2.deleteallgm;
+		delete anm3bg2;
+		delete grm3bg2;
+		
+		delete m3tim1;
+		delete m3tim2;
+		delete anm3e;
+		delete anm3bg;
+		delete anm3ramka4;
+		delete anm3ramka3;
+		delete anm3ramka2;
+		delete anm3ramka;
+		delete anm3bum;
+		delete im3state;
+		delete m3rows;
+		delete m3cols;
+		delete im3w;
+		delete im3h;
+		delete im3level;
+		
+		delete anm3oknolewe;
+		delete anm3oknoprawe;
+		
+		delete m3grall;
+	}
+	m3_lclick	{
+		if( im3state==0 && grm3.isin(mouse.getpos,1,0)  )	{
+			.m3change( grm3.getsfound, 1 );
+		} else if (im3state==13 )	{
+			if( anskip.isin(mouse.getpos,1,1) )	{
+				im3state=14;
+				im3skip.hide;
+				im3again.hide;
+				m3tcr.ahide;
+				.m3finish;
+			} else if ( im3again.isin( mouse.getpos, 1, 1) )	{
+				im3state=0;
+				im3skip.hide;
+				im3again.hide;
+				m3tcr.ahide;
+				.m3restart;
+				m3ttc.play;
+			} else if ( im3skip.isin( mouse.getpos, 1, 1) )	{
+				im3state=14;
+				im3skip.hide;
+				im3again.hide;
+				m3tcr.ahide;
+				im3points = im3pointlimit+1;
+				.m3finish;
+			}
+		} else if (im3state==15 )	{
+			im3state=0;
+			m3tcr.ahide;
+			m3ttc.play;
+		}
+	}
+	m3change(string s, bool bclick)	{
+		if( anm3ramka.isvisible )	{
+			@s2 = m3tim1.sela;
+			if( s!=s2 )	{
+				@p1 = (<s>.irow-<s2>.irow)->abs;
+				@p2 = (<s>.icol-<s2>.icol)->abs;
+				if(  (p1==0 && p2==1 ) || (p1==1 && p2==0 ) )	{
+					anm3ramka2.m3set( s );
+					if( im3state!=2 )	{
+						im3state=1;
+					} else {
+					
+					}
+					m3tim1.bclick=(bclick);
+					m3tim1.icykl = (0);
+					m3tim1.play;
+				} else {
+					anm3ramka.m3set( s );
+				}
+			}
+		} else {
+			anm3ramka.m3set( s );
+		}
+	}
+	m3set(string s)	{
+		.setpos( <s>.getpx, <s>.getpy );
+		.show;
+		<sram>.show;
+		<sram>.setpos( .getpx, .getpy );
+		m3tim1.<"sel"+this->gete(0,1)+"="> (s);
+	}
+	m3usun	{
+		int i[4];
+		for( int i=0; i<m3rows; i++)	{
+			for( int j=0; j<m3cols; j++)	{
+				i2 = .m3get( i-2, j );
+				i1 = .m3get( i-1, j );
+				i0 = .m3get( i, j );
+				if( i2==i1 && i1==i0 )	{
+					.m3setbum(i-2,j);
+					.m3setbum(i-1,j);
+					.m3setbum(i,j);
+				}
+				i2 = .m3get( i, j-2 );
+				i1 = .m3get( i, j-1 );
+				if( i2==i1 && i1==i0 )	{
+					.m3setbum(i,j-2);
+					.m3setbum(i,j-1);
+					.m3setbum(i,j);
+				}
+			}
+		}
+		for( i=0; i<m3rows; i++)	{
+			for( j=0; j<m3cols; j++)	{
+				@s = .m3el(i,j);
+				if( <s>.bbum )	{
+					<s>.stop(false);
+					<s>.hide;
+					s = .m3elbum(i, j);
+					grm3b.add(s);
+					<s>.play(0);
+				}
+			}
+		}
+		if( grm3b.size )	{
+			.m3points(grm3b.size);
+			1;
+		} else 0;
+	}
+	m3el(int r, int c)	{	"anm3"+r+"_"+c;	}
+	m3elbum(int i, int j)	{	"anm3w"+i+"_"+j;	}
+	m3setbum(int r, int c)	{
+		if( r <0 || c<0 ) return;
+		<.m3el(r,c)>.bbum = (1);
+	}
+	m3spadek	{
+		int i[5];
+		string s, string s2;
+		for( int j=0; j<m3cols; j++)	{
+			i0 = 0;
+			i1 = m3rows-1;
+			i4 = 1;
+			while(i1>=0)	{
+				s = .m3el(i1,j);
+				if( <s>.bbum )	{
+					<s>.bbum = (0);
+					i3 = i1;
+					i2=0;
+					while( i3>=1 && <.m3el(i3-1, j)>.bbum )	{
+						i2++;
+						i3--;
+					}
+					if( i3==0 )	{
+						<s>.play( im3level->rand );
+						<s>.setframe( -1, <s>.nofframes(-1)->rand );
+						<s>.ansetbpos( <s>.getpx, .m3edge - i4 * im3h );
+						i4++;
+					} else {
+						s2 = .m3el(i3-1, j);
+						<s2>.bbum = (1);
+						//<s>.stop(false);
+						@ifr = <s2>.framenr;
+						<s>.play( <s2>.actionnr(-1) );
+						<s>.setframe( -1, ifr );
+						<s>.ansetbpos( <s2>.getpx, <s2>.getpy );
+					}
+					<s>.bonplace=(0);
+					grm3c.add(s);
+				}
+				i1--;
+			}
+		}
+		if( grm3c.empty )	{
+			.m3initial;
+		} else {
+			m3tim2.play;
+		}
+	}
+}
+
+/*game Tmp4 : StdGame, Match3	{
+	init	{
+		StdGame::init("tmp4");
+		
+		new img imbg;
+		imbg.create( iResX, iResY, .black, 255 );
+		
+		.m3init;
+	}
+	mouse_lclick	{
+		.m3_lclick;
+	}
+}*/
+

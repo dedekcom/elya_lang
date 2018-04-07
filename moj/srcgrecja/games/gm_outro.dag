@@ -1,0 +1,126 @@
+game Outro : DziejeGame	{
+	init	{
+		DziejeGame::init("outro");
+		.lang_an("anoutro_bkg", "outro_bkg", 0);
+		
+		new gmimgvec grob;
+		"grob" .* "programy.pyz";
+		
+		.lang_db("dbend", "napisy");
+		.lang_db("dbgry", "gry");
+		new int ystart = Y2+15;
+		new int ystop = 177;
+		@ifont = 22;
+		@stdfont = .stdfont(ifont);
+		new TextDb tdend( stdfont, ifont, "$var:dbend", .mcol, iResX/2, ystart, 2, 5, "center");
+		tdend.mtxtclip;
+		tdend.move( -tdend.W/2, 0);
+		//grob.mclip;
+		
+		new gmimgvec grels;
+		
+		.newtext( "txtpreh", dbgry.get(0,0), stdfont, .mcol );
+		.newtext( "txtegipt", dbgry.get(0,1), stdfont, .mcol );
+		.newtext( "txtmezo", dbgry.get(0,2), stdfont, .mcol );
+		@s = grob.first;
+		@dy = tdend.getey + 30;
+		<s>.ansetbpos( <s>.lodx, dy );
+		dy += <s>.geth -3;
+		txtpreh.setpos( <s>.getpx + <s>.getw/6 - txtpreh.getw/2, dy );
+		txtegipt.setpos( <s>.getpx + <s>.getw/2 - txtegipt.getw/2, dy );
+		txtmezo.setpos( <s>.getpx + 5*<s>.getw/6 - txtmezo.getw/2, dy );
+		
+		grels.add(s);
+		grels.add("txtpreh"); grels.add("txtegipt"); grels.add("txtmezo");
+		
+		dy += 30;
+		.newtext( "txtinne", dbgry.get(1,0), stdfont, .mcol );
+		txtinne.setpos( (iResX-txtinne.getw)/2, dy );
+		grels.add("txtinne");
+		dy += 30;
+		s = grob.get(1);
+		<s>.ansetbpos( <s>.lodx, dy );
+		grels.add(s);
+		grels.mclip;
+		
+		.cycle = ("timcyk", func {
+			@dy = -1;
+			tdend.move(0, dy);
+			grels.move(0, dy);
+			@s = grob.last;
+			if( <s>.getpy <= (<s>.lody-5) && igmstate==0 )	{
+				timend.play;
+			}
+			else .play;
+			} );
+		timcyk.setcycle(1);
+		timcyk.play;
+		//mus.playstr("monoton.ogg -v 50 -l");
+		.timer = ("timend", 8000, "mouse_lclick");
+	}
+	mcol	{	return 0,32,224;	}
+	mtxtclip	{
+		grtxt.mclip;
+	}
+	mclip	{
+		.eval( func { .clip( 0, ystop, iResX, ystart ); } );
+	}
+	mouse_lclick	{
+		if( igmstate==0 )	{
+			igmstate = 1;
+			mus.fadeout(1000);
+			ccs.close( func { gameapi.exit; } );
+		}
+	}
+}
+
+game Intro : DziejeGame	{
+	init	{
+		DziejeGame::init("intro");
+		
+		.imgs = (A, "bkg.pyz", "els.pyzH 10");
+		
+		.newanima("annapisy", "napisy"+LANG+".pyz", 20);
+		annapisy.hide;
+		
+		.newgrimg("grnak", "nakladki"+LANG, 20);
+		
+		new int ibuild = 0;
+		new img img1;
+		new img img2;
+		
+		new classfadeinout clfio1;
+		new classfadeinout clfio2;
+		
+		.timer = ("timshow", 750, func {
+			@dt = 3;
+			clfio1.imgtransparency(1, -dt, "img1", null );
+			clfio2.imgtransparency(1, dt, "img2", func { clfio1.stop(false); <GAME>.mbuild;  } );
+			} );
+		.mbuild;
+		ccs.enter( func { annapisy.play(0); } );
+	}
+	mbuild	{
+		anels.setframe(ibuild,0);
+		img1.clone("anels");
+		img1.transparency(255);
+		ibuild++;
+		if( ibuild >= anels.nofactions )	{
+			.mend;
+		} else {
+			anels.setframe(ibuild,0);
+			img2.clone("anels");
+			img2.transparency(0);
+			img1.show;
+			img2.show;
+			timshow.play;
+		}
+	}
+	mend	{
+		if( !ccs.isplaying )
+			ccs.close( func { gameapi.play("MainMenu"); } );
+	}
+	mouse_lclick	{
+		.mend;
+	}
+}

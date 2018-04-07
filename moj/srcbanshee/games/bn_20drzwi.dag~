@@ -1,0 +1,439 @@
+
+game mg20_drzwi :Banshee {
+	init{
+    new string act_id = "null";
+    new int act_slotanim = 1;
+    Banshee::init("mg20_drzwi");
+    .imgs = (A,"bkg.jpg 0", "slot1.pyzH 1", "slot2.pyzH 2", "slot3.pyzH 3", "slot4.pyzH 4", "slot5.pyzH 5","slot6.pyz 6", "1.pyzH 7", "2.pyzH 8", "3.pyzH 9", "4.pyzH 10", "5.pyzH 11", "6.pyzH 12", "zaslepka.pyzH 13","zaslepka_glow.pyzH 14", "door_open.pyzH 14");
+    .sfxs = (A, "book2", "butmoveon3"); 
+     new ImgRect recexit {
+      .Button_isin; 
+      .addmethod("isbutin", func { (@x, @y)
+  			this.isin(x,y,0,0) && act_id == "null";
+  			} ); 
+          
+      .Button_moveoffms;
+      .addmethod("butmoveon", func { advmouse.set("godd"); });
+      .setrect( 0, 0.9 * igmapph, igmappw, igmapph );
+      .setz(300); 
+       butgame.add(this);
+      .addmethod("butclick", func {
+  			if( !.advstdstate ) return;
+  				   .mend;  
+        });
+    };  
+ 
+   //  .addtopck("krzyz_6");  
+   //  clsave.bset("e1_krzyze_zebrane");
+   //  clsave.bset("ma_krzyz_6");
+     
+    
+    
+   if (clsave.bis("e1_drzwi_krzyze_uzyte") )
+   {
+       an1.show();
+       an2.show();
+       an3.show();
+       an4.show();
+       an5.show();
+       an6.show();
+   } 
+   else
+   {
+      .newsnd("snd_brakkrzyzy", "kinnat_c3d3_1");
+      snd_brakkrzyzy.addmethod("onfinish", func {.advsetstdstate;});
+      .cbplay("snd_brakkrzyzy"); 
+   }
+   
+   imgbkg { 
+      .Button_isinvisalpha;
+      .addmethod("butmoveon", func {
+				if( !.advstdstate) return;
+				  if(!clsave.bis("e1_drzwi_krzyze_uzyte"))
+            advmouse.set("use"); 
+                
+        } );
+			.addmethod("butmoveoff", func {
+				if( !.advstdstate ) return;
+				  advmouse.setstd;
+				} ); 
+        butgame.add(this);
+               
+    };
+    
+    if (!clsave.bis("e1_mg20_zaslepka_removed"))
+    {
+      anzaslepka.show;
+      anzaslepka { 
+        .Button_isinvisalpha;
+        .addmethod("butmoveon", func {
+  				if( !.advstdstate ) return;
+  				  if(clsave.bis("e1_mg20_pierwsza_faza" ))
+              advmouse.set("take"); 
+            else
+              advmouse.setstd;  
+                  
+          } );
+  			.addmethod("butmoveoff", func {
+  				if( !.advstdstate ) return;
+  				  advmouse.setstd;
+  				} ); 
+         .addmethod("butclick", func {
+            if( !.advstdstate || !clsave.bis("e1_mg20_pierwsza_faza")|| clsave.bis("e1_mg20_zaslepka_removed")) return;
+              butgame.removebut(this);
+             .anfadeout(500,null);
+              clsave.bset("e1_mg20_zaslepka_removed");
+              advmouse.setstd;  
+          } ); 
+          butgame.add(this);
+                 
+      };  
+    };
+     
+    // init
+    anslot1{
+      .Button_isin;    
+      .addmethod("butmoveon", func {
+				if( !.advstdstate) return;
+				advmouse.set("use");
+				} );
+			.addmethod("butmoveoff", func {
+				if( !.advstdstate ) return;
+				advmouse.setstd;
+				} ); 
+      .vars2(A,"occupied",false, "obj_id","null");
+      .addmethod("onfinish", func {
+  	    if(clsave.bis("e1_mg20_pierwsza_faza" )) return;
+        if (!clsave.bis("e1_mg20_drzwi_1_inserted" )) 
+          .anfadeout(1500,"find_next_slot");
+        else
+          .find_next_slot;
+      });  
+    }; 
+     anslot2{
+      .Button_isin;    
+      .addmethod("butmoveon", func {
+				if( !.advstdstate) return;
+				advmouse.set("use");
+				} );
+			.addmethod("butmoveoff", func {
+				if( !.advstdstate ) return;
+				advmouse.setstd;
+				} ); 
+      .vars2(A,"occupied",false,"obj_id","null");
+      .addmethod("onfinish", func {
+  	    if(clsave.bis("e1_mg20_pierwsza_faza" )) return;
+        if (!clsave.bis("e1_mg20_drzwi_2_inserted" )) 
+          .anfadeout(1500,"find_next_slot");
+        else
+          .find_next_slot;
+      }); 
+    }; 
+     anslot3{
+       .Button_isin;    
+      .addmethod("butmoveon", func {
+				if( !.advstdstate) return;
+				advmouse.set("use");
+				} );
+			.addmethod("butmoveoff", func {
+				if( !.advstdstate ) return;
+				advmouse.setstd;
+				} ); 
+       .vars2(A,"occupied",false,"obj_id","null");
+     .addmethod("onfinish", func {
+  	    if(clsave.bis("e1_mg20_pierwsza_faza" )) return;
+        if (!clsave.bis("e1_mg20_drzwi_3_inserted" )) 
+          .anfadeout(1500,"find_next_slot");
+        else
+          .find_next_slot;
+      }); 
+    }; 
+     anslot4{
+      .Button_isin;    
+      .addmethod("butmoveon", func {
+				if( !.advstdstate) return;
+				advmouse.set("use");
+				} );
+			.addmethod("butmoveoff", func {
+				if( !.advstdstate ) return;
+				advmouse.setstd;
+				} ); 
+      .vars2(A,"occupied",false,"obj_id","null");
+      .addmethod("onfinish", func {
+  	    if(clsave.bis("e1_mg20_pierwsza_faza" )) return;
+        if (!clsave.bis("e1_mg20_drzwi_4_inserted" )) 
+          .anfadeout(1500,"find_next_slot");
+        else
+          .find_next_slot;
+      }); 
+    }; 
+     anslot5{
+      .Button_isin;    
+      .addmethod("butmoveon", func {
+				if( !.advstdstate) return;
+				advmouse.set("use");
+				} );
+			.addmethod("butmoveoff", func {
+				if( !.advstdstate ) return;
+				advmouse.setstd;
+				} ); 
+      .vars2(A,"occupied",false,"obj_id","null");
+      .addmethod("onfinish", func {
+  	    if(clsave.bis("e1_mg20_pierwsza_faza" )) return;
+        if (!clsave.bis("e1_mg20_drzwi_5_inserted" )) 
+          .anfadeout(1500,"find_next_slot");
+        else
+          .find_next_slot;
+        
+      }); 
+    };
+    anslot6{
+      .addmethod("isbutin", func { (int x, int y)
+    			  .advstdstate && .isin(x,y,0,0) &&  clsave.bis("e1_mg20_zaslepka_removed");
+    				} ); 
+         
+      .addmethod("butmoveon", func {
+				if( !.advstdstate) return;
+				advmouse.set("use");
+				} );
+			.addmethod("butmoveoff", func {
+				if( !.advstdstate ) return;
+				advmouse.setstd;
+				} ); 
+      .vars2(A,"occupied",false,"obj_id","null");
+    };  
+    
+    
+    if (clsave.bis("e1_mg20_drzwi_1_inserted") )
+    { 
+      anslot1.play(2);
+      an1.hide(); 
+    }  
+    else
+      .init_cross("1",1,1);
+       
+    if (clsave.bis("e1_mg20_drzwi_2_inserted") )
+    { 
+      anslot2.play(2);
+      an2.hide(); 
+    }  
+    else
+      .init_cross("2",1,1); 
+      
+    if (clsave.bis("e1_mg20_drzwi_3_inserted") )
+    { 
+      anslot3.play(2);
+      an3.hide(); 
+    }  
+    else
+      .init_cross("3",1,1);
+    
+    if (clsave.bis("e1_mg20_drzwi_4_inserted") )
+    { 
+      anslot4.play(2);
+      an4.hide(); 
+    }  
+    else
+      .init_cross("4",1,1);
+    
+    if (clsave.bis("e1_mg20_drzwi_5_inserted") )
+    { 
+      anslot5.play(2);
+      an5.hide(); 
+    }  
+    else
+      .init_cross("5",1,1); 
+      
+    if (clsave.bis("e1_mg20_drzwi_6_inserted") )
+    { 
+      anslot6.play(2);
+      an5.hide(); 
+    }  
+    else
+      .init_cross("6",1,1);   
+    
+    .stdstart;
+  } // koniec init
+  
+  USE_krzyz_6	{
+		.advsetstdstate();
+    if(imgbkg.isin(mouse.getpos,0,1) )	{
+		 	.removefrompck("krzyz_6");
+		  butgame.removebut("imgbkg");
+      clsave.bset("e1_drzwi_krzyze_uzyte");
+     // .set_mg_finished();
+      .timplay("tim1", 150,func{<"an1">.anfadein(100,null);});  
+      .timplay("tim2", 200,func{<"an2">.anfadein(100,null);});  
+      .timplay("tim3", 250,func{<"an3">.anfadein(100,null);});  
+      .timplay("tim4", 300,func{<"an4">.anfadein(100,null);});  
+      .timplay("tim5", 350,func{<"an5">.anfadein(100,null);});
+      .timplay("tim6", 350,func{<"an6">.anfadein(100,"anim_slot");});    
+      } else 
+			 .item_gotopck;
+	}
+  
+  init_cross(string name, int x,int y)
+  {
+      <"an"+name>(name, x,y){(string name, int x, int y)
+        
+        .vars2(A,"name", name, "start_x",<"an"+name>.getposx, "start_y", <"an"+name>.getposy);
+         .addmethod("isbutin", func { (@x, @y)
+    			 .isin(x,y,0,0) && clsave.bis("e1_drzwi_krzyze_uzyte");
+    			} );   
+        .addmethod("butmoveon", func {
+    				if( !.advstdstate ) return;
+    				advmouse.set("take");
+            .play(1);
+             
+    				} );
+    			.addmethod("butmoveoff", func {
+    				if( !.advstdstate  ) return;
+    				advmouse.setstd;
+            .play(0);
+    				} ); 
+        .addmethod("butclick", func {
+          
+          if( !.advstdstate || .is_mg_finished()) return;
+           
+          if (act_id == "null")
+          {
+            act_id = this;
+            fxbutmoveon3.play;
+            .setz(300);
+            .play(2); 
+            .setpos(mouse.getpos);
+            advmouse.setstd;
+          }
+          else if(act_id == this)
+          { 
+            @slot = "anslot"+.name;
+            if (act_id == "an6" && !clsave.bis("e1_mg20_zaslepka_removed") && slot == "anslot6")
+            {
+               act_id = "null";
+              .play(0);
+              .setpos(.start_x,.start_y) ; 
+              fxbook2.play;
+              .setz(2);
+              advmouse.setstd;   
+              return;
+            }
+             
+            if (<slot>.isin(mouse.getpos,0,1)  )
+            {
+              if (<slot>.isvisible)
+              { 
+                <slot>.play(2);
+                <slot>.anfadein(100,null);
+                fxbook2.play;
+                clsave.bset("e1_mg20_drzwi_"+.name+"_inserted" );
+                .hide();
+                .check_won();  
+                .check_finish();  
+                }
+                else
+                {
+                  .play(0);
+                  .setpos(.start_x,.start_y) ; 
+                  fxbook2.play;
+                  .setz(2); 
+                
+                }
+                  
+            }
+            else
+            { 
+              .play(0);
+              .setpos(.start_x,.start_y) ; 
+              fxbook2.play;
+              .setz(2); 
+            }
+            act_id = "null";
+            advmouse.setstd;
+          }
+          butgame.sort; 
+          .advsetstdstate;
+        } );
+        butgame.add(this);
+      };
+  } 
+  
+  check_all_done()
+  {
+    for(int i=1;i<6;i++)
+    {
+      if (<"anslot"+i>.actionnr(-1) != 2)
+        return false;
+    }  
+    return true;
+  }
+  
+  check_won()
+  {
+    if (.check_all_done())
+    {
+      if(!clsave.bis("e1_mg20_pierwsza_faza" ))
+      {
+        anzaslepka_glow.anfadein(1500,func{anzaslepka_glow.anfadeout(1500,func{.advsetstdstate;});}); 
+        clsave.bset("e1_mg20_pierwsza_faza" );
+      }    
+    }
+  }
+  
+  check_finish()
+  {
+    if ( clsave.bis("e1_mg20_drzwi_6_inserted" )) 
+    {
+      .set_mg_finished();
+      andoor_open.anfadein(500,null);
+      .timfinito;  
+    
+    }
+     
+  }
+  
+  anim_slot{
+    if (!clsave.bis("e1_mg20_drzwi_"+act_slotanim+"_inserted" )) 
+        <"anslot"+act_slotanim>.anfadein(1500,func{<"anslot"+act_slotanim>.play(0);});  
+    else
+      .find_next_slot;        
+    
+  }
+  
+  find_next_slot{
+  
+  if (act_slotanim < 5) 
+    act_slotanim++ ;
+  else
+    act_slotanim = 1;
+  .anim_slot;
+  
+  }
+  
+  mouse_move	{
+	  if (act_id != "null")
+    {
+      <act_id>.setpos(mouse.getpos);
+      <act_id>.play(2);
+    }
+	}
+    
+  mend	{ 
+    if (.is_mg_finished) 
+      .stdexitdefadv("ad21_holglowny", "gamead21_holglowny0");
+    else 
+    .stdexitdefadv("ad20_zamekdrzewo", "gamead20_zamekdrzewo0");
+	}
+  
+  HINT_CLICK {
+    if (clsave.bis("ma_krzyz_6"))
+    {
+      .showhint("imgbkg");
+      .showhintitem("krzyz_6"); 
+    }
+    else
+      .showhint("recexit");   
+  }
+  
+  
+}
+ 

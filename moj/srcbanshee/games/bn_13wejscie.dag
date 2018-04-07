@@ -1,0 +1,129 @@
+
+game mg13_wejscie :Banshee {
+	init{
+    Banshee::init("mg13_wejscie");
+    // .addtopck("pochodnia_ogien"); //do testow 
+  
+    .imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2","bkg_fire.pyzH 3", "uchwyt.pyzH 4","pochodnia.pyzH 5","pochodnia_mask.pyzH 6","fire.pyzH 7","fire_mask.pyzH 8", "ramka.pyz 54","popexit.pyz 55");
+    
+	.sfxs =(A, "bgrwiatrN 30"); 
+	
+	if (!clsave.bis("e1_mg13_wejscie_pochodnia_zapalona"))
+	{
+		.newsndfree("snd_pochodnia_put", "kinnat_c2d2_4c");
+		snd_pochodnia_put.addmethod("onfinish", "advsetstdstate"); 
+		
+		.newsndfree("snd_pochodnia_place", "kinnat_c2d2_4ba");
+		snd_pochodnia_place.addmethod("onfinish", "advsetstdstate"); 
+	}
+	
+	
+	imgbkg {
+		.addmethod("isbutin", func { (@x, @y)
+			!anpopup_bkg.isin(x,y,0,0);
+			} );
+		.addmethod("butclick", func {
+			if( !.advstdstate ) return;
+			 .mend;
+			} );
+  		butgame.add(this);
+  	}; 
+
+    .butpopexit;  
+     
+    
+    if (!clsave.bis("e1_mg13_wejscie_pochodnia_zapalona"))
+    { 
+      anuchwyt{
+        .Button_isinvis;
+        .addmethod("butmoveon", func {
+  				 
+  				  advmouse.set("use");   
+          } );
+  			.addmethod("butmoveoff", func {
+  				 
+  				  advmouse.setstd;
+  				} ); 
+          butgame.add(this);
+        };   
+     } 
+     
+    if (!clsave.bis("e1_mg13_wejscie_pochodnia_zapalona"))
+    { 
+	  anpochodnia_mask{
+        .Button_isinvis;
+        .addmethod("butmoveon", func {
+  				 
+  				  advmouse.set("use");   
+          } );
+		.addmethod("butmoveoff", func {
+			 
+			  advmouse.setstd;
+			} ); 
+			
+		.addmethod("butclick", func {
+			if( !.advstdstate || clsave.bis("e1_mg13_wejscie_pochodnia_zapalona") ) return;
+				.cbplay("snd_pochodnia_place");
+			} ); 	
+				
+				 
+          butgame.add(this);
+        };   
+     }   
+    if (clsave.bis("e1_mg13_wejscie_pochodnia_wlozona"))
+    {
+      anpochodnia.show;
+    } 
+    
+    if (clsave.bis("e1_mg13_wejscie_pochodnia_zapalona"))
+    {
+      anbkg_fire.show();
+      anfire.play(0);
+      anfire_mask.show();
+    } 
+	
+	 
+	 
+     .stdstart;
+  }// koniec init 
+  
+  USE_pochodnia_ogien	{
+		.advsetstdstate();
+    if( anuchwyt.isin(mouse.getpos,0,0) )	{
+      .removefrompck("pochodnia_ogien");
+      anpochodnia.anfadein(200,null); 
+      butgame.removebut("anuchwyt"); 
+      clsave.bset("e1_mg13_wejscie_pochodnia_wlozona"); 
+	  .cbplay("snd_pochodnia_put");
+	  clsave.bset("e1_mg13_wejscie_pochodnia_zapalona");
+	  clsave.set("taken_pochodnia_ogien",0);	  
+      advmouse.setstd;
+      anbkg_fire.show; 
+      anfire.play(0);
+      anfire_mask.show();
+      .set_mg_finished; 
+      .timfinito;  
+      advmouse.setstd; 
+    } else {
+		  .advsetstdstate; 
+      .item_gotopck;
+		}
+	}  
+  
+    
+  mend	{
+    .stdexitdefadv("ad13_wiszacymost", "gamead13_wiszacymost0"); 
+  }
+  
+  HINT_CLICK {
+	if(clsave.bis("ma_pochodnia_ogien"))
+	{
+		.showhintitem("pochodnia_ogien"); 
+		.showhint("anuchwyt");	
+	}
+	else	
+    .showhint("anpopexit");   
+  } 
+ 
+}
+ 

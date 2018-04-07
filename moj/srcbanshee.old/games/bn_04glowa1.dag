@@ -1,0 +1,415 @@
+
+game mg04_glowa1 :Banshee {
+	init{
+    Banshee::init("mg04_glowa1");
+    .imgs = (A,"bkg.jpg ", "bkg.pyz 0", "wnetrze_czaszki.pyz 1", "baza.pyz 2",   "grom_normal_g.pyzH 4", "oko_l.pyz 5", "oko_p.pyz 6",  "czaszka_l.pyz 7", "czaszka_p.pyz 7", "ramka.pyz 8" , "grom_normal_l.pyzH 10", "grom_normal_p.pyzH 11", "grom_normal_d.pyzH 12", "krysztal.pyzH 13","krysztal_mask.pyzH 14","glowa1_element.pyzH 15", "popexit.pyz 50" );
+          
+     	.butpopexit;
+      .setasitemtopck("anglowa1_element");
+      
+    //animacje
+      new filter ftl;
+      ftl.link("angrom_normal_l"); 
+      new int opacity = 0;
+      angrom_normal_l.addmethod("onendframe", func {
+      int id = .framenr;
+      int numfr = angrom_normal_l.nofframes(-1);
+      if (id <= numfr/2)
+      {
+        opacity = opacity +2;
+      }
+      else
+      {
+        opacity = opacity -2;
+      }
+      ftl.setopacity(opacity *4);  
+      }); 
+     
+      new filter ftl2;
+      ftl2.link("angrom_normal_p"); 
+      new int opacity2 = 0;
+      angrom_normal_p.addmethod("onendframe", func {
+      int id = .framenr;
+      int numfr = angrom_normal_p.nofframes(-1);
+      if (id <= numfr/2)
+      {
+          opacity2 = opacity +2;
+      }
+      else
+      {  
+        opacity2 = opacity -2;
+      }
+      ftl2.setopacity(opacity2 *4);  
+     }); 
+     
+     
+      new vector crystal_states;
+      crystal_states.type("string");
+      crystal_states.beginadd("begin", "redblue", "blue", "blue", "red", "empty", "blue", "blue", "blue");
+      
+      new vector crystal_states_2;
+      crystal_states_2.type("string");
+      crystal_states_2.beginadd("begin", "red", "empty", "empty", "blue", "red", "red", "red"); 
+     
+    
+     .init_crystals(); 
+      
+      if (clsave.bis("mg04_glowa1_saved")) 
+       .load_ring();
+      
+    
+    //flagi 
+    
+      
+      // do testow
+      /* if (!clsave.bis("bn_04_glowa_1_krysztaly_dodane"))
+      {
+        .addtopck("krysztal_blue_1");
+         
+        .addtopck("krysztal_red_1");
+        .addtopck("krysztal_red_2"); 
+        clsave.bset("bn_04_glowa_1_krysztaly_dodane"); 
+      }*/    
+    
+      if (clsave.bis("bn_04_glowa_1_lewe_oko_zamkniete"))
+          anoko_l.hide();
+      if (clsave.bis("bn_04_glowa_1_prawe_oko_zamkniete"))
+          anoko_p.hide();
+      if(clsave.bis("bn_04_glowa1_czaszka_otwarta")&& !clsave.bis("taken_glowa1_element"))
+      {
+          angrom_normal_g.show(); 
+          angrom_normal_d.show();
+          anczaszka_l.show();
+          anczaszka_l.play("opened"); 
+          anczaszka_p.show();
+          anczaszka_p.play("opened");
+          anglowa1_element.show();
+      }
+      else
+      {
+          angrom_normal_g.hide(); 
+          angrom_normal_d.hide();
+          
+      }
+    
+    
+    // buttony 
+    
+    anoko_l {
+			.Button_isin;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+		 	if( !.advstdstate  ) return;
+		 	    if (clsave.bis("bn_04_glowa_1_lewe_oko_zamkniete")) return;
+          if (!clsave.bis("bn_04_glowa_1_kregi_rozwiazane"))
+          { 
+            .rotate_circle_1();  
+          }
+          else
+          {
+            anoko_l.play("push");
+          }
+              
+			} );
+      .addmethod("onfinish", func {
+				.hide;
+			  clsave.bset("bn_04_glowa_1_lewe_oko_zamkniete");
+        if (clsave.bis("bn_04_glowa_1_prawe_oko_zamkniete") && !clsave.bis("bn_04_glowa_1_czaszka_otwarta")) 
+        { 
+            .open_skull();
+        }        
+			 } );
+			 
+			butgame.add(this);
+		};
+    
+    anoko_p {
+			.Button_isin;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+		 	if( !.advstdstate ) return;
+		 	    if (clsave.bis("bn_04_glowa_1_prawe_oko_zamkniete")) return;
+          if (!clsave.bis("bn_04_glowa_1_kregi_rozwiazane"))
+          { 
+            .rotate_circle_2();  
+          }
+          else
+          {
+            anoko_p.play("push");
+          }
+      } );
+      .addmethod("onfinish", func {
+  			.hide; 
+  		  clsave.bset("bn_04_glowa_1_prawe_oko_zamkniete"); 
+        if (clsave.bis("bn_04_glowa_1_lewe_oko_zamkniete") && !clsave.bis("bn_04_glowa_1_czaszka_otwarta")) 
+        { 
+            .open_skull();
+        }
+		  } );
+		 
+		  butgame.add(this);
+		}; 
+    
+    angrom_normal_l{
+      .addmethod("onfinish", func {
+				.hide;
+			 } );
+    }; 
+    
+    angrom_normal_p{
+      .addmethod("onfinish", func {
+				.hide;  
+			     
+			 } );
+    } ;
+    
+    .stdstart;
+	 
+    
+    
+  } // koniec init
+
+  //krysztaly  
+  init_crystals{  
+    .init_crystal("ankrysztal_0", 665, 278);
+    .init_crystal("ankrysztal_1", 636, 348);
+    .init_crystal("ankrysztal_2", 571, 376);
+    .init_crystal("ankrysztal_3", 500, 347);
+    .init_crystal("ankrysztal_4", 473, 279);
+    .init_crystal("ankrysztal_5", 502, 212);
+    .init_crystal("ankrysztal_6", 569, 184);
+    .init_crystal("ankrysztal_7", 637, 210);
+    
+    .init_crystal("ankrysztal_8", 694, 212);
+    .init_crystal("ankrysztal_9", 761, 186);
+    .init_crystal("ankrysztal_10", 829, 212);
+    .init_crystal("ankrysztal_11", 857, 282);
+    .init_crystal("ankrysztal_12", 830, 351);
+    .init_crystal("ankrysztal_13", 761, 377);
+    .init_crystal("ankrysztal_14",695, 351);
+    
+    .update_crystals();
+  }
+  
+  update_crystals(){
+    for( int i=0; i<crystal_states.size; i++)	{ 
+      string s = crystal_states.get(i);  
+      <"ankrysztal_"+i>.play(s);
+    } 
+    for( int i=0; i<crystal_states_2.size; i++)	{ 
+      string s = crystal_states_2.get(i);  
+      int index = i + 8;
+      <"ankrysztal_"+index>.play(s);
+    }
+     .check_rings();     
+  }
+  
+  init_crystal(string name, int x, int y){
+    .copyanima("ankrysztal", name);
+    .copyanima("ankrysztal_mask", name+"_mask");
+    <name>.setpos(x,y);
+    <name>.play("empty");
+    <name+"_mask">.setpos(x + 8,y +5);
+    
+  }
+   
+  // koniec krysztalow 
+  
+  // obracanie 
+  rotate_circle_1(){
+      string last = crystal_states.get(crystal_states.size-1);
+      for(int i=crystal_states.size-1; i > 0; i--)	{ 
+          crystal_states.set(i,crystal_states.get(i-1));  
+      }
+       crystal_states.set(0,last); 
+      .update_crystals();
+             
+  } 
+   rotate_circle_2(){
+      string first = crystal_states.get(0);
+      string last = crystal_states_2.get(crystal_states_2.size-1);
+       
+      for(int i=crystal_states_2.size-1; i > 0; i--)	{ 
+          crystal_states_2.set(i,crystal_states_2.get(i -1));  
+      }
+      crystal_states.set(0,last);
+      crystal_states_2.set(0,first);
+       
+      .update_crystals(); 
+           
+  } 
+  
+  check_rings(){
+    if (clsave.bis("bn_04_glowa_1_kregi_rozwiazane")) return;
+      for( int i=1; i<crystal_states.size; i++)	{ 
+        if(!(crystal_states.get(i) == "red"))
+        { 
+          return;
+        }
+    }
+     
+    for( int i=0; i<crystal_states_2.size; i++)	{ 
+      if( !(crystal_states_2.get(i) == "blue") )
+      {
+        return;
+      }    
+    }   
+    angrom_normal_l.show();
+    angrom_normal_l.play("blend"); 
+    angrom_normal_p.show(); 
+    angrom_normal_p.play("blend"); 
+    clsave.bset("bn_04_glowa_1_kregi_rozwiazane");
+    //clsave.bset("bn_04_glowa_1_oczy_odblokowane"); 
+  }
+  
+  open_skull()
+  {
+    anglowa1_element.show();
+    angrom_normal_g.show();
+    angrom_normal_d.show();
+    anczaszka_l.play("open"); 
+    anczaszka_p.play("open");
+    clsave.bset("bn_04_glowa_1_czaszka_otwarta");
+  } 
+    
+  USE_krysztal_blue_1	{
+    .advsetstdstate();
+		.click_on_empty("krysztal_blue_1", "blue");
+  }
+  
+  USE_krysztal_red_1	{
+    .advsetstdstate();
+		.click_on_empty("krysztal_red_1", "red");
+  }
+  
+  USE_krysztal_red_2	{
+    .advsetstdstate();
+		.click_on_empty("krysztal_red_2", "red");
+  }
+  
+  click_on_empty(string item, string color)  {
+      int index = -1;
+      for( int i=0; i<14; i++)	{ 
+          @name = "ankrysztal_"+i+"_mask";
+          if (<name>.isin(mouse.getpos,0,1))
+          {
+            index = i;
+          }
+       }     
+       
+       if (index>-1)
+       {
+          if  (<"ankrysztal_"+index>.actionnr(-1)== 3 )
+            .put_crystal(index,item, color);
+          else 
+              .item_gotopck;
+      }
+       else
+       {
+          .item_gotopck;
+       }     
+       
+  }
+  
+  put_crystal(int index, string item, string color)
+  {
+    <"ankrysztal_"+index>.play(color);
+    .removefrompck(item); 
+    if (index < 8)
+    {
+        crystal_states.set(index,color);
+    }
+    else
+    {
+      crystal_states_2.set(index-8,color); 
+    }
+    
+    .check_rings(); 
+  }
+  
+  save_ring()
+  {
+     for( int i=0; i<15; i++)	{ 
+      if (i < 8)
+      { 
+          clsave.set("ankrysztal_"+i,crystal_states.get(i)); 
+      }
+       else
+       {
+          clsave.set("ankrysztal_"+i,crystal_states_2.get(i-8));
+       }
+    }
+    clsave.bset("mg04_glowa1_saved");     
+  }
+  load_ring()
+  {
+      for( int i=0; i<8; i++)	{ 
+          crystal_states.set(i,clsave.get("ankrysztal_"+i));
+      }
+      crystal_states_2.set(0,clsave.get("ankrysztal_0"));
+      for( int i=8; i<14; i++)	{ 
+        crystal_states_2.set(i-8,clsave.get("ankrysztal_"+i));
+      }   
+      .update_crystals(); 
+  }
+  
+  find_empty_slot()
+  {
+      int index = -1;
+      for( int i=0; i<15; i++)	{ 
+          if  (<"ankrysztal_"+i>.actionnr(-1)== 3 )
+          {
+            return i;
+          }
+       }     
+      return -1; 
+  }   
+    
+  mend	{
+    .save_ring();  
+    .stdexitdefadv("ad04_brzegjeziora", "gamead04_brzegjeziora0");
+	}   
+  
+  anglowa1_element_TAKE	{	.item_gotocenter;	}
+	anglowa1_element_INPCK	{
+    angrom_normal_g.hide();
+    angrom_normal_d.hide();
+    anczaszka_l.play("close"); 
+    anczaszka_p.play("close"); 
+		.addtopck("glowa1_element");
+	} 
+  
+  HINT_CLICK {
+      int empty_slot = .find_empty_slot();
+      if (empty_slot > -1)
+      {
+        .showhint("ankrysztal_"+empty_slot+"_mask");
+      }
+      else
+      {
+          if (!clsave.bis("bn_04_glowa_1_lewe_oko_zamkniete"))
+          { 
+              .showhint("anoko_l");
+              return;
+          }
+          else if (!clsave.bis("bn_04_glowa_1_prawe_oko_zamkniete"))
+          { 
+              .showhint("anoko_p");
+              return;
+          }
+          
+          if (!clsave.bis("taken_glowa1_element"))
+          {
+              .showhint("anglowa1_element");  
+          }
+          else
+            .showhint("anpopexit"); 
+          
+          
+      }
+    } 
+   
+}
+ 

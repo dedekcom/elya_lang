@@ -1,0 +1,569 @@
+game Sysopold : Computro	{
+	init	{
+		Computro::init("sysop");
+		
+		.img=("bg.pyz");
+		anbg.anaddfilter;
+		new real rsetzoom = 1;
+		new real rzoomer = 0.01;
+		//anbg.setzoom(rsetzoom);
+		//anbg.ancenterscreen;
+		
+		new @stdmono12 = .snewfont( "configs/fonts/mono.ttf", 12);
+		new @stdfont12 = .snewfont( "configs/fonts/normal.ttf", 12);
+		new @stdfont14 = .snewfont( "configs/fonts/normal.ttf", 14);
+		new @cols = 40;
+		.newimgarray("grti", "text", "txti", cols);
+		grti.each(func { (@id)
+			.setfont(stdmono12);
+			.setpos(12,54+id*12);
+			.createtxt(.white);
+			 } );
+		new @column = 0;
+		new @ilimit = 60;
+		new string Code;
+		Lexer::setas("Code");
+		Code.consts = (A, "../", "./","/", "..", ".", "|", ">", ">>", "<" , "<<", "-al", "-la", "-a", "-l", "ls", "'");
+		new vector vec1;
+		vec1.type("string");
+		
+		new ConTextTyper ttp(stdmono12, 12, .white, "at0 !@#$%^&*()-=_+{}|\\[];':\",./<>?", ilimit);
+		ttp.onenter(GAME, "mcheck");
+		
+		new TextDb tdhp(stdfont12, 12, "helpos.db", 1,4,52, 491,91, 2,50, "left");
+		tdhp.hide;
+		//tdhp.view(A,0,1,2,3,4,5);
+		
+		new @Level = 0;
+		new @HelpLevel = 0;
+		new @sublevel = 0;
+		new @benter = false;
+		new @spasswd = "";
+		new @sread = "";
+		new @Dir = "~";
+		new @retdir="~";
+		
+		new gfxSquare gsq(50,20,700,525);
+		gsq.set( 0,128,0, 220);
+		gsq.build;
+		gsq.setz(500);
+		gsq.hide;
+		
+		.sfxs = (A, "pik", "type2 50", "blink 50");
+		
+		.sounds = (A,
+			"sndok", "okej", null,
+			"sndend","Doskonale! Wszystkie zadania z tej lekcji wykonane! Przeczytaj wnioski i kliknij aby powróciæ do menu g³ównego", func { <GAME>.buildopis; igmstate=11; }
+			);
+		fxpik.addmethod("onstart", func { .mnext; } );
+		
+		//.buildopis;
+		.timer = ("timtik", 300, func {
+			.tickstart;
+			/*if( mouse.getposy<300 ) rzoomer=0.01;
+			else rzoomer=-0.01;*/
+			if( rsetzoom<1.3 ) rsetzoom+=0.01;
+			else if (rsetzoom<1.6) rsetzoom+=0.02;
+			else rsetzoom+=0.04;
+			/*if( rsetzoom<1 ) rsetzoom=1;
+			else if (rsetzoom>2 ) rsetzoom=2;*/
+			anbg.setzoom(rsetzoom);
+			anbg.ancenterscreen;
+			if( rsetzoom<2 )
+				.play;
+			.tickstop;
+			} );
+		timtik.play;
+	}
+	mpos(int id)	{
+		ttp.txtset("");
+		ttp.setpos(9 + <"txti"+id>.getw,54+id*12);
+		ttp.limit = ( ilimit-<"txti"+id>.get->length );
+	}
+	menable	{	.mpos(column);	ttp.enable;	}
+	mout(string s)	{	<"txti"+column>.txtset(s);	}
+	moutln(string s)	{	.mout(s); .mnewline;	}
+	mrewind	{
+		for( int i=0; i<cols-1; i++)	<"txti"+i>.txtset( <"txti"+(i+1)>.get );
+		<"txti"+(cols-1)>.txtset("");
+	}
+	mnewline	{
+		column++;
+		if( column==cols )	{
+			column--;
+			.mrewind;
+		}
+	}
+	ttp_ontype	{	fxtype2.playif;	}
+	mread	{
+		Code = ttp.get;
+		Code.id = (0);
+	}
+	mput	{
+		@s = "txti"+column;
+		.mread;
+		<s>.txtset( <s>.get + Code );
+		ttp.txtset("");
+		.mnewline;
+	}
+	mclear	{	grti.txtreset;	}
+	buildopis	{
+		.deletegmobj("dbopis");
+		.newdb("dbopis", "help" + HelpLevel + ".db");
+		.deletegmobj("tdopis");
+		new TextDb tdopis(stdfont14, 10, "$var:dbopis", 255,255,0, 65,35, 4, 550, "left");
+		HelpLevel++;
+		igmstate = 2;
+		gsq.show;
+		tdopis.show;
+	}
+	viewzad	{
+		.deletegmobj("dbzad");
+		.newdb( "dbzad", "zad" + Level + ".db");
+		.deletegmobj("tdzad");
+		new TextDb tdzad(stdfont12, 10, "$var:dbzad", 128,0,0, 485,304, 3,150, "left");
+		Level++;
+	}
+	bool mget0	{
+		.mput;
+		Code.clear;
+		if( Code.length )	return true;
+		else .mready;
+		false;
+	}
+	bool mget(string s)	{
+		if( .mget0 )	{
+			if( Code==s ) return true;
+			.mno;
+		}
+		false;
+	}
+	bool mget2(string s)	{
+		if( .mget0 )	{
+			if( Code.expects(s, " ", true) ) return true;
+			.mno;
+		}
+		false;
+	}
+	bool mget3(string s1, string s2)	{
+		if( .mget0 )	{
+			if( Code.expects(s1, " ", true) || Code.expects(s2," ",true) ) return true;
+			.mno;
+		}
+		false;
+	}
+	bool mget4(string s1, string s2, string s3)	{
+		if( .mget0 )	{
+			if( Code.expects(s1, " ", true) || Code.expects(s2," ",true)
+			|| Code.expects(s3," ",true) ) return true;
+			.mno;
+		}
+		false;
+	}
+	mcheck	{
+		string s[2];
+		benter = true;
+		match(sublevel)	{
+			0 => {
+				.mput;
+				if( Code.contains(" ") || !Code.expects("$alpha", " ", false) )	{
+					.moutln("Login incorrect");
+					.mstart;
+				} else {
+					sublevel++;
+					spasswd = "";
+					.mout("Password: ");
+				}
+			}
+			3 => if( .mget("passwd") )	{
+					sublevel++;
+					spasswd="";
+					.mout("type current password: ");
+				}
+			6 => if (.mget("pwd") )	{
+					.moutln("/home/jacek");
+					.mok;
+				}
+			7 => if (.mget4("ls", "ls .", "ls ./") )	{
+					.moutln("lekcje  Mail  public_html");
+					.mok;
+				}
+			8, 12 => if (.mget2("$alpha man ls") )	{
+					.manls;
+					.mnextsub;
+				}
+			9 => if( .mget4("ls -a", "ls -a .", "ls -a ./") )	{
+					.moutln(".  ..  .adresy  lekcje  Mail  public_html  .zajecia");
+					.mok;
+				} else { sublevel=8; }
+			10 => if( .mget3("ls $alpha Mail", "ls $alpha Mail /") )	{
+					if( .misdir("Mail") )	{
+						.moutln("mbox");
+						.mnextsub;
+					} else .mno;
+				}
+			11 => if( .mget3("ls -a ..", "ls -a ../") )	{
+					.moutln(". .. jacek");
+					.mok;
+				} else sublevel=10;
+			13 =>  if( .mget4("ls -l", "ls -l .", "ls -l ./") )	{
+					.moutln("total 12");
+					.moutln("-rw-r--r-- 1 jacek jacek  415 2007-05-16 17:10 lekcje");
+					.moutln("drwx------ 2 jacek jacek 4096 2007-05-16 12:51 Mail");
+					.moutln("drwxr-xr-x 2 jacek jacek 4096 2007-05-16 13:05 public_html");
+					.mok;
+				} else sublevel = 12;
+			14 => if (.mget3("ls -l $alpha Mail", "ls -l $alpha Mail /") )	{
+					if( .misdir("Mail") )	{
+						.moutln("total 0");
+						.moutln("-rw-r--r-- 1 jacek jacek 0 2007-05-16 12:51 mbox");
+						.mok;
+					} else .mno;
+				}
+			15 => if (.mget3("ls -al", "ls -la") )	{
+					.moutln("total 28");
+					.moutln("drwxr-xr-x 4 jacek jacek 4096 2007-05-16 13:03 .");
+					.moutln("drwxr-xr-x 3 jacek jacek 4096 2007-05-16 11:27 ..");
+					.moutln("-rw-r--r-- 1 jacek jacek  121 2007-05-16 13:03 .adresy");
+					.moutln("-rw-r--r-- 1 jacek jacek  415 2007-05-16 17:10 lekcje");
+					.moutln("drwx------ 2 jacek jacek 4096 2007-05-16 12:51 Mail");
+					.moutln("drwxr-xr-x 2 jacek jacek 4096 2007-05-16 13:05 public_html");
+					.moutln("-rw-r--r-- 1 jacek jacek  130 2007-05-16 13:00 .zajecia");
+					.mok;
+				}
+			16 => if( .mget0 )	{
+					if( .misvec(A, "ls", "/home/jacek") || .misvec(A, "ls", "/home/jacek/") )	{
+						.moutln("lekcje  Mail  public_html");
+						.mok;
+					} else .mno;
+				}
+			17 => if (.mget2("$alpha cat $alpha lekcje") )	{
+					.mcatlekcje;
+					.mok;
+				}
+			18 => if (.mget2("$alpha cat $alpha lekcje > $alpha plik_tmp") )	{
+					.mnextsub;
+				}
+			19 => if (.mget4("ls", "ls .", "ls ./") )	{
+					.moutln("lekcje  Mail  plik_tmp  public_html");
+					.mok;
+				} else sublevel=18;
+			20 => if ( .mget2("$alpha cat $alpha lekcje") )	{
+					.mcatlekcje;
+					.mnextsub;
+				}
+			21 => if( .mget3("$alpha cat $alpha lekcje | $alpha grep $alpha rogramow",
+				 "$alpha cat $alpha lekcje | $alpha grep ' $alpha rogramow '") )	{
+					if( Code.gete(0,1)=="'" )	{
+						if( Code.gete(0,10)=="'rogramow'" &&
+							Code.getb(Code.find("grep")+4, 1)==" ")	{
+							.mcatlek2;
+							.mok;
+						} else { .mno; sublevel=20; }
+					} else {
+						.mcatlek2;
+						.mok;
+					}
+				} else sublevel=20;
+			22 => if ( .mget3("ls -a | $alpha grep $alpha a", "ls -a | $alpha grep ' $alpha a '") )	{
+					if( Code.gete(0,1)=="'" )	{
+						if( Code.gete(0,3)=="'a'" &&
+							Code.getb(Code.find("grep")+4, 1)==" ")	{
+							.moutln(".adresy");
+							.moutln("Mail");
+							.moutln(".zajecia");
+							.mok;
+						} else .mno;
+					} else {
+						.moutln(".adresy");
+						.moutln("Mail");
+						.moutln(".zajecia");
+						.mok;
+					}
+				}
+			23 => if( .mget4("ls -a", "ls -a .", "ls -a ./") )	{
+					.moutln(".  ..  .adresy  lekcje  Mail  plik_tmp  public_html  .zajecia");
+					.mnextsub;
+				}
+			24 => if( .mget0 )	{
+					if( .misvec(A, "cat", ".adresy") )	{
+						.moutln("Magda, ul. Biala 1/5");
+						.moutln("Janek, ul. Zielona 6");
+						.moutln("Poziomka prof., ul. Cauchy 1/1");
+						.moutln("Ania, ul. Wegierska 3/52");
+						.moutln("Witek, ul. Maliny 6/66");
+						.mnextsub;
+					} else { .mno; sublevel=23; }
+				}
+			25 => if( .mget2("$alpha cat . $alpha adresy | $alpha sort") )	{
+					if( Code.getb(Code.find("adresy")-1,1)=="." )	{
+						.moutln("Ania, ul. Wegierska 3/52");
+						.moutln("Janek, ul. Zielona 6");
+						.moutln("Magda, ul. Biala 1/5");
+						.moutln("Poziomka prof., ul. Cauchy 1/1");
+						.moutln("Witek, ul. Maliny 6/66");
+						.mnextsub;
+					} else { .mno; sublevel=23; }
+				} else { sublevel=23; }
+			26 => if( .mget2("$alpha cat . $alpha adresy | $alpha sort > $alpha nowe_adresy") )	{
+					if( Code.getb(Code.find("adresy")-1,1)=="." )	{
+						.mnextsub;
+					} else { .mno; sublevel=23; }
+				} else { sublevel=23; }
+			27 => if( .mget2("$alpha cat $alpha nowe_adresy") )	{
+					.moutln("Ania, ul. Wegierska 3/52");
+					.moutln("Janek, ul. Zielona 6");
+					.moutln("Magda, ul. Biala 1/5");
+					.moutln("Poziomka prof., ul. Cauchy 1/1");
+					.moutln("Witek, ul. Maliny 6/66");
+					.mok;
+				} else { sublevel=23; }
+			28 => if( .mget0 )	{
+					if( .misvec(A, "cd", "public_html") || .misvec(A, "cd", "public_html/")
+						|| .misvec(A, "cd", "./public_html/") || .misvec(A, "cd", "./public_html"))	{
+						Dir = "~/public_html";
+						.mnextsub;
+					} else .mno;
+				}
+			29 => if (.mget("pwd") )	{
+					.moutln("/home/jacek/public_html");
+					.mnextsub;
+				} else {sublevel=28;}
+			30 => if( .mget3("$alpha cd ..", "$alpha cd ../") )	{
+					Dir = "~";
+					.mnextsub;
+				} else {sublevel=28;}
+			31 => if (.mget("pwd") )	{
+					.moutln("/home/jacek");
+					.mok;
+				} else {sublevel=28;}
+			32 => if( .mget0 )	{
+					if( .misvec(A,"ls","public_html") || .misvec(A,"ls","./public_html") ||
+						.misvec(A,"ls","public_html/") || .misvec(A,"ls","./public_html/") )	{
+						.moutln("index.html");
+						.mnextsub;
+					} else .mno;
+				}
+			33 => if( .mget0 )	{
+					if( .misvec(A,"cd","public_html") || .misvec(A,"cd","./public_html") ||
+						.misvec(A,"cd","public_html/") || .misvec(A,"cd","./public_html/") )	{
+						Dir = "~/public_html";
+						.mnextsub;
+					} else { sublevel=32; .mno; }
+				}
+			34 => if( .mget0 )	{
+					if( .misvec(A,"mkdir","bekap") || .misvec(A,"mkdir","./bekap") ||
+						.misvec(A,"mkdir","bekap/") || .misvec(A,"mkdir","./bekap/") )	{
+						.mnextsub;
+					} else { sublevel=32; .mno; }
+				}
+			35 => if( .mget0 )	{
+					if( .misvec(A,"cp","index.html", "bekap") || .misvec(A,"cp","./index.html", "bekap") ||
+						.misvec(A,"cp","index.html", "bekap/") || .misvec(A,"cp","./index.html", "bekap/") ||
+						.misvec(A,"cp","index.html", "./bekap") || .misvec(A,"cp","./index.html", "./bekap") ||
+						.misvec(A,"cp","index.html", "./bekap/") || .misvec(A,"cp","./index.html", "./bekap/")) {
+						.mnextsub;
+					} else { sublevel=32; .mno; }
+				}
+			36 => if( .mget0 )	{
+					if( .misvec(A,"cd","bekap") || .misvec(A,"cd","./bekap") ||
+						.misvec(A,"cd","bekap/") || .misvec(A,"cd","./bekap/") )	{
+						Dir = "~/public_html/bekap";
+						.mnextsub;
+					} else { sublevel=32; .mno; }
+				}
+			37 => if (.mget4("ls", "ls .", "ls ./") )	{
+					.moutln("index.html");
+					.mnextsub;
+				} else sublevel=32;
+			38 => if( .mget0 )	{
+					if( .misvec(A,"cd","../../") || .misvec(A,"cd") || .misvec(A,"cd","/home/jacek/") ||
+						.misvec(A,"cd","~") || .misvec(A,"cd","/home/jacek") || .misvec(A,"cd","../..") )	{
+						Dir = "~";
+						.mok;
+					} else { sublevel=32; .mno; }
+				}
+				/*1) usuñ go poleceniem 'rm <file>'.
+2) Wy¶wietl zawarto¶æ katalogu 'public_html'.
+3) Uruchom manual polecenia 'rm'.
+4) Usuñ katalog 'bekap' z 'public_html'.*/
+			39 => if( .mget0 )	{
+					if( .misvec(A, "rm", ".adresy") )	{
+						.mnextsub;
+					} else .mno;
+				}
+			40 => if( .mget0 )	{
+					if( .misvec(A,"ls","public_html") || .misvec(A,"ls","./public_html") ||
+						.misvec(A,"ls","public_html/") || .misvec(A,"ls","./public_html/") )	{
+						.moutln("bekap index.html");
+						.mnextsub;
+					} else { .mno; sublevel=39; }
+				}
+			41 =>  if (.mget2("$alpha man $alpha rm") )	{
+					.moutln("NAME");
+					.moutln("   rm - remove files or directories");
+					.moutln("SYNOPSIS");
+					.moutln("   rm [OPTION]... FILE...");
+					.moutln("DESCRIPTION");
+					.moutln("   Removes FILEs. Use option '-r' to remove");
+					.moutln("   directory.");
+					.moutln("   OPTION");
+					.moutln("   -r : remove directories and their contents recursively");
+					.moutln("END RM");
+					.mnextsub;
+				} else sublevel=39;
+			42 => if( .mget0 )	{
+					if( .misvec(A,"rm","-r","public_html/bekap") ||
+						.misvec(A,"rm","-r","./public_html/bekap") ||
+						.misvec(A,"rm","-r","public_html/bekap/") ||
+						.misvec(A,"rm","-r","./public_html/bekap/") )	{
+						.mnextsub;
+					} else { sublevel=39; .mno; }
+				}
+			43 => if( .mget0 )	{
+					if( .misvec(A,"ls","public_html") || .misvec(A,"ls","./public_html") ||
+						.misvec(A,"ls","public_html/") || .misvec(A,"ls","./public_html/") )	{
+						.moutln("index.html");
+						igmstate = 10;
+						.cbplay("sndend");
+					} else { .mno; sublevel=39; }
+				}
+			? => ;
+		}
+	}
+	mnextsub	{	sublevel++; .mready;	}
+	bool misvec	{
+		Code.clear;
+		vec1.vecbuildfromstring2(Code," ");
+		vec1.veceq2;
+	}
+	misdir(string sdir)	{
+		Code.clear;
+		@id = Code.find(sdir)+sdir.length;
+		return id>=Code.length || Code.getb(id,1)=="/";
+	}
+	mcatlek2	{
+		.moutln("Lekcja 5: Programowanie mikroprocesorow - jezyki Asembler.");
+		.moutln("Lekcja 6: Podstawy programowania w jezyku C : obliczenia.");
+		.moutln("Lekcja 7: Podstawy programowania obiektowego.");
+	}
+	mcatlekcje	{
+		.moutln("Lekcja 1: Podstawy logiki.");
+		.moutln("Lekcja 2: Bramki \"and\" i \"or\".");
+		.moutln("Lekcja 3: Cwiczenia na bramkach.");
+		.moutln("Lekcja 4: Jednobitowy procesor.");
+		.moutln("Lekcja 5: Programowanie mikroprocesorow - jezyki Asembler.");
+		.moutln("Lekcja 6: Podstawy programowania w jezyku C : obliczenia.");
+		.moutln("Lekcja 7: Podstawy programowania obiektowego.");
+		.moutln("Lekcja 8: Podstawy grafiki komputerowej.");
+		.moutln("Lekcja 9: Praca podzespolow komputera.");
+		.moutln("Lekcja 10: Podstawy systemu operacyjnego Linuks.");
+	}
+	manls	{
+		.moutln("NAME");
+		.moutln("  ls - list directory contents;");
+		.moutln("SYNOPSIS");
+		.moutln("  ls [OPTION]... [FILE]...");
+		.moutln("DESCRIPTION");
+		.moutln("  list informations about the FILEs -");
+		.moutln("  (the current directory by default).");
+		.moutln("  OPTION");
+		.moutln("  -a : don't ignore hidden files");
+		.moutln("  -l : use a long listing format");
+		.moutln("END LS");
+	}
+	mnos(string s)	{	.moutln(s);	.mready;	}
+	mno	{ fxblink.play; Dir=retdir; .mnos("Error: repeat whole activity nr "+Level+" again.");	}
+	mgo(@id)	{	sublevel=id; .mready;	}
+	mstart	{
+		match(Level)	{
+			1 => { sublevel=0; .mout("jacek login: "); .menable; }
+			2 => { tdhp.view(A,0); .mgo(3);	}
+			3 => { tdhp.view(A,1,2); .mgo(6);	}
+			4 => { tdhp.view(A,3,4); .mgo(7);	}
+			5 => { tdhp.view(A,5); .mgo(8);	}
+			6 => { .mgo(10);	}
+			7 => { .mgo(12);	}
+			8 => { .mgo(14);	}
+			9 => { .mgo(15);	}
+			10 => { .mgo(16);	}
+			11 => { tdhp.view(A,6); .mgo(17);	}
+			12 => { .mgo(18); }
+			13 => { tdhp.view(A,7); .mgo(20); }
+			14 => { .mgo(22); }
+			15 => { tdhp.view(A,8); .mgo(23); }
+			16 => { tdhp.view(A,9); .mgo(28); }
+			17 => { tdhp.view(A,10,11); .mgo(32); }
+			18 => { tdhp.view(A,12); .mgo(39); }
+			? => .mready;
+		}
+	}
+	mready	{	.mout("jacek@jacek:"+Dir+"$ ");	.menable;	}
+	mok	{	igmstate=3; fxpik.play; .cbplay("sndok");	}
+	bool mreadpas	{
+		fxtype2.playif;
+		if( keyboard.iskey("enter") )	{
+			.mnewline;
+			return true;
+		} else if( keyboard.iskey("backspace")) {
+			spasswd = spasswd.strsube(1);
+		} else spasswd += keyboard.getkey;
+		false;
+	}
+	key_down	{
+		if( benter )	{
+			benter = false;
+			return;
+		}
+		if( igmstate==2 )	{
+			.mouse_lclick;
+			return;
+		}
+		if( igmstate!=1) return;
+		match(sublevel)	{
+			1 =>	if( .mreadpas )	{
+					if( Code=="jacek" && spasswd=="jacek")	.mok;
+					else {
+						.moutln("Login incorrect");
+						.mstart;
+					}
+				}
+			4 => if( .mreadpas )	{
+					if( spasswd=="jacek" )	{
+						sublevel++;
+						spasswd="";
+						.mout("type new password: ");
+					} else {
+						sublevel = 3;
+						.mnos("Incorrect password");
+					}
+				}
+			5 => if( .mreadpas )	{
+					if( spasswd=="he,35hsu" )	{
+						.moutln("Password succesfully changed");
+						.mok;
+					} else {
+						sublevel = 3;
+						.mnos("Error: write password given in exercise");
+					}
+				}
+			? => ;
+		}
+	}
+	mnext	{	<GAME> { igmstate=1; .viewzad; .mstart; };	}
+	mouse_lclick	{
+		match(igmstate)	{
+			1 => ;
+			2 => { gsq.hide; tdopis.hide; igmstate=1; .viewzad; .mstart; }
+			10 => ;
+			11 => gameapi.play("MenuGlowne");
+			? => .cactsndstop(true);
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug )	{
+			if( Level==18 ) .cbplay("sndend");
+			else .mok;
+		}
+	}
+}

@@ -1,0 +1,328 @@
+
+
+game mg14_sowa :Banshee {
+	init{
+    
+    Banshee::init("mg14_sowa");
+	mus.smixer = ("engine");  
+    new bool popup2_open ;
+    //.addtopck("medalion_sowa1");   
+    // .addtopck("medalion_sowa2");     
+    .imgs = (A, "bkg.jpg 0","popup_bkg.pyz 1", "sowa_body.pyz 3", "runa2.pyz 4",  "sowa_head.pyz 4","sowa_oczy.pyz 5","medalion_sowa1.pyzH 6","medalion_sowa2.pyzH 7", "ramka.pyz 20","popexit.pyz 21","popup2_bkg.pyzH 24","popup2_medalion.pyzH 25", "popup2_medalion_sowa1.pyzH 26", "popup2_medalion_sowa2.pyzH 27", "popup2_ramka.pyzH 39","popup2_popexit.pyzH 40", "sowa_lot.pyzH 41" );
+    .sfxs =(A, "bgrwiatrN 30", "sowa4 20", "podswietl", "sowa1 30", "putitem1 10", "a3"); 
+	.butpopexit;
+    imgbkg {
+		.addmethod("isbutin", func { (@x, @y)
+			!anpopup_bkg.isin(x,y,0,0) && !anpopup2_bkg.isin(x,y,1,1);
+			} );
+		.addmethod("butclick", func {
+			if( !.advstdstate ) return;
+			 .mend;
+			} );
+  		butgame.add(this);
+  	};
+	
+	if (!clsave.bis("takenan_anruna2"))
+		.setasitemtopck("anruna2"); 	
+	else
+		anruna2.hide;
+	
+	
+	anruna2
+	{
+		.addmethod("butmoveon", func {
+			if(popup2_open)  
+				advmouse.setstd;
+			else
+				advmouse.set("take");	
+		} );
+		.addmethod("butmoveoff", func {
+			advmouse.setstd;
+		} );
+	};	
+   
+    anpopexit.addmethod("butmoveon", func {
+		if(popup2_open) return;
+			advmouse.setstd;
+			.setframe(-1,1);
+		} );
+    anpopup2_popexit {
+		.Button_isinalpha;
+		.addmethod("butmoveon", func {
+		 if( !popup2_open) return;
+			advmouse.setstd;
+			.setframe(-1,1);
+			} );
+		.addmethod("butmoveoff", func {
+			 if(!popup2_open) return;
+			advmouse.setstd;
+			.setframe(-1,0);
+			} );
+		.addmethod("butclick", func {
+			if(!popup2_open) return;
+		   .close_popup2();
+			} );
+		butgame.add(this);
+	};
+    
+    ansowa_lot.addmethod("onfinish", func {.anfadeout(800,null); .advsetstdstate; });
+    
+    if (!clsave.bis(save_prefix+"sowa_odleciala"))
+		ansowa_body {
+			.addmethod("isbutin", func { (int x, int y)
+				.advstdstate && .isin(x,y,0,0)  ;
+			} ); 
+			.addmethod("butmoveon", func {
+				if (!popup2_open )
+					advmouse.set("loupe"); 
+				else
+					advmouse.setstd; 
+			  
+			 } );
+			 
+			.addmethod("butmoveoff", func {
+			   advmouse.setstd;
+			} );
+				
+			.addmethod("butclick", func {
+					if( !.advstdstate || popup2_open ) return;
+				  advmouse.setbut;
+				.open_popup2();
+				advmouse.setstd; 
+			} );
+				 
+			butgame.add(this);
+		}; 
+    if (!clsave.bis(save_prefix+"sowa_odleciala"))
+    {
+		ansowa_oczy.play(0); 
+		ansowa_head.play(0); 
+    }
+      
+    if (!clsave.bis("e1_mg14_medalion_completed") ) 
+		anpopup2_medalion {
+			.addmethod("isbutin", func { (int x, int y)
+			    .isin(x,y,0,0) && popup2_open ;
+				} ); 
+			.addmethod("butmoveon", func {
+		 	    if (popup2_open )
+					advmouse.set("use"); 
+				else
+					advmouse.setstd; 
+			} );
+			
+			.addmethod("butmoveoff", func {
+			   advmouse.setstd;
+			} );
+			
+			.addmethod("butclick", func {
+				if (popup2_open && !clsave.bis("e1_mg14_medalion_completed") )
+					.cbplay("snd_medalion_miejsce");
+			} );
+			 
+			butgame.add(this);
+		}; 
+    
+    if (clsave.bis(save_prefix+"medalion_sowa1_on")) 
+		anmedalion_sowa1.show;
+    if (clsave.bis(save_prefix+"medalion_sowa2_on")) 
+		anmedalion_sowa2.show;
+    
+    if (clsave.bis(save_prefix+"sowa_odleciala"))
+    { 
+		anmedalion_sowa1.hide;
+		anmedalion_sowa2.hide;
+		ansowa_body.hide(); 
+		ansowa_head.hide();
+		ansowa_head.stop(false); 
+		ansowa_oczy.hide();
+		ansowa_oczy.stop(false);       
+	}
+	
+	.newsndfree("snd_intro", "kinnat_c2d2_5b");
+	snd_intro.addmethod("onfinish", "advsetstdstate");     
+	if (!clsave.bis(save_prefix+"intro_spoken"))
+	{ 
+		 
+		clsave.bset(save_prefix+"intro_spoken"); 
+		.stdpiorko("n016");
+	}
+		 
+	.newsndfree("snd_medalion", "kinnat_c2d2_5b");
+	snd_medalion.addmethod("onfinish", "advsetstdstate");  
+    
+	.newsndfree("snd_medalion_miejsce", "kinnat_c2d2_5c");
+	snd_medalion_miejsce.addmethod("onfinish", "advsetstdstate"); 
+	 
+    .stdstart; 
+  } // koniec init
+  
+	anruna2_TAKE {
+		if( popup2_open)
+		return;
+		
+		if (clsave.bis(save_prefix+"sowa_odleciala"))
+		{
+			.stackitem_topck("runa");
+			.set_mg_finished; 
+		}
+		else
+		{
+			.cbplay("snd_intro");
+			fxsowa4.play();
+		}
+
+	}
+	
+	anruna2_INPCK {
+		.additemtostack("runa"); 
+		.timfinito;
+	} 
+  
+  
+	open_popup2()
+	{
+		popup2_open =  true;
+		anpopup2_bkg.show;  
+		anpopup2_ramka.show;  
+		anpopup2_popexit.show;
+		if (clsave.bis(save_prefix+"medalion_sowa1_on")) 
+			anpopup2_medalion_sowa1.show;
+		if (clsave.bis(save_prefix+"medalion_sowa2_on")) 
+			anpopup2_medalion_sowa2.show;
+			
+		if (!clsave.bis(save_prefix+"intro_2_spoken"))
+		{  	
+			.cbplay("snd_medalion");
+			clsave.bset(save_prefix+"intro_2_spoken"); 	
+		}
+	}
+	
+	close_popup2()
+	{
+		popup2_open =  false;
+		anpopup2_bkg.hide; 
+		anpopup2_ramka.hide;
+		anpopup2_popexit.hide;
+		 
+		anpopup2_medalion_sowa1.hide;
+
+		anpopup2_medalion_sowa2.hide;
+		.advsetstdstate;
+		advmouse.setstd; 
+	}
+  
+	USE_medalion_sowa1	{
+		.advsetstdstate();
+		if(anpopup2_medalion.isin(mouse.getpos,0,1) )	{
+			.removefrompck("medalion_sowa1");
+			 // anserce_part_1.anfadein(800,null); 
+			anmedalion_sowa1.show;
+			anpopup2_medalion_sowa1.anfadein(800,null);  
+			clsave.bset(save_prefix+"medalion_sowa1_on");
+			 
+			if (.check_all_done())
+			{ 
+				.sowa_leci();
+			}
+			else
+			{
+				fxpodswietl.play;
+				fxputitem1.play();
+			}
+		} else {
+			 .item_gotopck;
+		}
+     
+	}
+  
+     
+	USE_medalion_sowa2	{
+		.advsetstdstate();
+		if(anpopup2_medalion.isin(mouse.getpos,0,1) )	{
+			.removefrompck("medalion_sowa2");
+			anmedalion_sowa2.show;
+			anpopup2_medalion_sowa2.anfadein(200,null); 
+			clsave.bset(save_prefix+"medalion_sowa2_on");
+			 
+			if (.check_all_done())
+			{ 
+				.sowa_leci();
+			}
+			else
+			{
+				fxputitem1.play();
+				fxpodswietl.play;
+			}
+		} else {
+			.item_gotopck;
+		}
+    }
+  
+	check_all_done
+	{
+		if ( clsave.bis(save_prefix+"medalion_sowa1_on") && clsave.bis(save_prefix+"medalion_sowa2_on"))
+			return true;
+		return false;
+	}
+  
+  sowa_leci{
+     .close_popup2();
+     fxa3.play();
+	 butgame.removebut("ansowa_body");
+    // .setasitemtopck("anruna2");
+     clsave.bset(save_prefix+"sowa_odleciala"); 
+     fxsowa1.play; 
+     anmedalion_sowa1.hide;
+     anmedalion_sowa2.hide;
+     anpopup2_medalion_sowa1.hide;
+     anpopup2_medalion_sowa1.hide;
+     ansowa_body.anfadeout(600,null); 
+     ansowa_head.anfadeout(600,null); 
+     ansowa_head.stop(false); 
+     ansowa_oczy.anfadeout(600,"sowa_anim"); ;
+     ansowa_oczy.stop(false);       
+  }
+  sowa_anim {
+    ansowa_lot.play(0);
+  }  
+  mend	{
+    .stdexitdefadv("ad14_wielkiedrzewo", "gamead14_wielkiedrzewo0"); 
+  }
+  
+   
+  
+  HINT_CLICK {
+	if(clsave.bis("ma_medalion_sowa1") || clsave.bis("ma_medalion_sowa2"))
+	{
+		if(clsave.bis("ma_medalion_sowa1"))
+		{
+			 
+			 
+			if(popup2_open)
+			{	
+				.showhint("anpopup2_medalion");
+				.showhintitem("medalion_sowa1");
+			}
+			else
+				.showhint("ansowa_body");
+		}
+		else if(clsave.bis("ma_medalion_sowa2"))
+		{
+			 
+			if(popup2_open)	
+			{
+				.showhintitem("medalion_sowa2");
+				.showhint("anpopup2_medalion");
+			}
+			else
+				.showhint("ansowa_body");
+		}	
+	}
+	else if (clsave.bis(save_prefix+"sowa_odleciala") && !clsave.bis("takenan_anruna2") )
+        .showhint("anruna2"); 
+	else
+		.showhint("anpopexit");  
+  } 
+}
+ 

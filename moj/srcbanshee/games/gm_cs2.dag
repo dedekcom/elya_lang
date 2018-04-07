@@ -1,0 +1,198 @@
+
+game Cs2Kupcy : StdGame	{
+	init	{
+		StdGame::init("cs2kupcy");
+		
+		.imgs = (A, "bkg.pyz 1", "mgielka.pyzP 2", "cs2m2tyl.pyz 2","cs2m2przod.pyz 33", "maska.pyz 30", "lamignat.pyz 10","maczuga.pyz 10","woj.pyz 15","woz.pyz 20");
+		.newgrimg("grzeka", "rzeka", 0);
+		grzeka.nplay(-1);
+		
+		.sounds = (A, "snd1", "W czasie kiedy Kajko i Kokosz dzielili siê obawami o los Mirmi³a i wk³adkê do roso³u do grodu powoli zbli¿a³ siê ob³adowany towarami wóz kupiecki", func { ccs.enter( func {
+			igmstate = 1;
+			anwoz.play("go");
+			anwoj.anloopplay("go");
+			
+			fxkolowrot.playloop;
+			fxbgrlas1.setvol(100);
+			
+			} ); },
+			":lamignat1", "Staaæ!", null,
+			":lamignat2", "Lelum Polelum zatrzymajcie siê dobrodzieje i rzuæcie dukata dla ubogich", func {
+				.lamend;
+				
+				ccs.close( func { gameapi.play("Cs2Lamignat"); } );
+				}
+			);
+		int x = iResX-anwoz.getpx;
+		anwoj.move(x,0);
+		anlamignat.play("stand");	// stand, stac, talk
+		anwoz.move(x, 0);
+		new int iwozspeed = -8;
+		
+		anwoj.addmethod("onendframe", func {
+			if( .actionname == "go" ) .move(iwozspeed, 0);
+			} );
+		
+		anwoz.addmethod("onendframe", func {
+			if( igmstate==1 )	{
+				.move(iwozspeed,0);
+				if( .getpx <= 570 )	{
+					igmstate = 2;
+					anlamignat.play("stac");
+				}
+			} else if (igmstate==2 || igmstate==3)	{
+				.move(iwozspeed,0);
+			}
+			} );
+		anlamignat.addmethod("onendframe", func {
+			if( .framename=="say" ) .cbplay("lamignat1");
+			} );
+		anlamignat.addmethod("onfinish", func {
+			string s = .actionname;
+			if( s=="stac" ) {
+				igmstate = 3;
+			}
+			} );
+		anwoz.addmethod("onfinish", func {
+			if( igmstate==1 || igmstate==2 )	{
+				.play(-1);
+			} else if (igmstate==3)	{
+				igmstate=4;
+				.play("stop");
+				anwoj.play("stop");
+				fxkolowrot.stop(false);
+				fxkonparsk.play;
+				timsay.play;
+			} else if (igmstate==4)	{
+				igmstate = 5;
+				.play("stand");
+			}
+			} );
+		.timer = ("timsay", 1000, func { .lamsay("lamignat2"); } );
+		ccs.show;
+		
+		.sfxs = (A, "bgrlas1N 60", "konparsk", "kolowrot 30", "bgrbrzegN 70");
+		
+		.cbplay("snd1");
+	}
+	lamsay(string s)	{
+		anlamignat.play("talk");
+		.cbplay(s);
+	}
+	lamend	{
+		anlamignat.play("stand");
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Cs2Lamignat : StdGame	{
+	init	{
+		StdGame::init("cs2lamignat");
+		.path = ("cs2kupcy");
+		
+		.imgs = (A, "bgzoom.pyz 1", "cs2mbig.pyz 2", "maski.pyz 10","hodi2.pyz 20","maska3.pyz 40","lami2.pyz 5", "moneta.pyzH 50");
+		.copyanima("anmaski", "anmaski2");
+		anmaski2.setframe(1,0);
+		.newgrimg("grzeka", "bgrzeka", 0);
+		grzeka.nplay(-1);
+		
+		.sounds = (A, ":hodon1", "Co to ma znaczyæ? Zbójnictwo na ziemiach ksiêcia Mirmi³a? Z³o¿ê oficjaln± skargê!",
+				func { .hodiend; .lamisay("lamignat1"); },
+			":lamignat1", "O przepraszam; Jestem legalnym zbójem kontraktowym; Ca³y zarobek z mojej pracy idzie na pomoc biednym",
+				func { .lamiend; .hodisay("hodon2"); },
+			":hodon2", "A rozumiem; Poborca podatkowy; Dobrze; Trzymaj tu dukata; Odbijê sobie na mar¿y",
+				func { anhodi2.play("rzut"); anlami2.play("wez"); },
+			":lamignat2", "Dziêkujê Lelum i polecam siê na przysz³o¶æ; Gród jest tu¿ tu¿ bezpiecznej drogi!",
+				func { .lamiend; ccs.close( func { gameapi.play("Cs2Kupcyend"); } ); }
+			);
+		
+		anhodi2.addmethod("onsetframe", func {
+			if( .framename=="moneta" )  anmoneta.show;
+			else if (.framename=="monetago") {
+				anmoneta.play(1);
+				fxgetitem.play;
+			}
+			} );
+		anmoneta.addmethod("onfinish", func { .hide; anlami2.play("bierz"); });
+		anlami2.addmethod("onfinish", func {
+			if( .actionname=="bierz" ) .lamisay("lamignat2");
+			} );
+		
+		.sfxs = (A, "bgrlas1N", "getitem 70", "bgrbrzegN" );
+		
+		ccs.enter( func { .hodisay("hodon1"); } );
+	}
+	hodisay(string s)	{
+		anhodi2.play("talk");
+		.cbplay(s);
+	}
+	hodiend	{	anhodi2.play("stand"); }
+	lamisay(string s)	{
+		anlami2.play("talk");
+		.cbplay(s);
+	}
+	lamiend	{	anlami2.play("stand");	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+
+game Cs2Kupcyend : StdGame	{
+	init	{
+		StdGame::init("cs2kupcyend");
+		.path = ("cs2kupcy");
+		
+		.imgs = (A, "bkg.pyz 1","cs2m2tyl.pyz 2","cs2m2przod.pyz 33", "mgielka.pyzP 2", "maska.pyz 30", "lamignat.pyz 10","maczuga.pyz 10","woj.pyz 15","woz.pyz 20");
+		.newgrimg("grzeka", "rzeka", 0);
+		grzeka.nplay(-1);
+		
+		int x = -113;
+		anwoj.move(x,0);
+		anlamignat.play("stand");	// stand, stac, talk
+		anwoz.move(x, 0);
+		anwoz.setframe("start",0);
+		new int iwozspeed = -8;
+		
+		anwoj.addmethod("onendframe", func {
+			if( .actionname == "go" ) .move(iwozspeed, 0);
+			} );
+		anwoj.anloopfin;
+		
+		anwoz.addmethod("onendframe", func {
+			if( igmstate==0 && .actionname=="go" )	{
+				.move(iwozspeed,0);
+				if( .getpx <= 170 )	{
+					igmstate = 2;
+					ccs.close( func {
+						.gotoadv("adpokojkk", "gameadpokojkk0");
+						} );
+				}
+			} else if (igmstate==2)	{
+				.move(iwozspeed,0);
+			}
+			} );
+		anwoz.addmethod("onfinish", func { .play("go"); } );
+		
+		.sfxs = (A, "bgrlas1N 90", "konparsk", "kolowrot 60", "bgrbrzegN 90");
+		
+		ccs.enter( func {
+			fxkonparsk.play;
+			fxkolowrot.playloop;
+			anwoz.play("go");
+			anwoj.play("go");
+			} );
+	}
+	lamsay(string s)	{
+		anlamignat.play("talk");
+		.cbplay(s);
+	}
+	lamend	{
+		anlamignat.play("stand");
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

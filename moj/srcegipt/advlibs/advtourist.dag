@@ -1,0 +1,31 @@
+
+class classadvtourist : classadvcontroller	{
+	init()	{
+		new classtxttalker clhilarytxt;
+		new font _fonttxt;
+		new db _dbtour;
+		_dbtour.loadscript("scripts/common/tourist.tur");
+		string s, string san = null;
+		for( int i=0; i<_dbtour.getrowsno(); i++)	{
+			s = _dbtour.get(i,0);
+			if( s=="font:" )	{
+				_fonttxt.load( _dbtour.get(i,1), _dbtour.get(i,2));
+				clhilarytxt.setfont("_fonttxt");
+			} else if (s=="fontcolor:")	{
+				clhilarytxt.setfontcolor(_dbtour.get(i,1), _dbtour.get(i,2), _dbtour.get(i,3) );
+			} else if (s=="bgcolor:")	{
+				clhilarytxt.setfontbg(_dbtour.get(i,1),_dbtour.get(i,2),_dbtour.get(i,3),_dbtour.get(i,4));
+			} else if (s=="frame:")	{
+				clhilarytxt.setbgframe(_dbtour.get(i,1),_dbtour.get(i,2),_dbtour.get(i,3),_dbtour.get(i,4));
+			} else if (s=="anima:")	{
+				san = _dbtour.get(i,1);
+				clhilarytxt.set(san, _dbtour.get(i,2) );
+			}
+		}
+		classadvcontroller::init();
+		if( san!=null )	{
+// 			<san>.setstdfin("_anhilarystdfin");
+		}
+	}
+	_anhilarystdfin()	{	this.play(-1);	}
+}

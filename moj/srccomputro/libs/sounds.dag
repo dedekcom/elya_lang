@@ -1,0 +1,115 @@
+
+class classsound {
+	init()	{
+		new string _csplay = null;
+	}
+	creset()	{ _csplay = null; }
+	string cgetactsnd()	{ return _csplay; }
+	crselfplay(string ssnd)	{
+		if( !this.cisplaying() )	this.cbplay(ssnd);
+		else if ( this.cgetactsnd()!=ssnd )	this.cbplay(ssnd);
+	}
+	cbselfplay(string ssnd)	{
+		if( !.cisplaying || .cgetactsnd!=ssnd )	.cbplay(ssnd);
+	}
+	cbplay(string ssnd)	{
+		if(this.cisplaying())	<_csplay>.stop(true);
+		_csplay = ssnd;
+		if( ssnd!=null )	<ssnd>.play();
+	}
+	cbplayfin(string ssnd, string sfun)	{
+		<ssnd>.addmethod("onfinish", sfun);
+		.cbplay(ssnd);
+	}
+	cbplay2(string ssnd)	{
+		if(this.cisplaying())	<_csplay>.stop(false);
+		_csplay = ssnd;
+		if( ssnd!=null )	<ssnd>.play();
+	}
+	crplay(string ssnd)	{
+		if(_csplay!=null && <_csplay>.isplaying() )	return;
+		_csplay = ssnd;
+		if( ssnd!=null )	<ssnd>.play();
+	}
+	crbgplay(string ssnd)	{	if( ssnd != null && !<ssnd>.isplaying() )	<ssnd>.play();	}
+	crandplay(string ssnd, int irand, string styp)	{
+		if( irand.rand()==0 )	this.<"c"+styp+"play">( ssnd );
+	}
+	cplayf(string styp, string ssnd, string sfun)	{
+		this.<"c"+styp+"play">(ssnd);
+		if( <ssnd>.isplaying() && sfun!=null)	<ssnd>.addmethod("onfinish",sfun);
+	}
+	//cactsndstop(bool bfin)	{	if(_csplay!=null)	<_csplay>.stop(bfin);	}
+	cactsndstop(bool bfin)	{
+		if(.cisplaying)	<_csplay>.stop(bfin);
+	}
+	cstopsnds(bool b)	{
+		if( _csplay.in && .cisplaying )
+			.cactsndstop(b);
+	}
+	bool cisplaying()	{	_csplay!=null ? <_csplay>.isplaying() : false;	}
+}
+
+/***************************************************************************/
+class classsndbank	{
+	init()	{
+		new int itype;
+		new int ilicz = 0;
+		new int iile;
+		new string splay=null;
+		new string ssnd = "snd";
+	}
+	/********************************/
+	loadsingle(string sfile, int ile)	{
+		if( ile<=0)	{	iile=0;	return;	}
+		iile=ile;
+		itype=0;
+		for( int i=0; i<ile; i++)	newvars::newsnd( ssnd+i, sfile );
+	}
+	/********************************/
+	load(string sfilebase, int ifilefrom, int ifileto, int ityp, int itypstart)	{
+		iile = ifileto-ifilefrom+1;
+		if(iile<=0)	{
+			iile = 0;
+			return;
+		}
+		newvars::newsnds( ssnd, 0, sfilebase, ifilefrom, ifileto);
+		itype = ityp;			// 0 - po kolei, 1 - random
+		if(itypstart==1)	{	// 0 - od pierwszego, 1 - randomowy
+			ilicz = iile.rand( );
+		}
+	}
+	addmethod(string ssig, string sfunc)	{
+		for( int i=0; i<iile; i++)	<ssnd+i>.addmethod( ssig, sfunc );
+	}
+	stop(int ifin)	{	if(splay!=null)	<splay>.stop(ifin);	}
+	int isplaying()	{	splay!=null ? <splay>.isplaying() : false;	}
+	randplay( int irand )	{	if( irand.rand()==0 )	this.play();	}
+	playid(int id)	{
+		ilicz=id%iile;
+		this.play();
+	}
+	play()	{
+		this.stop(false);
+		this.bgplay();
+	}
+	reset()	{	ilicz=0;	}
+	/************************************************/
+	rbgplay()	{	if( !this.isplaying() )	this.bgplay();	}
+	rplay()	{	if( !this.isplaying() )	this.play();	}
+	bgplay()	{
+		splay = ssnd + ilicz;
+		<splay>.play();
+		if( itype==0)	ilicz = (ilicz+1)%iile;
+		else if (itype==1)	ilicz = iile.rand();
+	}
+	setvol(int vol)	{	for( int i=0; i<iile; i++)	<ssnd+i>.setvol( vol );	}
+}
+
+class SoundSource	{
+	init	{	}
+	setvol(string ssnd, int srcvol, int outvol, real rad, real length)	{
+		if( length.abs>=rad ) <ssnd>.setvol(outvol);
+		else <ssnd>.setvol((1.0-length.abs/rad)*srcvol + outvol);
+	}
+}

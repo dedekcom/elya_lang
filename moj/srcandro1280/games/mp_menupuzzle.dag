@@ -1,0 +1,102 @@
+
+new int iMenuPuzid = 1;
+//new int iIlePuz = .readcfg("iIlePuz:",iMenuPuzid);
+new int iIlePuz = iIleImgs;
+
+new int iPuzRow = 5;
+new int iPuzCol = 6;
+new int iPuzCiecie = 0;
+new bool bPuzRotate = false;
+new bool bPuzHint = true;
+
+new string sMenuPuzzleExit = "MenuImgStd";
+
+game MenuTrybPuzzle : MermaidStd	{
+	init	{
+		MermaidStd::init("menu_tryb");
+		
+		.imgs = (A, "tryby.jpg", "butile.pyzG 10", "butok.pyz 20", "buthint.pyz 20", "butroto.pyz 20", "yesno.pyz 30");
+		anyesno.addtogamevars("anmodehint");
+		.copyanima("anyesno", "anmoderoto");
+		.copyanima("anyesno", "anmodeile");
+		
+		anmodehint.setpos( anbuthint.getcx, anbuthint.getey );
+		anmoderoto.setpos( anbutroto.getcx, anbutroto.getey );
+		.msetmodes;
+		
+		.cbutexit;
+		.cbutmusicif;
+		if( !.checktouchpad )
+			anbutok.imgbuildoverlay(.yellow,64,1200);
+		
+		new string smodeile = null;
+		grbutile.eval( func {
+			.Button_std;
+			.addmethod("butmoveon", func {
+				sndfxmoveonms.play;
+				advmouse.setact;
+				if( this==smodeile )	{
+					.setframe( -1, 3 );
+				} else .setframe( -1, 1 );
+				} );
+			.addmethod("butmoveoff", func {
+				advmouse.setstd;
+				if( this==smodeile )	{
+					.setframe( -1, 2 );
+				} else .setframe( -1, 0 );
+				} );
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					sndfxbutclick1.play;
+					.msetile(this);
+				}
+				} );
+			butgame.add(this);
+			} );
+		.msetile(grbutile.get(iPuzCiecie));
+		
+		anbutroto.Button_addstdstate;
+		anbuthint.Button_addstdstate;
+		
+		anbutok.Button_addstdstate;
+		
+		.stdenter;
+	}
+	butclick_anbutroto	{	bPuzRotate = !bPuzRotate; .msetmodes;	}
+	butclick_anbuthint	{	bPuzHint = !bPuzHint;	.msetmodes;	}
+	butclick_anbutok	{
+		match ( <smodeile>.actionname ) 	{
+			"12" => { iPuzRow = 3; iPuzCol = 4; }
+			"20" => { iPuzRow = 4; iPuzCol = 5; }
+			"30" => { iPuzRow = 5; iPuzCol = 6; }
+			"48" => { iPuzRow = 6; iPuzCol = 8; }
+			? => ;
+		}
+		.stdexit("PuzzleB");
+	}
+	msetile(string s)	{
+		if( smodeile!=null )	{
+			<smodeile>.setframe(-1,0);
+		}
+		smodeile = s;
+		iPuzCiecie = <smodeile>.actionnr(-1);
+		<smodeile>.setframe(-1,3);
+	}
+	msetmodes	{
+		anmodehint.setframe( -1, (bPuzHint ? 0 : 1) );
+		anmoderoto.setframe( -1, (bPuzRotate ? 0 : 1) );
+	}
+	butclick_anbutexit	{	.stdexit(sMenuPuzzleExit);	}
+}
+
+game OutroPuzzle : MermaidStd	{
+	init	{
+		MermaidStd::init("outro");
+		.img = ("bgoutro.jpg");
+		ccs.enter(func {
+			.timplay("timend", 5000, "mend");
+			} );
+	}
+	mend	{	.stdexit("exit");	}
+	mouse_lclick	{	.mend;	}
+}

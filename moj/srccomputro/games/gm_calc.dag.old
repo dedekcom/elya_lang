@@ -1,0 +1,510 @@
+game Calc : Computro	{
+	init	{
+		Computro::init("calc");
+		
+		.img = ("bkg.pyz");
+		new img imgbkg;
+		imgbkg.copy("anbkg");
+		anbkg.hide;
+		
+		new Buttons buts("buts.pyz");
+		buts.lock;
+		new classsimplebutton cbhelp;
+		cbhelp.build("scripts/common/help.pyz", "imglobcurs", 650,527, 100, 0);
+		
+		new classplacepointer2 clp;
+		new string scell = null;
+		new int izadanie = 1;
+		new int subhelp = 0;
+		new string Code;
+		Lexer::setas("Code");
+		Code.consts = (A, "(", ")", "/", "%", "*","+","-","$","=",";");
+		.sounds = (A,
+			":zak_quit", "Jeszcze za wcześnie na wyjście", "mstart",
+			":zak1", "Przed nami arkusz kalkulacyjny poprzez który rektor wprowadza zakupy do Komputera Centralnego", func { .cbplay("zak2"); clp.showob("im2_2","dd"); },
+			":zak2", "W tej kolumnie są nazwy zakupów", func { .cbplay("zak3"); clp.showob("im2_3", "dd"); },
+			":zak3", "Tutaj ceny pojedynczych zakupów", func { .cbplay("zak4"); clp.showob("im2_4", "dd"); },
+			":zak4", "Tutaj ilość jednostek", func { .cbplay("zak5"); clp.showob("im2_5", "dd"); },
+			":zak5", "A tutaj koszt wszystkich sztuk; Na przykład w pierwszym wierszu mamy koszt 34 długopisów", func { .cbplay("zak6"); clp.showob("im17_5", "dd"); },
+			":zak6", "W tej komórce mamy łączny koszt wszystkich artykułów", func { clp.stoph; .cbplay("ania1"); },
+			":ania1", "Na pierwszy rzut oka nie widać żadnych błędów", func { clp.showob("im2_6", "dd"); .cbplay("ania2"); },
+			":ania2", "Wykonamy tutaj obliczenia i porównamy wyniki; Umiesz obsługiwać arkusz kalkulacyjny?", func { clp.stoph; .cbplay("zak7"); },
+			":zak7", "Nie ale wczytam sobie do pamięci helpa; Sekunda; Już; Wykonuj moje polecenia", func { clp.showob("im2_6", "dd"); .cbplay("zak8"); },
+			":zak8", "Zaczniemy od prostych ćwiczeń; Najpierw przepisz tutaj cenę pierwszego zakupu i wciśnij enter", func { clp.stoph; .mstart; },
+			":zak9", "Dobrze; Teraz przepiszemy cenę ponownie ale wykorzystamy własność komórek arkusza", func { clp.show(309,82,"lu"); .msetact("im2_3"); .cbplay("zak10"); },
+			":zak10", "Zaznaczyłem komórkę Ce 2; Aby pobrać jej wartość", func { clp.showob("im2_6", "dd"); .cbplay("zak11"); },
+			":zak11", "Wpisz tutaj znak równa się i nazwę komórki w której jest cena pojedynczego długopisa; W razie problemów najedź na przycisk pomoc", func { clp.stoph; .mstart; },
+			":zak12", "Świetnie; Przeanalizujmy naszą komórkę", func { clp.showob("im2_6","rd"); .cbplay("zak13"); },
+			":zak13", "Choć wpisaliśmy pewną formułę poprzedzoną znakiem równości w komórce widzimy wynik", func { clp.show( 510, 91, "lu"); .cbplay("zak14"); },
+			":zak14", "A tu widzimy wzór obliczający wartość tej komórki", func { clp.stoph; .cbplay("zak15"); },
+			":zak15", "Teraz oblicz w naszej komórce cenę długopisa pomnożoną przez 2", "mstart",
+			":zak16", "Umiesz już odwołać się do komórki; Obliczmy zatem ile kosztowały wszystkie zakupione długopisy; Pomnóż cenę jednego długopisa przez ilość kupionych sztuk", "mstart",
+			":ania3", "Spójrz! Łączny koszt się nie zgadza; Ktoś zawyżył cenę długopisów", func { .cbplay("zak17"); },
+			":zak17", "Obliczmy pozostałe zakupy; Żeby nie wpisywać za każdym razem formuły od nowa", func { clp.showob("imgsq", "rd"); .cbplay("zak18"); },
+			":zak18", "Kliknij na ten kwadracik i przeciągnij go na wszystkie komórki w tej kolumnie w których chcemy dokonać obliczeń", func { clp.stoph; .mstart; },
+			":zak19", "Za krótko przeciągnęłaś", "mstart",
+			":ania4", "Łączna cena niemal każdego artykułu jest wpisana wyższa niż wyliczyliśmy; Nie ma mowy o pomyłce w obliczeniach różnice są ogromne; Jak możemy sprawdzić całą kwotę?", func { .cbplay("zak20"); .msetact("im17_6"); clp.showob("im17_6","rd"); },
+			":zak20", "Tutaj obliczymy łączną sumę wszystkich zakupów; Skorzystamy z wbudowanych w arkusze funkcji; Jedną z funkcji jest suma; Spójrz w treść zadania jak ją zapisujemy",
+				func { clp.stoph; .mstart; },
+			":ania5", "Ponad 8 tysięcy różnicy między poniesionymi wydatkami a wynikającymi z rozpiski! Założę się że w innych plikach końcowe ceny też są inne od rzeczywistych; Musimy wydrukować ten arkusz", "mstart"
+			);
+		// 25,133	750x400
+		new int C = 7;	// 6*75 + 225 = 750
+		new int R = 20;	// 20*20 = 400
+		new @xstart = 24;
+		new @ystart = 134;
+		@x;
+		@y = ystart;
+		new @dx = 83;
+		new @dy = 20;
+		new @dxname = 252;
+		@w = 750;
+		@h = 400;
+		.lang_db("dbc", "form");
+		.lang_db("dbzad", "zad");
+		new string smoved = null;
+		
+		new int ifont = 16;
+		new @stdfont16 = .stdfont(ifont);
+		.newtext("txt16", "", stdfont16, .black);
+		new @stdbold16 = .stdbold(ifont);
+		.newtext("txtzd", "", stdfont16, .grey(240));
+		.newtext("txtb16", "", stdbold16, .black);
+		.newtext("txtb16c", "", stdbold16, .black);
+		new img imgc;
+		imgc.create(1,h,.black,255);
+		new img imgr;
+		imgr.create(w,1,.black,255);
+		int i, int j;
+		new vector vcode;
+		vcode.type("string");
+		
+		new ConTextTyper ttp( stdbold16, ifont, .black, "a0 -.,:()$*+/=;", 30);
+		ttp.setpos(371, 80);
+		.newtext("txtname", "", stdbold16, .black);
+		txtname.setpos(290,80);
+		
+		// 1 - create belki
+		new img im1;
+		im1.create( dx, dy, .grey(230), 255 );
+		new img im2;
+		im2.create( dxname, dy, .grey(230), 255 );
+		for( i=0; i<R; i++)	{
+			im1.setpos(xstart, y);
+			imgbkg.blit("im1");
+			if( i>0 )	{
+				txt16.txtset(i);
+				txt16.txtcenter("im1");
+				imgbkg.blit("txt16");
+			}
+			y+=dy;
+		}
+		x = xstart;
+		@s = "A";
+		for( j=0; j<C; j++)	{
+			if( j==2 )	{
+				im2.setpos(x, ystart);
+				imgbkg.blit("im2");
+				s.setbyte(0, BYTEA+j-1);
+				txt16.txtset(s);
+				txt16.txtcenter("im2");
+				imgbkg.blit("txt16");
+				x+=dxname;
+			} else {
+				im1.setpos(x, ystart);
+				imgbkg.blit("im1");
+				if( j>0 )	{
+					s.setbyte(0, BYTEA+j-1);
+					txt16.txtset(s);
+					txt16.txtcenter("im1");
+					imgbkg.blit("txt16");
+				}
+				x+=dx;
+			}
+		}
+		txt16.hide;
+		// aktywne pole belki
+		im1.create( dx, dy, 220,220,240, 255 );
+		im1.imgborders(1,.black,255);
+		im2.create( dxname, dy, 220,220,240, 255 );
+		im2.imgborders(1,.black,255);
+		new img im1c;	im1c.copy("im1");
+		new img im2c;	im2c.copy("im2");
+		new gmimgvec gractb;
+		txtb16.setz(10);
+		txtb16c.setz(10);
+		gractb.addlist(A, "im1", "im2", "txtb16", "txtb16c", "im1c", "im2c");
+		gractb.hide;
+		//	aktywne pole arkusza
+		new img imgsq	{
+			.create(6,6,.black,255);
+			.addmethod("actionname", func { "imgsq"; });
+			.addmethod("setframe", func { (int i1, int i2) ; } );
+		};
+		new int isqx;
+		new int isqy;
+		buts ("imgsq") { (@s)
+			grbuts.add(s);
+			};
+		new bool bmoving = false;
+		new img im00;		im00.create(dx, 2, .black, 255);
+		new img im10;		im10.create(dx, 2, .black, 255);
+		new img im01;		im01.create(2, dy, .black, 255);
+		new img im11;		im11.create(2, dy, .black, 255);
+		new gmimgvec gract;
+		gract.addlist(A, "im00", "im10", "im01", "im11", "imgsq");
+		gract.hide;
+		gract.setz(20);
+		new img im20;		im20.create(dxname, 2, .black, 255);
+		new img im30;		im30.create(dxname, 2, .black, 255);
+		new gmimgvec gract2;
+		gract2.addlist(A, "im20", "im30", "im01", "im11", "imgsq");
+		gract2.hide;
+		gract2.setz(20);
+		
+		y = ystart+dy;
+		new gmimgvec gral;
+		string s2 = "A";
+		string s3;
+		int ir = dbc.getrowsno;
+		int ic = dbc.getcolsno(1);
+		for( i=1; i<R; i++)	{
+			x = xstart + dx;
+			for( j=1; j<C; j++)	{
+				s = "im"+i+"_"+j;
+				new img <s>;
+				s2.setbyte(0, BYTEA-1+j);
+				<s>.vars2(A, "row", i, "col", j, "txtcol", s2, "name", s2+i, "stekst", "", "sformula","");
+				if( j==2 )	{
+					<s>.create(dxname, dy, .white, 255);
+					<s>.setpos(x, y);
+					x+=dxname;
+				} else {
+					<s>.create(dx, dy, .white, 255);
+					<s>.setpos(x, y);
+					x+=dx;
+				}
+				<s>.imgborders(1, .mcolcol);
+				gral.add(s);
+				.mprinton(ir, ic, i, j, s);
+			}
+			y+=dy;
+		}
+		x = xstart;
+		y = ystart;
+		for( j=0; j<=C; j++)	{
+			imgc.setpos(x, y);
+			imgbkg.blit("imgc");
+			if( j==2 ) x+=dxname;
+			else x+=dx;
+		}
+		y = ystart;
+		for( i=0; i<=R; i++)	{
+			imgr.setpos(xstart, y);
+			imgbkg.blit("imgr");
+			y+=dy;
+		}
+		delete imgr;
+		delete imgc;
+		//.mprinton(ir, ic, 0, 1, "im17_4");
+		//.mprinton(ir, ic, 0, 2, "im17_5");
+		txt17_4.txtset( dbc.get(0,0) );
+		txt17_4.txtcenter("im17_4");
+		im17_4.stekst = ( txt17_4.get );
+		im17_4.sformula = ( txt17_4.get );
+		txt17_5.txtset( dbc.get(0,1) );
+		txt17_5.txtright("im17_5");
+		im17_5.stekst = ( txt17_5.get );
+		im17_5.sformula = ( txt17_5.get );
+		
+		new img imzad;
+		imzad.copy("im2_6");
+		imzad.hide;
+		.newtext("txtzad", "", stdfont16, .grey(64) );
+		txtzad.hide;
+		txtzad.txtcenter("imzad");
+		new img imsum;
+		imsum.copy("im17_6");
+		imsum.hide;
+		.newtext("txtsum", "", stdfont16, .grey(64) );
+		txtsum.hide;
+		txtsum.txtcenter("imsum");
+		
+		.timer = ("timend", 3000, func {
+			clsave.set("epizod", "Sep");
+			.gotoadv("adinania", "gameadinania2");
+			} );
+		
+		.mloadzad;
+		.cbplay("zak1");
+	}
+	mprinton(int ir, int ic, int i, int j, string simg)	{
+		string s3 = "txt"+i+"_"+j;
+		if( j<=ic && i<ir )		.newtext(s3, dbc.get(i, j-1), stdfont16, .black);
+		else .newtext(s3, "", stdfont16, .black);
+		<s3>.setz(20);
+		if( j==3 || j==5 || (i==0&&j==2))	{
+			<s3>.txtright(simg);
+			<s3>.move(-2,0);
+		} else	<s3>.txtcenter(simg);
+		<simg>.stekst = ( <s3>.get );
+		<simg>.sformula = ( <s3>.get );
+	}
+	mcolcol	{	return 148,148,192, 255;	}
+	msetact(string s)	{
+		.msetstd;
+		scell = s;
+		@r = <s>.row;
+		@c = <s>.col;
+		// tekst w wierszu
+		im1.setpos(xstart, ystart+r*dy);
+		im1.show;
+		txtb16.txtset(r);
+		txtb16.txtcenter("im1");
+		txtb16.show;
+		// w kolumnie z uwzglednieniem dluzszej
+		if( c==2 )	{
+			im2c.setpos(<s>.getpx, ystart);
+			im2c.show;
+			txtb16c.txtset(<s>.txtcol);
+			txtb16c.txtcenter("im2c");
+			txtb16c.show;
+			im20.setpos(<s>.getpx, <s>.getpy);
+			im30.setpos(<s>.getpx, <s>.getey-im10.geth);
+			imgsq.setpos( im30.getex-imgsq.getw/2, im30.getey-imgsq.geth/2 );
+			gract2.show;
+		} else {
+			im1c.setpos(<s>.getpx, ystart);
+			im1c.show;
+			txtb16c.txtset(<s>.txtcol);
+			txtb16c.txtcenter("im1c");
+			txtb16c.show;
+			im00.setpos(<s>.getpx, <s>.getpy);
+			im10.setpos(<s>.getpx, <s>.getey-im10.geth);
+			imgsq.setpos( im10.getex-imgsq.getw/2, im10.getey-imgsq.geth/2 );
+			gract.show;
+		}
+		im01.setpos(<s>.getpx, <s>.getpy);
+		im11.setpos(<s>.getex-im11.getw, <s>.getpy);
+		// 290,80
+		txtname.txtset( <s>.name );
+		ttp.txtset( <s>.sformula );
+		<"txt"+r+"_"+c>.txtset( <s>.stekst );
+		if( (izadanie.in(A,1,2,3,4) && r==2 && c==6) || (izadanie==6 && r==17 && c==6) )	{
+			ttp.enable;
+		}
+	}
+	ttp_onwrite	{
+		if( scell==null ) return;
+		@s = "txt"+<scell>.row+"_"+<scell>.col;
+		<s>.txtset( .get );
+		<s>.txtcenter( scell );
+		<s>.clip( <scell>.getpx+1, <scell>.getpy+1, <scell>.getex-1, <scell>.getey-1 );
+	}
+	ttp_onenter	{
+		if( scell==null ) return;
+		@s = "txt"+<scell>.row+"_"+<scell>.col;
+		<scell>.stekst = ( .get );
+		<scell>.sformula = ( .get );
+		string s2;
+		match( izadanie )	{
+			1 => {
+				s2 = <s>.get;
+				s2.clear;
+				if( s2==dbc.get(2,2) )	.mnext("zak9");
+			}
+			2,3,4,6 => {
+				Code.start( <s>.get->to_u );
+				Code.clear;
+				Code.gettoken( "vcode", true);
+				if( izadanie==2 )	{
+					if( vcode.veceq2(A,"$const", "=", "$alpha", "C2") ) {
+						<scell>.stekst = (dbc.get(2,2));
+						<scell>.sformula = ("= C2");
+						.msetact(scell);
+						.mnext("zak12");
+					}
+				} else if (izadanie==3) {
+					if( vcode.veceq2(A,"$const", "=", "$int",2, "$const", "*", "$alpha", "C2") ||
+						vcode.veceq2(A,"$const", "=", "$alpha", "C2", "$const", "*", "$int",2)  ) {
+							<scell>.stekst = (2.0*dbc.get(2,2));
+							<scell>.sformula = ("= 2 * C2");
+							txt2_6.txtright(s2);
+							.msetact(scell);
+							.mnext("zak16");
+						}
+				} else if (izadanie==4) {
+					if( vcode.veceq2(A,"$const", "=", "$alpha","D2", "$const", "*", "$alpha", "C2") ||
+						vcode.veceq2(A,"$const", "=", "$alpha","C2", "$const", "*", "$alpha", "D2") )	{
+							s2 = dbc.get(2,2)->to_r * dbc.get(2,3)->to_r;
+							s2 = s2.strgetto(".") + "." + s2.strgetfrom(".")->getb(0,2);
+							<scell>.stekst = (s2);
+							<scell>.sformula = ("= C2 * D2");
+							txt2_6.txtright(s2);
+							.msetact(scell);
+							.mnext("ania3");
+						}
+				} else if (izadanie==6)	{
+					if( vcode.veceq2(A,"$const", "=", "$alpha","SUM", "$const", "(", "$alpha", "F2", "$const", ";", "$alpha", "F16", "$const", ")") )	{
+						real r = 0.0;
+						for( int i=1; i<=15; i++)	{
+							r += <"im"+i+"_6">.stekst;
+						}
+						s2 = r;
+						s2 = s2.strgetto(".") + "." + s2.strgetfrom(".")->getb(0,2);
+						<scell>.stekst = (s2);
+						<scell>.sformula = ("= SUM(F2;F16)");
+						txt17_6.txtset(s2);
+						txt17_6.txtright("im17_6");
+						.msetact(scell);
+						.mnext("ania5");
+					}
+				}
+			}
+			? => ;
+		}
+	}
+	mnext(string s)	{
+		igmstate = 0;
+		izadanie++;
+		.mloadzad;
+		ttp.disable;
+		.cbplay(s);
+	}
+	mloadzad	{
+		txtzd.txtset( dbzad.get(izadanie-1,0));
+		txtzd.setpos(15, iResY - txtzd.geth - 4);
+		txtzd.txtshadow(1, stdfont16);
+	}
+	msetstd	{
+		gract.hide;
+		gract2.hide;
+		gractb.hide;
+		txtname.txtset("");
+		ttp.txtset("");
+		ttp.disable;
+		scell = null;
+	}
+	mstart	{
+		buts.unlock;
+		igmstate = 1;
+	}
+	buts_lclick	{
+		match(sobject)	{
+			"close" => .cbplay("zak_quit");
+			"print" => if( izadanie==7 )	{
+				igmstate = 0;
+				buts.lock;
+				timend.play;
+			}
+			"imgsq" => {
+				if( izadanie==5 )	{
+					bmoving = true;
+					smoved = scell;
+				}
+			}
+			? => ;
+		}
+	}
+	mouse_lrel	{
+		if( izadanie==5 && bmoving )	{
+			bmoving = false;
+			string s;
+			for( int i=2; i<=15; i++)	{
+				s = "im"+i+"_6";
+				if( !im01.isin( <s>.getpx+1, <s>.getpy+5, 1, 1) )	{
+					.msetbord(0);
+					igmstate = 0;
+					.cbplay("zak19");
+					return;
+				}
+			}
+			.msetbord(0);
+			int j;
+			string s2;
+			for( j=3; j<=16; j++)	{
+				s2 = "im"+j+"_6";
+				s = dbc.get(j,2)->to_r * dbc.get(j,3)->to_r;
+				<s2>.stekst = ( s.strgetto(".") + "." + s.strgetfrom(".")->getb(0,2) );
+				<s2>.sformula = ("= C"+j+" * D" +j);
+				<"txt"+j+"_6">.txtset( <s2>.stekst );
+				<"txt"+j+"_6">.txtright( "im"+j+"_6" );
+			}
+			.mnext("ania4");
+		}
+	}
+	msetbord(int y)	{
+		@y1 = <smoved>.getpy;
+		if( y< y1 ) y=y1;
+		if( y>im16_6.getey) y = im16_6.getey;
+		@ile = (y-y1)/dy+1;
+		im01.create(2, ile*dy, .black, 255);
+		im11.create(2, ile*dy, .black, 255);
+		im01.setpos(<smoved>.getpx, <smoved>.getpy);
+		im11.setpos(<smoved>.getex, <smoved>.getpy);
+		im10.setpos(<smoved>.getpx, im11.getey);
+		imgsq.setpos( im10.getex-imgsq.getw/2, im10.getey-imgsq.geth/2 );
+	}
+	mmove(int r, int c)	{		if( scell!=null )	.msetpos( <scell>.row + r, <scell>.col + c);	}
+	msetpos(int r, int c)	{
+		if( r>0 && r<R && c>0 && c<C )	{
+			.msetstd;
+			.msetact( "im"+r+"_"+c );
+		}
+	}
+	cbhelp_MOVEON	{
+		if( igmstate!=1 ) return;
+		match(izadanie)	{
+			1 => .mhelp( dbc.get(2,2) );
+			2 => .mhelp( "= C2" );
+			3 => .mhelp("= 2 * C2");
+			4 => .mhelp("= C2 * D2" );
+			5 => {
+				clp.showob("imgsq", "rd");
+				.cbplay("zak18");
+			}
+			6 => .mhelp2("= SUM(F2;F16)");
+			7 => ;
+			? => ;
+		}
+	}
+	cbhelp_MOVEOFF	{
+		imzad.hide;
+		imsum.hide;
+		txtzad.hide;
+		txtsum.hide;
+	}
+	mhelp(string s)	{
+		imzad.show;
+		txtzad.show;
+		txtzad.txtset(s);
+		txtzad.txtcenter("imzad");
+	}
+	mhelp2(string s)	{
+		imsum.show;
+		txtsum.show;
+		txtsum.txtset(s);
+		txtsum.txtcenter("imsum");
+	}
+	key_down	{
+		if( igmstate!=1 ) return;
+		if( keyboard.iskey("up") ) .mmove(-1,0);
+		else if( keyboard.iskey("down") ) .mmove(1,0);
+		else if( keyboard.iskey("left") ) .mmove(0,-1);
+		else if( keyboard.iskey("right") ) .mmove(0,1);
+	}
+	mouse_move	{
+		if( igmstate!=1 ) return;
+		if( izadanie==5 )	{
+			if( bmoving )	.msetbord(mouse.getposy);
+		}
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+		if( igmstate!=1 ) return;
+		if( izadanie!=5 && gral.isin(mouse.getpos,1,1) )	{
+			@s = gral.getsfound;
+			.msetact(s);
+		}
+	}
+}

@@ -1,0 +1,2 @@
+./kompiluj ./srcuczinf/uczinf.prj
+cp ./srcuczinf/uczinf.odd /home/dedek/projekty/rysunki_gimp/uczinf/project/scripts/

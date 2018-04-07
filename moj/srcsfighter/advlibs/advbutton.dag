@@ -1,0 +1,118 @@
+/*
+	tworzy z button z obiektu graficznego
+*/
+
+class classadvbut	{
+	init(string sname)	{
+		this.setadvbutmets(sname, "but");
+	}
+	setasbutton(string san, string sname)	{
+		classadvbut::setasbutton2(san,sname,"but");
+	}
+	setasbutton2(string san, string sname, string styp)	{	// rozszerzanie obiektu o button
+		<san>.addmethod("setadvbutmets","setadvbutmets");
+		<san>.addmethod("setbuttyp","setbuttyp");
+		<san>.addmethod("setadvbutpos","setadvbutpos");
+		<san>.addmethod("setbutdir","setbutdir");
+		<san>.addmethod("setbutbase1","setbutbase1");
+		<san>.addmethod("setbutbase2","setbutbase2");
+		<san>.addmethod("setbutbase","setbutbase");
+		<san>.addmethod("getbase1","getbase1");
+		<san>.addmethod("getbase2","getbase2");
+		<san>.addmethod("getbutdir","getbutdir");
+		<san>.addmethod("getbutname","getbutname");
+		<san>.addmethod("gettyp","gettyp");
+		<san>.addmethod("reachable", "reachable");
+		<san>.addmethod("setreach", "setreach");
+		<san>.addmethod("getgox","getgox");
+		<san>.addmethod("getgoy","getgoy");
+		
+		<san>.addmethod("enable","enable");
+		<san>.addmethod("disable","disable");
+		<san>.addmethod("enabled","enabled");
+		
+		<san>.addmethod("moveon","moveon");
+		<san>.addmethod("moveoff","moveoff");
+		<san>.addmethod("clickon","clickon");
+		<san>.addmethod("lrel","lrel");
+		<san>.setadvbutmets(sname, styp);
+		<san>.setreach(true);
+	}
+	setadvbutmets(string sname, string styp)	{
+		new string _styp = styp;
+		new string _sname = sname;
+		new int igox = this.getposx();		// jak dojsc do tego..
+		new int igoy = this.getposy();
+		new string sgox = null;
+		new string sgoy = null;
+		new string _sbutdir = "auto";
+		new string _sbase1 = modadv.get("look:",1);
+		new string _sbase2 = modadv.get("look:",2);
+		new bool breachable = false;
+		this.enable();
+	}
+	enable()	{	grbuts.addonce( this.getname() );		}
+	disable()	{	grbuts.remove(this.getname());	}
+	enabled()	{	return grbuts.contains(this.getname());	}
+	setbutbase(string s1, string s2)	{
+		_sbase1 = s1;
+		_sbase2 = s2;
+	}
+	setreach(bool b)	{	breachable=b;	}
+	reachable()	{	return breachable;	}
+	setbuttyp(string s)	{	_styp = s;	}
+	/*************************/
+	lrel()	{}		// mouselrel
+	clickon()	{	if( this.reachable() )	{	clwalkq.visit( this.getname() );	}	}
+	moveon()	{	advmouse.setactive();	}
+	moveoff()	{	advmouse.setstd();	}
+	/*************************/
+	setadvbutpos(string x, string y)	{	sgox=x; sgoy=y; igox = x; igoy=y;		}
+	setbutdir(string sdir)	{	_sbutdir=sdir;	}
+	setbutbase1(string sb1)	{	_sbase1=sb1;	}
+	setbutbase2(string sb2)	{	_sbase2=sb2;	}
+	string getbase1()	{	return _sbase1;	}
+	string getbase2()	{	return _sbase2;	}
+	string getbutdir()	{	return _sbutdir;	}
+	string getbutname()	{	return _sname;	}
+	string gettyp()	{	return _styp;	}
+	int getgox()	{
+		if( sgox=="-hero" )	{
+			return sgoy=="main" ? <smainhero>.getposx() : <sgoy>.getposx();
+		} else return igox + clcamera.getposx();
+	}
+	int getgoy()	{
+		if( sgox=="-hero" )	{
+			return sgoy=="main" ? <smainhero>.getposy() : <sgoy>.getposy();
+		} else return igoy + clcamera.getposy();
+	}
+	/*******  virtuale  ****/
+	virtual int getposx()	{	return 0;	}
+	virtual int getposy()	{	return 0;	}
+	virtual int getz()		{	return 0;	}
+	virtual int isin(int x, int y, bool bigv, bool biga)	{	return 0;	}
+}
+
+class classadvitem : classadvbut	{
+	init(string sname)	{
+		classadvbut::init(sname, "item");
+		this.setbutbase( modadv.get("take:",1), modadv.get("take:",2) );
+	}
+	setasbutton(string san, string sname)	{
+		classadvbut::setasbutton2(san, sname, "item");
+		<san>.setbutbase( modadv.get("take:",1), modadv.get("take:",2) );
+	}
+}
+
+class classadvdoors : classadvbut	{
+	init(string sname)	{
+		classadvbut::init(sname, "doors");
+		this.setbutbase( modadv.get("doors:",1), modadv.get("doors:",2) );
+	}
+	setasbutton(string san, string sname)	{
+		classadvbut::setasbutton2(san, sname, "doors");
+		<san>.addmethod("moveon","moveon");
+		<san>.setbutbase( modadv.get("doors:",1), modadv.get("doors:",2) );
+	}
+	moveon()	{	advmouse.setexit();		}
+}

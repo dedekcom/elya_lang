@@ -1,0 +1,170 @@
+
+
+game gamemenu : classadvkleo	{
+	init()	{
+		classadvkleo::init();
+
+		this.setgraphpath("scripts/menu/");
+		this.cstdbkg();
+
+		this.newsnd("sndwyjscie", "nar04.wav");
+		this.newsnd("sndgra", "nar02.wav");
+		this.newsnd("sndload", "nar03.wav");
+		
+		this.newclbut("clb", "buts.pyz", 10, "imglobcurs");
+		clb.clickfunc("gmbutclick");
+		clb.movonfunc("gmbutmove");
+	}
+	gmbutmove(string s)	{
+		sndaskermovon.play();
+		if(s=="exit")	{
+			this.crselfplay("sndwyjscie");
+		} else if (s=="gra")	{
+			this.crselfplay("sndgra");
+		} else if (s=="load")	{
+			this.crselfplay("sndload");
+		} else {
+			engine.print("cos innego: " + s);
+		}
+	}
+	gmbutclick(string s)	{
+		if(s=="exit")	{
+			gameapi.exit();
+		} else if (s=="gra")	{
+			clsave.setfile("saves/last.txt");
+			clsave.stdload();
+			gameapi.play("gamemapa1");
+		} else if (s=="load")	{
+			gameapi.play("gameload");
+		} else {
+			engine.print("cos innego: " + s);
+		}
+	}
+}
+
+/*game gameload : classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		this.setgraphpath("scripts/saves/");
+		this.csetbkg("loadbkg.png");
+		this.newclbut("clb", "buts.pyz", 10, "imglobcurs");
+		clb.clickfunc("gmbutclick");
+		clb.movonfunc("gmmovon");
+		clb.disableall();
+		clb.ienable( clesav.getlevel()+1 );
+		new string splaygame;
+	}
+	gmmovon(string s)	{	sndakskermovon.play();	}
+	gmbutclick(string s)	{
+		int i = s;
+		splaygame = clesav.getgame( i-1 );
+		if (splaygame!=null )	{
+			claskexit.askplayeasy2("mloadeasy", "mloadhard");
+		}
+	}
+	mloadeasy()	{
+		igmeasy = true;
+		gameapi.play( splaygame );
+	}
+	mloadhard()	{
+		igmeasy = false;
+		gameapi.play( splaygame );
+	}
+}
+*/
+/*game gameoutro : classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		this.setgraphpath("scripts/introutro/");
+		this.csetbkg("inoutbkg.png");
+		this.cnewtimerfin("timfin",23000,1,"timfinito");
+		this.cnewtimerfin("timaut",3000,1,"timfinaut");
+		this.newanima("anout", "outro.pyz",10);
+		anout.hide();
+		new int ileau = this.newanactions("anout", "ano");
+		new int id = 0;
+		new gmobjvec graut;
+		for(int i=0; i<ileau; i++)	{
+			<"ano"+i>.addmethod("onfinish","finano");
+			graut.add("ano"+i);
+		}
+		ano0.play(0);
+		this.newimg("imgautorzy", "autorzy.png", 10);
+		imgautorzy.hide();
+	}
+	finano()	{
+		id++;
+		if(id<anout.nofactions())	{
+			<"ano"+id>.play(-1);
+		} else {
+			timaut.play();
+		}
+	}
+	timfinaut()	{
+		graut.hide();
+		imgautorzy.show();
+		timfin.play();
+	}
+	timfinito()	{
+		if( igmdemo==false )	{
+			gameapi.exit(); 
+		} else {
+			gameapi.play("gamedemoout");
+		}
+	}
+	mouselclick()	{
+		this.timfinito();
+	}	
+}
+*/
+
+game gameintro2 : classadvkleo	{
+	init()	{
+		classadvkleo::init();
+		this.setgraphpath("scripts/intro/");
+		this.csetbkg("bkg2.png");
+		new int iileanimas = this.loadanframes("annap", "napisy.pyz", 0, 10);
+		this.chideanimas("annap", iileanimas );
+		this.cnewsndsfin("sndin", 1, "intro", 1, 3, "mfinsnd");
+		annap0.show();
+		sndin1.play();
+	}
+	mfinsnd1()	{	sndin2.play();	annap1.show();	}
+	mfinsnd2()	{	sndin3.play();	annap2.show();	}
+	mfinsnd3()	{
+		clsave.bset("introfirsttime");
+		gameapi.play("gamemenu");
+	}
+	mouselclick()	{
+		if( clsave.bis("introfirsttime")==true )	{
+			gameapi.play("gamemenu");
+		}
+	}
+}
+
+game gameintro : classadvkleo, Tclassopowiesc	{
+	init()	{
+		classadvkleo::init();
+		Tclassopowiesc::init();
+		
+		this.tinit( "scripts/intro/", "intro", "intro", 3, 17, 1, 4 );
+		this.tsetpos(169, 117, 169+462, 117+354);
+  		this.tmodeopacity(1, -5);
+//		this.tmoderewind( 20 );
+		this.cstdbkg();
+		imgbkg.setz( 20 );
+		this.tstart();
+	}
+	tfinish()	{
+		gameapi.play("gameintro2");
+	}
+	mouselclick()	{
+		if( igmdebug==true )	{
+			this.cactsndstop(true);
+		}
+		if( clsave.gbis("gameintro2","introfirsttime")==true )	{
+			gameapi.play("gameintro2");
+		}
+	}
+}
+

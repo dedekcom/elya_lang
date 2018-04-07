@@ -1,0 +1,271 @@
+
+game mg06krople :Banshee {
+	init{
+    Banshee::init("mg06_krople");
+    .imgs = (A,"bkg.jpg 1", "podklad.pyz 2", "tor_4.pyz 3", "tor_3.pyz 5","tor_2.pyz 6","tor_1.pyz 7", "tor1_btn.pyz 8", "tor2_btn.pyz 9" , "tor3_btn.pyz 10" , "tor4_btn.pyz 11", "final_glow.pyzH 12" , "ramka.pyz 13" , "popexit.pyz 14");
+    .butpopexit; 
+     
+    anfinal_glow.setdrawmode(1);
+    new vector right_sequence; 
+    new bool good_sequence =  false;
+    right_sequence.beginadd("begin",0,2200,1050,1975);
+    new vector check_sequence;
+    check_sequence.beginadd("begin",1,3,4,2);
+    new  int act_check_number = 0; 
+    .sfxs = (A, "wylaniasie", "kropla1", "kropla2", "bgrwiatrN 40", "bgrlas2N 25");
+    mus.fadeout(1000);
+    guihint.switchtoskip;
+	.askopis("mg06_krople");
+	anaskopis.ansetbpos( anpopexit.getcx + anaskopis.getw, anpopexit.getcy - anaskopis.geth/2); 
+    new vector sequence; 
+    .timer = ("tim1", right_sequence.get(0), func { antor_1.play(0);antor1_btn.hide();} ); 
+    .timer = ("tim2",  right_sequence.get(1),func { antor_2.play(0);antor2_btn.hide();} ); 
+    .timer = ("tim3",  right_sequence.get(2), func { antor_3.play(0);antor3_btn.hide();}); 
+    .timer = ("tim4",  right_sequence.get(3), func { antor_4.play(0);antor4_btn.hide();} ); 
+  
+	anpodklad {
+		.Button_isinalpha;
+		butgame.add(this);
+	}; 
+     imgbkg {
+		.Button_isinalpha;
+		.addmethod("butclick", func {
+		if( !.advstdstate ) return;
+			.mend;
+		} );
+		butgame.add(this);
+	};       
+     
+    
+    antor1_btn {
+			.Button_isinalpha;
+		  .vars2(A, "selected", false);
+			.addmethod("butmoveon", func {
+			 advmouse.setbut; 
+				.setframe(-1,1);
+				} );
+			.addmethod("butmoveoff", func {
+				advmouse.setstd;
+        if (selected)
+			.setframe(-1,2);
+        else
+          .setframe(-1,0); 
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate || good_sequence) return;
+				if (!selected)
+				{ 
+					selected = true;
+					.setframe(-1,2);
+					.add_to_sequence(1);
+				}
+				.play_all_selected();
+			} );
+			butgame.add(this);
+		};
+    
+    antor2_btn {
+			.Button_isinalpha;
+		  .vars2(A, "selected", false);
+			.addmethod("butmoveon", func {
+			 advmouse.setbut; 
+				.setframe(-1,1);
+				} );
+			.addmethod("butmoveoff", func {
+				advmouse.setstd;
+        if (selected)
+				  .setframe(-1,2);
+        else
+          .setframe(-1,0); 
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate || good_sequence) return;
+				  if (!selected)
+          { 
+            selected = true;
+            .setframe(-1,2);
+            .add_to_sequence(4);
+          }
+          .play_all_selected();
+				} );
+			butgame.add(this);
+		};
+    
+    antor3_btn {
+			.Button_isinalpha;
+			.vars2(A, "selected", false);
+			.addmethod("butmoveon", func {
+			 advmouse.setbut; 
+				.setframe(-1,1);
+				} );
+			.addmethod("butmoveoff", func {
+				advmouse.setstd;
+        if (selected)
+			.setframe(-1,2);
+        else
+			.setframe(-1,0); 
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate || good_sequence) return;
+				if (!selected)
+				{ 
+					selected = true;
+					.setframe(-1,2);
+					.add_to_sequence(2);
+				}
+				.play_all_selected();
+			} );
+			butgame.add(this);
+		};
+    
+    antor4_btn {
+		.Button_isinalpha;
+		.vars2(A, "selected", false);
+		.addmethod("butmoveon", func {
+		 advmouse.setbut; 
+			.setframe(-1,1);
+			} );
+		.addmethod("butmoveoff", func {
+			advmouse.setstd;
+			if (selected)
+				.setframe(-1,2);
+			else
+				.setframe(-1,0); 
+		} );
+		.addmethod("butclick", func {
+			if( !.advstdstate || good_sequence) return;
+			if (!selected)
+			{ 
+				selected = true;
+				.setframe(-1,2);
+				.add_to_sequence(3);
+			}
+			.play_all_selected();
+		} );
+		butgame.add(this);
+	};
+	
+	antor_1{ 
+		.addmethod("onfinish", func {
+			.setframe(-1,0);
+			antor1_btn.show(); antor1_btn.setframe(-1,0);
+		} );
+    };
+    antor_2{ 
+		.addmethod("onfinish", func {
+			.setframe(-1,0);
+			antor2_btn.show(); antor2_btn.setframe(-1,0);
+		} );
+    };
+    antor_3{ 
+		.addmethod("onfinish", func {
+			.setframe(-1,0);
+			antor3_btn.show(); antor3_btn.setframe(-1,0);
+  		} );
+    };
+    antor_4{ 
+		.addmethod("onfinish", func {
+			.setframe(-1,0);
+			antor4_btn.show(); antor4_btn.setframe(-1,0);
+		} );
+    };
+	
+	 
+	 
+	
+    .stdstart;
+  } // koniec init   
+      
+  mend	{
+     .stdexitdefadv("ad06_posagmamy", "gamead06_posagmamy0");  
+  } 
+  
+  play_all_selected {
+      if (antor1_btn.selected && antor2_btn.selected && antor3_btn.selected && antor4_btn.selected )
+      {
+        good_sequence = true;
+        for( int i=1; i<=4; i++)
+        {
+           if (!(i-1 == sequence.get(i-1)) )
+             good_sequence = false;    
+          
+          <"antor"+i+"_btn">.selected = (false);
+          <"antor"+i+"_btn">.setframe(-1,0);
+          int sequence_pos = sequence.get(i-1); 
+          int delay = right_sequence.get(sequence_pos);
+          @s = "tim" + i;
+          <s>.delay(delay);
+          <s>.play();
+        }
+          
+        if (good_sequence)
+        {
+			anaskopis.anfadeout(500,null);
+			.timer = ("timfinish", 4000, func { 
+			fxwylaniasie.play;
+			anfinal_glow.anfadein(500,func{
+			clsave.bset("e1_krople_rozwiazane"); 
+			/*open_popup*/
+			anfinal_glow.hide();
+		//	mouse.hide;
+		//	engine.redrawnoblit;
+			clsave.set("e1_mg06_krople_adv",0);
+			.set_mg_finished(); 
+			.stdexit("mg06_huby");
+		//	mouse.show;
+			}); 
+			}); 
+			sgmstate = "state_finish";
+			timfinish.play();
+        }
+        sequence.free();   
+      }
+       
+	} 
+  
+	add_to_sequence(int i)
+	{
+		sequence.add(i-1);
+		fxkropla1.play;
+	}
+	SKIP_CLICK {
+		if( .advstdstate ) {
+			 
+			anaskopis.anfadeout(500,null);
+			fxwylaniasie.play;
+			anfinal_glow.anfadein(500,func{
+				clsave.bset("e1_krople_rozwiazane"); 
+				/*open_popup*/
+				anfinal_glow.hide();
+				//mouse.hide;
+				//engine.redrawnoblit;
+				clsave.set("e1_mg06_krople_adv",0);
+				.set_mg_finished(); 
+				.stdexit("mg06_huby");
+				//mouse.show;
+			 
+			}); 
+			sgmstate = "state_finish";
+			 
+		
+		}	
+   }
+  HINT_CLICK {
+    if (!clsave.bis("e1_krople_rozwiazane"))
+    {
+      int i = check_sequence.get(act_check_number);
+      act_check_number++;
+      if (act_check_number>3)
+        act_check_number = 0; 
+      
+      .showhint("antor"+i+"_btn");
+      return; 
+    }
+    if (!clsave.bis("taken_sekator"))
+    { 
+        .showhint("anpopexit"); 
+    }
+  }     
+   
+}
+ 

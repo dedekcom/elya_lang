@@ -1,0 +1,31 @@
+
+/****************************************************/
+game gamedefadv : classadvcontroller	{
+	init()	{
+		classadvcontroller::init();
+	}
+}
+
+/****************************************************/
+new int iOpowiescFrom;
+new int iOpowiescTo;
+new string sGameFromOpowiesc;
+game gameopowiesc : classadvkleo, Tclassopowiesc	{
+	init()	{
+		classadvkleo::init();
+		Tclassopowiesc::init();
+		
+		sgmlastscene = this.getname();
+		
+		this.tinit("scripts/intro/", "intro", "nar_", 3, iOpowiescFrom, iOpowiescTo, iOpowiescFrom+1);
+		this.tsetpos(169, 117, 169+462, 117+354);
+  		this.tmodeopacity(1, -10);
+		this.cstdbkg();
+		imgbkg.setz( 20 );
+		this.tstart();
+	}
+	tfinish()			{	gameapi.play( sGameFromOpowiesc );		}
+	mouselclick()	{	if( igmdebug )	this.cactsndstop(true);	}
+	mouserclick()	{	if( igmdebug )	this.tfinish();			}
+}
+

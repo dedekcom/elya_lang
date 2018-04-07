@@ -1,0 +1,121 @@
+
+game BanTest : StdGame	{
+	init	{
+		StdGame::init("bantest");
+		.imgs = (A, "niebo.pyz", "slonce.pyz 1", "chmury.pyzG 3", "drzewo.pyzP 10", "wdali1.pyz 12",
+			"wod1.pyzP 15", "wod2.pyzP 20", "wod3.pyzP 25", "wod4.pyzP 30", "wod5.pyzP 35", "wod6.pyzP 40",
+			"wzgorze.pyz 45", "wdali2.pyz 50", "fog1.pyz 55", "ogrodzenie.pyz 60",
+			"fire1.pyzP 65", "fire2.pyzP 70",
+			"woda.pyzP 75", "krople.pyzP 80",
+			"fogslow.pyzH 85",
+			"krzak1.pyzP 90", "drzewo1.pyzP 95", "altana.pyz 100", "cien1.pyzP 105",
+			"galaz.pyzP 110", "mglagora.pyz 115", "liscie2.pyzG 116",
+			"lupamask.pyz 20", "lupa.pyz 125");
+		
+		//.copyanima("anfog1", "anmgla3"); anmgla3.move(-anmgla3.getw,0);
+		.sfxs = (A, "bgrlas2N", "bgrdeszczN 0", "bgrrzeka1N 0", "ogien2N 0", "bgrwiatrN 0");
+		
+		//grliscie.move( iResX-<grliscie.get(1)>.getex, 0 );
+		//grliscie2.nplay(-1);
+		grliscie2.hide;
+		
+		anslonce.move(0,-50);
+		
+		.newsfx("fxogien1", "ogien2.ogg");
+		fxogien1.setvol(0);
+		fxogien1.playloop;
+		
+		/*new filter ftwzgorze;
+		ftwzgorze.link("angalaz");
+		//ftwzgorze.setopacity(87);
+		<grchmury.first>.hide;
+// 		anniebo.hide;
+// 		ftwzgorze.lineardodge(grchmury.get(4));
+// 		anslonce.hide;
+		ftwzgorze.lineardodge("anslonce");*/
+		
+		new filter ftlupa;
+		ftlupa.link( "anlupamask" );
+		ftlupa.loupe(grchmury.get(4));
+		<grchmury.get(4)>.hide;
+		ftlupa.loupe( "anwzgorze" );
+		anwzgorze.hide;
+		ftlupa.loupe( "angalaz" );
+		angalaz.hide;
+		angalaz.addmethod("onfinish", func { .play(-1); .hide; } );
+		ftlupa.loupe( "andrzewo" );
+		andrzewo.hide;
+		
+		.ustaw_dzwieki;
+		
+		SetAnMover::setas( grchmury.get(1), 0.25, 0);
+		SetAnMover::setas( grchmury.get(3), 0.5, 0);
+		SetAnMover::setas( grchmury.get(4), 1, 0);
+		SetAnMover::setas( grchmury.get(5), 1.5, 0);
+		grchmury.sortz(1);
+		<grchmury.get(1)>.sam_copy;
+		<grchmury.get(3)>.sam_copy;
+		<grchmury.get(4)>.sam_copy;
+		
+		SetAnMover::setas( "anfog1", 0.55, 0);
+		anfog1.sam_copy;
+		
+		.cycle = ("timgla", func {
+			anfog1.sam_move;
+			grchmury.eval("sam_move");
+			
+			.ustaw_dzwieki;
+			
+			.play;
+			} );
+		timgla.play;
+		
+		advmouse.setstd;
+	}
+	sam_move	{}
+	ustaw_dzwieki	{
+		SoundSource::setvol("fxbgrdeszcz", 70, 22, 550, 0->length(mouse.getposx-andrzewo.getcx,
+			mouse.getposy - (andrzewo.getcy - andrzewo.geth/4)));
+		SoundSource::setvol("fxbgrrzeka1", 70, 12, 350, 0->length(mouse.getposx-343, mouse.getposy-574 ));
+		SoundSource::setvol("fxogien1", 40, 2, 200, 0->length(mouse.getposx-anfire1.getcx, mouse.getposy-anfire1.getcy));
+		SoundSource::setvol("fxogien2", 40, 2, 200, 0->length(mouse.getposx-anfire2.getcx, mouse.getposy-anfire2.getcy));
+		SoundSource::setvol("fxbgrwiatr", 80, 12, 600, 0->length(mouse.getposx-iResX, mouse.getposy-0.2*iResY));
+	}
+	key_down	{
+		if( keyboard.iskey("space") )	{
+			@s = .getgraphpath + "chmura1/";
+			<grchmury.srcanima>.saveimages(s);
+		}
+	}
+	mouse_move	{
+		//anslon.setpos(mouse.getpx-anslon.ilodx, mouse.getpy-anslon.ilody);
+		anlupa.setpos(mouse.getpos);
+		anlupamask.setpos(mouse.getpos);
+	}
+	mouse_lclick	{
+		//if( igmdebug ) engine.getimg(mouse.getpos, 1,1,-1000,1000)->print;
+	}
+}
+
+game BanTest2 : StdGame	{
+	init	{
+		StdGame::init("bantest");
+		//.imgs = (A, "dziad1.jpg", "usta1.pyz 10");
+		//anusta1.playsmooth(0);
+		.img = ("ban1366.jpg");
+	}
+}
+
+game MojTest : StdGame	{
+	init{
+		StdGame::init("bantest");
+		new img imgbg;
+		imgbg.create(igmappw, igmapph, 22,108,237, 255);
+		.img = ("$scripts/ad00_endintro/perun1b.pyz");
+		anperun1b.setframe(0,11);
+		.newanima("anp2", "$scripts/ad00_endintro/perun1b.pyz", 10);
+		anp2.move( 200, 0);
+		anp2.setframe(0,11);
+		anp2.setdrawmode(1);
+	}
+}

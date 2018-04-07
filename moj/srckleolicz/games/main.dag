@@ -1,0 +1,99 @@
+new classgamepause clpause;
+new snd sndaskermovon;
+
+game main : newvars {
+	init()	{
+		newvars::init();
+		
+		igmstate = 0;
+		
+		| igmdebug, igmeasy, igmdemo | = true, false, false;
+		
+		advmouse.load("scripts/common/cursors.pyz");
+		modadv.load("scripts/common/defaults.adv");
+		modadv.loadsounds("scripts/common/sounds2.db");
+		sgmlastscene = this.getname();
+		
+		modadv.settalktype("snd");
+		modadv.loadscript("scripts/common/initscript.dsc");
+		
+// 		sndaskermovon.load("sounds/kleolicz/sfx/butmovon.wav");
+		sndaskermovon.load("sounds/kleolicz/sfx/globbutmovon.wav");
+		
+		clsave.load("saves/global.txt");
+		
+		gameapi.play(modadv.get("startgame:",1) );
+		
+// 		gameapi.play("gametmp2");
+		
+		/*new A a1;
+		new A a2;
+		a2.set(-100, -200);
+		new A a4 .= "a1";
+		a1 .= "a2";
+		
+		new A a3 .= "a1" .+ "a2" .- "a4";
+
+		a1.print();
+		a2.print();
+		a3.print();
+		a4.print();
+		_ = "a1" .+ "a2";
+		a1.print();*/
+	}
+}
+
+class A	{
+	init()	{
+		new int i1 = 5;
+		new int i2 = 10;
+	}
+	set(int i, int j)	{i1=i;i2=j;	}
+	get()	{	return i1,i2;	}
+	operator=(string sob)	{
+		this.set(<sob>.get());
+	}
+	operator+(string sob)	{
+		i1 += <sob>.varget("i1");
+		i2 += <sob>.varget("i2");
+		return this.getname();
+	}
+	operator-(string sob)	{
+		i1 -= <sob>.varget("i1");
+		i2 -= <sob>.varget("i2");
+		return this.getname();
+	}
+	print()	{
+		engine.print(this.getname()+": "+i1+" "+i2);
+	}
+}
+
+game gametmp1 : classadv	{
+	init()	{
+		classadv::init();
+		this.setgraphpath("scripts/tmp/");
+		new Script script("scripts/tmp/tmp.dsc");
+	}
+	mouselclick()	{
+		gameapi.exit();
+	}
+}
+
+game gametmp2 : classadvcontroller {
+	init()	{
+		//public playfromscript(string spath, string sgame)	{
+		sgmglobpath = "przeddomek";
+		sgmgame = "gameprzeddomek0";
+		classadvcontroller::init();
+		this.setgraphpath("scripts/tmp/");
+		new classdzoj dzoj("joy.pyz");
+		ankleo.stop(false);
+		ankleo.hide();
+		this.advmsunlock();
+	}
+// 	onmousemove(int x, int y)	{
+// 		engine.print("msmove error");
+// 	}
+}
+
+gameapi.play("main");

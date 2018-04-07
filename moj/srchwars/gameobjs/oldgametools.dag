@@ -1,0 +1,203 @@
+class classoldgametools {
+	init()	{
+	}
+	cplayintro(string sfile)	{
+		this.newsnd("sndintro",sfile);
+		this.cbplay("sndintro");
+	}
+	cplayintrofun(string sfile, string sfunc)	{
+		this.cplayintro(sfile);
+		this.cfinmethod("sndintro", sfunc);
+	}
+	cplaywithfin(string sobj, string sfuncfin)	{
+		this.cfinmethod(sobj, sfuncfin);
+		<sobj>.play();
+	}
+	cbplaywithfin(string sobj, string sfuncfin)	{
+		this.cfinmethod(sobj, sfuncfin);
+		this.cbplay(sobj);
+	}
+	crplaywithfin(string sobj, string sfuncfin)	{
+		this.cfinmethod(sobj, sfuncfin);
+		this.crplay(sobj);
+	}
+	cnplaywithfin(string sobj, int ifin, string sfuncfin)	{
+		this.cfinmethod(sobj, sfuncfin);
+		<sobj>.play(ifin);
+	}
+	csplaywithfin(string sobj, string sfin, string sfuncfin)	{
+		this.cfinmethod(sobj, sfuncfin);
+		<sobj>.play(sfin);
+	}
+/*****************************************************************/
+/* podczepia na zakonczenie tego dzwieku kolejny i go wlacza */
+	__clbplaysnd()	{	this.cbplay(sclsnd);	}
+	__clrplaysnd()	{	this.crplay(sclsnd);	}
+	__clrbgplaysnd()	{	this.crbgplay(sclsnd);	}
+	__clgetsndname(string sname)	{	new string sclsnd = sname;	}
+	_cplayonfin(string ssnd, string snew, string stype)	{
+		<ssnd>.__clgetsndname( snew );
+		<ssnd>.addmethod("onfinish", "__cl"+stype+"playsnd");
+	}
+	cplayonfin(string ssnd, string snew)	{
+		this._cplayonfin( ssnd, snew, "b" );
+	}
+	cbplayonfin(string ssnd, string snew)	{
+		this._cplayonfin( ssnd, snew, "b" );
+	}
+	crplayonfin(string ssnd, string snew)	{
+		this._cplayonfin( ssnd, snew, "r" );
+	}
+	crbgplayonfin(string ssnd, string snew)	{
+		this._cplayonfin( ssnd, snew, "rbg" );
+	}
+	cplayonfinplay(string ssnd, string snew)	{
+		this.cplayonfin(ssnd,snew);
+		this.cbplay(ssnd);
+	}
+	cputgr(string san)	{			// put ground 
+		<san>.setz( <san>.getey() );
+	}
+	cputgr2(string san, int x, int y)	{
+		<san>.setpos(x,y);
+		<san>.setz( <san>.getey() );
+	}
+	cloadbgelem(string sfile)	{
+		int ile = this.loadanactions("anbg",sfile,0);
+		for(int i=0; i<ile; i++)	{
+			this.cputgr("anbg"+i);
+		}
+		_anbg.hide();
+	}
+	cnewanimagr(string san, string sfile)	{
+		this.newanima(san, sfile, 0);
+		this.cputgr( san );
+	}
+	copyanimaactgr(string san, string san2, string sact)	{
+		this.copyanimaact(san,san2,sact);
+		this.cputgr( san2 );
+	}
+	/****************************************************************/
+	int canfindaction(string san, int ifirst, int ilast, string saction)	{	// zwraca id animacji, ktora ma zadana akcje
+		return clfindfunc::_stdfindfunc(san, ifirst, ilast, saction, "actionname");
+	}
+	int canfindact2(string san, int iile, string saction)	{
+		return clfindfunc::_stdfindfunc2(san, iile, saction, "actionname");
+	}
+	int cfindy(string simg, int x)	{
+		int y = <simg>.getpy();
+		int h = <simg>.getey();
+		while( !<simg>.isin(x,y,false,true) && y<h )	{
+			y++;
+		}
+		return y;
+	}
+	int cfinddyactf(string simg, int x, string sact, int ifr)	{
+		<simg>.setframe( sact , ifr );
+		<simg>.setpos( -<simg>.lodx(), -<simg>.lody() );
+		return this.cfindy( simg, x );
+	}
+	int cfindframe(string san, string sact, string sf)	{
+		int ile = <san>.nofframes( sact );
+		for( int i=0; i<ile; i++)	{
+			<san>.setframe( sact, i );
+			if( <san>.framename()==sf )	{
+				return i;
+			}
+		}
+		return -1;
+	}
+	cwalkto(string spt, string san, int dx, int dy)	{
+		<spt>.walkto(<san>.actionname(), <san>.getcx() + dx, <san>.getcy()+dy);
+	}
+	cwalkto2(string spt, string san, string sname, int dx, int dy)	{
+		<spt>.walkto(sname, <san>.getcx() + dx, <san>.getcy()+dy);
+	}
+	/**************************************************************************/
+	cherotalk2(string ssnd, string sfuncfin, string stalk, string saction, string sshutup)	{
+		if( sshutup!=null)	{
+			<sshutup>.stop(false);
+			<sshutup>.setframe(-1,0);
+		}
+		this.cherotalk(ssnd, sfuncfin, stalk, saction);
+	}
+	cherotalk(string ssnd, string sfuncfin, string stalk, string saction)	{
+		if( stalk!=null)	{
+			<stalk>.play( saction );
+		}
+		this.cbplaywithfin(ssnd, sfuncfin);
+	}
+	cherosay(string shero, int istate, string ssnd, string sdir, string scompherofunc, int bhero)	{
+		igmstate = istate;
+		this.cbplay( ssnd );
+		if ( bhero==true )	{
+			<shero>.play("talk"+sdir);
+			if( scompherofunc!=null)	{
+				this.<scompherofunc>();
+			}
+		} else if (bhero==false)	{
+			if( scompherofunc!=null)	{
+				this.<scompherofunc>();
+			}
+			<shero>.play("stand"+sdir);
+		}
+	}
+	/**************************************************************************/
+	string cgetanbyaction(string san, int iile, string saction)	{
+		int pos = this.canfindact2(san, iile, saction);
+		if(pos>=0)	{
+			return san+pos;
+		} else {
+			return null;
+		}
+	}
+	string cgetelembyaction(string saction)	{
+		return this.cgetanbyaction("anbg", anbg0.nofactions(), saction);
+	}
+	caddelemtomask(string smask, string sstr, string sact, string sname, string sfuncclick)	{
+		new string <sstr> = this.cgetanbyaction( "anbg", anbg0.nofactions(), sact);
+		<smask>.addadvmask( [sstr], sname, "imglobcurs", sfuncclick);
+	}
+	_cstdelemframe()	{	this.setz( this.getey() ); }
+	cstdelemframe(string san)	{
+		<san>.addmethod("onsetframe", "_cstdelemframe");
+	}
+	cplayelem(string san)	{
+		this.cstdelemframe(san);
+		<san>.play(-1);
+	}
+	cplayelemfin(string san, string sfunc)	{
+		<san>.addmethod("onfinish", sfunc );
+		this.cplayelem(san);
+	}
+	canplayfin(string san, string sfunc)	{
+		<san>.addmethod("onfinish", sfunc);
+		<san>.play(-1);
+	}
+	/**************************************************************************/
+	_movybkg(int dy, string sgr)	{
+		if( imgbkg.getpy() + dy <= 0 && imgbkg.getey() + dy >= 600)	{
+			<sgr>.move(0,dy);
+		}
+	}
+	_movxbkg(int dx, string sgr)	{
+		if( imgbkg.getpx() + dx <= 0 && imgbkg.getex() + dx >= 800)	{
+			<sgr>.move(dx,0);
+		}
+	}
+	cmovybkg(int y, int y1, int y2, int dy, string sgr)	{
+		if ( y<y1 )	{
+			this._movybkg(dy, sgr);
+		} else if( y>y2) {
+			this._movybkg(-dy, sgr);
+		}
+	}
+	cmovxbkg(int x, int x1, int x2, int dx, string sgr)	{
+		if ( x<x1 )	{
+			this._movxbkg(dx, sgr);
+		} else if( x>x2) {
+			this._movxbkg(-dx, sgr);
+		}	
+	}
+	/**************************************************************************/
+}

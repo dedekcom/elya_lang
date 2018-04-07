@@ -1,0 +1,275 @@
+
+game Cs23Wieza : StdGame	{
+	init	{
+		StdGame::init("cs23wieza");
+		
+		.imgs = (A, "bkg.pyz", "kokosz.pyz 10", "kajko.pyzP 20", "wieza.pyz 40", "zboj2.pyz 50", "zboje3.pyzH 60");
+		.newgrimg("grz", "zboje1", 30);
+		grz.nplay(-1);
+		
+		anzboj2.addmethod("onendframe", func {
+			if(.framename=="ojoj") zboj3.play;
+			} );
+		anzboj2.addmethod("onfinish", func {
+			.hide; grz.stop(false); grz.hide;
+			anwieza.hide;
+			anzboje3.play(-1);
+			} );
+		anzboje3.addmethod("onfinish", func { .cbplay("kajko1"); });
+		
+		.sounds = (A, "sndnar1", "Kiedy kapral z Oferm± próbowali zaskoczyæ obroñców od ¶rodka oddzia³ Zbójcerzy podci±gn±³ wie¿ê pod wa³y",
+			func { .cbplay("zboj1"); },
+			":zboj1", "Ruszajcie tam z przodu! Na wa³y!", func { .cbplay("kokosz1"); },
+			":kokosz1", "No podejd¼cie tu ³otry znowu spu¶cimy wam lanie!", func { .cbplay("zboj2"); },
+			":zboj2", "Sam siê prosisz grubasie! Zaraz ci przy³o¿ê!", func { anzboj2.play(1); },
+			":zboj3", "Ojojoj! Co jest?", null,
+			":kajko1", "Hurra! Pu³apka zadzia³a³a!", func {
+				ccs.close( func { 
+					gameapi.play("Cs24Pogrom");
+					} );
+				}
+			);
+		
+		.sfxs = (A, "wojeN 35", "eksplozja", "spadaniedesek", "cios3", "wpadldowody", "zamach2", "pekabelka");
+		
+		ccs.enter( func { .cbplay("sndnar1"); } );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Cs24Pogrom : StdGame	{
+	init	{
+		StdGame::init("cs24pogrom");
+		
+		//bkg.pyz eter.pyz flaga.pyz flagowy.pyz hegi1.pyz heg.pyz
+		.imgs = (A, "bkg.pyz", "eter.pyz 10", "flaga.pyzP 20", "flagowy.pyzP 30", "hodon.pyzP 35", "hegi1.pyz 40", "heg.pyz 50");
+		anheg.play("stand");
+		
+		.sounds = (A, ":hegemon1", "Ech ech ech ech", func { .cbplay("hegemon2"); anheg.play("talk"); },
+			":hegemon2", "Dlaczego zawsze mi siê to musi przytrafiæ? Dlaczego muszê zbójowaæ z takimi pata³achami?",
+				func { anheg.play("oo"); },
+			":hegemon3", "A to co? Gaz usypiaj±cy Hodona! Kapral mia³ go rozpyliæ w grodzie; Gdzie on w ogóle jest? Czy kto¶ go wstrzeli³ do grodu?",
+				func { anheg.play("czeka"); },
+			":hegemon4", "Na nikogo nie mogê liczyæ; Sam zbombardujê Mirmi³owo!", func {
+				anheg.play("czeka2"); ccs.close( func {
+					gameapi.play("Cs25Nadzieja");
+					} ); }
+			);
+		anheg.addmethod("onfinish", func {
+			if(.actionname=="czeka")	{
+				anheg.play("zaraz");
+				.cbplay("hegemon4");
+			} else if (.actionname=="oo")	{
+				anheg.play("zaraz");
+				.cbplay("hegemon3");
+			}
+			} );
+		
+		.sfxs = (A, "bgrwiatr2N 40");
+		
+		ccs.enter( func {
+			.cbplay("hegemon1");
+			anheg.play("och");
+			} );
+	}
+}
+
+game Cs25Nadzieja : StdGame	{
+	init	{
+		StdGame::init("cs25nadzieja");
+		
+		.imgs = (A, "bkg.pyz",  "kk.pyz 10", "maska.pyz 20",
+			"hodon.pyz 25", "hodmask.pyz 27", "hegemon.pyz 30", "mrok.pyz 40");
+		new gmimgvec grels;
+		grels.addlist(A, "anbkg", "ankk", "anmaska", "anhegemon", "anmrok", "anhodmask", "anhodon");
+		
+		.sounds = (A, ":hegemon1", "My¶licie ¿e zwyciê¿yli¶cie Krwawego Hegemona? Jeszcze z wami nie skoñczy³em!",
+			func { .hestop; timkk.play; },
+			":kokosz1", "Wrzuæ na luz Hegi; Skoñczy³y ci siê ju¿ pomys³y", func { igmstate=1; timheg.play; },
+			":hegemon2", "Nie wiecie jeszcze co trzymam w rêce! Zaraz siê przekonacie!",
+				func { .hestop; igmstate=2; timkk.play; },
+			":kokosz2", "Co on powiedzia³?", func { .cbplay("kajko1"); },
+			":kajko1", "Nie wiem ale spójrz trzyma co¶ w rêce; Nie podoba mi siê to musimy szybko co¶ wymy¶leæ! Wiem!",
+				func { igmstate=3; timheg.play; }
+			);
+			
+		anhegemon.addmethod("onfinish", func {
+			if(.actionname=="rzut")
+				gameapi.play("Cs26Dziad");
+			} );
+			
+		new int ispeed = 20;
+		.cycle = ("timheg", func {
+			if( anbkg.getex-ispeed >= iResX )	{
+				grels.move( -ispeed, 0 );
+				.play;
+			} else {
+				match(igmstate)	{
+					1 => { .hesay("hegemon2"); anhodon.play(0); }
+					3 => anhegemon.play("rzut");
+					? => ;
+				}
+			}
+			} );
+		.cycle = ("timkk", func {
+			if( anbkg.getpx + ispeed <= 0 )	{
+				grels.move( ispeed, 0 );
+				.play;
+			} else {
+				match(igmstate)	{
+					0 => .cbplay("kokosz1");
+					2 => .cbplay("kokosz2");
+					? => ;
+				}
+			}
+			} );
+		grels.move( iResX-anbkg.getex, 0 );
+		
+		.sfxs = (A, "bgrwiatr2N 40");
+		
+		ccs.enter( func { .hesay("hegemon1"); } );
+	}
+	hesay(string s)	{ anhegemon.play("talk"); .cbplay(s); }
+	hestop	{ anhegemon.play("stand"); }
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Cs26Dziad : StdGame	{
+	init	{
+		StdGame::init("cs26dziad");
+		
+		.sounds = (A, ":hegemon1", "Hê?", null);
+		
+		.sfxs = (A, "galopfast 10", "shootgun1", "wpadlwblachy", "rog1", "bgrwiatr2N 40");
+		
+		.imgs = (A, "26bkg.pyz", "26kokosz.pyz 10", "26kajko.pyz 20", "26maska.pyz 30", "26mrok.pyz 40");
+		an26kajko.anplayfin(0, func { tim26.play; });
+		.cycle = ("tim26", func { <GAME> {
+			delete an26bkg; delete an26kokosz; delete an26kajko; delete an26maska; delete an26mrok;
+			.imgs = (A, "27bg.pyz", "27heg.pyzP 10", "27mrok.pyz 20");
+			an27heg.addmethod("onfinish", func { tim27.play; });
+			}; } );
+		.cycle = ("tim27", func { <GAME> {
+			delete an27bg; delete an27heg; delete an27mrok;
+			.imgs = (A, "28bg.pyz", "28plan3.pyz 20", "28plan2.pyz 40", "28plan1.pyz 60", "28dziad.pyzP 10");
+			fxgalopfast.playloop;
+			an28dziad.addmethod("onfinish", func {
+				match(.actionnr(-1) )	{
+					0 => { .setz(30); .play(1); fxgalopfast.setvol(30); }
+					1 => { .setz(50); .play(2); fxgalopfast.setvol(50); }
+					2 => { tim28.play; fxgalopfast.setvol(70); }
+					? => ;
+				}
+				} );
+			}; } );
+		.cycle = ("tim28", func { <GAME> {
+			delete an28bg; delete an28plan3; delete an28plan2; delete an28plan1; delete an28dziad;
+			.imgs = (A, "29bg.pyz", "29bum.pyzH 20", "29heg.pyzP 10");
+			an29heg.addmethod("onendframe", func {
+				if( .framename=="oo") .cbplay("hegemon1");
+				else if (.framename=="bum") {
+					fxgalopfast.stop(false);
+					fxshootgun1.play;
+					an29bum.play(0);
+				}
+				} );
+			an29bum.addmethod("onfinish", func {
+				.hide;
+				.mend;
+				fxwpadlwblachy.play;
+				} );
+			}; } );
+	}
+	mend	{
+		ccs.close( func {
+			.gotoadv("adpobojowisko", "gameadpobojowisko1");
+			} );
+	}
+	mouse_rclick	{
+		if( igmdebug ) .mend;
+	}
+}
+
+game Cs27Odwrot : StdGame	{
+	init	{
+		StdGame::init("cs27odwrot");
+		
+		.imgs = (A, "bkg.pyz", "heg.pyz 10", "jezor.pyz 15", "flagowy.pyz 20", "flaga.pyzP 25",
+			"zboj2.pyz 30", "oferma.pyzH 40", "kapral.pyzH 50", "nakladka.pyz 60");
+		
+		anoferma.addmethod("onfinish", func {
+			if( .actionname=="go" ) {
+				.ofsay(1);
+			}
+			} );
+		
+		.sounds = (A, ":hegemon1", "Znowu dostali¶my ³upnia od Kajka i Kokosza; Gdzie jest Hodon ten strateg od siedmiu bole¶ci? Kto¶ go widzia³ w czasie szturmu? Jeszcze siê z nim policzê!",
+			func { anheg.play("stand"); anoferma.play("go"); },
+			":oferma1", "Hu hu jestem wodzu", func { anoferma.play("stand"); .hesay(2);  },
+			":hegemon2", "A ty gdzie by³e¶ Ofermo? Zdradzi³e¶ nas!", func { anheg.play("stand2"); .ofsay(2); },
+			":oferma2", "Sk±d¿e wodzu! Pomog³em kapralowi wej¶æ do grodu", func { anoferma.play("stand"); .hesay(3); },
+			":hegemon3", "Co? Ten bêcwa³ jednak siê tam dosta³?", func { anheg.play("stand2"); .ofsay(3); },
+			":oferma3", "Tak; Wlecia³ do grodu swoj± tajn± broni±", func { anoferma.play("stand"); .hesay2(4); },
+			":hegemon4", "Mo¿e jeszcze nie wszystko stracone? Czekajmy na znak od kaprala!",
+				func { anheg.play("stand"); timend.play; }
+			);
+			
+		
+		.sfxs = (A, "bgroutN", "sowa1N", "cios3", "wylatuje", "cios1");
+		
+		ccs.enter( func { .hesay2(1); } );
+		
+		.timer = ("timend", 4000, func {
+			fxcios3.play;
+			ankapral.play(0);
+			});
+		ankapral.addmethod("onendframe", func {
+			if(.framename=="ups")
+				anheg.play("ups"); 
+			});
+		anheg.addmethod("onfinish", func {
+			if(.actionname=="ups")
+				ccs.close( func {
+					gameapi.play("Cs28Wiwat");
+					} );
+			} );
+	}
+	ofsay(string s)	{ anoferma.play("talk"); .cbplay("oferma"+s); }
+	hesay(string s)	{ anheg.play("talk2"); .cbplay("hegemon"+s); }
+	hesay2(string s)	{ anheg.play("talk"); .cbplay("hegemon"+s); }
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+
+game Cs28Wiwat : StdGame	{
+	init	{
+		StdGame::init("cs28wiwat");
+		
+		.imgs = (A, "bkg.pyz", "mirmil.pyz 20", "fire.pyzP 30", "napis.pyzH 40");
+		.newgrimg("grl", "ludki", 10);
+		
+		.sounds = (A, ":mirmil1", "Kochani kolejny raz spryt i odwaga naszych najwspanialszych wojów Kajka i Kokosza uratowa³y nas przed zakusami podstêpnych Zbójcerzy! Zapraszam wszystkich na ucztê z okazji naszego wspania³ego zwyciêstwa!",
+				func { grl.nplay(-1); anmirmil.play("wiwat"); .cbplay("sndwiwat"); annapis.show; },
+			"sndwiwat", "Wiwat Mirmi³! Wiwat Kajko i Kokosz! Niech ¿yj±! Hurra!",
+				func { .cbplay("sndnar1"); },
+			"sndnar1", "Zabawa w Mirmi³owie trwa³a do bia³ego rana jednak myli³by siê ten który s±dzi³by ¿e to ju¿ koniec przygód Kajka i Kokosza; Wkrótce po zape³nieniu ¿o³±dka Kokosz poci±gn±³ za sob± Kajka pozaa wa³y grodu",
+				func { ccs.close( func {
+					clsave.set("epizod", "e19Gdas");
+					.gotoadv("adpanorama", "gameadpanorama1");
+					} ); }
+			);
+		.sfxs = (A, "bgrtlum2N 15");
+		
+		ccs.enter( func { anmirmil.play("talk"); .cbplay("mirmil1"); } );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+

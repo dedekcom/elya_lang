@@ -1,0 +1,134 @@
+new int oldcomputrocnt = 0;
+game Oldkomp : Computro	{
+	init	{
+		Computro::init("oldkomp");
+		advmouse.setstd;
+// 		bkg.pyz  buton.pyz  karta.pyz  klawisze.pyz  on.pyz
+		.imgs = (A,"bkg.pyz", "buton.pyz 20", "karta.pyzH 20", "on.pyzH 10", "powrot.pyz 30");
+		.sfxs = (A, "wlaczkomp", "type2", "bgrwiatrak 20");
+		new gmimgvec grkl;
+		"grkl" .* "klawisze.pyz";
+		grkl.hide;
+		
+		new bool bon = clsave.get("oldkomp_on");
+		new string snumber = clsave.get("oldkomp_number");
+		new int ikarta = clsave.get("oldkomp_karta");
+		
+		.monofont("fntscreen", 22);
+		.newtext("txtnr", "", "fntscreen", .grey(222) );
+		txtnr.setz(50);
+		
+		if( bon )	{
+			anbuton.setframe(-1,1);
+			.mwlacz;
+			if( snumber!= null )	.putnumber;
+		}
+		if( ikarta==1 ) ankarta.show;
+		
+		new string smove = null;
+		
+		anpowrot.Button_std;
+		anpowrot.addmethod("butclick", func { if( igmstate==1 ) .gotoadv("adgiaro", "gameadgiaro2"); } );
+		new Button butret;
+		butret.add("anpowrot");
+		
+		.sounds = (A,
+			":zak1", "Znowu jaka¶ karta wej¶ciowa; Pamiêtam ¿e czasami papa Giaro j± wyci±ga³", "mret",
+			":zak2", "Szkoda ¿e tylko cyfry mo¿na podawaæ; Gdyby dostêpne by³y te¿ literki móg³bym na przyk³ad wpisaæ s³owo helikopter", "mret"
+			);
+		
+		igmstate = 1;
+	}
+	mwlacz	{
+		anon.show;
+		bon = true;
+		fxbgrwiatrak.playloop;
+	}
+	mwylacz	{
+		fxbgrwiatrak.stop(false);
+		anon.hide;
+		bon = false;
+	}
+	putnumber	{
+		clsave.set("oldkomp_number", snumber);
+		if(snumber==null)	txtnr.txtset("");
+		else txtnr.txtset(snumber);
+		txtnr.setpos(325,143);
+	}
+	msetmove(string s)	{
+		if( smove!=s )	{
+			smove = s;
+			advmouse.setbut;
+		}
+	}
+	mouse_move	{
+		if( igmstate == 1 )	{
+			|int x, int y| = mouse.getpos;
+			if( anbuton.isin(x,y,1,1) )	.msetmove("anbuton");
+			else if( ankarta.isin(x,y,1,1) )	.msetmove("ankarta");
+			else if ( grkl.isin(x,y,0,1) )	.msetmove(grkl.getsfound);
+			else if (smove!=null)	{
+				smove = null;
+				advmouse.setstd;
+			}
+		}
+	}
+	mplay(string s)	{
+		igmstate = 0;
+		.cbplay(s);
+	}
+	mret	{	igmstate = 1;	}
+	mouse_lclick	{
+		if( igmstate == 1)	{
+			match(smove)	{
+				null => ;
+				"anbuton" => {
+					fxwlaczkomp.play;
+					if(bon)	{
+						clsave.set("oldkomp_on", false);
+						snumber = null;
+						.putnumber;
+						.mwylacz;
+						anbuton.setframe(-1,0);
+					} else {
+						.mwlacz;
+						clsave.set("oldkomp_on", true);
+						anbuton.setframe(-1,1);
+					}
+				}
+				"ankarta" => {
+					clsave.set("oldkomp_karta",2);
+					ankarta.hide;
+					smove = null;
+					advmouse.setstd;
+					_fxtakeitem.play;
+				}
+				? => {
+					if( !bon ) return;
+					@id = <smove>.actionnr(-1);
+					fxtype2.play;
+					if( id==10 )	{
+						if( snumber=="1892" && ikarta==0)	{
+							ikarta = 1;
+							clsave.set("oldkomp_karta", 1);
+							ankarta.show;
+							.mplay("zak1");
+						} else {
+							oldcomputrocnt++;
+							if( oldcomputrocnt==5 ) .mplay("zak2");
+						}
+						snumber = null;
+						.putnumber;
+					} else {
+						if( snumber==null ) snumber = id;
+						else if( snumber.length<10 ) {
+							snumber+=id;
+							//clsave.set("oldkomp_number", snumber);
+						}
+						.putnumber;
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,95 @@
+new int igmdebug;
+new int igmeasy;
+new int igmdemo;
+new classgamepause clpause;
+new string sgmgamename;
+
+game gameetourist : classadvtourist	{
+	init()	{
+		this.setname( sgmgamename );
+		classadvtourist::init();
+	}
+	anhilary_ENDFRAME()	{
+		this.setz( this.getposy() - imgbkg.getpy() );
+	}
+	keyboard_KEYDOWN()	{
+		if( keyboard.iskey("escape")==true )	{
+			gameapi.play("gameoutro");
+		}
+	}
+}
+
+game gameoutro : classadv	{
+	init()	{
+		classadv::init();
+		this.setgraphpath("scripts/menu/");
+		this.newimg("imgbkg","outro.png",0);
+		
+		new classtxttalker cltalkout;
+		new font _fonttxt;
+		_fonttxt.load( "configs/fonts/l2arial.ttf", 16 );
+		cltalkout.set(null,10);
+		cltalkout.setfontcolor(250, 250, 8 );
+		cltalkout.setfontbg(5,5,222,192);
+		cltalkout.setbgframe( 2, 32, 32, 32);
+		cltalkout.setfont("_fonttxt");
+		cltalkout.herosaydir("outro", 290, 250, "rr");
+		this.cnewtimerfin("timfin", 10000, 1, "mfintimfin");
+		timfin.play();
+	}
+	mfintimfin()	{	gameapi.exit();	}
+	mouselclick()	{	this.mfintimfin();	}
+}
+
+game gameintro : classadv	{
+	init()	{
+		classadv::init();
+		new img imgbkg;
+		imgbkg.load("scripts/mariacka/mariacka.jpg");
+		this.setgraphpath("scripts/menu/");
+		int i = this.loadanframes("annapis", "napisy.pyz", 0, 10);
+		new text txtexit;
+		new text txtstart;
+		new font _fonttxt;
+		_fonttxt.load( "configs/fonts/l2arial.ttf", 16 );
+		txtexit.setfont("_fonttxt");
+		txtexit.setpos(40, 540);
+		txtexit.loadtxt("scripts/menu/wyjscie.txt",255, 255, 200);
+		txtstart.setfont("_fonttxt");
+		txtstart.loadtxt("scripts/menu/start.txt",255, 255, 200);
+		txtstart.setpos(40, 520);
+	}
+	mouselclick()	{
+		sgmlastscene = "main";
+		gameapi.play("gameetourist");
+	}
+	keydown()	{
+		if( keyboard.iskey("escape")==true )	{
+			gameapi.play("gameoutro");
+		}
+	}
+}
+
+game main {
+	init()	{
+		igmstate = 0;
+		
+		igmdebug = true;
+		igmeasy = false;
+		igmdemo = false;
+		
+		advmouse.load("scripts/common/cursors.pyz");		
+		modadv.load("scripts/common/defaults.adv");
+		
+		//moddbg.enable();		// enable adv debugger
+		moddbg.disable();
+		
+		sgmlastscene = this.getname();
+		
+// 		gameapi.play(modadv.get("startgame:",1) );
+		sgmgamename = modadv.get("startgame:",1);
+		
+		gameapi.play("gameintro");
+	}
+}
+

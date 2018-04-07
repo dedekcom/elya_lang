@@ -1,0 +1,123 @@
+module clsav	{
+	init()	{
+		new vector vqsav;		// quick save (prostszy)
+		vqsav.type("string");
+		new vector vvqsav;		// quick save (prostszy)
+		vvqsav.type("string");
+	}
+	free()	{
+		vqsav.free();	
+		vvqsav.free();	
+	}
+	load(string sfile)	{
+		this.free();		// jak bedzie potrzebne dopisac dalej
+	}
+	save(string sfile)	{}
+	qadd( string sname, string sval )	{
+		vqsav.add( sname );
+		vvqsav.add( sval );
+	}
+	qsave(string sname, string sval)	{
+		int pos = vqsav.find(sname);
+		if( pos < 0 )	{
+			this.qadd( sname, sval );
+		} else {
+			vvqsav.set( pos, sval );
+		}
+	}
+	string qload(string sname, string sstdval)	{
+		int pos = vqsav.find( sname );
+		if ( pos < 0 )	{
+			this.qadd( sname, sstdval );
+			return sstdval;
+		} else {
+			return vvqsav.get( pos );
+		}
+	}
+}
+
+class classquest	{
+	init()	{
+		new vector vqst;
+		vqst.type("string");
+	}
+	int isdone(string sqst)	{
+		return vqst.contains(sqst);
+	}
+	int notdone( string sqst )	{
+		if ( vqst.contains(sqst)==false )	{
+			return true;
+		}
+		return false;
+	}
+	done(string sqst)	{
+		if( vqst.contains(sqst)==false )	{
+			vqst.add(sqst);
+		}
+	}
+	reset()	{	vqst.free();	}
+	save(string sfile)	{	vqst.save( sfile );	}
+	load(string sfile)	{	vqst.load( sfile );	}
+}
+
+new classquest clqs;
+/*module clqs : classquest	{		// globalny odpowiednik classquesta
+	init()	{	classquest::init();	}
+}*/
+
+class classfullsave	{
+	init()	{
+		new db dbsav;
+	}
+	public save(string sfile)	{	dbsav.save(sfile);	}
+	public load(string sfile)	{	dbsav.load(sfile);	}
+	_set(string sname, string svar)	{
+		int id = dbsav.findbyrow(sname);
+		if( id>=0 )	{
+			dbsav.set(id,1,svar);
+		} else {
+			id = dbsav.addrow()-1;
+			dbsav.add( id, sname );
+			dbsav.add( id, svar );
+		}
+		this.save("saves/save.txt");
+	}
+	string _get(string sname)	{
+		int id = dbsav.findbyrow(sname);
+		if( id>=0 )	{	return dbsav.get(id,1);	}
+		else {	return null;	}
+	}
+	bool _is(string sname, string svar)	{
+		int id = dbsav.findbyrow(sname);
+		if( id>=0 )	{	return true;	}
+		else {	return false;	}
+	}
+	public gmset(string sgame, string sname, string svar)	{
+		this._set( sgame+sname, svar );
+	}
+	public string gmget(string sgame, string sname)	{
+		return this._get(sgame+sname);
+	}
+	public bool gmis(string sgame, string sname, string svar)	{
+		return this._is(sgame+sname,svar);
+	}
+	public set(string sname, string svar)	{
+		this._set( gameapi.getgamename()+sname, svar );
+	}
+	public string get(string sname)	{
+		return this._get( gameapi.getgamename()+sname);
+	}
+	public bool is(string sname, string svar)	{
+		return this._is(gameapi.getgamename()+sname,svar);
+	}
+	public bset(string sname)	{
+		this._set( gameapi.getgamename()+sname, "1" );
+	}
+	public string bget(string sname)	{
+		return this._get( gameapi.getgamename()+sname );
+	}
+	public bool bis(string sname)	{
+		return this._is(gameapi.getgamename()+sname,"1");
+	}
+}
+

@@ -1,0 +1,283 @@
+game gamemacki : classadvpiast {
+	init()	{
+		classadvpiast::init();
+		string s =gameapi.getgamename();
+		this.cloadterrain("scripts/part4/macki/", "bkg.png",  s +".pyz");
+		new classquest clq;
+	}
+	/****************************************************************/
+	mloadpiast()	{
+		this.cloadpiast();
+		anpiast.addmethod("onendframe", "mpiastendframe");
+		this.looponfinish("anpiast");
+		this.cloadpathf("maska.png");
+	}
+	mnorma()	{	igmstate=1;	ptpiast.anstand();	}
+	mherosay(string ssnd)	{
+		igmstate = 5;
+		ptpiast.anstand();
+		this.cbplay(ssnd);
+	}
+	mpiastsay(string ssnd)	{
+		igmstate=5;
+		this.cbplay(ssnd);
+		ptpiast.ansay();
+	}
+	mpiastendframe()	{
+		this.setz( this.getey() );
+	}
+	mfinptpiast()	{
+		ptpiast.stand();
+		if( igmstate==0)	{
+			this.mstartgame();
+		}
+	}
+}
+
+/************************************************************************/
+game gamemacki1 : gamemacki	{
+	init()	{
+		gamemacki::init();
+		this.mloadpiast();
+		this.cloadwavs( "dbwavs", "gamemacki1wavs.db" );
+		this.newclmaskfunc("clm", "maska.pyz", "imglobcurs", "mclickmask");
+		clm.disable("dom");
+		new string sanlas = clm.getimg("las");
+		this.mbuildmask( "smichal", "michalPL", "michal");
+		this.mbuildmask( "smaciej", "maciejPL", "maciej");
+		this.mbuildmask( "skosz", "kosz", "kosz");
+		<skosz>.setz( <skosz>.getz() - 20 );
+		
+		this.cputgr2("anpiast", 220, 470);
+		ptpiast.gotorel( 40, -50 );
+		new int bdolas;
+		new string sdokogo;
+		this.cnewtimerfin("timkom", 9000, 1 , "mfintimkom");
+		timkom.play();
+		sfxbrzdek.objplayloop();
+	}
+	mstartgame()	{
+		this.mpiastsay("sndp1");
+	}
+	mfintimkom()	{
+		if( igmstate==1 && this.cisplaying()==false )	{
+			this.mherosay("sndmich4");
+		} else {
+			this.play();
+		}
+	}
+	mtimreset()	{
+		if( timkom.isplaying()==true)	{
+			timkom.stop(false);
+			timkom.play();
+		}
+	}
+	/**************************************/
+	mfinp1()	{
+		igmstate=1;
+		ptpiast.anstand();
+	}
+	mfinp2()	{
+		if( sdokogo=="michal")	{
+			this.mherosay("sndmich1");
+		} else if (sdokogo=="maciej")	{
+			this.mherosay("sndmac1");
+		}
+	}
+	mfinp3()	{	this.mherosay("sndmich2"); }
+	mfinp4()	{	
+		if( bdolas==true )	{
+			this.mfinito();
+		} else {
+			this.mnorma();
+		}
+	}
+	mfinp5()	{	this.mnorma();	}
+	mfinmich1()	{	this.mpiastsay("sndp3");	}
+	mfinmich2()	{	this.mnorma();	}
+	mfinmich3()	{
+		this.mnorma();
+		sfxhela.play();
+	}
+	mfinmich4()	{	this.mherosay("sndmac4");	}
+	mfinmac1()	{	this.mnorma();	}
+	mfinmac2()	{	this.mnorma();	}
+	mfinmac3()	{	this.mnorma();	}
+	mfinmac4()	{	this.mnorma();	}
+	/**************************************/
+	mfinito()	{
+		gameapi.play("gamepart4grzybki");
+	}
+	mptreach(string smask)	{
+		ptpiast.stand();
+		if(smask=="maciej")	{
+			if( clq.isdone("gadalmac")==false )	{
+				sdokogo = smask;
+				this.mpiastsay("sndp2");
+				clq.done("gadalmac");
+			} else {
+				this.mherosay("sndmac3");
+			}
+		} else if(smask=="michal")	{
+			if( clq.isdone("gadalmich")==false )	{
+				sdokogo = smask;
+				this.mpiastsay("sndp2");
+				clq.done("gadalmich");
+			} else {
+				this.mherosay("sndmich3");
+			}
+		} else if(smask=="las")	{
+			if( clq.isdone("gadalmac")==true )	{
+				if ( clq.isdone("makosz")==false  )	{
+					this.mherosay("sndmac2");
+				} else {
+					if( clq.isdone("mowildolas")==true )	{
+						this.mfinito();
+					} else {
+						this.mpiastsay("sndp4");
+						bdolas = true;
+					}
+				}
+			} else {
+				this.mpiastsay("sndp4");
+				clq.done("mowildolas");
+				bdolas = false;
+			}
+		} else if(smask=="kosz")	{
+			clq.done("makosz");
+			clm.disable("kosz");
+			this.mpiastsay("sndp5");
+			sfxgetitem.play();
+		}
+	}
+	mclickmask(string smask)	{
+		this.mtimreset();
+		if(igmstate!=1)	{	return;	}
+		if(smask=="maciej")	{
+			this.cwalkto2( "ptpiast", smaciej, smask, -60, 50 );
+		} else if (smask=="michal")	{
+			this.cwalkto2( "ptpiast", smichal, smask, -60, 50 );
+		} else if (smask=="las")	{
+			this.cwalkto2( "ptpiast", sanlas, smask, 0, 0 );
+		} else if(smask=="kosz")	{
+			this.cwalkto2( "ptpiast", skosz, smask, 0, 40 );
+		}
+	}
+	mouselclick()	{
+		this.advclick();
+		this.mtimreset();
+	}
+}
+
+/************************************************************************/
+game gamemacki2 : gamemacki	{
+	init()	{
+		gamemacki::init();
+		this.mloadpiast();
+		this.cloadwavs( "dbwavs", "gamemacki2wavs.db" );
+		this.newclmaskfunc("clm", "maska.pyz", "imglobcurs", "mclickmask");
+		clm.disable("las");
+		new string sandom = clm.getimg("dom");
+		this.mbuildmask( "smaciej", "maciej", "maciej");
+		
+		this.cputgr2("anpiast", 300, 135);
+		ptpiast.gotorel( 60, 40 );
+	}
+	mstartgame()	{
+		igmstate=1;
+	}
+	/**************************************/
+	mfinp1()	{	this.mherosay("sndobaj");	}
+	mfinm1()	{
+		if( clq.isdone("mgadal")==true )	{
+			this.mnorma();
+		} else {
+			clq.done("mgadal");
+			this.mpiastsay("sndp1");
+		}
+	}
+	mfinobaj()	{	this.mnorma();	}
+	/**************************************/
+	mfinito()	{
+		gameapi.play("gamepart4gotuj");
+	}
+	mptreach(string smask)	{
+		ptpiast.stand();
+		if(smask=="maciej")	{
+			this.mherosay("sndm1");
+		} else if(smask=="dom")	{
+			if( clq.isdone("mgadal")==true )	{
+				this.mfinito();
+			} else {
+				this.mnorma();
+			}
+		}
+	}
+	mclickmask(string smask)	{
+		if(igmstate!=1)	{	return;	}
+		if(smask=="maciej")	{
+			this.cwalkto2( "ptpiast", smaciej, smask, 0, 70 );
+		} else if (smask=="dom")	{
+			this.cwalkto2( "ptpiast", sandom, smask, 0, 0 );
+		}
+	}
+	mouselclick()	{
+		this.advclick();
+	}
+}
+
+/************************************************************************/
+game gamemacki3 : gamemacki	{
+	init()	{
+		gamemacki::init();
+		this.cloadwavs( "dbwavs", "gamemacki3wavs.db" );
+		this.newstdanima("anlot", "samolocik.pyz", 1000 );
+		this.copyanima("anlot", "ansmig");
+		ansmig.anloopplay(1);
+		this.copyanima("anlot", "antor");
+		this.cnplaywithfin("antor", 2, "mfintor");
+		antor.addmethod("onendframe", "mframetor");
+		antor.hide();
+		antor.setpos( 100, 100 );
+		this.mstartgame();
+		antor.mframetor();
+	}
+	mfinp1()	{	igmstate=2;	}
+	mfinmich1()	{	this.cbplay("sndmac1");}
+	mfinmich2()	{	this.cbplay("sndmac2");}
+	mfinmich3()	{	this.mfinito();}
+	mfinmac1()	{	this.cbplay("sndp1");}
+	mfinmac2()	{	this.cbplay("sndmich3");}
+	mframetor()	{
+		if( igmstate!=2)	{
+			int x = this.getpx();
+			int y = this.getpy();
+			anlot.setpos( x, y );
+			ansmig.setpos( x, y );
+		} else {
+			anlot.move( 20, 1 );
+			ansmig.move( 20, 1 );
+			if( ansmig.getpx() > 800 )	{
+				ansmig.anhide();
+				anlot.anhide();
+				this.anhide();
+				anbg0.play(-1);
+				anbg1.play(-1);
+				this.cbplay("sndmich2");
+			}
+		}
+	}
+	mfintor()	{
+		this.play(-1);
+		this.hide();
+	}
+	mstartgame()	{
+		igmstate=1;
+		this.cbplay("sndmich1");
+	}
+	/**************************************/
+	mfinito()	{
+		gameapi.play("gamelot2");
+	}
+}
+

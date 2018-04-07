@@ -1,0 +1,785 @@
+
+/*game HOTrap : Hidden	{
+	init	{
+		HiddenPath = ("07trap");
+		Hidden::init("hotrap");
+		
+		new int trapduch = 1;
+		
+		.loadsnddb;
+		.sounds = (A, ":lektor11", "Eteryczna postaæ. Kliknij na niej aby rozwi±zaæ tajemnicê jej wielowymiarowego pochodzenia.",
+			func { tcr.ahide; igmstate = iduchstate; .gogo_duch; },
+			":lektor12", "Zbierz z lokacji fragmenty fotografii jakie pozostawi³ duch.",
+				func { .remove_duch; .stdret; },
+			":lilian2", "To jest zdjêcie pasa¿era statku! Co siê dzieje? Dlaczego widzê takie rzeczy? Czy¿by czeka³y mnie wiêksze tajemnice?", func { tcr.ahide; .foto_to_album(trapduch); }
+			);
+		
+		.imgs = (A, "07trap.jpg");
+		
+		.load_duch("duch");
+		
+		.mmasks;
+		
+		//mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+		ccs.enter( func {
+			.txtplay("lektor11");
+			} );
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			igmstate = 20;
+			ccs.playfin( func { .foto_album; }, func { .foto_show(trapduch); } );
+			//.mprzejdz("Trap");
+		}
+	}
+	duch_wybuchl	{ .txtplay("lektor12"); }
+	foto_shown	{ .txtplay("lilian2"); }
+	foto_in_album	{ .timplay("timduchend", 2000, func { .mprzejdz("Trap"); } ); }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{
+		
+	}
+	mouse_rclick	{
+		if( igmdebug )	{
+			grtxt.free;
+			.hiddenobj_put;
+		}
+	}
+}*/
+
+class Hiddenp : Hidden	{
+	init(string s)	{
+		real rile = ( gameapi.getgamename == "HOTrap" ? 27 : 14 );
+		match( Trudnosc )	{
+			0 => 7;
+			1 => 9;
+			2 => 12;
+			? => ;
+		}
+		real r = _;
+		HiddenReduce = (rile-r)/rile;
+		
+		Hidden::init(s);
+		
+		.img = ("$scripts/common/skip_collection.pyz 800");
+		anskip_collection	{
+			.Button_isinalpha;
+			.addmethod("butmoveon", func {
+				if( igmstate==1 ) advmouse.setbut;
+				} );
+			.Button_moveoffms;
+			.addmethod("butclick", "collect_all");
+			but1.add(this);
+		};
+	}
+	collect_all	{
+		if( igmstate!=1 ) return;
+		for( int i=0; i<grels.size; i++)	{
+			<grels.get(i)>.butclick;
+		}
+	}
+}
+
+game HOTrap : Hiddenp	{
+	init	{
+		HiddenPath = ("07trap");
+		Hiddenp::init("hotrap");
+		
+		new int trapduch = 1;
+		
+		new classplacepointer2 clp;
+		
+		.loadsnddb;
+		.sounds = (A, ":lektor11", "Eteryczna postaæ. Kliknij na niej aby rozwi±zaæ tajemnicê jej wielowymiarowego pochodzenia.",
+			func { tcr.ahide; igmstate = iduchstate; },
+			":lektor12", "Zbierz z lokacji fragmenty fotografii.",
+				func { .stdret; },
+			":lilian2", "To jest zdjêcie pasa¿era statku! Co siê dzieje? Dlaczego widzê takie rzeczy? Czy¿by czeka³y mnie wiêksze tajemnice?", func { tcr.ahide; .foto_to_album(trapduch); },
+			":lilian3", "What just happened? Did I see that or am I hallucinating? I feel like I have memories from this place, but I've never been here before!",
+				func { .txtplay("lilian4"); },
+			":lilian4", "Le¿± jakie¶ fragmety fotografi. Pozbieram je.",  func { grtxt.show;
+				@s= grels.first;
+				.txtplay("lektor1"); clp.showob( s, "rd" );
+				angwiazdkif.ansetcpos( <s>.getcx, <s>.getcy );
+				angwiazdkif.play(0);
+				},
+			":lilian5", "Rozejrzê siê po tym pomieszczneniu, mo¿e odkryjê jeszcze co¶ ciekawego.",
+				func { .mprzejdz("Trap"); },
+			":lektor1", "Click on the fragment!", func { anskip_collection.show;
+				clp.showob("anskip_collection", "lu"); .txtplay("lektor2"); },
+			":lektor2", "You can also choose to skip the collection at any time!", func { clp.stoph; .stdret; }
+			);
+		
+		.imgs = (A, "07trap.jpg", "wiatrak.pyzG 5");
+		grwiatrak.nplay(-1);
+		
+		.mmasks;
+		mus.playstr("kopula.ogg -l -v 50");
+		.sfxs = (A, "aparat");
+		
+		grtxt.hide;
+		anskip_collection.hide;
+		
+		new int isduch = 1;
+		if( isduch )	{
+			grels.hide;
+			
+			new imganima anzd;
+			anzd.load("fl", "jpg", 0, 6, 9);
+			anzd.hide;
+			anzd.setz(10);
+			
+			ccs.enter( func {
+				.timplay("tim1", 2000, func { anzd.play; });
+			} );
+		} else {
+			ccs.enter( func {
+				.timplay("tim1", 2000, func { .txtplay("lektor12"); });
+			} );
+		}
+		
+		
+		
+		//mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+
+	}
+	anzd_endframe	{	fxaparat.play;	}
+	anzd_finish	{
+		.hide;
+		grels.show;
+		.txtplay("lilian3");
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			igmstate = 20;
+			ccs.playfin( func { .foto_album; }, func { .foto_show(trapduch); } );
+			//.mprzejdz("Trap");
+		}
+	}
+	duch_wybuchl	{ .txtplay("lektor12"); }
+	foto_shown	{ .txtplay("lilian2"); }
+	foto_in_album	{ .timplay("timduchend", 1000, func { .txtplay("lilian5"); } ); }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{
+		
+	}
+	/*mouse_rclick	{
+		if( igmdebug )	{
+			grtxt.free;
+			.hiddenobj_put;
+		}
+	}*/
+}
+
+game HOKajutamuzeum : Hiddenp	{
+	init	{
+		HiddenPath = ("10kajutamuzeum");
+		Hiddenp::init("hokajutamuzeum");
+		
+		new int trapduch = 6;
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1", "To jedna z kajut. Niesamowite jak te wszystkie meble poros³y glonami. Ciekawe czemu to lustro jest takie czyste?", func { tcr.ahide; anzd.play; },
+			":lilian2", "Znowu te wspomnienia! Co¶ niezwykle tajmniczego mnie spotyka.", func { .txtplay("lilian3"); },
+			":lilian3", "Znowu fragmenty fotografi. Pozbieram je.", func { grtxt.show; .stdret; }
+			);
+		
+		.imgs = (A, "kajutamuzeum.jpg");
+		
+		.mmasks;
+		
+		.sfxs = (A, "aparat");
+		
+		new int isduch = 1;
+		if( isduch )	{
+			grels.hide;
+			
+			new imganima anzd;
+			anzd.load("fl", "jpg", 0, 2, 9);
+			anzd.hide;
+			grtxt.hide; 
+			ccs.enter( func { .txtplay("lilian1"); } );
+		} else {
+			ccs.enter( func {
+				igmstate = 1;
+				} );
+		}
+	
+		mus.playstr("kopula.ogg -l -v 40");
+		
+		if( igmdebug )	.mbutnext;
+		
+	}
+	anzd_endframe	{	fxaparat.play;	}
+	anzd_finish	{
+		.hide;
+		grels.show;
+		.txtplay("lilian2");
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			igmstate = 20;
+			ccs.playfin( func { .foto_album; }, func { .foto_show(trapduch); } );
+			//.mprzejdz("Trap");
+		}
+	}
+	foto_shown	{ .timplay("tim2", 2000, func { .foto_to_album(trapduch); } ); }
+	foto_in_album	{ .timplay("timduchend", 2000, func { .mprzejdz("Kajutamuzeum"); } ); }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{}
+}
+
+
+
+game HOSchody : Hiddenp	{
+	init	{
+		HiddenPath = ("12schody");
+		Hiddenp::init("hoschody");
+		
+		new int trapduch = 3;
+		
+		/*.loadsnddb;
+		.sounds = (A, ":lektor11", "Eteryczna postaæ. Kliknij na niej aby rozwi±zaæ tajemnicê jej wielowymiarowego pochodzenia.",
+			func { tcr.ahide; igmstate = iduchstate; .gogo_duch; },
+			":lektor12", "Zbierz z lokacji fragmenty fotografii.",
+				func { .stdret; },
+			":lilian2", "To jest zdjêcie pasa¿era statku! Co siê dzieje? Dlaczego widzê takie rzeczy? Czy¿by czeka³y mnie wiêksze tajemnice?", func { tcr.ahide;  }
+			);*/
+		
+		.imgs = (A, "12schody.jpg");
+		
+		.mmasks;
+		
+		.sfxs = (A, "aparat", "bgrsalaN");
+		
+		new int isduch = 1;
+		if( isduch )	{
+			grels.hide;
+			grtxt.hide;
+			
+			new imganima anzd;
+			anzd.load("fl", "jpg", 0, 3, 9);
+			anzd.hide;
+			
+			ccs.enter( func {
+				anzd.play;
+				} );
+		} else {
+			ccs.enter( func {
+				igmstate = 1;
+				} );
+		}
+	
+		//mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+	}
+	anzd_endframe	{	fxaparat.play;	}
+	anzd_finish	{
+		.hide;
+		grels.show;
+		grtxt.show;
+		igmstate = 1;
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			igmstate = 20;
+			ccs.playfin( func { .foto_album; }, func { .foto_show(trapduch); } );
+			//.mprzejdz("Trap");
+		}
+	}
+	foto_shown	{ .timplay("tim2", 2000, func { .foto_to_album(trapduch); } ); }
+	foto_in_album	{ .timplay("timduchend", 2000, func { .mprzejdz("Schody"); } ); }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{}
+}
+
+game HOKorytarz3odnogi : Hiddenp	{
+	init	{
+		HiddenPath = ("14korytarz3odnogi");
+		Hiddenp::init("hokorytarz3odnogi");
+		
+		new int trapduch = 4;
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1", "Teraz ju¿ wiem, ¿e to informacja od zagubionych dusz. Pozbieram wszystkie fragmenty fotografi. Pomoge im.", func { .stdret; grtxt.show; }
+			);
+		
+		.imgs = (A, "14korytarz3odnogi.jpg");
+		
+		.mmasks;
+		
+		.sfxs = (A, "aparat", "bgrsalaN");
+		
+		new int isduch = 1;
+		if( isduch )	{
+			grels.hide;
+			grtxt.hide;
+			
+			new imganima anzd;
+			anzd.load("fl", "jpg", 0, 3, 9);
+			anzd.hide;
+			
+			ccs.enter( func {
+				anzd.play;
+				} );
+		} else {
+			ccs.enter( func {
+				igmstate = 1;
+				} );
+		}
+	
+		//mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+	}
+	anzd_endframe	{	fxaparat.play;	}
+	anzd_finish	{
+		.hide;
+		grels.show;
+		.txtplay("lilian1");
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			igmstate = 20;
+			ccs.playfin( func { .foto_album; }, func { .foto_show(trapduch); } );
+			//.mprzejdz("Trap");
+		}
+	}
+	foto_shown	{ .timplay("tim2", 2000, func { .foto_to_album(trapduch); } ); }
+	foto_in_album	{ .timplay("timduchend", 2000, func { .mprzejdz("Korytarz3odnogi"); } ); }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{}
+}
+
+game HOAmbulatorium2 : Hiddenp	{
+	init	{
+		HiddenPath = ("16ambulatorium");
+		Hiddenp::init("hoambulatoriumb");
+		
+		new int trapduch = 5;
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1","Zdjêcia tych ludzi s± bardzo podobne do siebie. Zupe³nie jakby fotograf sta³ w jednym miejscu statku. Niezapomniana pami±tka z rejsu i jedyna pami±tka po tych ludziach.", 
+			func { tcr.ahide; .foto_to_album(trapduch); }
+			);
+		
+		.imgs = (A, /*"16ambulatorium.jpg"*/ "bkg.pyz", "firany.pyzG 5", "polka.pyz 10");
+		grfirany.nplay(-1);
+		
+		.sfxs = (A, "przeciagN", "aparat");
+		
+		.mmasks;
+		
+		
+		new int isduch = 1;
+		if( isduch )	{
+			grels.hide;
+			
+			new imganima anzd;
+			anzd.load("fl", "jpg", 0, 3, 9);
+			anzd.setz(20);
+			anzd.hide;
+			grtxt.hide;
+			
+			ccs.enter( func {
+				anzd.play;
+				} );
+		} else {
+			ccs.enter( func {
+				igmstate = 1;
+				} );
+		}
+	
+		//mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+	}
+	anzd_endframe	{	fxaparat.play;	}
+	anzd_finish	{
+		.hide;
+		grels.show;
+		grtxt.show;
+		igmstate=1;
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			igmstate = 20;
+			ccs.playfin( func { .foto_album; }, func { .foto_show(trapduch); } );
+			//.mprzejdz("Trap");
+		}
+	}
+	foto_shown	{ .timplay("tim2", 2000, func { .txtplay("lilian1"); } ); }
+	foto_in_album	{ .timplay("timduchend", 2000, func { .mprzejdz("Ambulatorium"); } ); }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{}
+}
+
+game HOKorytarzdolnypoklad : Hiddenp	{
+	init	{
+		HiddenPath = ("23korytarzdolnypoklad");
+		Hiddenp::init("hokorytarzdolnypoklad");
+		
+		new int trapduch = 7;
+		
+		/*.loadsnddb;
+		.sounds = (A, ":lektor11", "Eteryczna postaæ. Kliknij na niej aby rozwi±zaæ tajemnicê jej wielowymiarowego pochodzenia.",
+			func { tcr.ahide; igmstate = iduchstate; .gogo_duch; },
+			":lektor12", "Zbierz z lokacji fragmenty fotografii.",
+				func { .stdret; },
+			":lilian2", "To jest zdjêcie pasa¿era statku! Co siê dzieje? Dlaczego widzê takie rzeczy? Czy¿by czeka³y mnie wiêksze tajemnice?", func { tcr.ahide;  }
+			);*/
+		
+		.imgs = (A, "bkg.pyz", "tla.pyzG 5");
+		grtla.nplay(-1);
+		mus.playstr("przeciag2.ogg -l");
+		
+		.mmasks;
+		
+		.sfxs = (A, "aparat");
+		
+		new int isduch = 1;
+		if( isduch )	{
+			grels.hide;
+			
+			new imganima anzd;
+			anzd.load("fl", "jpg", 0, 3, 9);
+			anzd.setz(20);
+			anzd.hide;
+			grtxt.hide;
+			
+			ccs.enter( func {
+				anzd.play;
+				} );
+		} else {
+			ccs.enter( func {
+				igmstate = 1;
+				} );
+		}
+	
+		//mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+	}
+	anzd_endframe	{	fxaparat.play;	}
+	anzd_finish	{
+		.hide;
+		grtxt.show;
+		grels.show;
+		igmstate=1;
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			igmstate = 20;
+			ccs.playfin( func { .foto_album; }, func { .foto_show(trapduch); } );
+			//.mprzejdz("Trap");
+		}
+	}
+	foto_shown	{ .timplay("tim2", 2000, func { .foto_to_album(trapduch); } ); }
+	foto_in_album	{ .timplay("timduchend", 2000, func { .mprzejdz("Korytarzdolnypoklad"); } ); }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{}
+}
+
+game HOSzczelina : Hiddenp	{
+	init	{
+		HiddenPath = ("43szczelina");
+		Hiddenp::init("hoszczelina");
+		
+		new int trapduch = 2;
+		
+		/*.loadsnddb;
+		.sounds = (A, ":lektor11", "Eteryczna postaæ. Kliknij na niej aby rozwi±zaæ tajemnicê jej wielowymiarowego pochodzenia.",
+			func { tcr.ahide; igmstate = iduchstate; .gogo_duch; },
+			":lektor12", "Zbierz z lokacji fragmenty fotografii.",
+				func { .stdret; },
+			":lilian2", "To jest zdjêcie pasa¿era statku! Co siê dzieje? Dlaczego widzê takie rzeczy? Czy¿by czeka³y mnie wiêksze tajemnice?", func { tcr.ahide;  }
+			);*/
+		
+		.imgs = (A, "43szczelina.jpg");
+		
+		.mmasks;
+		
+		mus.playstr("mapa2.ogg -l -v 60");
+		.sfxs = (A, "aparat");
+		
+		new int isduch = 1;
+		if( isduch )	{
+			grels.hide;
+			grtxt.hide;
+			
+			new imganima anzd;
+			anzd.load("fl", "jpg", 0, 3, 9);
+			anzd.hide;
+			
+			ccs.enter( func {
+				anzd.play;
+				} );
+		} else {
+			ccs.enter( func {
+				igmstate = 1;
+				} );
+		}
+	
+		//mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+	}
+	anzd_endframe	{	fxaparat.play;	}
+	anzd_finish	{
+		.hide;
+		grels.show;
+		grtxt.show;
+		igmstate=1;
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			igmstate = 20;
+			ccs.playfin( func { .foto_album; }, func { .foto_show(trapduch); } );
+			//.mprzejdz("Trap");
+		}
+	}
+	foto_shown	{ .timplay("tim2", 2000, func { .foto_to_album(trapduch); } ); }
+	foto_in_album	{ .timplay("timduchend", 2000, func { .mprzejdz("Szczelina"); } ); }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{}
+}
+
+game HOKorytarzmuzeum : Hiddenp	{
+	init	{
+		HiddenPath = ("09korytarzmuzeum");
+		Hiddenp::init("hokorytarzmuzeum");
+		
+		new int trapduch = 8;
+		
+		/*.loadsnddb;
+		.sounds = (A, ":lektor11", "Eteryczna postaæ. Kliknij na niej aby rozwi±zaæ tajemnicê jej wielowymiarowego pochodzenia.",
+			func { tcr.ahide; igmstate = iduchstate; .gogo_duch; },
+			":lektor12", "Zbierz z lokacji fragmenty fotografii.",
+				func { .stdret; },
+			":lilian2", "To jest zdjêcie pasa¿era statku! Co siê dzieje? Dlaczego widzê takie rzeczy? Czy¿by czeka³y mnie wiêksze tajemnice?", func { tcr.ahide;  }
+			);*/
+		
+		.imgs = (A, "09korytarzmuzeum.jpg", "drzwi.pyz 5");
+		
+		.mmasks;
+		
+		.sfxs = (A, "aparat", "bgrsalaN");
+		
+		new int isduch = 1;
+		if( isduch )	{
+			grels.hide;
+			grtxt.hide;
+			
+			new imganima anzd;
+			anzd.load("fl", "jpg", 0, 3, 9);
+			anzd.hide;
+			anzd.setz(20);
+			
+			ccs.enter( func {
+				anzd.play;
+				} );
+		} else {
+			ccs.enter( func {
+				igmstate = 1;
+				} );
+		}
+	
+		//mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+	}
+	anzd_endframe	{	fxaparat.play;	}
+	anzd_finish	{
+		.hide;
+		grels.show;
+		grtxt.show;
+		igmstate=1;
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			igmstate = 20;
+			ccs.playfin( func { .foto_album; }, func { .foto_show(trapduch); } );
+			//.mprzejdz("Trap");
+		}
+	}
+	foto_shown	{ .timplay("tim2", 2000, func { .foto_to_album(trapduch); } ); }
+	foto_in_album	{ .timplay("timduchend", 2000, func { .mprzejdz("Korytarzmuzeum"); } ); }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{}
+}
+
+game HOKorytarznamostek : Hiddenp	{
+	init	{
+		HiddenPath = ("21korytarznamostek");
+		Hiddenp::init("hokorytarznamostek");
+		
+		new int trapduch = 9;
+		
+		/*.loadsnddb;
+		.sounds = (A, ":lektor11", "Eteryczna postaæ. Kliknij na niej aby rozwi±zaæ tajemnicê jej wielowymiarowego pochodzenia.",
+			func { tcr.ahide; igmstate = iduchstate; .gogo_duch; },
+			":lektor12", "Zbierz z lokacji fragmenty fotografii.",
+				func { .stdret; },
+			":lilian2", "To jest zdjêcie pasa¿era statku! Co siê dzieje? Dlaczego widzê takie rzeczy? Czy¿by czeka³y mnie wiêksze tajemnice?", func { tcr.ahide;  }
+			);*/
+		
+		//.imgs = (A, "niebo.pyzP", "bkg.pyz 5", "lampy.pyzG 10");
+		.imgs = (A, "21korytarznamostek.jpg", "lampy.pyzG 10");
+		grlampy.nplay(-1);
+		
+		.mmasks;
+		
+		.sfxs = (A, "aparat", "bgrsalaN");
+		
+		new int isduch = 1;
+		if( isduch )	{
+			grels.hide;
+			grtxt.hide;
+			
+			new imganima anzd;
+			anzd.load("fl", "jpg", 0, 3, 9);
+			anzd.hide;
+			anzd.setz(20);
+			
+			ccs.enter( func {
+				anzd.play;
+				} );
+		} else {
+			ccs.enter( func {
+				igmstate = 1;
+				} );
+		}
+	
+		//mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+	}
+	anzd_endframe	{	fxaparat.play;	}
+	anzd_finish	{
+		.hide;
+		grels.show;
+		grtxt.show;
+		igmstate=1;
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			igmstate = 20;
+			ccs.playfin( func { .foto_album; }, func { .foto_show(trapduch); } );
+			//.mprzejdz("Trap");
+		}
+	}
+	foto_shown	{ .timplay("tim2", 2000, func { .foto_to_album(trapduch); } ); }
+	foto_in_album	{ .timplay("timduchend", 2000, func { .mprzejdz("Korytarznamostek"); } ); }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{}
+}
+
+game HOKuchnia2 : Hiddenp	{
+	init	{
+		HiddenPath = ("29kuchnia");
+		Hiddenp::init("hokuchniab");
+		
+		new int trapduch = 10;
+		
+		/*.loadsnddb;
+		.sounds = (A, ":lektor11", "Eteryczna postaæ. Kliknij na niej aby rozwi±zaæ tajemnicê jej wielowymiarowego pochodzenia.",
+			func { tcr.ahide; igmstate = iduchstate; .gogo_duch; },
+			":lektor12", "Zbierz z lokacji fragmenty fotografii.",
+				func { .stdret; },
+			":lilian2", "To jest zdjêcie pasa¿era statku! Co siê dzieje? Dlaczego widzê takie rzeczy? Czy¿by czeka³y mnie wiêksze tajemnice?", func { tcr.ahide;  }
+			);*/
+		
+		.imgs = (A, "29kuchnia.jpg");
+		
+		.mmasks;
+		
+		.sfxs = (A, "aparat", "bgrsalaN");
+		
+		new int isduch = 1;
+		if( isduch )	{
+			grels.hide;
+			grtxt.hide;
+			
+			new imganima anzd;
+			anzd.load("fl", "jpg", 0, 3, 9);
+			anzd.hide;
+			
+			ccs.enter( func {
+				anzd.play;
+				} );
+		} else {
+			ccs.enter( func {
+				igmstate = 1;
+				} );
+		}
+	
+		//mus.playstr("waltzing_ghosts.ogg -l -v 60");
+		
+		if( igmdebug )	.mbutnext;
+		
+	}
+	anzd_endframe	{	fxaparat.play;	}
+	anzd_finish	{
+		.hide;
+		grels.show;
+		grtxt.show;
+		igmstate=1;
+	}
+	hiddenobj_put	{
+		if( grtxt.empty )	{
+			igmstate = 20;
+			ccs.playfin( func { .foto_album; }, func { .foto_show(trapduch); } );
+		}
+	}
+	foto_shown	{ .timplay("tim2", 2000, func { .foto_to_album(trapduch); } ); }
+	foto_in_album	{ .timplay("timduchend", 2000, func { .mprzejdz("Kuchnia"); } ); }
+	anbutnext_click	{
+		grtxt.free;
+		.hiddenobj_put;
+	}
+	tit_lclick	{}
+}

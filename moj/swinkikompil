@@ -1,0 +1,7 @@
+flex swinkilex.l
+bison -y -d swinkipars.y -v
+#bison -y -d dpars4.y --verbose
+#bison -y -d ddagpars.y 
+gcc y.tab.c -o swinkicomp
+#gcc -g3 -O0 y.tab.c -o ddcomp
+

@@ -1,0 +1,13 @@
+game City : DziejeGame	{
+	init	{
+		DziejeGame::init("city");
+		
+		.gamebg;
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}

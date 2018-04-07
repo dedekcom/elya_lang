@@ -1,0 +1,159 @@
+
+new int iwinversion = 1;
+
+if( !iwinversion )	{
+	engine.addmethod("kk1path", func { spart1; } );
+	engine.addmethod("kk2path", func { spart2; } );
+	engine.addmethod("kk3path", func { spart3; } );
+	engine.addmethod("system", func { (string s)
+		match(s)	{
+			"install1", "install2", "install3" => <"spart"+s.gete(0,1)> = "install";
+			"uninstall1", "uninstall2", "uninstall3" => <"spart"+s.gete(0,1)> = null;
+			"play1", "play2", "play3" => <"spart"+s.gete(0,1)> = "playing";
+			? => ;
+		}
+		} );
+}
+
+game MenuInst : StdGame	{
+	init	{
+		StdGame::init("menuinst");
+		
+		new Button but1;
+		
+		.imgs = (A, "uninst1.pyz", "inst1.pyz", "play1.pyz", "uninst2.pyz",
+			"inst2.pyz", "play2.pyz", "uninst3.pyz", "inst3.pyz", "play3.pyz", "exit.pyz", "bkg.pyz");
+		
+		new string spart1 = null;
+		new string spart2 = null;
+		new string spart3 = null;
+		.mcheckinstall;
+		
+		new int ilewait = 300;
+		
+		.mkbuts(1);
+		.mkbuts(2);
+		.mkbuts(3);
+		
+		anexit {
+			.Button_isinalpha;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				igmstate = 2;
+				.setframe(-1,1);
+				timexit.play;
+				} );
+			but1.add(this);
+		};
+		.timer = ("timexit", ilewait, func {
+				gameapi.exit;
+			} );
+		
+		igmstate = 1;
+	}
+	mid	{	this->gete(0,1);	}
+	mpart	{	["spart"+.mid];		}
+	mkbuts(int id)	{
+		<"anuninst"+id> {
+			.Button_isinalpha;
+			.addmethod("butmoveon", func {
+				if( .framenr )
+					advmouse.setbut;
+				} );
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 || .mpart==null ) return;
+				.setframe(-1,2);
+				igmstate = 2;
+				<"timuninst"+.mid>.play;
+				} );
+			but1.add(this);
+		};
+		.timer = ("timuninst"+id, ilewait, func {
+			if( iwinversion )
+				engine.system("\"" + .mpart + "\\unins000.exe\"" );
+			else {
+				engine.system("uninstall"+.mid);
+				("\"" + .mpart + "\\unins000.exe\"" )->print;
+			}
+			.mcheckinstall;
+			igmstate = 1;
+			} );
+		<"aninst"+id> {
+			.Button_isinalpha;
+			.addmethod("butmoveon", func {
+				if( .framenr )
+					advmouse.setbut;
+				} );
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 || .framenr==0 ) return;
+				igmstate = 2;
+				.setframe(-1,2);
+				<"timinst"+.mid>.play;
+				} );
+			but1.add(this);
+		};
+		.timer = ("timinst"+id, ilewait, func {
+			if( iwinversion )
+				engine.system("setup"+.mid+".exe");
+			else {
+				engine.system("install"+.mid);
+				("setup"+.mid+".exe")->print;
+			}
+			.mcheckinstall;
+			<"aninst"+.mid>.setframe(-1,1);
+			igmstate = 1;
+			} );
+		<"anplay"+id> {
+			.Button_isinalpha;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				igmstate = 2;
+				.setframe(-1,1);
+				<"timplay"+.mid>.play;
+				} );
+			but1.add(this);
+		};
+		.timer = ("timplay"+id, ilewait, func {
+			if( iwinversion )	{
+				engine.system("start /D\""+ .mpart + "\" kik" + .mid + ".exe");
+			} else {
+				engine.system("play"+.mid);
+				("start /D\""+ .mpart + "\" kik" + .mid + ".exe")->print;
+			}
+			.mcheckinstall;
+			igmstate=1;
+			<"anplay"+.mid>.setframe(-1,0);
+			} );
+		
+	}
+	mcheckid(int id)	{
+		@s = "spart"+id;
+		<s> = engine.<"kk"+id+"path">;
+		bool b = engine.fileexist("setup"+id+".exe");
+		if( [s]==null )	{
+			<"anplay"+id>.hide;
+			@s2 = "aninst"+id;
+			<s2>.show;
+			if( b ) <s2>.setframe(-1,1);
+			else <s2>.setframe(-1,0);
+			<"anuninst"+id>.setframe(-1,0);
+		} else {
+			<"aninst"+id>.hide;
+			<"anplay"+id>.show;
+			<"anplay"+id>.setframe(-1,0);
+			<"anuninst"+id>.setframe(-1,1);
+		}
+	}
+	mcheckinstall	{
+		.mcheckid(1);
+		.mcheckid(2);
+		.mcheckid(3);
+	}
+}
+

@@ -1,0 +1,10 @@
+path:
+	srcspyvsspy/
+
+src:
+
+all:
+	dd1.dag
+
+out:
+	srcspyvsspy/spyvsspy.odd

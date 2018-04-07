@@ -1,0 +1,3 @@
+./kompiluj ./srccolodaam/colodaam.prj
+#cp ./srccolodaam/colodaam.odd /home/dedek/projekty/rysunki_gimp/colodaam/project/scripts/
+awk -f optimize.awk ./srccolodaam/colodaam.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/colodaam/project/scripts/colodaam.odd

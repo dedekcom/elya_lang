@@ -1,0 +1,70 @@
+game Historia : Komputro	{
+	init	{
+		Komputro::init("historia");
+		.path=("menu");
+		.bkg=("menu.pyz");
+		.loadguys;
+		.imgs = (A, "obrazy.pyz", "pascalinaH.pyz", "liczydlo.pyzH");
+		anobrazy.setframe("pascal",0);
+		anobrazy.move( 800-anobrazy.getpx, 0 );
+		.cycle=("timgo", "wysun");
+		new int krokx = -30;
+		.loadlekcja;
+		
+		.sounds = (A,
+			"sndintro", "Nasz± przygodê z informatyk± rozpoczniemy od dawnych czasów kiedy jeszcze nie istnia³y komputery", func { .cbplay("sndgo2"); },
+			"sndgo2", "S³owem komputer pochodz±cym od angielskiego czasownika compute liczyæ okre¶lamy maszynê wykonuj±c± obliczenia",
+				func { .cbplay("sndgo3");
+					anliczydlo.show;
+					anliczydlo.ansetbpos(400,130);
+					tdlicz.napispod("anliczydlo"); },
+			"sndgo3", "Jednym z pierwszych narzêdzi usprawniaj±cych obliczenia by³o liczyd³o które do dzi¶ s³u¿y dzieciom w poznawaniu tajników dodawania i odejmowania",
+				func { .profstop; anliczydlo.hide; tdlicz.hide; timgo.play; } ,
+			"sndgo4", "Jednak filozofowie pragnêli zaprz±c regu³y matematyki do powa¿niejszych obliczeñ",
+				func {
+					.cbplay("sndgo5");
+					anpascalina.show;
+					anpascalina.ansetbpos(350, 460);
+					tdpasc.napispod("anpascalina"); },
+			"sndgo5", "Pionierem w tej dziedzinie by³ Blaise Pascal który zaprojektowa³ mechaniczn± maszynê dodaj±c± i odejmuj±c± nazywan± od jego nazwiska Pascalin±",
+				func { .profstop; .jacksay("sndgo6"); },
+			"sndgo6", "A czy kto¶ korzysta³ z tej maszyny?", func { .jackstop; .profsay("sndgo7"); },
+			"sndgo7", "Oczywi¶cie; do 1652 roku wyprodukowano oko³o 50 takich maszyn do wspomagania pracy poborców podatkowych i geodetów",
+				func { .profstop;
+					anpascalina.hide;
+					tdpasc.hide;
+					tdblaise.hide;
+					anobrazy.setframe("boole", 0);
+					anobrazy.move( 800-anobrazy.getpx, 0 );
+					timgo.play; },
+			"sndgo8", "Nie istnia³yby jednak wspó³czesne komputery bez angielskiego matematyka Georgesa Boolea", func { .cbplay("sndgo9"); },
+			"sndgo9", "Jego prace z dziedziny logiki matematycznej sta³y siê podwalin± podstawowych operacji obliczeniowych w maszynach licz±cych", func { .cbplay("sndgo10"); },
+			"sndgo10", "Od poznania elementarnych praw logiki rozpoczniemy nasz kurs",
+				func { .profstop; .jacksay("sndgo11");	},
+			"sndgo11", "Ojej to muszê poznawaæ matematykê ¿eby zrozumieæ jak dzia³a komputer?",
+				func { .jackstop; .profsay("sndgo12");	},
+			"sndgo12", "Tak; wszystko w informatyce oparte jest o prawa matematyczne; kiedy je poznasz komputery ods³oni± ci swoje tajemnice", func { .profstop; .jacksay("sndgo13");	},
+			"sndgo13", "Zaczynajmy zatem pierwsz± lekcjê!", "nextgame"
+		);
+		.profsay("sndintro");
+	}
+	wysun	{
+		if( anobrazy.getposx + krokx > 0 )	{
+			anobrazy.move(krokx, 0);
+			.play;
+		} else <GAME>.<"out_"+anobrazy.actionname>;
+	}
+	out_pascal	{
+		tdblaise.napispod("anobrazy");
+		.profsay("sndgo4");
+	}
+	out_boole		{
+		tdboole.napispod("anobrazy");
+		.profsay("sndgo8");
+	}
+	nextgame	{	gameapi.play("Logika");	}
+	mouse_rclick	{
+		if( igmdebug )	.nextgame;
+	}
+	mouse_lclick	{	.cactsndstop(true);	}
+}

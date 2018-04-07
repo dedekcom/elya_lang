@@ -1,0 +1,2 @@
+./kompiluj ./srceprzew1/eprzew1.prj
+cp ./srceprzew1/eprzew1.odd /home/dedek/projekty/rysunki_gimp/eprzew1/project/scripts/

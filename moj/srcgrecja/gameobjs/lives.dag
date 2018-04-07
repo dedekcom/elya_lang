@@ -1,0 +1,44 @@
+/*************************************************************************/
+class classlives	{
+	init()	{}
+	set(int ile, int idamage, int x, int y, int h, int r1, int g1, int b1, int a1, int r2, int g2, int b2, int a2, int z, string sside)	{
+		new int iside;
+		
+		if( sside=="left")iside=-1;
+		else	iside=1;
+		
+		new int iilezyc = ile;
+		new int ibum	= idamage;
+		int idl = iilezyc*ibum;
+		new int iposxsila = x;
+		new int iendxsila = x+idl;
+		new int iposysila = y;
+		newvars::newcanvas( "imgsilapodkladka",idl, h, r1, g1, b1, a1, z-1 );
+		newvars::newcanvas( "imgsila",idl, h, r2, g2, b2, a2, z );
+		imgsila.setpos( iposxsila, iposysila );
+		imgsila.clip(iposxsila, 0,  imgsila.getex(), 600);
+		imgsilapodkladka.setpos( iposxsila, iposysila );
+	}
+	reset()	{
+		imgsila.setpos( iposxsila, iposysila );
+	}
+	damage(int idam)	{
+		imgsila.move( iside*idam*ibum, 0);
+	}
+	int destroyed()	{
+		if( iside<0)	return imgsila.getex() < iposxsila;
+		return imgsila.getpx() > iendxsila;
+	}
+	heal(int idam)	{
+		imgsila.move( -iside*idam*ibum, 0 );
+		if( iside > 0 )	{
+			if( imgsila.getpx() < iposxsila )	{
+				imgsila.setpos( iposxsila, iposysila );
+			}
+		} else {
+			if( imgsila.getpx() > iposxsila )	{
+				imgsila.setpos( iposxsila, iposysila );
+			}
+		}
+	}
+}

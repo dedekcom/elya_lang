@@ -1,0 +1,163 @@
+
+class classmoddbg : classlocker	{
+	init()	{
+		classlocker::init();
+		
+		new string sstate = "init";
+		new int ilastx;
+		new int ilasty;
+		new text txtpos;
+		txtpos.setz(5000);
+		txtpos.setpos( 0, 0 );
+		txtpos.setbkg(0,0,64,16, 0,0,0,192);
+		
+		new text txtmsg;
+		
+		txtmsg.setz(5000);
+		txtmsg.setpos(220+igmoffsetx,10);
+		txtmsg.setbkg(0,0,500,16, 0,0,0,192);
+		txtmsg.hide;
+		new timer timmsg;
+		timmsg.setdelay(4000);
+		timmsg.addmethod("onfinish", func { txtmsg.hide; } );
+
+		new text txtpod;
+		txtpod.setz(5000);
+		txtpod.setbkg(0,0,128,16, 0,0,0,192);
+		
+		new img impod;
+		new string slastimpod = null;
+		
+		this.disable();
+
+	}
+	public enable()	{
+		this.unlock();
+		txtpos.show();
+		txtpod.show();
+	}
+	public disable()	{
+		this.lock();
+		txtpos.hide();
+		txtpod.hide();
+	}
+	public updatetxtpos(int x, int y)	{
+		if( engine.varexist("clcamera") )
+			txtpos.set("" + ( x-clcamera.getposx() ) + "," + ( y-clcamera.getposy() ));
+		else txtpos.set("" + x + "," + y);
+		txtpos.setpos(x-txtpos.getw-advmouse.lodx,y-txtpos.geth-advmouse.lody);
+		txtpod.setpos(x-txtpod.getw-advmouse.lodx,y-2*txtpod.geth-advmouse.lody);
+		string s = engine.getimg(x,y,true,true,-2000,2000);
+		txtpod.set( s );
+		if( s==null || s=="imgbkg" ) impod.hide;
+		else if( engine.varexist(s))	{
+			if( s!=slastimpod || (s==slastimpod && !impod.isvisible) || <s>.getw != impod.getw || <s>.geth != impod.geth )	{
+				impod.create( <s>.getw, <s>.geth, 255,255,0,64 );
+				impod.show;
+				impod.setz(2010);
+				slastimpod = s;
+			}
+			impod.setpos( <s>.getpx, <s>.getpy );
+		}
+		y = txtpos.getey - iResY;
+		if( y>0 )	{	txtpos.move(0,-y); txtpod.move(0,-y);	}
+		x = txtpod.getex - iResX;
+		if( x>0 )	{	txtpos.move(-x,0); txtpod.move(-x,0);	}
+		x = -txtpod.getpx;
+		if( x>0 )	{	txtpos.move(x,0); txtpod.move(x,0);	}
+	}
+	msminit(int x, int y)	{	this.updatetxtpos(x,y);	}
+	msmmove(int x, int y)	{
+		if( engine.varexist("clcamera") )
+			clcamera.moveplans(x-ilastx, y-ilasty);
+		this.updatetxtpos(x,y);
+	}
+	public msmove()	{
+		if( this.getlock() )	{	return;	}
+		int x = mouse.getpx();
+		int y = mouse.getpy();
+		this.<"msm"+sstate>(x,y);
+		ilastx=x;
+		ilasty=y;
+	}
+	public mslclick()	{
+		if( this.getlock() )	{	return;	}
+		if( keyboard.iskeydown("space") )	{
+			sstate="move";
+		}
+	}
+	public mslrel()	{
+		if( this.getlock() )	{	return;	}
+		sstate = "init";
+	}
+	msrclick()	{
+		int x = mouse.getpx();
+		int y = mouse.getpy();
+		int id = grbuts.isin(x,y,true,true);
+		if( id!=false )	{
+			string s = grbuts.get(id-1);
+			s.print();
+		} 
+//		txtpod.set( engine.getimg(x,y,true,true,-1000,1000));
+	}
+	msg(string s)	{
+		txtmsg.show;
+		txtmsg.set(s);
+		txtmsg.setpos(igmoffsetx+100,10);
+		timmsg.play;
+	}
+	dbkeydown(){
+		if( !igmdebug ) return;
+		if( keyboard.iskeydown("lctrl") ) {
+			if( keyboard.iskey("d") )	{
+				if(.getlock)	{
+					this.enable();
+					.msg("debug mode on: ^c-b: screenshoot, ^c-s: save, ^c-l: load, d: debug on/off");
+				} else {
+					this.disable();
+					.msg("debug mode off");
+				}
+			} else if( keyboard.iskey("l") )	{
+				@s = "cache";
+				if( keyboard.iskeydown("1") ) s+="1";
+				else if (keyboard.iskeydown("2") ) s+="2";
+				else if (keyboard.iskeydown("3") ) s+="3";
+				else if (keyboard.iskeydown("4") ) s+="4";
+				else if (keyboard.iskeydown("5") ) s+="5";
+				else if (keyboard.iskeydown("6") ) s+="6";
+				else if (keyboard.iskeydown("7") ) s+="7";
+				else if (keyboard.iskeydown("8") ) s+="8";
+				else if (keyboard.iskeydown("9") ) s+="9";
+				._load_game(s);
+				.msg("game loaded from "+s);
+			} else if( keyboard.iskey("s") )	{
+				@s = "cache";
+				if( .can_save )	{
+					if( keyboard.iskeydown("1") ) s+="1";
+					else if (keyboard.iskeydown("2") ) s+="2";
+					else if (keyboard.iskeydown("3") ) s+="3";
+					else if (keyboard.iskeydown("4") ) s+="4";
+					else if (keyboard.iskeydown("5") ) s+="5";
+					else if (keyboard.iskeydown("6") ) s+="6";
+					else if (keyboard.iskeydown("7") ) s+="7";
+					else if (keyboard.iskeydown("8") ) s+="8";
+					else if (keyboard.iskeydown("9") ) s+="9";
+					._save_game(s);
+					.msg("game saved to "+s);
+				} else {
+					.msg("could not save game to "+s+" , sgmstate=" + sgmstate);
+				}
+			} else if( keyboard.iskey("b") )	{
+				<gameapi.getgamename>.cgetscreenshoot("saves/cache.bmp", 1);
+				.msg("screenshoot in saves/cache.bmp");
+			} else if( keyboard.iskey("p") )	{
+				.dprint("debugger: ");
+				int pom = engine.getstack;
+				.msg( "stack = " + pom );
+				//.msg("debugger stack: " + engine.getstack );
+			}
+		}
+	}
+}
+
+new classmoddbg moddbg;

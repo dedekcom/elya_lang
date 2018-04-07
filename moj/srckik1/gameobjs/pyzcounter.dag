@@ -1,0 +1,60 @@
+class PyzCounter	{
+	init(string sanima, int timestep)	{
+		new int istart;
+		new int istop;
+		new int istep;
+		new int idigits = 50;
+		new int iactual;
+		new string _sanima = sanima;
+		.vars2(A, "idx",2, "itimestep", timestep);
+		
+		new gmimgvec grcnt;
+		for( int i=0; i<idigits; i++ )	{
+			string s = "pcc" + sanima + i;
+			.copyanima(sanima, s);
+			<s>.hide;
+			grcnt.add(s);
+		}
+		.timer = ("timcnt", timestep, func {
+			iactual += istep;
+			.view(iactual);
+			if( iactual==istop )	{
+				<.getbuildername>.<.getbuildername+"_finish">;
+			} else .play;
+			} );
+	}
+	getcypher(int id)	{	"pcc" + _sanima + id;	}
+	start(int start, int stop, int step)	{
+		istart = start;
+		istop = stop;
+		istep = step;
+		iactual = istart;
+		.view(istart);
+		timcnt.play;
+	}
+	showcypher(int i, int cypher)	{
+		string s = .getcypher(i);
+		<s>.setframe(0, cypher);
+		<s>.show;
+	}
+	stop	{
+		timcnt.stop(false);
+	}
+	view(int cnt)	{
+		grcnt.hide;
+		grcnt.setpos(0,0);
+		if( cnt==0 )	{
+			.showcypher(0,0);
+		} else {
+			for( int i=0; cnt > 0; i++ )	{
+				.showcypher(i, cnt%10);
+				cnt=cnt/10;
+			}
+			int w = 0;
+			for( int j=i-1; j>=0; j-- )	{
+				<.getcypher(j)>.move( w, 0 );
+				w = w + <.getcypher(j+1)>.getw;
+			}
+		}
+	}
+}

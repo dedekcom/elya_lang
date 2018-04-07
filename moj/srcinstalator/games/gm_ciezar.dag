@@ -1,0 +1,138 @@
+
+new int iCiezarMode = 0;
+game Ciezar : StdGame	{
+	init	{
+		StdGame::init("ciezar");
+		
+		//wit.pyz   kowal.pyz   dziadek.pyz  babka.pyz   bkg.pyz
+		//kolo.pyz  siedzi.pyz  dach.pyz     ludki1.pyz  kokosz.pyz
+		.imgs = (A, "bkg.pyz", "kokosz.pyz 110", "wit.pyzP 90", "kowal.pyzP 40", "dziadek.pyzP 55",
+			"babka.pyzP 30", "kolo.pyzP 80", "siedzi.pyzP 10", "dach.pyzP 10", "strzalki.pyz 120", "counterH.pyz 120");
+		.newgrimg("grludki", "ludki1", 0);
+		grludki.each( func { (@id)
+			.setz( 10 + id*10 );
+			.play(-1);
+			} );
+		
+		new PyzCounter pcnt("ancounter", 1000);
+		new int ilewytrzymac = 25;
+		pcnt.view(ilewytrzymac);
+		
+		.sfxs = (A, "bum1");
+		fxbum1.addmethod("onfinish", func {
+			.cbplay("snddalej");
+			} );
+		
+		new classplacepointer2 clp;
+		.sounds = (A, "sndgo", "Kokosz ma zamiar podnie¶æ ciê¿kie kamienne ko³o m³yñskie", func {
+			.cbplay("sndgo2"); clp.showob("anstrzalki","lu"); },
+			"sndgo2", "Pomó¿ mu utrzymaæ równowagê steruj±c strza³kami", func { clp.stoph; .mstart;	},
+			"sndups", "£ojoj!", func { fxbum1.play; },
+			"snddalej", "Wszystko w porz±dku! Potkn±³em siê! Zaraz powtórzê", func {
+				ccs.close( func {
+					iCiezarMode = 1;
+					gameapi.play("Ciezar");
+					} );
+				},
+			"sndhyy", "Hyyyy!", "mnextkom",
+			"sndkom0", "Kokosz daj spokój jeszcze ci co¶ w krzy¿u ³upnie! Wiesz ile siê czeka na wizyte u ortopedy?", "mnextkom",
+			"sndkom1", "Dawaj Kokosz!", "mnextkom",
+			"sndkom2", "W lewo!", "mnextkom",
+			"sndkom3", "Kookosz Kookosz!", "mnextkom",
+			"sndkom4", "Jeszcze trochê wytrzymaj!", null,
+			"sndhura", "Hurra! Niech ¿yje Kokosz! Wiwat! Brawo!", func {
+				ccs.close( func { .gotoadv("adpokojmirmil", "gameadpokojmirmil0"); } );
+				}
+			);
+		
+		ankokosz.addmethod("onfinish", func {
+			match(.actionname)	{
+				"start" => {
+					.play("go");
+					igmstate = 1;
+					pcnt.start(ilewytrzymac, 0, -1);
+				}
+				? => .play(-1);
+			}
+			} );
+		ankokosz.addmethod("onendframe", func {
+			if( igmstate==1 )	{
+				if( .getex<0 || .getpx>iResX )	{
+					.stop(false);
+					igmstate=2;
+					.cactsndstop(false);
+					.cbplay("sndups");
+					pcnt.stop;
+				} else {
+					if(keyboard.iskeydown("left")) .kmove(-rstep);
+					else if(keyboard.iskeydown("right")) .kmove(rstep);
+					else .kmove(rdx*rvx);
+				}
+			}
+			} );
+		new real rdx = 0.2;
+		new real rvx = 0;
+		new real rlimes = 6;
+		new real rstep = 5;
+		new int idkom = 0;
+		
+		ccs.enter( func {
+			if( iCiezarMode ) {
+				iCiezarMode = 0;
+				.mstart;
+			} else .cbplay("sndgo");
+			} );
+	}
+	mnextkom	{
+		.crplay("sndkom"+idkom);
+		idkom++;
+	}
+	mstart	{
+		ankokosz.play("start");
+		.cbplay("sndhyy");
+		.mstrzel;
+	}
+	pcnt_finish	{
+		igmstate = 3;
+		.cactsndstop(false);
+		.cbplay("sndhura");
+		ankokosz.play("stop");
+		anwit.play(1); ankowal.play(1); andziadek.play(1);
+		anbabka.play(1); ankolo.play(1); ansiedzi.play(1);
+		andach.play(1);
+	}
+	mstrzel	{
+		if( rvx.abs<=rlimes )	{
+			rvx+= rlimes - (2*rlimes)->rand;
+		}
+	}
+	kmove(real rx)	{
+		rvx += rx;
+		if(rvx.abs<=rlimes)	{
+			if( ankokosz.isplaying("go")==false )
+				ankokosz.play("go");
+			.mstrzel;
+		} else {
+			string s=null;
+			if( rvx>0 && ankokosz.isplaying("left") )	{
+				s = "right";
+			} else if (rvx<0 && ankokosz.isplaying("right"))	{
+				s = "left";
+			} else if (ankokosz.isplaying("go"))	{
+				if( rvx>0 ) ankokosz.play("right");
+				else ankokosz.play("left");
+			}
+			if( s!=null )	{
+				int id = ankokosz.framenr;
+				ankokosz.play(s);
+				ankokosz.setframe(s,id);
+			}
+			ankokosz.move(rvx,0);
+		}
+	}
+	mouse_lclick	{
+		if( igmdebug ) {.cactsndstop(true);}
+	}
+}
+
+

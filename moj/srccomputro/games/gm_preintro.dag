@@ -1,0 +1,126 @@
+game Preintro : Computro	{
+	init	{
+		Computro::init("preintro");
+		
+		.imgs = (A,"bkg.pyz", "swiatlo.pyz 20", "okoH.pyz 130", "napisyH.pyz 140", "robo.pyz 110", "ekrany.pyz 25", "wiatrakP.pyz 15",
+			"iskryH.pyz 105", "wyjscieH.pyz 30");
+		.copyanima("anekrany", "anekrany2");
+		anekrany2.setframe(1,0);
+		.copyanima("annapisy", "annapisy2");
+		annapisy2.setframe(0,1);
+		anrobo.addmethod("onfinish", func {
+			if( ilicz==10 )	{
+				ilicz++;
+				timgo.delay(4500);
+				.play("dark2");
+				answiatlo.setframe("dark", 0);
+				timgo.play;
+				fxrobocik3.stop(false);
+			}
+			} );
+		anwyjscie.addmethod("onfinish", func {
+			timgo.delay(500);
+			timgo.play;
+			} );
+		mus.playstr("podziemia.ogg -l -v 50");
+		
+		.lang_db("dbtur", "napis");
+		new string sfont32 = .stdfont(32);
+		.newtext("txttur", dbtur.get(0,0), sfont32, .grey(248));
+		txttur.setpos( (iResX-txttur.getw)/2, iResY-txttur.geth-5 );
+		txttur.setz(180);
+		txttur.hide;
+		
+		.sfxs = (A, "wlacznik3 60", "bgrwiatrakN 70", "robocik2 70", "robocik3 70", "podnapis 60", "perun 70", "alarm 60", "iskry 60");
+		
+		new int ilicz = 0;
+		.timer = ("timgo", 4000, func {
+			<GAME> {
+				match( ilicz )	{
+					0, 2, 4 => .mlamp(200);
+					1 => .mdark(4000);
+					3 => .mdark(250);
+					5 => .mdark(2500);
+					6 => {
+						//.mlamp(500);
+						answiatlo.setframe("iskry",0);
+						fxiskry.play;
+						aniskry.anplayfin( 0, func {
+							.hide;
+							answiatlo.setframe("dark",0);
+							anwyjscie.play(0);
+							fxalarm.play;
+							} );
+					}
+					8 => {
+						answiatlo.setframe("light",0);
+						fxwlacznik3.play;
+						anrobo.setframe("light", 0);
+						timgo.delay(1000);
+						mus.fadeout(800);
+					}
+					9 => {
+						mus.playstr("plama.ogg -v 60");
+						anrobo.play("light");
+						fxrobocik3.play;
+					}
+					11 => {
+						anoko.show;
+						fxrobocik2.play;
+						timgo.delay(1000);
+					}
+					12 => {
+						anoko.anplayfin( 0, func {
+						ilicz++;
+						timgo.delay(2000);
+						fxrobocik2.play;
+						annapisy.show;
+						timgo.play;
+						} );
+					}
+					14 => {
+						annapisy2.show;
+						fxperun.play;
+						txttur.show;
+						txttur.txtshadow(1,sfont32);
+						timgo.delay(3000);
+					}
+					15 => .mkoniec;
+					? => ;
+				}
+				ilicz++;
+			};
+			if( !ilicz.in(A,7,10,13,16) )
+				.play;
+			} );
+		timgo.play;
+		ccs.enter( null );
+	}
+	mlamp(int delay)	{
+		timgo.delay(delay);
+		answiatlo.setframe("lamp",0);
+		anrobo.setframe("lamp",0);
+		fxwlacznik3.play;
+	}
+	mdark(int delay)	{
+		timgo.delay(delay);
+		answiatlo.setframe("dark",0);
+		anrobo.setframe("dark",0);
+	}
+	mkoniec	{
+		if( igmstate==0 )	{
+			ccs.close( "mkoniec2" );
+			mus.fadeout(1000);
+			igmstate = 1;
+		}
+	}
+	mkoniec2	{
+		gameapi.play("Menu");
+	}
+	mouse_lclick	{
+		.mkoniec;
+	}
+	mouse_rclick	{
+		if( igmdebug ) timgo.stop(true);
+	}
+}

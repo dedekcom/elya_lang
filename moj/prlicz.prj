@@ -1,0 +1,14 @@
+path:
+	srcliczby/
+
+src:
+	vars.dag
+	basic.dag
+	liczby.dag
+
+all:
+	dd1.dag
+
+out:
+	srcliczby/ddag.odd
+

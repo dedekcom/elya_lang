@@ -1,0 +1,169 @@
+/***************************************************************************/
+/* klasa do list dialogow */
+class classquickdialog	{
+	init()	{
+		new db dbl;
+		new int irow;
+		new int icol;
+		new string _sdialog = this.getname();
+		new bool _bloading = false;
+		new classsound clsnd;
+		new string _sgame = gameapi.getgamename();
+		new string _spref = this.getname();
+		new string _sprevdialog;
+	}
+	public load(string sdbfile)	{
+		dbl.loadscript(this.getgraphpath()+sdbfile);
+		_bloading=true;
+		for( irow=0; irow<dbl.getrowsno();irow++)	{
+			icol=0;
+			while(this._nextdial())	{}
+		}
+		_bloading=false;
+		irow = 0;
+		icol = 0;
+	}
+	public playlast()	{
+		_ = this._play(irow,icol);
+	}
+	public play(string sdialname)	{
+		irow = dbl.findbyrow(sdialname);
+		if( irow>= 0 )	{
+			this._callstartdial();
+		}
+		_sprevdialog = this.getdialog();
+		_ = this._play(irow,1);
+	}
+	public string getprevdialog()	{	return _sprevdialog;	}
+	public string getdialog()	{	return dbl.get(irow, 0);	}
+	bool _play(int ir, int ic)	{
+		irow = ir;	icol=ic;
+		if(irow<0 || irow>=dbl.getrowsno() )	return false;
+		if( icol>=dbl.getcolsno(irow) )	{
+			if( !_bloading )	this._callstopdial();
+			return false;
+		}
+		string s = dbl.get(irow,icol);
+		if( s=="an:" )	{
+			
+		} else {
+			if( _bloading )	{
+				if( !engine.varexist(_spref+s ) )	{
+					<_sgame>.newsndfree( _spref+s , s+".wav" );
+					s = _spref+s;
+					<s>.addmethod("onstart", func { this.<this.getname()+"_START">(); } );
+					<s>.addmethod("onfinish", func { this.<this.getname()+"_FINISH">();
+						_ = <_sdialog>._nextdial(); } );
+					<s>.addmethod("_buildvars", func { (string s) new string _sdialog=s; } );
+					<s>._buildvars(this.getname());
+				}
+			} else {
+				clsnd.cbplay(_spref+s);
+			}
+		}
+		return true;
+	}
+	public bool _nextdial()	{	return this._play(irow,icol+1);	}
+	_cqsndfinish()	{
+		this.<this.getname()+"_FINISH">();
+		_ = <_sdialog>._nextdial();
+	}
+	_callstopdial()	{	this.<_spref+dbl.get(irow,0)+"_FINISH">();	}	// finish dialog
+	_callstartdial()	{	this.<_spref+dbl.get(irow,0)+"_START">();	}	// start dialog
+	public stop(bool b)	{	clsnd.cactsndstop(b);	}
+	public bool isplaying()	{	return clsnd.cisplaying();	}
+	public stopdial(bool b)	{
+		this.stop(false);
+		if( b )	this._callstopdial();
+	}
+}
+
+/***************************************************************************/
+/* klasa do szybkiego czytania animacji i plikow graficznych */
+class classquickanloader	{
+	init()	{
+		new db dbl;
+		new string _sgame = gameapi.getgamename();
+	}
+	public load(string sfile)	{
+		dbl.loadscript(this.getgraphpath()+sfile);
+		int j, string s[3], int i[2];
+		for( int i=0; i<dbl.getrowsno(); i++ )	{
+			j=0;
+			s0 = dbl.get(i,j); j++;
+			if( s0=="bkg:" )	{
+				s0 = dbl.get(i,j); j++;
+				<_sgame>.newimg("imgbkg",s0,0);
+				this.analizeimgopts("imgbkg",i,j);
+			} else if (s0=="img:")	{
+				s0 = dbl.get(i,j); j++;
+				s1 = dbl.get(i,j); j++;
+				<_sgame>.newimg(s0,s1,0);
+				this.analizeimgopts(s0,i,j);
+			} else if (s0=="an:" )	{
+				s0 = dbl.get(i,j); j++;
+				s1 = dbl.get(i,j); j++;
+				if( s1.contains(".pyz") )	{
+					<_sgame>.newanima(s0,s1,0);
+				} else {
+					<_sgame>.copyanima(s1,s0);
+				}
+				this.analizeimgopts(s0,i,j);
+			} else if(s0=="anaac:" || s0=="anfac:")	{
+				s2=s0;
+				s0 = dbl.get(i,j); j++;
+				s1 = dbl.get(i,j); j++;
+				if( s1.contains(".pyz") )	{
+					<_sgame>.newanima("_"+s0,s1,0);
+					s1 = "_"+s0;
+					<s1>.hide();
+				}
+				<_sgame>.addmethod("_buildgroup","_buildgroup");
+				<_sgame>._buildgroup(s0);
+				if( s2=="anfac:")	{
+					i1 = dbl.get(i,j); j++;
+					i0 = <_sgame>.newanframesgr(s1, s0, i1, s0);
+				} else {
+					i0 = <_sgame>.newanactionsgr(s1, s0, s0);
+				}
+				this.analizeimgopts(s0,i,j);
+			} else if (s0=="path:")	{
+				s0 = dbl.get(i,j); j++;
+				<_sgame>.setgraphpath(s0);
+			} else if (s0=="snd:")	{
+				s0 = dbl.get(i,j); j++;
+				<_sgame>.newsnd("snd"+s0,s0+".wav");
+				<"snd"+s0>.addmethod("onfinish","__std_finish");
+			}
+		}
+	}
+	_buildgroup(string sname)	{	new gmimgvec <sname>;	}
+	_cqloadstdframe()	{	this.<this.getname()+"_ENDFRAME">();	}
+	analizeimgopts(string san, int i, int j)	{
+		string s[2], int i[2];
+		while( j<dbl.getcolsno(i) )	{
+			s0 = dbl.get(i,j); j++;
+			match(s0)	{
+				"-z"=>	{<san>.setz( dbl.get(i,j) ); j++;}
+				"-pos"=>	{	i0 = dbl.get(i,j); j++;
+					i1 = dbl.get(i,j); j++;
+					<san>.setpos(i0,i1);	}
+				"-hide" =>		<san>.hide();
+				"-show"=>	<san>.show();
+				"-play"=>	{	s0 = dbl.get(i,j); j++;
+					<san>.play(s0);}
+				"-nplay"=>{	i0 = dbl.get(i,j); j++;
+					<san>.play(i0);}
+				"-lplay"=>	{	s0 = dbl.get(i,j); j++;
+					<san>.anloopsplay(s0);}
+				"-frame"=>	{s0 = dbl.get(i,j); j++;
+					i0 = dbl.get(i,j); j++;
+					<san>.setframe(s0,i0);}
+				"-putgr"=>	<san>.anputgr();
+				"-mfin"=>		<san>.addmethod("onfinish","__std_finish");
+				"-mfr"=>		<san>.addmethod("onendframe","_cqloadstdframe");
+				? => ;
+			}
+		}
+	}
+}

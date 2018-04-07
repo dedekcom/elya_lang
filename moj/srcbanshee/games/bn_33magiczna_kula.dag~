@@ -1,0 +1,177 @@
+
+game mg33_magiczna_kula :Banshee {
+	init{
+	
+	 
+		Banshee::init("mg33_magiczna_kula");
+			.imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2", "kula.pyzH 3","woda1.pyzH 4", "woda2.pyzH 5","woda3.pyzH 5", "korek.pyzH 5", "piorun1.pyzH 6","piorun2.pyz 6","piorun3.pyzH 7","piorun4.pyzH 8","piorun5.pyzH 8","lampa2.pyzH 8","pusta_kula.pyzH 9","cut_anim.pyzH 10", "ramka.pyz 34", "popexit.pyz 36" );
+		
+			.addtopck("korek"); 
+			.addtopck("noz_do_szkla"); 
+		 
+		.newsnd("snd_kula_pioruny", "kinnat_c4d4_9");
+		snd_kula_pioruny.addmethod("onfinish", "advsetstdstate"); 
+		
+		.newsnd("snd_kula", "kinnat_c4d4_16");
+		snd_kula.addmethod("onfinish", "advsetstdstate"); 
+			
+
+		if(!clsave.bis("taken_lampa2"))
+		{
+			.setasitemtopck("anlampa2"); 
+			anlampa2.disable = (true); 
+			if (clsave.bis("e1_mg33_magiczna_kula_kula_wycieta") )
+			{
+				anlampa2.show; 
+				anlampa2.disable = (false); 
+			}
+		}  		
+	 
+		  
+	 	if(!clsave.bis("e1_mg33_magiczna_kula_korek_inserted"))
+		{
+			anwoda1.play(0); 
+			anwoda2.play(0); 
+			 
+			anpiorun1.setdrawmode(1); 
+			 
+			anpiorun2.setdrawmode(1); 
+			anpiorun2.play(0);
+			anpiorun3.setdrawmode(1); 
+			anpiorun4.setdrawmode(1);
+			anpiorun4.play(0);
+			anpiorun5.setdrawmode(1);
+			anpiorun5.play(0);
+			anwoda3.anopacityframe; 
+			anwoda3.play(0);
+		}
+		
+		ancut_anim{
+			.addmethod("onfinish", func {
+  				.hide; 				
+			} );
+		};
+		 
+		ankula{
+  			.Button_isinvis;
+  			.addmethod("butmoveon", func {
+  				if( !.advstdstate) return;
+  				  if(!clsave.bis("e1_mg33_magiczna_kula_kula_wycieta"))
+					advmouse.set("use");					
+			} );
+  			.addmethod("butmoveoff", func {
+  				if( !.advstdstate ) return;
+  				  advmouse.setstd;
+  				} ); 
+  			.addmethod("butclick", func {
+  		 	    if( !.advstdstate ) return;
+					if (!clsave.bis("e1_mg33_magiczna_kula_korek_inserted"))
+					{
+						anpiorun3.anfadein(10,func{anpiorun3.anfadeout(200,func{anpiorun1.anfadein(10,func{anpiorun1.anfadeout(700,null);});});});
+							.cbplay("snd_kula_pioruny"); 
+					}
+					else
+					{
+						.cbplay("snd_kula"); 
+					}
+				} );
+			butgame.add(this);
+		}; 
+
+		ankorek{
+  			.Button_isinvis;
+  			.addmethod("butmoveon", func {
+  				if( !.advstdstate) return;
+  				  advmouse.set("use");  
+			} );
+  			.addmethod("butmoveoff", func {
+  				if( !.advstdstate ) return;
+  				  advmouse.setstd;
+  				} ); 
+  			butgame.add(this);
+		};  
+		
+		
+		
+		anpopup_bkg {
+			.Button_isinalpha;
+			butgame.add(this);
+		}; 
+		
+		imgbkg {
+			.Button_isinalpha;
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+				.mend;
+				} );
+				butgame.add(this);
+			};       
+		.butpopexit;     
+		.stdstart; 
+		
+	}// koniec init 
+	
+	stop_water{
+		 
+		anpiorun2.stop(false); 
+		anpiorun2.anfadeout(500,null);
+		anpiorun3.stop(false); 
+		anpiorun3.anfadeout(500,null);
+		anpiorun4.stop(false); 
+		anpiorun4.anfadeout(500,null);
+		anpiorun5.stop(false); 
+		anpiorun5.anfadeout(500,null);
+		anwoda1.stop(false); 
+		anwoda1.anfadeout(800,null);
+		anwoda2.stop(false); 
+		anwoda2.anfadeout(800,null);
+		anwoda3.stop(false); 
+		anwoda3.anfadeout(800,null);
+	
+	}
+     
+	USE_korek	{
+		.advsetstdstate();
+    if( ankorek.isin(mouse.getpos,0,0) )	{
+			.removefrompck("korek");
+			ankorek.anfadein(200,null);
+			.stop_water;
+			clsave.bset("e1_mg33_magiczna_kula_korek_inserted");  
+		} else {
+			.item_gotopck;
+		}
+	} 
+	
+	anlampa2_TAKE {
+		anpusta_kula.anfadein(100,null);
+		.popitem_gotocenter("lampa2");
+		.set_mg_finished;
+    }  
+	
+	anlampa2_INPCK {
+		.addtopck("lampa2");  
+		.timfinito;
+	}   
+
+	USE_noz_do_szkla	{
+		.advsetstdstate();
+		if( ankula.isin(mouse.getpos,0,0) && clsave.bis("e1_mg33_magiczna_kula_korek_inserted") )	{
+			.removefrompck("noz_do_szkla");
+			ancut_anim.play(0);
+			anlampa2.anfadein(500,null); 
+			anlampa2.disable = (false);  
+			clsave.bset("e1_mg33_magiczna_kula_kula_wycieta"); 
+			advmouse.setstd;	
+		} else {
+			.item_gotopck;
+		}
+	}  	
+	HINT_CLICK {
+		.showhint("anpopexit"); 
+	}
+  
+	mend	{
+		 .stdexitdefadv("ad33_ukrytypokoj", "gamead33_ukrytypokoj0");
+	}
+}
+ 

@@ -1,0 +1,106 @@
+
+game Tama : StdGame	{
+	init	{
+		StdGame::init("tama");
+
+		//kijek.pyz  bam.pyz  kokosz.pyz  bobr.pyz  butkajko.pyz  butkokosz.pyz  butmask.pyz  patyki.pyz  tama.pyz  bkg.pyz
+		.imgs = (A, "bkg.pyz", "butmask.pyz 100", "butkokosz.pyz 90", "butkajko.pyz 90", "bobr.pyz 20",
+			"kokosz.pyz 30", "kajko.pyz 25", "bam.pyzH 50", "kijek.pyz 50", "woda.pyzH 1");
+		
+		new classplacepointer2 clp;
+ 		.sounds = (A, "nar1", "Rozebranie tamy to nie prosta sprawa; Bobry bêd± broniæ jej wszelkimi ¶rodkami", func {
+				clp.showob("anbutkajko", "ru"); .cbplay("nar2"); },
+			"nar2", "Klikaj tutaj ¿eby Kajko odgania³ bobra naprawiaj±cego tamê", func {
+				clp.showob("anbutkokosz", "ru"); .cbplay("nar3"); },
+			"nar3", "Klikaj tutaj ¿eby Kokosz rozgrabia³ tamê; Do dzie³a!", func { clp.stoph; igmstate=1; timgo.play; },
+			":kajko0", "Uciekaj!", null,
+			":kajko1", "A sio!", null,
+			":kajko2", "Szybciej Kokosz!", null,
+			":kokosz0", "Auu!", null,
+			":kokosz1", "A to szelma!", null,
+			":kokosz2", "Ajæ!", null,
+			":kokosz3", "Uda³o siê! Tama pu¶ci³a!", func {
+				 ccs.close( func { .gotoadv("adtama", "gameadtama0"); } );
+				}
+			);
+		
+		.newgrimg("grtam", "tama", 10);
+		
+		ankijek.addmethod("onendframe", func {
+			if( .framename=="bum" )	{
+				ankokosz.play(1);
+				anbam.play(0);
+				if( 2->rand ) .crplay( "kokosz" + 3->rand );
+			}
+			} );
+		anbobr.addmethod("onendframe", func {
+			if( igmstate!=1 ) return;
+			if( .framenr==27 )	{
+				if( ankajko.isplaying(-1) && ankajko.framenr>0 && ankajko.framenr<ankajko.nofframes(-1) )	{
+					if( 2->rand ) .crplay( "kajko" + 3->rand );
+				} else {
+					idtama--;
+					if( idtama<0 ) {
+						idtama = 0;
+						anwoda.hide;
+					}
+					<grtam.get(idtama)>.show;
+				}
+			}
+			} );
+		ankokosz.addmethod("onendframe", func {
+			if( igmstate==1 && .framename=="ciach" )	{
+				<grtam.get(idtama)>.hide;
+				anwoda.setframe(idtama,0);
+				anwoda.show;
+				idtama++;
+				if( idtama >= grtam.size )	{
+					igmstate = 2;
+					.cbplay("kokosz3");
+				}
+			}
+			} );
+		new int idtama = 0;
+		ankokosz.addmethod("onfinish", func {
+			@id = .actionnr(-1);
+			if(id==1 )	{
+				.setframe(0,0);
+			} else if (id==0)	{
+			}
+			} );
+		
+		new Button but;
+		
+		anbutkajko	{
+			.Button_isinalpha;
+			.addmethod("butclick", func {
+				if( igmstate==1 && ankajko.isplaying(-1)==false )
+					ankajko.play(0);
+				} );
+			but.add(this);
+		};
+		anbutkokosz	{
+			.Button_isinalpha;
+			.addmethod("butclick", func {
+				if( igmstate==1 && ankokosz.isplaying(-1)==false )
+					ankokosz.play(0);
+				} );
+			but.add(this);
+		};
+		
+		.timer = ("timgo", 2000, func {
+			if( igmstate == 1 )	{
+				.setdelay(1000+500->rand);
+				anbobr.play(0);
+				if( 2->rand ) ankijek.play(0);
+			}
+			.play;
+			} );
+		
+		.cbplay("nar1");
+	}
+	mouse_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+

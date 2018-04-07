@@ -1,0 +1,74 @@
+
+class ImgMover	{
+	init()	{
+		new string smoved=null;
+		new int ilastx;
+		new int ilasty;
+		new int irelx;
+		new int irely;
+	}
+	public mssetobj(string s)	{	this.setobj(s,mouse.getpos);	}
+	public setobj(string s, int x, int y)	{	this.set(s,x,y,0,0);	}
+	public set(string s, int x, int y, int dx, int dy)	{
+		ilastx = <s>.getposx()-dx;
+		ilasty = <s>.getposy()-dy;
+		irelx = x-<s>.getpx();
+		irely = y-<s>.getpy();
+		smoved = s;
+	}
+	public msmove()	{	this.move(mouse.getpos);	}
+	public msftmove()	{	this.ftmove(mouse.getpos);	}
+	public move(int x, int y)	{
+		if( smoved!=null )	<smoved>.setpos( x-<smoved>.lodx()-irelx, y-<smoved>.lody()-irely );
+	}
+	public ftmove( int x, int y)	{	if( smoved!=null )	<smoved>.setpos( x, y );	}
+	public retobj()	{	this.ret(0,0);	}
+	public ret(int dx, int dy)	{
+		<smoved>.setpos(ilastx+dx, ilasty+dy);
+		this.free();
+	}
+	public put(int x, int y)	{
+		<smoved>.setpos(x,y);
+		this.free();
+	}
+	public free()	{	smoved=null;	}
+	public string getmover()	{	return smoved;	}
+	public string getfree	{	@s = smoved; .free; s; }
+	public bool moving()	{	return smoved!=null;	}
+}
+
+class ConImgMover : ImgMover, ObjController	{
+	init()	{
+		ImgMover::init();
+		ObjController::init();
+	}
+	onmousemove()	{	this.msmove();	}
+}
+
+class DelayMover : ImgMover, LObjController	{
+	init()	{
+		ImgMover::init();
+		LObjController::init();
+		new DelayTaker cldt; 
+	}
+	_put()	{
+		cldt.ret();
+		this.<_sme+"_PUT">();
+	}
+	set(string s, int x, int y, int dx, int dy)	{
+		ImgMover::set(s,x,y,dx,dy);
+		cldt.take;
+	}
+	onmousemove()	{	this.msmove();	}
+	onmouselclick()	{
+		if( this.getlock() ) return;
+		if( cldt.isonclick() )	this._put();
+		else if (!cldt.istaken())
+			this.<_sme+"_GET">();
+	}
+	onmouselrel()	{
+		if( this.getlock() ) return;
+		if( cldt.isonrel() )
+			this._put();
+	}
+}

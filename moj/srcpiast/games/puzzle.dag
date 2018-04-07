@@ -1,0 +1,210 @@
+game gamepuzzle : classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		this.setgraphpath( "scripts/part1/puzzle/");
+		this.cstdbkg();
+		this.newclbut("clb", "strzalki.pyz", 20, "imglobcurs");
+		clb.clickfunc("gmbutclick");
+		clb.relfunc("gmbutrel");
+		clb.movofffunc("gmbutrel");
+		this.cnewtimerfin("timrev", 50, 1,"fintimrev");
+		
+		this.newanima("anpodklad","puzzle.pyz", 20);
+		new int ilepuz = this.newanframes("anpodklad", "anp", 0);
+		anpodklad.setframe(1,0);
+		anpodklad.setz(5);
+		string s;
+		new int posx = 30;
+		new int iy1 = clb.getpulap1();
+		new int iy2 = clb.getpulap2();
+		new gmobjvec grpz;
+		int posy = iy1;
+		int imaxr = 0;
+		int pom;
+		for(int i=0; i<ilepuz; i++)	{
+			s = "anp"+i;
+			clanpack.resizemethods(s);
+			grpz.add(s);
+		}
+		grpz.hash();
+		for(int i=0; i<ilepuz; i++)	{
+			s = grpz.get(i);
+			<s>.setbpos(posx,  posy);
+			<s>.clip(0, iy1, 800, iy2);
+			posy += <s>.geth();
+		}
+		new string sdir;
+		new string smov = null;
+		new int iznr = 20;
+		
+		new classsndbank csok;
+		csok.load("part1piast", 12, 21, 0, 0);
+		this.newsnd("sndsiem1", "part1siemowit1.wav");
+		this.newsnds("sndrzep", 2, "part1rzepicha", 2, 3);
+		this.newsnds("sndpias", 22, "part1piast", 22, 23);
+
+		this.cplayintrofun("part1piast11.wav", "mstartgame");
+		this.newsndloop("sfxrew", "sfx/przesun.wav");
+		this.newsnd("sfxget", "sfx/getpuz.wav");
+		this.newsnd("sfxput", "sfx/putpuz.wav");
+		this.newsnd("sfxbad", "sfx/putbadpuz.wav");
+	}
+	int getpulap1()	{		return <this.getimg("up")>.getey()+10;	}
+	int getpulap2()	{		return <this.getimg("down")>.getpy()-10;	}
+	gmbutclick(string s)	{
+		if( grpz.size()<=0 ) {	return;	}
+		sdir = s;
+		if(this.mclickbut()==true)	{
+			timrev.play();
+			sfxrew.play();
+		}
+	}
+	gmbutrel(string s)	{
+		timrev.stop(false);
+		sfxrew.stop(false);
+	}
+	int mclickbut()	{
+		if( grpz.size()<=0 ) {	return false;	}
+		if(sdir=="down" && <grpz.last()>.getey() > iy2 )	{
+			grpz.move(0,-20);
+			return true;
+		} else if (sdir=="up" && <grpz.first()>.getpy() < iy1)	{
+			grpz.move(0,20);
+			return true;
+		}
+		return false;	
+	}
+	fintimrev()	{
+		if( this.mclickbut()==true)	{
+			this.play();
+		} else {
+			sfxrew.stop(false);
+		}
+	}
+	mstartgame()	{
+		igmstate = 1;
+	}
+	mousemove()	{
+		if( smov!=null )	{
+			<smov>.setrelpos( mouse.getpx(), mouse.getpy() );
+		}
+	}
+	int misnear(string s)	{
+		if( cllen.ilen( <s>.getpx(), <s>.getpy(), <s>.lodx(), <s>.lody() ) <= 30 )	{
+			return true;
+		} else {
+			return false;
+		}
+	}
+	mwstaw()	{
+		sfxput.play();
+		ilepuz--;
+		if(ilepuz<=0)	{
+			igmstate = 2;
+			this.cbplaywithfin("sndpias22", "mfinp22");
+		} else {
+			this.crplay("csok");
+		}
+	}
+	mfinp22()	{	this.cbplaywithfin("sndrzep2", "mfinrzep2"); }
+	mfinrzep2()	{	this.cbplaywithfin("sndpias23","mfinp23"); }
+	mfinp23()	{	this.cbplaywithfin("sndsiem1", "mfinsiem1"); }
+	mfinsiem1()	{	this.cbplaywithfin("sndrzep3", "mfinrzep3"); }
+	mfinrzep3()	{	gameapi.play("gamerzep2"); }
+	mouselrel()	{
+		if(smov!=null)	{
+			if ( this.misnear(smov)==true)	{
+				<smov>.setpos(0,0);
+				<smov>.setz(10);
+				smov = null;
+				this.mwstaw();
+			} else if( anpodklad.isin( mouse.getpx(), mouse.getpy(), true, true )!=false )	{
+				iznr++;
+				if( iznr > 999 )	{
+					iznr = 20;
+				}
+				<smov>.setz(iznr);
+				smov = null;
+				sfxbad.play();
+			} else {
+				<smov>.setz(20);
+				<smov>.clip(0, iy1, 800, iy2);
+				if( grpz.size() > 0)	{
+					<smov>.setbpos( posx, <grpz.last()>.getey() );
+				} else {
+					<smov>.setbpos( posx, clb.getpulap1() );
+				}
+				grpz.add(smov);
+				smov = null;
+				sfxbad.play();
+			}
+		}
+	}
+	mouselclick()	{
+		if(igmdebug==true)	{
+			this.cactsndstop(true);
+		}
+		if( igmstate==1)	{
+			int msx = mouse.getpx();
+			int msy = mouse.getpy();
+			string s = engine.getimg( msx, msy, true, true, 20, 999 );
+			if( s!=null )	{
+				sfxget.play();
+				smov = s;
+				<s>.saverelpos( msx, msy );
+				<s>.setz(1000);
+				<s>.clip(0,0,800,600);
+				grpz.movefrom(s,0,-<s>.geth());
+				grpz.remove(s);
+				<s>.setrelpos( msx, msy );
+			}
+		}
+	}
+}
+
+class classpiasthouse	: classadvpiast	{
+	init()	{
+		classadvpiast::init();
+		this.setgraphpath( "scripts/part1/rzepicha/");
+		this.cstdbkg();
+		this.newstdanima("anfire","ogien.pyz", 10);
+		this.newstdanima("anrzep","rzepicha.pyz", 10);
+		anrzep.hide();
+	}
+	mouselclick()	{
+		if(igmdebug==true)	{
+			this.cactsndstop(true);
+		}
+	}
+}
+game gamerzepicha1	: classpiasthouse	{
+	init()	{
+		classpiasthouse::init(); 
+		
+		this.newsnds("sndpias", 9, "part1piast", 9, 10);
+		this.newsnd("sndrzep1", "part1rzepicha1.wav");
+
+		this.cherotalk("sndpias9", "mfinp9", null, null);
+	}
+	mfinp9()	{	this.cherotalk("sndrzep1", "mfinr1", "anrzep", "gadaL");	}
+	mfinr1()	{	this.cherotalk2("sndpias10", "mfinp10", "anrzep", "gadaL", "anrzep");	anrzep.anhide();	}
+	mfinp10()	{ gameapi.play("gamepuzzle"); }
+}
+
+game gamerzep2	: classpiasthouse	{
+	init()	{
+		classpiasthouse::init();
+		
+		this.newsnds("sndpias", 24, "part1piast", 24, 26);
+		this.newsnds("sndrzep", 4, "part1rzepicha", 4, 5);
+		this.newsnd("sndsiem3", "part1siemowit2.wav");
+
+		this.cherotalk("sndpias24", "mfinp24", null, null);
+	}
+	mfinp24()	{	this.cherotalk("sndrzep4", "mfinr4", "anrzep", "gadaL");	}
+	mfinr4()	{	this.cherotalk2("sndpias25", "mfinp25", null, null, "anrzep");	anrzep.hide();	}
+	mfinp25()		{	this.cherotalk("sndsiem3", "mfins3", null, null);	}
+	mfins3()	{	this.cherotalk("sndrzep5", "mfinr5", "anrzep", "gadaL");	}
+	mfinr5()	{	this.cherotalk2("sndpias26", "mfinp26", null, null, "anrzep");	anrzep.hide();	}
+	mfinp26()	{	gameapi.play("gamepodworko3"); }
+}

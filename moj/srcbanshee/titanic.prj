@@ -1,0 +1,73 @@
+path:
+	srctitanic/
+
+src:
+	libs/project.dag
+	libs/system.dag
+	libs/collections.dag
+	libs/music.dag
+	libs/vars.dag
+	libs/mouse.dag
+	libs/length.dag
+	libs/packs.dag
+	libs/containers.dag
+	libs/sounds.dag
+	libs/game.dag
+	libs/buttons.dag
+	libs/masks.dag
+	libs/basetypes.dag
+	libs/gametools.dag
+	libs/gamecontroller.dag
+	libs/adv.dag
+	libs/saves.dag
+	libs/script.dag
+	gameobjs/painter.dag
+	gameobjs/asker.dag
+	gameobjs/placepointer.dag
+	gameobjs/counter.dag
+	gameobjs/gfxobjects.dag
+	gameobjs/fadeinout.dag
+	gameobjs/texttyper.dag
+	gameobjs/delaytaker.dag
+	gameobjs/imgmover.dag
+	gameobjs/rewinder.dag
+	gameobjs/buttons.dag
+	gameobjs/textbox.dag
+	gameobjs/lexer.dag
+	gameobjs/anfx.dag
+	gameobjs/lang.dag
+	gameobjs/pyzcounter.dag
+	gameobjs/animamover.dag
+	gameobjs/lives.dag
+	gameobjs/imganima.dag
+	advlibs/advmouse.dag
+	templates/tmenu.dag
+	templates/tpainter.dag
+	templates/tmemo.dag
+	games/tc_tools.dag
+	games/tc_match3.dag
+	games/stdgame.dag
+	games/main.dag
+	games/tc_kajuta.dag
+	games/tc_pokojlilian.dag
+	games/tc_hoduchy.dag
+	games/tc_drzwikotlownia.dag
+	games/tc_zegar.dag
+	games/tc_kajuta2.dag
+	games/tc_menu.dag
+	games/tc_puzzle.dag
+	games/tc_memo.dag
+	games/tc_intro.dag
+	games/tc_login.dag
+	games/tc_cs1.dag
+	games/tc_haslo.dag
+	games/tc_krysztaly.dag
+	games/tc_szuflady.dag
+	games/tc_kajuta3.dag
+	games/tc_info.dag
+
+all:
+	dd1.dag
+
+out:
+	srctitanic/titanic.odd

@@ -1,0 +1,97 @@
+new string sAskerGame;
+class StdGame : classadv, GameController, Localize	{
+	init(string s)	{
+		AdventureGame = false;
+		igmstate = 0;
+		classadv::init;
+		GameController::init(s);
+		Localize::init;
+		clbuts.setcursorpos(0, 0);
+		claskexit.setcursorpos(0, 0);
+		.path = (s);
+		.setwavpath(SNDPATH);
+		bsms.setstd;		// ustawia standardowo 
+		clmusic.play;
+		clbuts.reset;
+		claskexit.reset;
+		advmouse.setstd;
+		new Music mus;
+		if( PrzygodaMode )	{
+			classadvcontroller::advsaveonstart;
+			classadvstdgame::advsave_game;
+		}
+		
+		new Button but1;
+	}
+	cbutexit	{
+		.newanima("anbutexit", "$scripts/common/butexit.pyz", 300);
+		anbutexit.Button_std;
+		anbutexit.addmethod("butclick", func { <GAME>.<this+"_lclick">; } );
+		but1.add("anbutexit");
+	}
+	cbutmusic		{
+		.newanima("anbutmusic", "$scripts/common/butmuz.pyz", 300);
+		if( !bPlayMusic )	{
+			anbutmusic.setframe(1,0);
+		}
+		anbutmusic.Button_std;
+		anbutmusic.addmethod("butclick", func {
+			@id = .framenr;
+			if( bPlayMusic )	{
+				bPlayMusic = false;
+				.setframe(1,id);
+				<GAME>.stop_music;
+			} else {
+				bPlayMusic = true;
+				.setframe(0,id);
+				<GAME>.play_music;
+			}
+			} );
+		but1.add("anbutmusic");
+	}
+	/********************* adv **************************************/
+	cutscene	{
+		new CutScene ccs(0, 0, iResX, iResY);
+		ccs.setz(2000);
+	}
+	gotoadv(string spath, string sgame)	{
+		sgmlastscene = gameapi.getgamename;
+		sgmglobpath = spath;
+		sgmgame = sgame;
+		gameapi.play("gameadvdef");
+	}
+	/********************* helpful **************************************/
+	crect	{	new Rect rec(600,196,403,497);	}
+	crect2	{	new Rect rec2(6,174,1012,530);	}
+	cshowbut(string sbut, @dir)	{
+		clbuts (sbut, dir) { (string sbut, @dir)
+			clp.show( buts.callimgfun( sbut, "getcx"), buts.callimgfun( sbut, "getcy"), dir ); 
+		};
+	}
+	napisshow(int x, int y)	{
+		.show;
+		.move(x,y);
+	}
+	napispod(string s)	{	.napisshow(<s>.getcx-.getw/2, <s>.getey+5); }
+	/***********************************************************/
+	advclick()	{
+		if( igmdebug && (igmstate==0 || igmstate==5) )	{
+			this.cactsndstop(true);
+		}
+	}
+	key_down	{
+		if( igmdebug && keyboard.iskeydown("lctrl") && keyboard.iskey("r") )	.crestart;
+	}
+	askfor(@s)	{ if( igmstate!=111) {sAskerGame=s; claskexit.askexittomenu; }	}
+	public askrestart	{	claskexit.askrestart;	}
+	/***********************************************************/
+	onmusicfin      {	mus.play;	}
+	exit	{
+		bsms.setstd;
+		.game_exit;
+		if( igmsubtitle )	{
+			subtitle.reset;
+		}
+	}
+}
+

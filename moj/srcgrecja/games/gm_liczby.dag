@@ -1,0 +1,129 @@
+game Liczby : DziejeGame	{
+	init	{
+		DziejeGame::init("liczby");
+		
+		.EgiptSave("liczby");
+		
+		.gamebg;
+		.imgs = (A, "bkg.pyz", "karta.pyz 50", "liczby.pyzH 60",  "skradziono.pyzH 55", "podp.pyz 5");
+		
+		.sfxs = (A, "pisze2 90");
+		
+		new gmimgvec grok;
+		"grok" .* "ok.pyz";
+		grok.setz(55);
+		grok.hide;
+		
+		new classplacepointer2 clp;
+		new Button but;
+		
+		//new img imgkursor;
+		//imgkursor.load("scripts/common/kursreka.png");
+		//imgkursor.hide;
+		
+		//mouse.setcursor("imgkursor");
+		.cloadcursor("$scripts/common/kursreka.png");
+		|new int xkurs, new int ykurs| = classansearcher::firstnotrxy1("imgkursor");
+		clbuts.setcursorpos(xkurs, ykurs);
+		claskexit.setcursorpos(xkurs, ykurs);
+		
+		@x = 673;
+		@y = 421;
+		@dx, @w = 30, @s[2];
+		for( int i=0; i<3; i++)	{
+			s0 = "grp" + i;
+			new gmimgvec <s0>;
+			<s0>.var2("iready",0);
+			for( int j=0; j<2; j++)	{
+				dx = x;
+				for( int k=0; k<3; k++)	{
+					s1 = "im"+i+"_"+j+"_"+k;
+					new img <s1>;
+					<s1>.create(w, w, .grey(240), 255);
+					<s1>.imgborders(1,.black,128);
+					<s1>.setpos(dx, y);
+					dx += w + 1;
+					<s0>.add(s1);
+					<s1> (s0) { (string sg)
+						new string san = "an" + this;
+						.copyanima("anliczby", san);
+						.var2("liczan", -1);
+						new string sgr = sg;
+						.addmethod("myvalue", func { <san>.actionname->to_i;	});
+						.addmethod("isbutin", func { (int x, int y) .isin(x,y+ykurs,1,1); });
+						//.addmethod("butmoveon", func {	"dupa"->print;	} );
+						//.addmethod("butmoveoff", func { bsms.setstd; });
+						.addmethod("butclick", func {
+							if( igmstate!=1 || <sgr>.iready ) return;
+							liczan++;
+							if( liczan >= <san>.nofactions )	{
+								<san>.hide;
+								liczan=-1;
+							} else {
+								<san>.show;
+								<san>.setframe(liczan,0);
+								<san>.ansetcpos(.getcx, .getcy);
+								.crplay("fxpisze2");
+							}
+							int ile = 0;
+							for( int i=0; i< <sgr>.size; i++) {
+								@s = <sgr>.get(i);
+								if( <s>.liczan!=-1 ) ile += <s>.myvalue;
+							}
+							match(sgr)	{
+								"grp0" => 52;
+								"grp1" => 40;
+								"grp2" => 44;
+								? => ;
+							}
+							int mabyc = _;
+							if( ile==mabyc ) {
+								<sgr>.iready=(1);
+								<grok.get( sgr.gete(0,1) )>.show;
+							}
+							if( grp0.iready && grp1.iready && grp2.iready )	{
+								igmstate = 2;
+								anskradziono.show;
+								.cbplay("sndend");
+							}
+							} );
+					};
+					but.add(s1);
+				}
+				y += w + 1;
+			}
+			y += 14;
+			<s0>.setz(60);
+		}
+		
+		.sounds = (A,
+			"snd1", "Oto obliczenia Haseta", func { .cbplay("snd2"); clp.show(405,330,"lu"); },
+			"snd2", "Za jeden kamieñ otrzymujemy 4 sztabki zlota", func { .cbplay("snd3"); clp.show(520,470,"rr"); },
+			"snd3", "Wys³ali¶my 3 partie towarów; Tutaj Haset obliczy³ ile z³ota otrzymali¶my w zamian", func {
+				clp.stoph;
+				.cbplay("snd4");
+				ankarta.show;
+				},
+			"snd4", "Sprawdzê czy wszystko siê zgadza", func { clp.showob("im0_0_0","rd"); .cbplay("snd5"); },
+			"snd5", "W te kwadraty bêdê wpisywa³ ile sztabek z³ota nale¿y nam siê za ka¿d± partiê kamieni", func {
+				clp.stoph;
+				igmstate = 1;
+				},
+			"sndend", "Haset pomyli³ siê o 6 sztabek; Albo nie umie liczyæ albo celowo zani¿a dochody; Muszê to sprawdziæ", func {
+				ccs.close( func {
+					clsave.set("epizod", "namiestnik_sztabki");
+					.gotoadv("namiestnik", "gamenamiestnik");
+					} );
+				}
+			);
+		
+		.cbplay("snd1");
+// 		igmstate= 1;
+	}
+	mouse_lclick	{
+		if( igmdebug && igmstate!=1 ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}

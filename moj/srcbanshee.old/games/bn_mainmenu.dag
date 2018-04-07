@@ -1,0 +1,90 @@
+
+game MainMenu : StdGame	{
+	init	{
+		StdGame::init("mainmenu");
+		
+		mus.playstr("carmillas_masque.ogg -l");
+		.sfxs = (A, "bgrwiatrN 50", "bgrlas2N 30");
+		
+		.imgs = (A, "bkg.jpg", "szkielko.pyz 100", "sciezka.pyz", "buts.pyzG 50", "maska.pyz 5");
+		
+		ansciezka.anhideonsetframe;
+		
+		new filter ftmaska;
+		ftmaska.link("anmaska");
+		
+		.animaloader_load("animy.adv");
+		
+		@s = grbuts.getsac("bonus");
+		<s>.hide;
+		ftmaska.loupe(s);
+		s = grbuts.getsac("credits");
+		<s>.hide;
+		ftmaska.loupe(s);
+		
+		grbuts.eval( func {
+			.addmethod("isbutin", func { (@x, @y)
+				@s = .actionname;
+				if( s=="bonus" || s=="credits" )
+					anmaska.isin(x,y,0,1) && .isin(x,y,0,0);
+				else .isin(x,y,1,0);
+				} );
+			.Button_moveon;
+			.Button_moveoff;
+			butgame.add(this);
+			} );
+		<grbuts.getsac("play")>.addmethod("butclick", func {
+			if( sgmstate!="play" ) return;
+			ccs.close( func { gameapi.play("StartBanshee"); } );
+			} );
+		<grbuts.getsac("quit")>.addmethod("butclick", func {
+			if( sgmstate!="play" ) return;
+			ccs.close( func { gameapi.exit; } );
+			} );
+		
+		ansciezka.addmethod("onendframe", func {
+			anszkielko.ansetbpos( .getcx - anszkielko.getw/2, .getcy-anszkielko.geth/2 );
+			anmaska.setpos(anszkielko.getposx, anszkielko.getposy);
+			butgame.onmousemove;
+			} );
+		
+		ansciezka.addmethod("onfinish", func {
+			.play( (.actionnr(-1) + 1)%.nofactions );
+			} );
+		//ansciezka.play(0);
+		
+		new CalcFPS cfps;
+		cfps.stdset(14, 10, 10);
+		cfps.play;
+		
+		new int istep = 0;
+		.cycle = ("timstep", func {
+			int x = ansciezka.getcx;
+			int y = ansciezka.getcy;
+			if( istep%2 )	{
+				ansciezka.ansetnextfr;
+				x = (x+ansciezka.getcx)/2;
+				y = (y+ansciezka.getcy)/2;
+			}
+			anszkielko.ansetbpos( x - anszkielko.getw/2, y-anszkielko.geth/2 );
+			anmaska.setpos(anszkielko.getposx, anszkielko.getposy);
+			butgame.onmousemove;
+			istep++;
+			
+			.play;
+			} );
+		timstep.play;
+		
+		ccs.enter( func { sgmstate="play"; } );
+	}
+	public animaloader_an(string san, string sdb, int row, int col)	{
+		match( <sdb>.get(row,col) )	{
+			"-toloupe" => {
+				ftmaska.loupe(san);
+			}
+			? => ;
+		}
+		col;
+	}
+}
+

@@ -1,0 +1,3 @@
+./kompiluj ./srckik1/kik1.prj
+#cp ./srckik1/kik1.odd /home/dedek/projekty/rysunki_gimp/kik1/project/scripts/
+awk -f optimize.awk ./srckik1/kik1.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/kik1/project/scripts/kik1.odd

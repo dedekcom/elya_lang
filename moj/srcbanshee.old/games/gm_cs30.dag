@@ -1,0 +1,97 @@
+
+game Cs30Chapter3 : StdGame	{
+	init	{
+		StdGame::init("cs30epizod3");
+		
+		modadvglob.delheros;
+		clsave.free;
+		
+		clsave.set("epizod", "e30Piraci");
+		gameapi.play("Miotla");
+	}
+}
+
+game Cs31Endlot : StdGame	{
+	init	{
+		StdGame::init("cs31endlot");
+		
+		.imgs = (A, "bkg.pyz", "drzewo.pyz 10", "kokosz.pyzH 20", "maski.pyzG 30");
+		
+		ankokosz.addmethod("onfinish", func { .cbplay("kajko1"); });
+		
+		.sounds = (A, ":kajko1", "¯yjesz?", func { ccs.close( func {
+			clsave.set("epizod", "e30Piraci");
+			.gotoadv("adwioska", "gameadwioska2");
+			}); }
+			);
+		
+		.sfxs = (A, "bgroutN", "uderzwstol", "padlglaz", "cios2", "skok2");
+		fxpadlglaz.play;
+		ccs.enter( func {
+			ankokosz.play(0);
+			} );
+	}
+}
+
+game Cs32Endrejs : StdGame	{
+	init	{
+		StdGame::init("cs32endrejs");
+		
+		.imgs = (A, "bkg.pyz", "morze.pyzP 5", "chmury.pyzG 10", "zamek.pyz 15",
+			"chmurymask.pyz 20", "peruny.pyz 25", "mglaslow.pyz 30", "mglafast.pyz 35", "kk.pyzP 40");
+		
+		.sfxs = (A, "bgrmorzeN", "perun1", "perun2");
+		
+		new AnMover ch1(grchmury.get(0), 0.34, 0); ch1.play;
+		new AnMover ch2(grchmury.get(1), 0.38, 0); ch2.play;
+		new AnMover ch3(grchmury.get(2), 0.74, 0); ch3.play;
+		new AnMover ch4(grchmury.get(3), 0.94, 0); ch4.play;
+		
+		.copyanima("anchmurymask", "anchmurymask2"); anchmurymask2.move(-anchmurymask2.getw,0);
+		new AnMover ch5("anchmurymask", 0.2, 0); ch5.play;
+		new AnMover ch6("anchmurymask2", 0.2, 0); ch6.play;
+		
+		.copyanima("anmglaslow", "anmgla2"); anmgla2.move(-anmgla2.getw,0);
+		.copyanima("anmglafast", "anmgla3"); anmgla3.move(-anmgla3.getw,0);
+		.cycle = ("timgla", func {
+			anmglaslow.move(1,0); anmgla2.move(1,0);
+			if( anmgla2.getpx>=0 )	{
+				anmglaslow.move(-anmgla2.getw, 0);
+				anmgla2.move(-anmgla2.getw, 0);
+			}
+			anmglafast.move(2,0); anmgla3.move(2,0);
+			if( anmgla3.getpx>=0 )	{
+				anmglafast.move(-anmgla3.getw, 0);
+				anmgla3.move(-anmgla3.getw, 0);
+			}
+			.play;
+			} );
+		timgla.play;
+		
+		anperuny.addmethod("onendframe", func {
+			if( .framename=="blysk" )	{
+				anbkg.setframe(-1,1);
+				anzamek.setframe(-1,1);
+			} else {
+				anbkg.setframe(-1,0);
+				anzamek.setframe(-1,0);
+			}
+			} );
+		
+		.sounds = (A, "sndnar1", "Morderczy rejs wreszcie dobieg³ koñca; Wyczerpani przyjaciele ujrzeli w¶ród mg³y i chmur zarysy wyspy Hokulandii",
+			func { anperuny.anplayfin(0, "mend" ); } 
+			);
+		
+		ccs.enter( func { .cbplay("sndnar1"); } );
+	}
+	mend	{
+		ccs.close( func {
+			.gotoadv2("adwyspa", "gameadwyspa2");
+			} );
+	}
+	mouse_rclick	{
+		if( igmdebug )
+			.mend;
+	}
+}
+

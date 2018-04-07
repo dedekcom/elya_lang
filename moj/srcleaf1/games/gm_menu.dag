@@ -1,0 +1,137 @@
+
+game Profil : Game {
+	init	{
+		Game::init("profil");
+		.imgs = (A, "bkg.pyz", "suwak.pyz 10");
+		
+		new Buttons cbut("buts.pyz");
+	}
+	cbut_lclick	{
+		match(sobject)	{
+			"p1", "p2", "p3", "ok" => gameapi.play("Wybor");
+			"exit" => gameapi.play("Outro");
+			? => ;
+		}
+	}
+	mouse_lclick()	{
+		
+	}
+}
+
+game Wybor : Game {
+	init	{
+		Game::init("wybor");
+		.imgs = (A, "bkg.pyz");
+		
+		new Buttons cbut("buts.pyz");
+	}
+	cbut_lclick	{
+		match(sobject)	{
+			"exit" => gameapi.play("Profil");
+			? => gameapi.play("Menu");
+		}
+	}
+	mouse_lclick()	{
+		
+	}
+}
+
+
+game Menu : Game {
+	init	{
+		Game::init("menu");
+		.imgs = (A, "bkg.pyz");
+		new Buttons cbut("buts.pyz");
+	}
+	cbut_lclick	{
+		match(sobject)	{
+			"exit" => gameapi.play("Outro");
+			"ranking" => gameapi.play("Top");
+			"opcje" =>  gameapi.play("Opcje");
+			"gra" =>  gameapi.play("Lada");
+			? => ;
+		}
+	}
+	mouse_lclick()	{
+		
+	}
+}
+
+game Top : Game {
+	init	{
+		Game::init("top");
+		.imgs = (A, "bkg.pyz");
+		new Buttons cbut("buts.pyz");
+		new gmimgvec gralf;
+		"gralf" ..< "alfabet.pyz";
+		
+		new gmimgvec grp;
+		new int ialflimit = 10;
+		new int ialfstep = 45;
+		for( int i=0; i<ialflimit; i++)	{
+			@s = "analf"+i;
+			.copyanima("analfabet", s);
+			<s>.hide;
+			grp.add(s);
+		}
+		new int iposalf = 0;
+	}
+	cbut_lclick	{
+		match(sobject)	{
+			"exit" => gameapi.play("Menu");
+			"del" => {
+				<grp.get(iposalf)>.hide;
+				iposalf--;
+				if( iposalf<0 ) iposalf=0;
+			}
+			? => ;
+		}
+	}
+	mouse_move	{
+		
+	}
+	mouse_lclick()	{
+		if( gralf.isin(mouse.getpos,1,1) )	{
+			@s = grp.get(iposalf);
+			<s>.setframe( 0, <gralf.getsfound>.framenr );
+			<s>.ansetbpos( 136 + iposalf*ialfstep, 16);
+			<s>.show;
+			<s>.setz(20);
+			iposalf++;
+			if( iposalf>=ialflimit )
+				iposalf = ialflimit-1;
+		}
+	}
+}
+
+game Opcje : Game {
+	init	{
+		Game::init("opcje");
+		.imgs = (A, "bkg.pyz", "mson.pyz 5", "dzwiek.pyz 10", "muzyka.pyz 10");
+		
+		new Buttons cbut("buts.pyz");
+	}
+	cbut_lclick	{
+		match(sobject)	{
+			"exit" => gameapi.play("Menu");
+			? => ;
+		}
+	}
+	mouse_lclick()	{
+		
+	}
+}
+
+game Outro : Game {
+	init	{
+		Game::init("outro");
+		.imgs = (A, "bkg.pyz");
+		
+		.timer = ("timout", 3000, "mexit");
+		timout.play;
+	}
+	mexit	{ gameapi.play("exit"); }
+	mouse_lclick()	{
+		.mexit;
+	}
+}

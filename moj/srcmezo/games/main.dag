@@ -1,0 +1,196 @@
+new classgamepause clpause;
+new classgamemusic clmusic;
+clmusic.sndbgrpath("sounds/bgr/");
+clmusic.musicpath("sounds/music/");
+clmusic.load("sounds/music.db");
+
+new snd sndakskermovon;
+sndakskermovon.load("sounds/sfx/butmovon.wav");
+sndakskermovon.setvol(50);
+
+class classasker2 : classasker	{
+	init()	{
+		classasker::init();
+		
+		new snd sndaskexit;		sndaskexit.setstartstopflag(false,true);
+		new snd sndaskexitgame;	sndaskexitgame.setstartstopflag(false,true);
+		new snd sndyes;			sndyes.setstartstopflag(false,true);
+		new snd sndno;			sndno.setstartstopflag(false,true);
+		new snd sndaskrestart;	sndaskrestart.setstartstopflag(false,true);
+		new snd sndaskrestart2;	sndaskrestart2.setstartstopflag(false,true);
+
+		.reload;
+		this.load( "scripts/common/asker.pyz", 12000 );
+		this.fxonmovon("sndakskermovon");
+	}
+	reload	{
+		this.setwavpath(SNDPATH);
+		@s = .getsndpath;
+		sndaskexit.load( s + "nar07.wav");
+		sndaskexitgame.load( s + "nar12.wav");
+		sndyes.load( s + "nar08.wav");
+		sndno.load( s + "nar09.wav");
+		sndaskrestart.load( s + "nar11.wav");
+		sndaskrestart2.load( s + "nar14.wav");
+	}
+	askexittomenu()	{
+		this.ask( "sndaskexit", "sndyes", "sndno", "myestomenu", "mnotomenu");
+	}
+	askexitgame	{	.ask( "sndaskexitgame", "sndyes", "sndno", "myestomenu", "mnotomenu");	}
+	askrestart()	{
+		this.ask( "sndaskrestart", "sndyes", "sndno", "myesrestart", "mnorestart");
+	}
+	askrestart2()	{
+		this.ask( "sndaskrestart2", "sndyes", "sndno", "myesrestart", "mnorestart");
+	}
+	mnotomenu()	{}
+	myestomenu()	{
+		modadvglob.delheros;
+		clsave.free;
+		match( gameapi.getgamename() )	{
+			"Archeo" => "SubMenu";
+			"Bizuteria" => "SubMenu";
+			"Epoki" => "SubMenu";
+			"Puzzle" => "SubMenu";
+			"Puzzle2" => "SubMenu";
+			"Quiz" => "SubMenu";
+			"Muzeum" => "MenuGry";
+			"MainMenu" => "Outro";
+			"Bajka" => "MainMenu";
+			? => "SubMenu";
+		}
+		gameapi.play;
+	}
+	mnorestart()	{
+		match(gameapi.getgamename)	{
+			"SubMenu" => "MenuGry";
+			? => "MainMenu";
+		}
+		gameapi.play;
+	}
+	myesrestart()	{	this.crestart();	}
+	/*****************************************************************/
+	ask( string sask, string syes, string sno, string sf1, string sf2 )	{
+		if( !ccs.isplaying )	classasker::ask( sask, syes, sno, sf1, sf2 );
+	}
+}
+
+new classasker2 claskexit;
+
+public LANG=(@s)	{
+	LANG = s;
+	SNDPATH = "sounds/";
+	if( LANG=="pl" ) LANG="";
+	if( LANG.length > 0 ) SNDPATH += LANG + "/";
+	
+	claskexit.reload;
+}
+
+module clbuts	{
+	init()	{}
+	load()	{
+		new classbutton buts;
+		buts.build("scripts/common/buttons.pyz", 4000, "imglobcurs");
+		buts.transclickfunc( engine.actclassname(), "butclick");
+		buts.transmovonfunc( engine.actclassname(), "butmovon");
+		buts.transmovofffunc( engine.actclassname(), "butmovoff");
+		buts.disableall();
+		new db dbb;
+		dbb.load("scripts/common/buts.db");
+		new snd sndfxglobon;
+		sndfxglobon.load("sounds/sfx/globbutmovon.wav");
+		sndfxglobon.setvol(50);
+		new @bvisible = true;
+	}
+	reset()	{
+		buts.disableall();	
+		@sgame = gameapi.getgamename;
+		int pos = dbb.findbyrow( sgame );
+		if( pos>=0 )	{
+			int ile = dbb.getcolsno( pos );
+			for( int i=1; i<ile; i++)	{
+				buts.enable( dbb.get( pos, i ) );
+			}
+		}
+	}
+	setcursorpos(int x, int y)	{	buts.setcursorpos(x,y);	}
+	enable(string sbu)	{
+		buts.enable( sbu );
+	}
+	/*****************************************/
+	butmovon(string sc)	{
+		sndfxglobon.play();
+		bvisible = mouse.isvisible;
+		mouse.show;
+		.<this + "_" + sc + "_butmoveon">;
+	}
+	butmovoff(string sc)	{
+		if( !bvisible ) mouse.hide;
+		.<this + "_" + sc + "_butmoveoff">;
+	}
+	butclick(string sc)	{
+		if( sc=="pause" )	{
+			clpause.pause();
+		} else if( sc=="exit" )	{
+			match( gameapi.getgamename )	{
+				"MenuGry", "MenuTest", "MenuBaj" => gameapi.play("MainMenu");
+				"SubMenu" => {
+					if( sSubMenu == "quiz" ) gameapi.play("MainMenu");
+					else gameapi.play("MenuGry");
+				}
+				? => claskexit.askexittomenu();
+			}
+		} else if (sc=="restart")	{
+			claskexit.askrestart();
+		}
+		.<this + "_" + sc + "_butclick">;
+	}
+}
+
+class classplacepointer2 : classplacepointer    {
+	init()  {
+		classplacepointer::init();
+		this.load("scripts/common/strzalka.pyz");
+	}
+}
+
+/***************************************************/
+// new classnextgame clnextgm;
+igmstate = 0;
+
+if( igmwinlocal )	{
+	string s = engine.getspecialpath("appdata");
+	if( s!=null && engine.mkdir(s+"/"+sgmproject)==0 )	{
+		engine.mkdir(s + "/" + sgmproject + "/saves");
+	}
+}
+
+bsms.setstd;
+
+//clnextgm.load("scripts/common/games.db");
+clbuts.load;
+dzmouse.load("scripts/plansza/kursory.pyz");
+
+gameapi.play("MainLoader");
+game MainLoader : Dzieje	{
+	init	{
+		Dzieje::init("mainloader");
+		
+		
+		// ADV
+		advmouse.load("scripts/common/cursors.pyz");
+		modadv.load("scripts/common/defaults.adv");
+		modadv.loadsounds("scripts/common/sounds.db");
+		modadv.settalktype("snd");
+		modadv.loadscript("scripts/common/initscript.dsc");
+		clsave.load("saves/global.txt");
+		sgmlastscene = this;
+		
+// 		gameapi.play("Egipt");
+// 		gameapi.play("cs1");
+		gameapi.play(modadv.get("startgame:",1) );
+// 		gameapi.play("tmpg2");
+// 		gameapi.play("tmpg1");
+	}
+}
+/***************************************************/

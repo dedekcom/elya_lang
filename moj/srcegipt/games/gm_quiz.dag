@@ -1,0 +1,334 @@
+
+new string QuizMode = "t";		// easy, medium, hard
+
+game Quiz : DziejeGame	{
+	init	{
+		DziejeGame::init("quiz");
+		
+		new classfullsave csav("quizy.db");
+		csav.stdload;
+		
+		.sounds = (A,
+			"sndl1", "który obrazek przedstawia pieczywo wypiekane w Egipcie?", "mgo",
+			"sndl2", "wska¿ g³owicê egipskiej kolumny", "mgo",
+			"sndl3", "jaka broni± pos³ugiwa³ siê egipski ³ucznik?", "mgo",
+			"sndl4", "wska¿ insygnia królewskie faraona", "mgo",
+			"sndl5", "podobizny których zwierz±t widzisz na koronie faraona?", "mgo",
+			"sndl6", "któr± koronê faraon nosi³ podczas bitwy?", "mgo",
+			"sndl7", "który obrazek przedstawia kontynent afrykañski?", "mgo",
+			"sndl8", "podobiznê którego zwierzêcia mo¿na rozpoznaæ na widocznym stole ceremonialnym?", "mgo",
+			"sndl9", "które rzeczy widoczne na obrazkach wytwarzano z lnu?", "mgo",
+			"sndl10", "wska¿ rydwan egipski", "mgo",
+			"sndl11", "wska¿ rydwan egipski", "mgo",
+			"sndl12", "Które narzêdzie zastêpowa³o egipcjanom wspó³czesn± wiertarkê elektyczn±?", "mgo",
+			"sndl13", "Poka¿ wiertarkê do robienia du¿ych otworów w kamieniu", "mgo",
+			"sndl14", "Które narzêdzia zast±pi³y egipsk± pi³ê?", "mgo",
+			"sndl15", "które narzêdzia zast±pi³y egipsk± pi³ê?", "mgo",
+			"sndl16", "które zwierzêta egipcjanie wpuszczali do fosy?", "mgo",
+			"sndl17", "wska¿ mumiê", "mgo",
+			"sndl18", "do którego zwierzêcia nale¿y czaszka widoczna na obrazku?", "mgo",
+			"sndl19", "Które zwierzê zastêpowa³o egipcjanom wspó³czesny ci±gnik?", "mgo",
+			"sndl20", "Które zwierzê zastêpowa³o egipcjanom wspó³czesnyy ci±gnik?", "mgo",
+			"sndl21", "Która figura geometryczna podobna jest do piramidy?", "mgo",
+			"sndl22", "wska¿ egipski wachlarz", "mgo",
+			"sndl23", "wska¿ egipsk± fryzurê", "mgo",
+			"sndl24", "wska¿ egipski statek", "mgo",
+			"sndl25", "wska¿ obelisk", "mgo",
+			"sndl26", "wska¿ piramidê", "mgo",
+			"sndl27", "wska¿ ¶wi±tyniê", "mgo",
+			"sndl28", "wskaz egipskiego ³ucznika", "mgo",
+			"sndl29", "wska¿ lektykê egipsk±", "mgo",
+			"sndl30", "wska¿ egipsk± bi¿uteriê", "mgo",
+			"sndl31", "wska¿ egipskie ubranie", "mgo",
+			"sndl32", "wskaz egipski wachlarz", "mgo",
+			"sndl33", "wska¿ egipsk± fryzurê", "mgo",
+			"sndl34", "wska¿ szkielet kota", "mgo",
+			
+			"snds1", "wskaz egipski sposób zapisywania liczb", "mgo",
+			"snds2", "wskaz egipski sposób liczenia", "mgo",
+			"snds3", "które zwierzê by³o czczone w egipcie?", "mgo",
+			"snds4", "wska¿ pos±g nefretete", "mgo",
+			"snds5", "wsaka¿ postaæ o ciele lwa i cz³owieka", "mgo",
+			"snds6", "wsaka¿ postaæ o ciele lwa i cz³owieka", "mgo",
+			"snds7", "wskaz nemes", "mgo",
+			"snds8", "wskaz egipskie nakrycie g³owy króla", "mgo",
+			"snds9", "wskaz egipskie nakrycie g³owy króla", "mgo",
+			"snds10", "jak± d³ugo¶æ ma klawiatura komputera wg egipskich miar d³ugo¶ci?", "mgo",
+			"snds11", "wska¿ g³owicê egipskiej kolumny", "mgo",
+			"snds12", "wska¿ g³owicê egipskiej kolumny", "mgo",
+			"snds13", "wska¿ egipskie kolumny", "mgo",
+			"snds14", "wska¿ egipski topór piechoty", "mgo",
+			"snds15", "w jakich naczyniach egipcjanie przechowywali wino?", "mgo",
+			"snds16", "wska¿ egipski he³m chroni±cy g³owê ¿o³nierza", "mgo",
+			"snds17", "który helm nie pasuje do epoki starozytnego egiptu?", "mgo",
+			"snds18", "wska¿ ber³o królowej egiptu", "mgo",
+			"snds19", "która tarcza nie pochodzi ze starozytnego egiptu?", "mgo",
+			"snds20", "która tarcza nie pochodzi ze starozytnego egiptu?", "mgo",
+			"snds21", "wskaz tarcze egipsk± wg wzoru hetyckiego?", "mgo",
+			"snds22", "wskaz tarcze urzywane przez egipcjan?", "mgo",
+			"snds23", "wskaz egipskie odwa¿niki do wagi", "mgo",
+			"snds24", "wskaz egipskiego zo³nierza", "mgo",
+			"snds25", "wskaz egipskiego zo³nierza", "mgo",
+			"snds26", "który wojownik nie pasuje do epoki staro¿ytnego egiptu", "mgo",
+			"snds27", "która waga nie pasuje do staro¿ytnego egiptu", "mgo",
+			"snds28", "który obrazek przedstawia egipcjankê?", "mgo",
+			"snds29", "który obrazek przedstawia egipcjankê?", "mgo",
+			"snds30", "jak± wysoko¶æ mia³a piramida heopsa?", "mgo",
+			"snds31", "wska¿ miecz egipskiego wojownika; Uwa¿aj jedna z broni to egipska szabla", "mgo",
+			"snds32", "wska¿ obuwie egipskie", "mgo",
+			"snds33", "wska¿ egipski odpowiednik wspó³czesnej gitary", "mgo",
+			"snds34", "wska¿ egipski odpowiednik wspó³czesnej perkusji", "mgo",
+			"snds35", "przy pomocy jakich metod budowano piramidy?", "mgo",
+			"snds36", "z jakiego materia³u robiono egipskie lekkie ³odzie rybackie", "mgo",
+			"snds37", "co wspó³czesnemu rolnikowi zastêpuje egipsk± sochê?", "mgo",
+			"snds38", "które z widocznych poni¿ej polowych prac egipskiego rolnika wykonuje wspó³czesny kombajn?", "mgo",
+			"snds39", "które z widocznych poni¿ej polowych prac egipskiego rolnika wykonuje wspó³czesny kombajn?", "mgo",
+			"snds40", "Która bry³a geometryczna podobna jest do piramidy?", "mgo",
+			"snds41", "z czego egipcjanie robili m±kê?", "mgo",
+			"snds42", "z jakiej ro¶liny wykonywano papirus do pisania", "mgo",
+			"snds43", "które zwierzê nie wystêpuje w egipcie?", "mgo",
+			"snds44", "które zwierze nie wystêpuje w egipcie?", "mgo",
+			"snds45", "w której ¶wi±tyni znajduj± siê kolumny z g³owicami widocznymi na obrazku?", "mgo",
+			"snds46", "wska¿ pañstwo egipt na kontynencie afrykñskim", "mgo",
+			"snds47", "na którym kontynencie rozwinê³a siê cywilizacja staro¿ytnych egipcjan", "mgo",
+			"snds48", "egipcjanie wierzyli ¿e ksiê¿yc porusza siê po niebie", "mgo",
+			"snds49", "wska¿ egipskiego pisarza", "mgo",
+			"snds50", "wska¿ egipskie przyrz±dy do pisania", "mgo",
+			"snds51", "które zwierzê przystosowane jest do d³ugich wêdrówek po pustyni", "mgo",
+			"snds52", "wska¿ szkielet wielb³±da", "mgo",
+			"snds53", "wska¿ szkielet konia", "mgo",
+
+			"sndt1", "Ile ³okci wysoko¶ci ma Piramida hufu, zwana te¿ piramid± heopsa", "mgo",
+			"sndt2", "wska¿ ¶wi±tyniê ramzesa", "mgo",
+			"sndt3", "wska¿ ¶wi±tyniê ramzesa", "mgo",
+			"sndt4", "który fragment tekstu kamiena z rozety jest napisany grek±?", "mgo",
+			"sndt5", "która wspó³czesna budowla jest wy¿sza od piramidy heopsa?", "mgo",
+			"sndt6", "która wspó³czesna budowla jest wy¿sza od piramidy heopsa?", "mgo",
+			"sndt7", "wska¿ ¶wi±tyniê hator w denderze", "mgo",
+			"sndt8", "wska¿ pismo egipskie", "mgo",
+			"sndt9", "wska¿ pismo egipskie", "mgo",
+			"sndt10", "wska¿ pismo piktograficzne", "mgo",
+			"sndt11", "Wsa¿ statek faraona heopsa", "mgo",
+			"sndt12", "co symbolizuja insygnia królweskie", "mgo",
+			"sndt13", "wska¿ ureusz", "mgo",
+			"sndt14", "wskaz karusz", "mgo",
+			"sndt15", "wskaz wielk± harfê obrzêdow±", "mgo",
+			"sndt16", "jaka to liczba?", "mgo",
+			"sndt17", "jaka to liczba?", "mgo",
+			"sndt18", "który obrazek przedstawia lirê?", "mgo",
+			"sndt19", "który zaznaczony na czerwono obszar wskazuje morze ¶ródziemne", "mgo",
+			"sndt20", "który zaznaczony na czerwono obszar wsazuje morze czerwone", "mgo",
+			"sndt21", "które palny przedstawiaj± ¶wi±tyniê egipsk±", "mgo",
+			"sndt22", "którym kolorem zaznaczono górny bieg rzeki nil?", "mgo",
+			"sndt23", "z jakich owoców egipcjanie wytwarzali wino?", "mgo",
+			"sndt24", "w której czê¶ci afryki obfite deszcze powodowa³y wylewy nilu w egipcie?", "mgo",
+			"sndt25", "wska¿ szkielety zwierz±t wystêpuj±cych w egipcie", "mgo",
+			"sndt26", "wska¿ wielb³±da wystêpuj±cego w egipcie", "mgo",
+			
+			"sndgo", "Witaj w te¶cie wiedzy o Staro¿ytnym Egipcie; Kliknij na mnie je¶li chcesz ¿ebym powtórzy³ pytanie; Uwa¿aj; Poprawna mo¿e byæ wiêcej ni¿ jedna odpowied¼; Zaczynamy", "mfight",
+			"sndno", "Niee", null,
+			"sndyes", "Tak ", null,
+			"sndend", "Twój wynik", func { <GAME> {
+				if( !csav.bis("enable_"+.mlevelsav) && iwynik>=6 )	{
+					new gmimgvec grend;
+					"grend" .* ("blok"+QuizMode+".pyz");
+					.cbplay("sndend2");
+				}
+				}; },
+			"sndend2", "Test zaliczony; W nagrodê odblokowujê", func { <grend.last>.hide; .cbplay("sndgame"+QuizMode);	},
+			"sndgamel", "zestaw gier Archeolog", func { 	.msave("archeo");		},
+			"sndgames", "zestaw gier Szkielety", func { 	.msave("szkielety");		},
+			"sndgamet", "zestaw gier Konstruktor", func { 	.msave("konstruktor");		}
+		);
+		.imgs = (A, "bkg.pyz", "kolo.pyz 5", "lapki.pyz 5", "$scripts/common/logo.pyz 5", "prof.pyz 10");
+		
+		new int iwynik;
+		new Button buts;
+		anprof.Button_isinalpha;
+		anprof.Button_moveonms;
+		anprof.Button_moveoffms;
+		anprof.addmethod("butclick", func {
+			if( igmstate==1 )	{
+				.mpytaj;
+			}
+			} );
+		buts.add("anprof");
+		
+		new gmimgvec grok;
+		"grok" .* "okeje.pyz";
+		grok.setz(50);
+		grok.hide;
+		
+		new int ifontpoint = 32;
+		new string sfont = .stdfont( ifontpoint );
+		.newtext("txtpyt", "", sfont, 255,253,178);
+		.newtext("txtok", "", sfont, 255,253,178);
+		.newtext("txtbad", "", sfont, 255,253,178);
+		
+		new gmimgvec grels;
+		new vector vtmp;
+		new int ilepyt;
+		new int idpyt = -1;
+		new string sbgimg = null;
+		new int badodp = 0;
+		new int okodp = 0;
+		match( QuizMode )	{
+			"l" => {	vtmp.vecnewint(34);	ilepyt = 10;	}
+			"s" => {	vtmp.vecnewint(53);	ilepyt = 20;	}
+			"t" => {	vtmp.vecnewint(26);	ilepyt = 26;	}
+			/*"l" => {	vtmp.vecnewint(34);	ilepyt = 3;	}
+			"s" => {	vtmp.vecnewint(53);	ilepyt = 3;	}
+			"t" => {	vtmp.vecnewint(26);	ilepyt = 3;	}*/
+			? => ;
+		}
+		vtmp.hash;
+		for( int i=0; i<ilepyt; i++)	{
+			grels.add( QuizMode + (vtmp.get(i)+1) );
+		}
+		new gmimgvec grsq;
+		"grsq" .* "kwadraty.pyz";
+		grsq.hide;
+		grsq.eval( func {
+			.Button_isinvis;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate==1 )	{
+					if( .isvisible )	{
+						<grok.get(.actionnr(-1))>.hide;
+						.hide;
+					} else {
+						<grok.get(.actionnr(-1))>.show;
+						.show;
+					}
+				}
+				} );
+			buts.add(this);
+			} );
+		new gmimgvec grodp;
+		
+		buts.load("grprzyc", "przyciski.pyz", func { (@id)
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( igmstate==1 )	{
+					bool odp = true;
+					for( int i=0; i<3; i++)	{
+						@s = <grodp.get(i)>.framename;
+						@s2 = grsq.get(i);
+						if( (<s2>.isvisible && s.contains("ok")) || (!<s2>.isvisible && !s.contains("ok")) )	{
+							//<grok.get(i)>.show;
+						} else {
+							odp = false;
+						}
+					}
+					igmstate = 0;
+					if( odp )	{
+						okodp++;
+						anprof.play("yes");
+						.cbplay("sndyes");
+					} else {
+						badodp++;
+						anprof.play("no");
+						.cbplay("sndno");
+					}
+				}
+				} );
+			} );
+		
+		buts.unlock;
+		
+		.timer = ("timwait", 1000, "mfight");
+		anprof.addmethod("onfinish", func { if(.actionname=="yes" || .actionname=="no") timwait.play; } );
+		
+		.mprof("sndgo");
+	}
+	mlevelsav	{
+		match(QuizMode)	{
+			"l" => "archeo";
+			"s" => "szkielety";
+			"t" => "konstruktor";
+			? => ;
+		}
+	}
+	msave(string s)	{
+		csav.bset("enable_"+s);
+		csav.stdsave;
+	}
+	mgetpyt	{	grels.get(idpyt); }
+	mpytaj	{
+		.mprof( "snd" + .mgetpyt );
+	}
+	mprof(string s)	{
+		anprof.play("talk");
+		igmstate = 0;
+		.cbplay(s);
+	}
+	mendpro	{	anprof.play("stand"); }
+	mgo	{
+		igmstate = 1;
+		.mendpro;
+	}
+	mprepare	{	<GAME> {
+		idpyt++;
+		grok.hide;
+		grodp.deleteallgm;
+		grodp.free;
+		if( sbgimg!=null )	{
+			delete <sbgimg>;
+			sbgimg = null;
+		}
+		"grodp" ..< (.mgetpyt+".pyz");
+		sbgimg = grodp.first;
+		grodp.removefirst;
+		grodp.hash;
+		grsq.hide;
+		@x = <grsq.first>.getpx;
+		for( int i=0; i<3; i++)	{
+			@s = grodp.get(i);
+			@s2 = grsq.get(i);
+			<s>.setpos( <s2>.getpx - x, 0 );
+		}
+		txtpyt.txtset( "" + (idpyt+1) + "/" + grels.size );
+		txtpyt.setpos( 91->igetsc-(txtpyt.getw/2), 751->igetsc-txtpyt.geth );
+		.msetpoint;
+	}; }
+	msetpoint	{
+		txtok.txtset( okodp );
+		txtok.setpos( 256->igetsc-(txtok.getw/2), 751->igetsc-txtok.geth);
+		txtbad.txtset( badodp );
+		txtbad.setpos( 406->igetsc-(txtbad.getw/2), 751->igetsc-txtbad.geth);
+	}
+	mfight	{
+		if( idpyt>=grels.size-1 )	{
+			igmstate = 2;
+			.msetpoint;
+			<GAME> {
+				grok.hide;
+				grodp.hide;
+				grsq.hide;
+				if( sbgimg!=null )	{
+					<sbgimg>.hide;
+				}
+			
+				iwynik = (okodp.to_r/ilepyt.to_r)*100.0;
+				.newtext("txtend", ""+iwynik+"%", .stdbold(64->igetsc), 245,245,151);
+				new img imgb;
+				imgb.create( txtend.getw + 20->igetsc, txtend.geth+20->igetsc, 248,108,0, 255 );
+				imgb.setz(500);
+				imgb.ancenterscreen;
+				imgb.move( 0, -150->igetsc );
+				imgb.imgborders(2->igetsc1, 0,32,224, 255);
+				txtend.setz(510);
+				txtend.setpos( (iResX-txtend.getw)/2, (iResY-txtend.geth)/2 - 150->igetsc );
+				
+				.cbplay("sndend");
+			};
+		} else {
+			.mprepare;
+			.mpytaj;
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

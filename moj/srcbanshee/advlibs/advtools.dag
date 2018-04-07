@@ -1,0 +1,11 @@
+
+class advDelayMover : DelayImgMover, classadvobject	{
+	init	{
+		classadvobject::init;
+		DelayImgMover::init;
+		b2clicks = true;
+	}
+	onmousemove(int x, int y)		{DelayImgMover::onmousemove;}
+	onmouselclick(int x, int y)		{DelayImgMover::onmouselclick;}
+	onmouselrel(int x, int y)		{DelayImgMover::onmouselrel;}
+}

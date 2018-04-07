@@ -1,0 +1,792 @@
+game Gimp : Computro	{
+	init	{
+		Computro::init("gimp");
+		
+		// bkg.pyz  kolor.pyz  layer.pyz  layopts.pyz  pens.pyz
+		.imgs = (A, "bkg.pyz", "kolor.pyz 10", "layer.pyzH 10", "tools.pyz 5", "kursory.pyzH");
+		@xtools = 100;
+		antools.move( xtools, 0);
+		
+		new int iprevx;
+		new int iprevy;
+		new real rpozyczka;
+		new int izadanie = 1;
+		new int isubzad = 1;
+		new string sactpen = null;
+		.lang_db("dbl", "txt");
+		.lang_db("dbzad", "zad");
+		new @stdfont12 = .stdfont(12);
+// 		.mloadzad;
+		
+		new int ilayers = 0;
+		new int iactlayer = 0;
+		new gmimgvec grlay;
+		new string slastname;
+		new string styped = null;
+		new gmimgvec grdraws;
+		new int imgW = 450;
+		new int imgH = 360;
+		
+		new GUI gui("butgame");
+		
+		new vector vm1;
+		vm1.type("string");
+		//vm1.beginadd("begin", "File", "Edit", "Image", "Layer", "Filter");
+		.mloadvec("menu1");
+		@w = 100;	@x = 17;	@y = 8;	@z = 50;	@h = 20;
+		gui.newsubmenu("menu1", w, h, "vm1", "horizontal");
+		menu1.setz(z);
+		menu1.move(x, y);
+		
+		.mloadvec("menuplik");		gui.addsubmenu("menu1", 0, "menuplik", "vm1");
+		.mloadvec("menuedycja");	gui.addsubmenu("menu1", 1, "menuedycja", "vm1");
+		.mloadvec("menuobraz");	gui.addsubmenu("menu1", 2, "menuobraz", "vm1");
+		.mloadvec("menuwarstwa");	gui.addsubmenu("menu1", 3, "menuwarstwa", "vm1");
+		
+// 		rgbtitle		rgbcol		color		rgbpaleta		paleta
+		.copyanima("ankolor", "anrgbcol");
+		anrgbcol.setframe(1,0);
+		new Color pencolor;
+		pencolor.set(.black,255);
+		new img imgcolor;
+		ankolor.setframe("color",0);
+		imgcolor.clone("ankolor");
+		ankolor.setframe("rgbtitle",0);
+		.newtext("txtr", 0, stdfont12, .black);	txtr.setpos(61,432);	txtr.setz(30);
+		.newtext("txtg", 0, stdfont12, .black);	txtg.setpos(61,456);	txtg.setz(30);
+		.newtext("txtb", 0, stdfont12, .black);	txtb.setpos(61,480);	txtb.setz(30);
+		.copyanima("ankolor", "anrgbpaleta");
+		anrgbpaleta.setframe("rgbpaleta",0);
+		anrgbpaleta.Button_isin;
+		anrgbpaleta.stdbutmoveon;
+		anrgbpaleta.stdbutmoveoff;
+		anrgbpaleta.setz(20);
+		anrgbpaleta.addmethod("butclick", func { <GAME> {
+			if ( isubzad==8 || isubzad==16 || isubzad==23 || isubzad==35)	{
+				gui.newwndtitle("wincolor", null, .mtekst("setcolor"), anpaleta.getw, anpaleta.geth);
+				wincolor.winmove( anpaleta.getpx-wincolor.ibar, anpaleta.getpy-wincolor.ititlebar );
+				wincolor.winsetz( anpaleta.getz -1 );
+				anpaleta.show;
+				isubzad++;
+			}
+			}; } );
+		.msetcolor;
+		butgame.add("anrgbpaleta");
+		.copyanima("ankolor", "anpaleta");
+		anpaleta.setframe("paleta",0);
+		anpaleta.setz(20);
+		anpaleta.hide;
+		
+		new gmimgvec grsize;
+		new int ibutsize = 1;
+		"grsize" .* "pedzle.pyz";
+		grsize.setz(5);
+		grsize.move(xtools,0);
+		grsize.hide;
+		grsize.Button_isin;
+		<grsize.get(ibutsize)>.setframe(-1,1);
+		grsize.stdbutmoveon;
+		grsize.stdbutmoveoff;
+		grsize.addmethod("butclick", func {
+			@id = .getfound;
+			<.get(ibutsize)>.setframe(-1,0);
+			ibutsize = id;
+			<.get(id)>.setframe(-1,1);
+			.msetkursor;
+			if( isubzad==7 && ibutsize==3 )	{
+				isubzad = 8;
+			} else if (isubzad==19 && ibutsize==0 )	{
+				isubzad = 20;
+			}
+			} );
+		butgame.add("grsize");
+		
+		new gmimgvec grtool;
+		"grtool" .* "pens.pyz";
+		new ConImgMover cpen;
+		new img imgpen;
+		grtool.setz(5);
+		grtool.each( func { (@id)
+			.addmethod("butmoveon", func {
+				if( .actionname!=sactpen )	{
+					.setframe(-1,1);
+				}
+				} );
+			.addmethod("butmoveoff", func {
+				if( .actionname!=sactpen )	{
+					.setframe(-1,0);
+				}
+				} );
+			.Button_isin;
+			butgame.add(this);
+			} );
+		<.mgetpen("rotate")>.addmethod("butclick", func {
+			.stdpenclick;
+			if (isubzad==43)	{
+				isubzad++;
+				<GAME>.newrotatewin;
+			}
+			} );
+		<.mgetpen("bucket")>.addmethod("butclick", func {
+			.stdpenclick;
+			} );
+		<.mgetpen("scale")>.addmethod("butclick", func {
+			.stdpenclick;
+			if (isubzad==40)	{
+				isubzad++;
+				<GAME>.newscalewin;
+			}
+			} );
+		<.mgetpen("move")>.addmethod("butclick", func {
+			.stdpenclick;
+			} );
+		<.mgetpen("erase")>.addmethod("butclick", func {
+			.stdpenclick;
+			} );
+		<.mgetpen("pen")>.addmethod("butclick", func {
+			.stdpenclick;
+			if( isubzad==6 )	{
+				isubzad = 7;
+			}
+			} );
+		<.mgetpen("circle")>.addmethod("butclick", func {
+			.stdpenclick;
+			} );
+		<.mgetpen("square")>.addmethod("butclick", func {
+			.stdpenclick;
+			} );
+		
+// 		newlayer	<action>        trashlayer	<action>        checklayer	<action>        downlayer	<action>        uplayer
+		new gmimgvec grlayopt;
+		"grlayopt" .* "layopts.pyz";
+		grlayopt.each( func { (@id)
+			.Button_isin;
+			.addmethod("butmoveon", func {		.setframe(-1,1);	} );
+			.addmethod("butmoveoff", func {		.setframe(-1,0);	} );
+			.addmethod("butclick", func {
+				match( .actionname )	{
+					"newlayer" => {
+						if( isubzad==14 || isubzad==33 )	{
+							isubzad++;
+							<GAME>.newlayerwin;
+						}
+					}
+					? => ;
+				}
+				} );
+			butgame.add(this);
+			} );
+		
+		.msetcolor;
+		<.mgetpen("move")>.stdpenclick;
+		
+		new string slayeropt = null;
+		
+		// tmp
+ 		//clsave.set("epizod", "Sep");
+		
+		.sounds = (A,
+			":ania1", "Musimy jako¶ oczy¶ciæ ten obraz", null,
+			":ania2", "Spójrzcie! Pod tymi zanieczyszczeniami widaæ kontur", func { .cbplay("fel1"); },
+			":fel1", "Po prawej jest budynek klasztorny i kaplica; Z kaplicy biegnie po³±czenie z innym budynkiem", func { .cbplay("ania3"); },
+			":ania3", "Zamiast którego mamy dzi¶ Gmach G³ówny; Zagadka rozwi±zana! Kiedy asystent zostawi³ ³adunek w oran¿erii Wincenty ukrad³ stró¿owi klucz do kaplicy i przeniós³ ³adunek podziemnym przej¶ciem do zamurowanej piwnicy", func { .cbplay("fel2"); },
+			":fel2", "No to teraz musimy wej¶æ do tej kaplicy", func { ccs.close( func { .gotoadv("adsala", "gameadsala2"); } ); }
+			);
+		if( PrzygodaMode && clsave.is("epizod","Sep") )	{
+			izadanie=11;
+			isubzad = 50;
+			
+			.newanima("anmapa", "mapka.pyz", 10);
+			imgW = anmapa.getw;
+			imgH = anmapa.geth;
+			gui.newwndtitle("windraw", null, "PICT_00235.jpg "+imgW+"x"+imgH, imgW, imgH);
+			windraw.winmove( 380-windraw.getw/2, 360-windraw.geth/2 );
+			.newlayer(false, .mtekst("bkg"));
+			.msetkursor;
+			@s = .activelayer;
+			anmapa.setpos( <s>.getpx, <s>.getpy );
+			<s>.blit("anmapa");
+			delete anmapa;
+			
+			.cbplay("ania1");
+		}
+		.mloadzad;
+		
+		ccs.enter( func { igmstate = 1; } );
+	}
+	_empty_	{}
+	stdbutmoveon	{	.addmethod("butmoveon", "_empty_");	}
+	stdbutmoveoff	{	.addmethod("butmoveoff", "_empty_");	}
+	msetcolor	{
+		imgcolor.paint( pencolor.get , 0);
+		txtr.txtset(pencolor.r);
+		txtg.txtset(pencolor.g);
+		txtb.txtset(pencolor.b);
+		if( sactpen=="pen" )	{
+			imgpen.paint( pencolor.get, 0 );
+		}
+	}
+	msetkursor	{
+		if( sactpen.in(A,"pen","erase") )	{
+			ankursory.setframe(sactpen, ibutsize);
+		} else ankursory.setframe(sactpen, 0);
+		//ankursory.ansetbpos(0,0);
+		//ankursory.move( -ankursory.getw, -ankursory.geth);
+		if( <GAME>.hasvar("windraw") )	{
+			imgpen.clone("ankursory");
+			imgpen.setz(windraw.getz+1);
+			imgpen.show;
+			imgpen.anclipob("windraw");
+			if( sactpen=="pen" )	{
+				imgpen.paint( pencolor.get, 0 );
+			}
+			cpen.set("imgpen", ankursory.getw, ankursory.geth, 0, 0);
+		}
+	}
+	stdpenclick	{
+		@s = .actionname;
+		if( sactpen!=s )	{
+			if( sactpen!=null )	{
+				grsize.hide;
+				<.mgetpen(sactpen)>.setframe(-1,0);
+			}
+			sactpen = s;
+			if( s.in(A,"pen","erase") )	{
+				grsize.show;
+			}
+			antools.setframe(s,0);
+			.setframe(-1,2);
+		}
+		.msetkursor;
+	}
+	string mgetpen(string s)	{	grtool.getsac(s);	}
+	string mtekst(string s)	{	dbl.get( dbl.findbyrow(s), 1 ); }
+	mloadvec(string s)	{
+		@id = dbl.findbyrow(s);
+		vm1.free;
+		for( int i=1; i< dbl.getcolsno(id); i++)	{
+			vm1.add( dbl.get(id, i) );
+		}
+	}
+	mloadzad	{	<GAME> {
+		if( .hasvar("tdzad") )
+			.deletegmobj("tdzad");
+		new TextDb tdzad(stdfont12, 12, "$row:dbzad,"+(izadanie-1), .white, 9, 566, 2, 100, "left");
+	}; }
+	menuplik_lclick	{
+		if( isubzad==1 )	{
+			if( menuplik.idclicked==0 )	{
+				isubzad = 2;
+				.mbuilzad;
+			}
+		}
+	}
+	menuwarstwa_lclick	{
+		if( isubzad==14 || isubzad==33)	{
+			if( menuwarstwa.idclicked==0 )	{
+				isubzad++;
+				<GAME>.newlayerwin;
+			}
+		} else if (isubzad==40)	{
+			if( menuwarstwa.idclicked==1 )	{
+				isubzad++;
+				<GAME>.newscalewin;
+			}
+		} else if (isubzad==43)	{
+			if( menuwarstwa.idclicked==2 )	{
+				isubzad++;
+				<GAME>.newrotatewin;
+			}
+		} else if (isubzad==50)	{
+			if( menuwarstwa.idclicked==3 )	{
+				isubzad++;
+				<GAME>.newlevelwin;
+			}
+		}
+	}
+	mbuilzad	{	<GAME> {
+		match( isubzad )	{
+			2 => 	.newimagewin;
+			3 => {
+				gui.newwndtitle("windraw", null, "Bez nazwy "+imgW+"x"+imgH, imgW, imgH);
+				windraw.winmove( 380-windraw.getw/2, 300-windraw.geth/2 );
+				.newlayer(false, .mtekst("bkg"));
+				.msetkursor;
+			}
+			6 => {
+				if( sactpen=="pen" )	{
+					isubzad = 7;
+					if( ibutsize==3 ) isubzad = 8;
+				}
+			}
+			42 => {
+				@s = .activelayer;
+				new filter ftsubzad42;
+				ftsubzad42.link(s);
+				ftsubzad42.setzoomxy(200.0/<s>.getw,200.0/<s>.geth);
+			}
+			? => ;
+		}
+	}; }
+	newimagewin	{	.newsizewin("newimg", "wymiary", false); }
+	newscalewin	{	.newsizewin("zoomlayer", "wymiarylayer", true); }
+	newsizewin(string stitle, string soptitle, bool bsetwymiar)	{
+		gui.newwndtitle("winnew", null, .mtekst(stitle), 275, 180);
+		winnew.winmove(400-winnew.getw/2,300-winnew.geth/2);
+		gui.newbutton("butoknew", "OK", 80, 30);
+		gui.newbutton("butcancelnew", "Cancel", 80, 30);
+		butoknew.setpos(winnew.getcx-85,winnew.getey-40);
+		butcancelnew.setpos(butoknew.getex+10, butoknew.getpy);
+		gui.newtextbox("ttw", "0", 50, 20);
+		ttw.winmove( winnew.getcx, winnew.getcy-35 );
+		gui.newtextbox("tth", "0", 50, 20);
+		tth.winmove( winnew.getcx, winnew.getcy );
+		@x = ttwwnd.getex + 5 - winnew.getpx;
+		@yw = ttw.getpy-winnew.getpy;
+		@yh = tth.getpy-winnew.getpy;
+		gui.print("winnew", x, yw, "px");
+		gui.print("winnew", x, yh, "px");
+		x = 50;
+		gui.print("winnew", x, yw, .mtekst("szerokosc"));
+		gui.print("winnew", x, yh, .mtekst("wysokosc"));
+		gui.print("winnew", x-30, yw-40, .mtekst(soptitle));
+		if( bsetwymiar )	{
+			ttw.setid( imgW, 0 );
+			tth.setid( imgH, 0 );
+		}
+		@z = 10;
+		winnew.winsetz(z);
+		butoknew.setz(z);
+		butcancelnew.setz(z);
+		ttw.winsetz(z);
+		tth.winsetz(z);
+	}
+	newrotatewin	{
+		gui.newwndtitle("winnew", null, .mtekst("rotatelayer"), 275, 180);
+		winnew.winmove(400-winnew.getw/2,300-winnew.geth/2);
+		gui.newbutton("butoknew", "OK", 80, 30);
+		gui.newbutton("butcancelnew", "Cancel", 80, 30);
+		butoknew.setpos(winnew.getcx-85,winnew.getey-40);
+		butcancelnew.setpos(butoknew.getex+10, butoknew.getpy);
+		gui.newtextbox("ttw", "0", 50, 20);
+		ttw.winmove( winnew.getcx, winnew.getcy-35 );
+		@yw = ttw.getpy-winnew.getpy;
+		@x = 50;
+		gui.print("winnew", x, yw, .mtekst("rotateangle"));
+		gui.print("winnew", x-30, yw-40, .mtekst("obrot"));
+		@z = 10;
+		winnew.winsetz(z);
+		butoknew.setz(z);
+		butcancelnew.setz(z);
+		ttw.winsetz(z);
+	}
+	newlevelwin	{
+		gui.newwndtitle("winnew", null, .mtekst("levellayer"), 400, 200);
+		winnew.winmove(400-winnew.getw/2, 60);
+		gui.newbutton("butoknew", "OK", 80, 30);
+		gui.newbutton("butcancelnew", "Cancel", 80, 30);
+		butoknew.setpos(winnew.getcx-85,winnew.getey-40);
+		butcancelnew.setpos(butoknew.getex+10, butoknew.getpy);
+		gui.newtextbox("ttw", "0", 50, 20);
+		ttw.winmove( winnew.getcx-ttwwnd.getw/2, butoknew.getpy- ttwwnd.geth - 20 );
+		@z = 20;
+		winnew.winsetz(z);
+		butoknew.setz(z);
+		butcancelnew.setz(z);
+		ttw.winsetz(z);
+		
+		new img imhis;
+		new AlgImg algimg;
+		algimg.makehistogram("imhis", 256, 60, .activelayer);
+		
+		imhis.setpos( winnew.getcx - imhis.getw/2, winnew.getpy + 40 );
+		imhis.setz(z+1);
+		
+		@w = 256;
+		@h = 15;
+		gui.newwndconcave("winsuwak", w+4, h+4);
+		
+		new img imgreypal;
+		algimg.makegreypallete("imgreypal", 1, 15);
+		imgreypal.setpos(imhis.getpx, imhis.getey+6);
+		winsuwak.setz(imhis.getz);
+		winsuwak.setpos(imgreypal.getpx-2, imgreypal.getpy-2);
+		winsuwak.blit("imgreypal");
+		delete imgreypal;
+		
+		delete algimg;
+		new img imsuw;
+		imsuw.create(8, (winsuwak.getey+1) - (imhis.getpy-2), .transparent);
+		new img im1;
+		im1.create(8, h+6, .msuwcol);
+		im1.imgroundborder(1, .msuwbor);
+		im1.setpos(imsuw.getpx, imsuw.getey-im1.geth);
+		imsuw.blit("im1");
+		im1.create(4, imsuw.geth-winsuwak.geth, .msuwcol);
+		im1.imgroundborder(1, .msuwbor);
+		im1.setpos(imsuw.getcx-im1.getw/2, imsuw.getpy);
+		imsuw.blit("im1");
+		imsuw.setz(imhis.getz+2);
+		delete im1;
+		
+		imsuw.addmethod("isbutin", func { (int x, int y) .isin(x,y,1,1); });
+		imsuw.stdbutmoveon;
+		imsuw.stdbutmoveoff;
+		imsuw.addmethod("butclick", func {
+			isubzad=52;
+			slayeropt = "level";
+			} );
+		butgame.add("imsuw");
+		new filter ftlevel;
+		ftlevel.link(.activelayer);
+		.msetlevel(127);
+	}
+	msuwcol	{	return 64,64,255,255;	}
+	msuwbor	{	return 0,0,128,255;	}
+	msetlevel(int id)	{
+		if( id<0 ) id=0;
+		if( id>255) id=255;
+		imsuw.setpos( imhis.getpx+2+id-imsuw.getw/2, imhis.getpy-2 );
+		ttw.setid(id,0);
+		ftlevel.setlevel(id);
+	}
+	mchecklevel	{
+		int id = ttw.get;
+		if( id>=7 && id<=14 )	{
+			isubzad=53;
+			igmstate = 0;
+			butgame.lock;
+			ttw.disable;
+			.cbplay("ania2");
+		} else
+			isubzad = 51;
+	}
+	ttw_boxontype	{
+		if( keyboard.iskey("enter") )	{
+			.disable;
+			if( isubzad==51 )	{
+				.msetlevel(ttw.get);
+				.mchecklevel;
+			}
+		}
+	}
+	newlayerwin	{
+		gui.newwndtitle("winnewlayer", null, .mtekst("newlayer"), 280, 180);
+		winnewlayer.winmove(400-winnewlayer.getw/2,200-winnewlayer.geth/2);
+		gui.newbutton("butoknewlay", "OK", 80, 30);
+		gui.newbutton("butcancelnewlay", "Cancel", 80, 30);
+		butoknewlay.setpos(winnewlayer.getcx-85,winnewlayer.getey-40);
+		butcancelnewlay.setpos(butoknewlay.getex+10, butoknewlay.getpy);
+		@z = windraw.getz+10;
+		winnewlayer.winsetz(z);
+		butoknewlay.setz(z);
+		butcancelnewlay.setz(z);
+		
+		gui.newtextbox("ttnamelay", "a_0", 100, 20);
+		ttnamelay.setid( .mtekst("stdnazwa"), 0 );
+		ttnamelay.winmove( winnewlayer.getcx, winnewlayer.getcy-55 );
+		ttnamelay.winsetz(z);
+		gui.newtextbox("ttwlay", "0", 50, 20);
+		ttwlay.setid( imgW, 0 );
+		ttwlay.winmove( winnewlayer.getcx, winnewlayer.getcy );
+		ttwlay.winsetz(z);
+		gui.newtextbox("tthlay", "0", 50, 20);
+		tthlay.winmove( winnewlayer.getcx, winnewlayer.getcy+22 );
+		tthlay.setid( imgH, 0 );
+		tthlay.winsetz(z);
+		
+		@x = ttwlaywnd.getex + 5 - winnewlayer.getpx;
+		@yn = ttnamelay.getpy-winnewlayer.getpy;
+		@yw = ttwlay.getpy-winnewlayer.getpy;
+		@yh = tthlay.getpy-winnewlayer.getpy;
+		gui.print("winnewlayer", x, yw, "px");
+		gui.print("winnewlayer", x, yh, "px");
+		x = 50;
+		gui.print("winnewlayer", x, yn, .mtekst("nowanazwa"));
+		gui.print("winnewlayer", x, yw, .mtekst("szerokosc"));
+		gui.print("winnewlayer", x, yh, .mtekst("wysokosc"));
+		gui.print("winnewlayer", x-10, yw-25, .mtekst("wymiarylayer"));
+	}
+	mendnewimg	{	gui.dellist(A, "butoknew", "butcancelnew", "winnew", "tth", "ttw");	}
+	mendnewlayer	{	gui.dellist(A, "butoknewlay", "butcancelnewlay", "winnewlayer", "tthlay", "ttwlay", "ttnamelay");	}
+	mendrotatewin	{	gui.dellist(A, "butoknew", "butcancelnew", "winnew", "ttw");	}
+	mendlevelwin	{
+		gui.dellist(A, "butoknew", "butcancelnew", "winnew", "winsuwak", "ttw");
+		butgame.removebut("imsuw");
+		<GAME> {
+			ftlevel.unlink;
+			delete ftlevel;
+			delete imhis;
+			delete imsuw;
+		};
+	}
+	mnextzad	{
+		izadanie++;
+		isubzad++;
+		.mbuilzad;
+		.mloadzad;
+	}
+	butoknew_lclick	{
+		if( igmstate!=1 ) return;
+		if( isubzad==51 )	{
+			butoknew.unclick;
+		} else if( isubzad==44 )	{
+			int kat = ttw.get;
+			.mendrotatewin;
+			<GAME> (kat%360) { (int kat)
+				@s = .activelayer;
+				new filter ftsubzad44;
+				ftsubzad44.link(s);
+				ftsubzad44.rotate(kat);
+				<s>.anclipob(grdraws.get(0));
+			};
+			.mnextzad;
+		} else if( isubzad==41 )	{
+			if( ttw.get->to_i == 200 && tth.get->to_i == 200 )	{
+				.mendnewimg;
+				.mnextzad;
+			} else butoknew.unclick;
+		} else if( isubzad==2) {
+			if( ttw.get->to_i == imgW && tth.get->to_i == imgH )	{
+				.mendnewimg;
+				.mnextzad;
+			} else butoknew.unclick;
+		}
+	}
+	butoknewlay_lclick	{
+		if( ttwlay.get->to_i == imgW && tthlay.get->to_i == imgH &&
+			((isubzad==15 && ttnamelay.get=="Layer1") || (isubzad==34 && ttnamelay.get=="layer_zoom")) )	{
+			.newlayer(true, ttnamelay.get);
+			.mendnewlayer;
+			isubzad++;
+		} else butoknewlay.unclick;
+	}
+	butcancelnew_lclick	{
+		if( igmstate!=1 ) return;
+		isubzad--;
+		if( isubzad==43 ) .mendrotatewin;
+		else if (isubzad==50) .mendlevelwin;
+		else .mendnewimg;	
+	}
+	butcancelnewlay_lclick	{	isubzad--;	.mendnewlayer;	}
+	winnew_lclick	{	.butcancelnew_lclick;	}
+	winnewlayer_lclick	{	.butcancelnewlay_lclick;	}
+	/******************************************/
+	wincolor_lclick	{
+		if( isubzad==9 || isubzad==17 || isubzad==24 || isubzad==36)	{
+			isubzad--;
+		} else if (isubzad==10 || isubzad==18 || isubzad==25 || isubzad==37)	{
+			isubzad++;
+			if( isubzad==19 )	{
+				if( sactpen=="pen" && ibutsize==0)	{
+					isubzad = 20;
+				}
+			}
+		}
+		anpaleta.hide;
+		gui.delobj("wincolor");
+	}
+	/******************************************/
+	newlayer(bool btransparent, string sname)	{	<GAME> (btransparent, sname) { (bool btransparent, string sname)
+		if( ilayers>0 ) .deactivatelayer(iactlayer);
+		iactlayer = ilayers;
+		@s = "imdraw"+iactlayer;
+		new img <s>;
+		if( btransparent )	<s>.create(imgW, imgH, .transparent);
+		else <s>.create(imgW, imgH, .white, 255 );
+		<s>.setpos(windraw.getpx+gui.ibar, windraw.getpy+gui.ititlebar);
+		grdraws.add(s);
+		ilayers++;
+		s = "anlay"+iactlayer;
+		.copyanima("anlayer", s);
+		<s>.show;
+		@y = -(ilayers-1)*<s>.geth;
+		<s>.setpos( 0, y );
+		grlay.add(s);
+		<.msetlayer("eye", y)>.show;
+		@s2 = .msetlayer("name", y);
+		@s3 = "tt"+s;
+		//new TextBoxTyper <s3>( stdfont12, 12, 0.6*12, .black, "a0_", <s2>.getpx+2, <s2>.getcy-6, <s2>.getw-4, 14, 1 );
+		new ConTextTyper <s3>(stdfont12, 12, .black, "a0_", 15);
+		<s3>.setpos(<s2>.getpx+2, <s2>.getcy-6);
+		.mlayname( iactlayer, sname );
+		<s3>.setz(115);
+		//<s3>.unlock;
+		<s3>.addmethod(s3+"_onenter", func {
+			if( .get=="" ) .txtset(slastname);
+			styped = null;
+			if( isubzad==3 && .get=="Background" )	{
+				.mnextzad;
+			}
+			});
+		<s3>.addmethod(s3+"_ontype", func {
+			if( keyboard.iskey("escape") )	{
+				.disable;
+				.txtset(slastname);
+				styped = null;
+			}
+			});
+		//<s3>.addmethod(s3 + 
+		//<action>        img		<action>        eye	<action>        name	<action>        active
+		_ = .msetlayer("active", y);
+		.activatelayer(iactlayer);
+	}; }
+	mlayname(int id, string s)	{	<"ttanlay"+id>.txtset(s);	}
+	string getactlayname	{	"ttanlay"+iactlayer;	}
+	deactivatelayer(int id)	{	<.sgetlayer(id)>.hide;	}
+	string sgetlayer(int id)	{	grlay.get(id*4+3); }
+	string sactlayer	{	grlay.get(iactlayer*4+3); }
+	string activelayer	{	grdraws.get(iactlayer);	}
+	activatelayer(int id)	{
+		if( id<0 ) id = 0;
+		if( id>=ilayers ) id = ilayers-1;
+		.deactivatelayer(iactlayer);
+		iactlayer = id;
+		<grlay.get(id*4+3)>.show;
+	}
+	string msetlayer(string s, int y)	{
+		@s2 = "anlay"+iactlayer+s;
+		.copyanima("anlayer", s2);
+		<s2>.setframe(s,0);
+		<s2>.setpos(0,y);
+		<s2>.hide;
+		grlay.add(s2);
+		s2;
+	}
+	bool isonactlayer	{
+		<.sactlayer>.isin(mouse.getpos,0,0);
+	}
+	mhide(int id)	{
+		if( id<ilayers )	{
+			<grlay.get(id*4+1)>.setframe(-1,1);
+			<"imdraw"+id>.hide;
+		}
+	}
+	mshow(int id)	{
+		if( id<ilayers )	{
+			<grlay.get(id*4+1)>.setframe(-1,0);
+			<"imdraw"+id>.show;
+		}
+	}
+	mouse_lclick	{
+		if( igmstate!=1 ) return;
+		|int x, int y| = mouse.getpos;
+		match( isubzad )	{
+			3 => 	if( styped!=null && .getactlayname!=styped )	{
+					<styped>.txtset(slastname);
+					<styped>.disable;
+				}
+			4 => 	if( anlay0eye.isin(x,y,0,0) )	{
+					.mhide(0);
+					isubzad++;
+				}
+			5 => 	if( anlay0eye.isin(x,y,0,0) )	{
+					.mshow(0);
+					.mnextzad;
+				}
+			9, 10, 17,18, 24, 25, 36, 37 => {
+				if( anpaleta.isin(x,y,1,0) )	{
+					pencolor.set( anpaleta.getrgba(x,y) );
+					if( isubzad<=10 )
+						isubzad=10;
+					else if( isubzad<=18 ) isubzad=18;
+					else if( isubzad<=25 ) isubzad=25;
+					else isubzad=37;
+					.msetcolor;
+				}
+			}
+			11, 12, 20, 26, 38 => {
+				@s = .activelayer;
+				if( <s>.isin(x,y,1,0) && sactpen=="pen" )	{
+					isubzad++;
+					iprevx = imgpen.getpx; iprevy = imgpen.getpy;
+					rpozyczka = 0.0;
+					slayeropt = "draw";
+					<s>.blit("imgpen");
+				}
+			}
+			22 => .mactivatelayer(0);
+			28 => if( anlay1eye.isin(x,y,0,0) )	{
+					.mhide(1);
+					isubzad++;
+				}
+			29 => if( anlay1eye.isin(x,y,0,0) )	{
+					.mshow(1);
+					.mnextzad;
+				}
+			30, 42 => .mactivatelayer(1);
+			31 => {
+				@s = .activelayer;
+				if( <s>.isin(x,y,1,0) && sactpen=="erase" )	{
+					isubzad++;
+					iprevx = imgpen.getpx; iprevy = imgpen.getpy;
+					rpozyczka = 0.0;
+					slayeropt = "erase";
+					<s>.erase("imgpen");
+				}
+			}
+			45 => {
+				igmstate = 0;
+				ccs.close( func {
+					if( PrzygodaMode )
+						.gotoadv("adsala", "gameadsala2");
+					else gameapi.play("Menu");
+					} );
+			}
+			? => ;
+		}
+	}
+	mactivatelayer(int id)	{
+		if( <.sgetlayer(id)>.isin(mouse.getpos,0,0) )	{
+			.activatelayer(id);
+			isubzad++;
+		}
+	}
+	mouse_move	{
+		//|int x, int y| = mouse.getpos;
+		match( slayeropt )	{
+			"draw" => rpozyczka = <.activelayer>.imgdrawline("imgpen", iprevx, iprevy, imgpen.getpx, imgpen.getpy, 3, rpozyczka);
+			"erase" => rpozyczka = <.activelayer>.imgeraseline("imgpen", iprevx, iprevy, imgpen.getpx, imgpen.getpy, 3, rpozyczka);
+			"level" => .msetlevel( mouse.getposx-(winsuwak.getpx+2) );
+			? => ;
+		}
+		|iprevx, iprevy| = imgpen.getpx, imgpen.getpy;
+	}
+	mouse_lrel	{
+		slayeropt = null;
+		match( isubzad )	{
+			13, 21, 32 => .mnextzad;
+			27, 39 => isubzad++;
+			52 => .mchecklevel;
+			? => ;
+		}
+	}
+	mouse_dblclick	{
+		if( igmstate!=1 ) return;
+		|int x, int y| = mouse.getpos;
+		match( isubzad )	{
+			3 => {
+				if( .isonactlayer ) {
+					styped = .getactlayname;
+					slastname = <styped>.get;
+					<styped>.enable;
+				}
+			}
+			? => ;
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug )	{
+			match(izadanie)	{
+				1 => 2;
+				2 => 3;
+				3 => 5;
+				4 => 13;
+				5 => 20;
+				? => 0;
+			}
+			isubzad = _;
+			.mnextzad;
+		}
+	}
+}

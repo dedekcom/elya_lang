@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ $# == 1 ]; then
+	./kompiluj ./srckleolicz/kleolicz.prj $1
+else
+	./kompiluj ./srckleolicz/kleolicz.prj
+fi
+#cp ./srckleolicz/kleolicz.odd /home/dedek/projekty/rysunki_gimp/kleolicz/project/scripts/
+awk -f optimize.awk ./srckleolicz/kleolicz.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/kleolicz/project/scripts/kleolicz.odd
+
+#ile=`wc -l ./srckleolicz/kleolicz.odd`
+#ile2=`wc -l /home/dedek/projekty/rysunki_gimp/kleolicz/project/scripts/kleolicz.odd`
+#echo -e "\nnon-optimized: $ile , optimized: $ile2"

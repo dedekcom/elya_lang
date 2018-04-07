@@ -1,0 +1,90 @@
+class Helper	{
+	init(string spath, string sfile)	{
+		new db dbh;
+		new @Path = spath;
+		new @sHelp = this;
+		dbh.loadscript(Path+sfile);
+		new db dbh2;
+		
+		new button buthelp	{
+			.setrect( 0, 0, 800, 600 );
+			.disable;
+		};
+		buthelp.addmethod("onclick", "helphide");
+		
+		new img imgtlo;
+		imgtlo.load( Path + .get("bkg:") );
+		imgtlo.setz(10000);
+		imgtlo.hide;
+		imgtlo.setpos( 400 - imgtlo.getw/2, 300 - imgtlo.geth/2 + .get("dy:")->to_i );
+		new gmimgvec grt;
+		
+		string sfont = "configs/fonts/" + .get("font:");
+		|int itit[4]| = .get("title:");
+		|int itxt[4]| = .get("text:");
+		new font fnttit;
+		fnttit.load(sfont,itit0);
+		new font fnttxt;
+		fnttxt.load(sfont,itxt0);
+	}
+	get(string s)	{
+		int id = dbh.findbyrow(s);
+		if( id>=0 )	{	for( int i=1; i<dbh.getcolsno(id); i++)	dbh.get(id,i);	}
+	}
+	show	{
+		@s = gameapi.getgamename;
+		if( s=="MenuPuzzle" )	{
+			dbh2.load( Path + ( iPuzzleTryb>2 ? "puzzle.db" : "wstaw.db" ) );
+		} else {
+			int id = dbh.findbyrow(gameapi.getgamename);
+			if( id<0 )	return;
+			dbh2.load( Path + dbh.get(id,1) + ".db" );
+		}
+		imgtlo.show;
+		
+		|int itit[4]| = .get("title:");
+		|int itxt[4]| = .get("text:");
+		new text txttit;
+		txttit.setfont("fnttit");
+		txttit.set( dbh2.get(0,0) );
+		txttit.createtxt(itit1,itit2,itit3);
+		@x = imgtlo.getcx;
+		//txttit.setpos( x - txttit.getw/2, imgtlo.getpy + .get("txtdy:") );
+		txttit.setpos( x - txttit.getw/2, 0 );
+		itxt0/=2;
+		grt.add("txttit");
+		txttit.setz( imgtlo.getz + 10 );
+		string s;
+		//int y = txttit.getpy + txttit.geth + itit0;
+		int y = txttit.geth + itit0;
+		for( int i=1; i<dbh2.getrowsno; i++)	{
+			s = "txt"+i;
+			new text <s>;
+			<s>.setfont("fnttxt");
+			<s>.set( dbh2.get(i,0) );
+			<s>.createtxt( itxt1, itxt2, itxt3 );
+			<s>.setpos( x - <s>.getw/2, y );
+			<s>.setz( imgtlo.getz + 10 );
+			y += <s>.geth + itxt0;
+			grt.add(s);
+		}
+		grt.move(0, imgtlo.getpy + (imgtlo.geth-y)/2 );
+		
+		gameapi.pause;
+		buthelp.enable;
+		buthelp.resume;
+	}
+	helphide		{
+		<sHelp>	{
+			imgtlo.hide;
+			string s;
+			for( int i=0; i<grt.size; i++)	{
+				s = grt.get(i);
+				delete <s>;
+			}
+			grt.free;
+			buthelp.disable;
+			gameapi.resume;
+		};
+	}
+}

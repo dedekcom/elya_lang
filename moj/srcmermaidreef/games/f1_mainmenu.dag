@@ -1,0 +1,118 @@
+
+public playmainmusic	{
+	music.smixer = ("engine");
+	music.playstr("main.ogg -l -v 50");
+}
+
+game MainMenu : FarmStd {
+	init	{
+		FarmStd::init("mainmenu");
+		
+		.imgs = (A, "sky.pyz", "chmury.pyzG 10", "bg2.pyz 15", "plot.pyz 25", "taczka.pyz 28");
+		.cbutexit;
+		.loadasker;
+		
+		.sounds = (A, "sndzgaduj", "Sounds of animals", null,
+			"sndbajka", "Read stories", null,
+			"sndpuzzle", "Puzzles", null,
+			"sndkolo", "Coloring", null);
+		
+		.mkchmura(grchmury.get(0),-0.62);
+		.mkchmura(grchmury.get(1),-0.42);
+		.mkchmura(grchmury.get(2),-0.52);
+		.mkchmura(grchmury.get(3),-0.32);
+		
+		.animaloader_load("animy.adv");
+		
+		.mbut("ikobaj");
+		.mbut("ikopuz");
+		.mbut("ikomuz");
+		.mbut("ikokol");
+		
+		ccs.enter( func {
+			.refreshstdstate;
+			.playmainmusic;
+			} );
+	}
+	mbut(string sbut)	{
+		.newanima("an" + sbut, sbut + ".pyz", (sbut =="ikobaj" ? 26 : 30 ) );
+		<"an" + sbut>.caddymek;
+	}
+	mgogame(string sg)	{
+		sndfxbutclick1.play;
+		music.fadeout(800);
+		.stdexit(sg);
+	}
+	butclick_anikobaj	{	.mgogame("MenuBajka");	}
+	butclick_anikopuz	{	.mgogame("MenuPuzzle");	}
+	butclick_anikomuz	{	.mgogame("MenuZgaduj");	}
+	butclick_anikokol	{	.mgogame("MenuKolo");	}
+	butmoveon_anikobaj	{	sndfxmoveon2.playif; .cbselfplay("sndbajka");	}
+	butmoveon_anikopuz	{	sndfxmoveon2.playif; .cbselfplay("sndpuzzle");	}
+	butmoveon_anikomuz	{	sndfxmoveon2.playif; .cbselfplay("sndzgaduj");	}
+	butmoveon_anikokol	{	sndfxmoveon2.playif; .cbselfplay("sndkolo");	}
+	butclick_anbutexit	{	.askfor("Outro");	}
+}
+
+game Outro : FarmStd	{
+	init	{
+		FarmStd::init("mg_outro");
+		.imgs = (A, "bgsky.pyz", "chmury.pyzG 5", "bg2.pyz 10", "slon1.pyz 15", "slon2.pyz 15", "slon3.pyz 15", "slon4.pyz 15",
+			"bg3.pyz 20", "krolik.pyzP 25", "ziemia.pyz 30", "kon.pyzP 35", "trawa2.pyz 40", "sun.pyzP 45", "krol2.pyzP 50",
+			"kura.pyzP 55", "krowka.pyzP 60", "plot3.pyz 65", "cap.pyzP 70", "decha.pyz 75", "pigi.pyzP 80", "piglet2.pyzP 85",
+			"duck.pyzP 90", "mysia.pyz 90", "osa1.pyz 95", "osa2.pyz 95", "autorzy.pyz 100");
+		
+		.mkchmura(grchmury.get(0),-1);
+		.mkchmura(grchmury.get(1),-0.333337);
+		
+		.cplaybzyczek("anosa1");
+		.cplaybzyczek("anosa2");
+		
+		for( int i= 1; i<=4; i++ )
+			.gmbuildroto("anslon"+i, 1, -1, 0.15, 2, true);
+		
+		.stdenter;
+		.timplay("timfinish", 12000, "mend");
+	}
+	mend	{
+		if( .advstdstate )	{
+			sgmstate = "state_exit";
+			.closexit;
+		}
+	}
+	mouse_lclick	{
+		.mend;
+	}
+}
+
+game Intro : FarmStd	{
+	init	{
+		FarmStd::init("mg_intro");
+		.imgs = (A, "bkg.pyz", "tytul.pyzGH 10", "$scripts/mg_outro/osa1.pyz 20", "$scripts/mg_outro/osa2.pyz 20");
+		
+		ccs.enter( func {
+			.advsetstdstate;
+			<grtytul.get(0)>.anfadein(500, func {
+				<grtytul.get(1)>.anfadein(500, func {
+					<grtytul.get(2)>.anfadein(500, func {
+						<grtytul.get(3)>.anfadein(1500, func {
+							timgo.play;
+							} );
+						} );
+					} );
+				} );
+			} );
+		.cplaybzyczek("anosa1");
+		.cplaybzyczek("anosa2");
+		
+		.playmainmusic;
+		
+		.timer= ("timgo", 4000, "mend");
+	}
+	mend	{
+		.stdexit("MainMenu");
+	}
+	mouse_lclick	{
+		.mend;
+	}
+}

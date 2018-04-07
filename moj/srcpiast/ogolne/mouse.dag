@@ -1,0 +1,53 @@
+/**************************************************************/
+new img imglobcurs;		// globalny kursor aktywnosci
+
+	// modul obslugi standardowych kursorow myszy
+module bsms {
+	init()	{
+		new img imgstd;
+		new img imgact;
+		this.load("configs/kursorstd.png","configs/kursoract.png" );
+		new int msid = 0;		// 0- brak kursora 1-std lapka 2- active lapka 3- wlasny (wczytany w jakiejs grze)
+	}
+	load(string spath1, string spath2)	{
+		imgstd.load(spath1);
+		imgact.load(spath2);
+		imglobcurs.copy("imgact");
+		imglobcurs.hide();
+		imgstd.hide();
+		imgact.hide();
+		this.reset();
+		engine.stdbutcursor("imgstd");
+	}
+	setinitial()	{
+		mouse.stdcursor();
+		msid = 0;
+	}
+	setstd()	{
+		mouse.setcursor("imgstd");
+		engine.stdbutcursor("imgstd");
+		msid = 1;
+	}
+	setact()	{
+		mouse.setcursor("imgact");
+		msid = 2;
+	}
+	setown()	{
+		msid=3;
+	}
+	isinitial()	{
+		if(msid==0)	{	return 1;	} else { return 0; }
+	}
+	isstd()	{
+		if(msid==1)	{	return 1;	} else { return 0; }
+	}
+	isact()	{
+		if(msid==2)	{	return 1;	} else { return 0; }
+	}	
+	isown()	{
+		if(msid==3)	{	return 1;	} else { return 0; }
+	}	
+}
+
+
+

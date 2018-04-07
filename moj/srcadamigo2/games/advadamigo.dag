@@ -1,0 +1,74 @@
+class classadvadamigo2 : classadv	{
+	init()	{
+		igmstate = 0;
+		classadv::init();
+		this.setwavpath("sounds/adamigo2/");
+		this.newsnd("sfxgetitem", "sfx/getitem.wav");
+		bsms.setstd();		// ustawia standardowo 
+		clmusic.play();
+		clbuts.reset();
+		//clesav.save();
+	}
+	loadzol(@s, @x, @y)	{
+		@s2 = "an"+s;
+		new anima <s2>;
+		<s2>.load("scripts/common/"+s+".pyz");
+		<s2>.setz( 200 );
+		<s2>.setframe( "stand", 0 );
+		<s2>.setdelay(2);
+		<s2>.setpos(x,y);
+	}
+	loadgeneral(@x, @y)	{
+		.loadzol("general", x, y);
+		angeneral.var2("bmow",true);
+		angeneral.addmethod("onfinish", func { if( .actionname=="talk" ) .play(-1); else bmow=true;} );
+		angeneral.addmethod("onendframe", func {
+			if(.framename=="bam" && engine.varexist("ansoldat") && bmow && !0->rand(4))	{
+				ansoldat.play("go"); bmow=false; } } );
+	}
+	loadsoldat(@x, @y)	{
+		.loadzol("soldat", x, y);
+		ansoldat.addmethod("onfinish", func { if( .actionname=="talk" ) .play(-1);
+			else if (.actionname=="go") .play("stand"); } );
+		.newsnd("fxsoldat", "sfx/soldat.wav");
+		ansoldat.addmethod("onstart", func { if( .actionname=="go" ) fxsoldat.play; } );
+	}
+	soldatstand	{
+// 		if( !ansoldat.isplaying("go") ) {
+			if( 0->rand(4)==0 ) ansoldat.play("go");
+			else ansoldat.play("stand");
+// 		}
+	}
+	soldattalk(string s)	{
+// 		if( !ansoldat.isplaying("go") )	{
+			classsound::cbplay2(s);
+			ansoldat.play("talk");
+// 		}
+	}
+	/***********************************************************/
+	exit()	{
+		bsms.setstd;
+		this.game_exit;
+	}
+	public askrestart()	{	claskexit.askrestart;	}
+	/***********************************************************/
+	advclick()	{
+		if( igmdebug && (igmstate==0 || igmstate==5) )	{
+			this.cactsndstop(true);
+		}
+	}
+	/***********************************************************/
+	keydown()	{
+		if( igmdebug==false )	{	return;	}
+		if( keyboard.iskey("p") )	{
+			clpause.pause();
+		} else if( keyboard.iskey("escape") )	{
+			claskexit.askexittomenu();
+		} else {
+// 			clnextgm.checkkey();
+		}
+	}
+	/***********************************************************/
+}
+
+

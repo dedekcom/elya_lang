@@ -1,0 +1,6 @@
+
+class Banshee : StdGame, BanGui	{
+	init(string s)	{
+		StdGame::init(s);
+	}
+}

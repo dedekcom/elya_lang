@@ -1,0 +1,276 @@
+game Outro : DziejeGame	{
+	init	{
+		DziejeGame::init("outro");
+		.img = ("$lang/outro_bkg.pyz");
+		
+		new gmimgvec grob;
+		"grob" .* "programy.pyz";
+		
+		.lang_db("dbend", "napisy");
+		.lang_db("dbgry", "gry");
+		new int ystart = Y2 - 100;
+		new int ystop = 177;
+		@ifont = 24;
+		@stdfont = .stdfont(ifont);
+		new TextDb tdend( stdfont, ifont, "$var:dbend", .mcol, iResX/2, ystart, 2, 5, "center");
+		tdend.mtxtclip;
+		tdend.move( -tdend.W/2, 0);
+		grob.mclip;
+		@s = grob.first;
+		@dy = 50;
+		new gmimgvec grels;
+		for( int i=0; i<grob.size; i++)	{
+			s = grob.get(i);
+			if( i==0 )	<s>.setpos( 0, tdend.getey + dy - <s>.getpy );
+			else <s>.setpos( 0, <grob.get(i-1)>.getey - <s>.getpy + dy );
+			@s2 = "tdg"+i;
+			new TextDb <s2>( stdfont, ifont, "$row:dbgry,"+i, .mcol, <s>.getex + 50, <s>.getpy, 2, 5, "left");
+			<s2>.mtxtclip;
+			grels.add(s);
+			grels.add(s2);
+		}
+		.cycle = ("timcyk", func {
+			tdend.move(0, -1);
+			grels.move(0, -1);
+			if( <grob.last>.getey<ystop && igmstate==0 )	.mouse_lclick;
+			else .play;
+			} );
+		timcyk.setcycle(2);
+		timcyk.play;
+		//mus.playstr("monoton.ogg -v 50 -l");
+	}
+	mcol	{	return 0,32,224;	}
+	mtxtclip	{
+		grtxt.mclip;
+	}
+	mclip	{
+		.eval( func { .clip( 0, ystop, iResX, ystart ); } );
+	}
+	mouse_lclick	{
+		if( igmstate==0 )	{
+			igmstate = 1;
+			mus.fadeout(1000);
+			ccs.close( func { gameapi.exit; } );
+		}
+	}
+}
+
+game Intro : DziejeGame	{
+	init	{
+		DziejeGame::init("intro");
+		new bool bgraj = true;
+		
+		.imgs = (A, "bkg.pyz", "krol.pyzP 85", "archer.pyz 200");
+		.sfxs = (A, "rydwanN", "walkaN 0", "zamach 50", "kon 30", "szturmN 0");
+		
+		new classfadeinout clfio;
+		new classfadeinout clfio2;
+		new classfadeinout clfio3;
+		new bool bbattle = false;
+		new bool bwariors = false;
+		anarcher.move(-15000, 0);
+		new gmimgvec grels;
+		"grels" .* "ghosts.pyz";
+		new gmimgvec greps;
+		"greps" .* "egipcy.pyz";
+		greps.move(-1100,0);
+		
+		grels.each( func { (@id)
+			.setz(id*10);
+			match(id)	{
+				0 => {		// rider
+					.setpos(-100-.lodx+500->rand, 0);
+					.addmethod("onendframe", func {
+						.move(3, 0);
+						if( bbattle==false && .getpx > 1100 ) .setpos(-500-.lodx, 0);
+						} );
+				}
+				1 => {		// palmy
+					.setpos(-300-.lodx+500->rand, 0);
+					.addmethod("onendframe", func {
+						.move(7, 0);
+						if( bbattle==false && .getpx > 1100 ) .setpos(-300-.lodx-800->rand, 0);
+						} );
+				}
+				2 => {		// archers
+					.setpos(-500-.lodx+500->rand, 0);
+					.addmethod("onendframe", func {
+						.move(7, 0);
+						if( bbattle==false && .getpx > 1100 ) .setpos(-500-.lodx-800->rand, 0);
+						} );
+				}
+				3 => {		// rydwan
+					.setpos(-1000-.lodx+500->rand, 0);
+					.addmethod("onendframe", func {
+						.move(3, 0);
+						if( bbattle==false && .getpx > 1100 ) .setpos(-1000-.lodx-800->rand, 0);
+						} );
+				}
+				4 => {		// palmy
+					.setpos(-1000-.lodx+500->rand, 0);
+					.addmethod("onendframe", func {
+						.move(8, 0);
+						if( bbattle==false && .getpx > 1100 ) .setpos(-500-.lodx, 0);
+						} );
+				}
+				5 => {		// machiny
+					.setpos(-1800-.lodx+500->rand, 0);
+					.addmethod("onendframe", func {
+						.move(8, 0);
+						if( bbattle==false && .getpx > 1100 ) .setpos(-1800-.lodx-800->rand, 0);
+						} );
+				}
+				6 => {		// lucznicy
+					.setpos(-1500-.lodx+500->rand, 0);
+					.addmethod("onendframe", func {
+						.move(10, 0);
+						if( bbattle==false && .getpx > 1100 ) .setpos(-1500-.lodx-800->rand, 0);
+						} );
+				}
+				7 => {		// rider
+					.setpos(-100-.lodx+500->rand, 0);
+					.addmethod("onendframe", func {
+						.move(2, 0);
+						if( .getposx >= 400 && .getposx<404 && !.hasvar("hiha") )	{
+							new @hiha;
+							fxkon.play;
+						}
+						if( bbattle==false && .getpx > 1100 ) .setpos(-2500-.lodx-800->rand, 0);
+						} );
+				}
+				8 => {		// palma
+					.setpos(-2000-.lodx+500->rand, 0);
+					.addmethod("onendframe", func {
+						.move(15, 0);
+						if( bbattle==false && .getpx > 1100 ) .setpos(-2000-.lodx-800->rand, 0);
+						} );
+				}
+				9 => {		// lucznik
+					.setpos(-3500-.lodx+500->rand, 0);
+					.addmethod("onendframe", func {
+						.move(15, 0);
+						if( bbattle==false && .getpx > 1100 ) .setpos(-3500-.lodx-1800->rand, 0);
+						} );
+				}
+				10 => {	// palma
+					.setpos(-3000-.lodx+500->rand, 0);
+					.addmethod("onendframe", func {
+						.move(30, 0);
+						if( bbattle==false && .getpx > 1100 ) .setpos(-4000-.lodx-1500->rand, 0);
+						} );
+				}
+				? => ;
+			}
+			.play(-1);
+		} );
+		
+		.cycle = ("timarch", func {
+			anarcher.move(35, 0);
+			if( anarcher.getpx > 0 && anarcher.getpx < 200 && !bbattle )	{
+				anarcher.play(0);
+				bbattle = true;
+				grels.eval( func {
+					if( .getex < 0 ) .stop(false);
+					} );
+			}
+			if( <GAME>.hasvar("bobrona") )	{
+				if( <grobr.first>.getposx > 0 )	{
+					greps.stop(false);
+					grels.stop(false);
+					grobr.stop(false);
+					ankrol.stop(false);
+					.mend;
+				} else {
+					grobr.move(10,0);
+					.play;
+				}
+			} else
+				.play;
+			} );
+		timarch.play;
+		
+		.timer = ("timgo", 3000, func {
+			match(igmstate)	{
+				0 => {
+					.setdelay(1000);
+					igmstate++;
+					clfio.sndvolume(8, 5, "fxwalka", null);
+					.play;
+				}
+				1 => {
+					if( bbattle )	{
+						.setdelay(4000);
+						clfio.sndvolume(8, 5, "fxszturm", null);
+						igmstate++;
+						greps.each( func { (@id)
+							.setz(10*id);
+							match( id )	{
+								0 => {
+									.move(-300, 0);
+									.addmethod( "onendframe", func {
+										.move(18, 0);
+										} );
+								}
+								1 => {
+									.move(-300, 0);
+									.addmethod( "onendframe", func {
+										.move(18, 0);
+										} );
+								}
+								2 => {
+									.move(-1000, 0);
+									.addmethod( "onendframe", func {
+										.move(25, 0);
+										} );
+								}
+								3 => {
+									.move(-1000, 0);
+									.addmethod( "onendframe", func {
+										.move(25, 0);
+										} );
+								}
+								4 => {
+									.move(-.lodx, 0);
+									.setdelay(1);
+									.addmethod( "onendframe", func {
+										.move(5, 0);
+										} );
+								}
+								? => ;
+							}
+							.play(-1);
+							} );
+					}
+					.play;
+				}
+				2 => {
+					<GAME> {
+						new gmimgvec grobr;
+						"grobr" .* "obrona.pyz";
+						grobr.nplay(-1);
+						grobr.move(-1500, 0);
+						grobr.each( func { (@id)
+							.setz(70+id*10);
+							} );
+						new bool bobrona;
+					};
+				}
+				? => ;
+			}
+			} );
+		ccs.enter( func { timgo.play; } );
+	}
+	mend	{
+		if( bgraj )	{
+			//clfio.sndvolume(1, -5, "fxszturm", null);
+			clfio._play( 1, -5, "fxszturm", "setvol", 0, fxszturm.getvol, null, null );
+			clfio2._play(1, -5, "fxwalka", "setvol", 0, fxwalka.getvol, null,  null);
+			clfio3._play(1, -5, "fxrydwan", "setvol", 0, fxrydwan.getvol, null, null);
+			bgraj = false;
+			ccs.close( func { gameapi.play("MainMenu"); } );
+		}
+	}
+	mouse_lclick	{
+		.mend;
+	}
+}

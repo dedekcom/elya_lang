@@ -1,0 +1,120 @@
+
+game gameadvdef : classadvstdgame2	{
+	init	{
+		classadvstdgame2::init;
+		new int ifullscreen=0;
+	}
+	e1_load_loupe_brama	{	<gameapi.getgamename>	{
+		//an: czachy2w.pyz -bgr bgr1 -hide -hideonstart  -nplay 0 -toloupe
+		if( !.hasvar("anczachy2w") )	{
+			.newanima("anczachy2w", "$scripts/ad02_brama/czachy2w.pyz", 0);
+			bgr1.add("anczachy2w");
+			anczachy2w.anhideonsetframe;
+			anczachy2w.play(0);
+			.gui_toloupe("anczachy2w");
+		}
+	}; }
+	keyboard_KEYDOWN	{
+		if( igmdebug && keyboard.iskeydown("f") )	{
+			ifullscreen=!ifullscreen;
+			engine.setfullscreen(ifullscreen);
+		}
+	}
+}
+
+
+game gamead00_endintro0 : classadvstdgame2	{
+	init	{
+		classadvstdgame2::init;
+		
+		.imgs = (A, "e1rekator.pyzH", "e1rekaset.pyzGH 20");
+		gre1rekaset.each( func { (int id)
+			.var2("myid", (id+1));
+			.addmethod("onsetframe", func {
+				ane1rekator.setframe( myid-1, <"ane1reka"+myid>.framenr );
+				.setpos( ane1rekator.getcx, ane1rekator.getcy );
+				} );
+			} );
+		for( int i=0; i<4; i++) {
+			if( clsave.bis("e1_reka_"+i+"_play") )
+				.rekaplay(i);
+		}
+	}
+	int e1_getrekaid(string s)	{
+		match( s )	{
+			"zolty" => 0;
+			"red" => 1;
+			"blue" => 2;
+			"miedz" => 3;
+			? => -1;
+		}
+	}
+	e1_dymki_loadhint	{
+		new int iddymekhint = 1;
+		andymki2.addmethod("onendframe", func {
+			int id = .e1_getrekaid(.framename) + 1;
+			if( id>0 ) iddymekhint = id;
+			} );
+		andymki2.onendframe;
+	}
+	e1_click_dzwon	{
+		string s = clsave.get("e1_click_dzwon");
+		int id = clsave.get("e1_dzwonki");
+		clsave.set("e1_dzwon"+id, s);
+		
+		if( id == 4 )	{
+			id = 1;
+			.recehide;
+		} else {
+			/*
+			but: rekazolta ane1reka1
+			but: rekared ane1reka2
+			but: rekablue ane1reka3
+			but: rekamiedz ane1reka4
+			*/
+			.e1_getrekaid(s);
+			int iac = _;
+			.rekaplay(iac);
+			clsave.bset("e1_reka_"+iac+"_play");
+			id++;
+		}
+		clsave.set("e1_dzwonki", id);
+		@s1 = clsave.get("e1_dzwon1");
+		@s2 = clsave.get("e1_dzwon2");
+		@s3 = clsave.get("e1_dzwon3");
+		@s4 = clsave.get("e1_dzwon4");
+		//blue, miedz, red, zolty
+		if( (s1=="blue" && s2=="miedz" && s3=="red" && s4=="zolty") ||
+			(s4=="blue" && s1=="miedz" && s2=="red" && s3=="zolty") ||
+			(s3=="blue" && s4=="miedz" && s1=="red" && s2=="zolty") ||
+			(s2=="blue" && s3=="miedz" && s4=="red" && s1=="zolty") )	{
+			clsave.bset("e1_zgadla_dzwonki");
+			.recehide;
+		}
+	}
+	rekaplay(int iac)	{
+		<gre1rekaset.get(iac)>.play( -1 );
+	}
+	recehide	{
+		gre1rekaset.eval("anhide");
+		for( int i=0; i<4; i++)	{
+			clsave.set("e1_reka_"+i+"_play",0);
+		}
+	}
+	e1_hint_rece	{
+		.showhint("andymki2");
+		.showhint("ane1reka"+iddymekhint);
+	}
+}
+
+game gamead06_posagmamy0 : classadvstdgame2	{
+	init	{
+		classadvstdgame2::init;
+	}
+	mousemove	{
+		classadvstdgame2::mousemove;
+		if( .loupe_visible && anposag_mamy.isin(mouse.getpos,0,1) && !clsave.bis("e1_bylkomentposagmatki") )	{
+			_ = .playbehif("beh_posag_matki_FOCUS");
+		}
+	}
+}

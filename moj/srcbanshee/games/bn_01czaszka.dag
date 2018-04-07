@@ -1,0 +1,62 @@
+game mg01_czaszka :Banshee {
+	init{
+		Banshee::init("mg01_czaszka");
+		
+		.imgs = (A, "bkg.jpg", "popup_bkg.pyz 1" ,"czaszka1_cien.pyzH 2", "czaszka1.pyz 3","popexit.pyz 3");
+		.sfxs = (A, "bgrwiatrN 30", "bgrdeszczN 30", "swist1", "ceglamove");
+		.butpopexit; 
+		
+		imgbkg {
+			.addmethod("isbutin", func { (@x, @y)
+				!anpopup_bkg.isin(x,y,0,0);
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+				 .mend;
+				} );
+			butgame.add(this);
+		}; 
+
+		if(!clsave.bis("taken_czaszka1"))
+		{
+			.setasitemtopck("anczaszka1");
+			anczaszka1_cien.anopacityframe;    
+			anczaszka1_cien.play(0);	
+		}  	
+		
+		/*if (!clsave.bis(save_prefix+"intro_spoken"))
+		{
+			.newsndfree("snd_intro", "kinnat_c1d1_2c");
+			snd_intro.addmethod("onfinish", "advsetstdstate");  
+			.cbplay("snd_intro"); 
+			clsave.bset(save_prefix+"intro_spoken");			
+		 } 
+		*/
+		 
+
+		.stdstart; 	
+		
+	}
+	
+	anczaszka1_TAKE {
+			anczaszka1_cien.anhide;
+			.popitem_gotocenter("czaszka1");	 
+			.set_mg_finished;   
+		}
+	anczaszka1_INPCK {
+		.addtopck("czaszka1");
+		.timfinito; 
+	}  	
+	
+	HINT_CLICK	{
+		if(!clsave.bis("taken_czaszka1"))
+			.showhint("anczaszka1");
+		else
+			.showhint("anpopexit");
+	} 
+	
+	mend	{
+		.stdexitdefadv("ad01_widokogolny", "gamead01_widokogolny0");
+	} 
+}
+

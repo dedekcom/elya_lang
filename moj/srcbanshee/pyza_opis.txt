@@ -1,0 +1,121 @@
+program sklada sie z 3 okien: .xcf, .pyz oraz czarne okno 'draw' na ktorym 
+oglada sie animacje; w oknie xcf znajduja sie obrazki zrodlowe, z ktorych 
+budujesz animacje - jak wczytasz plik xcf oraz jak wczytasz plik pyz (natywny 
+plik animacji);
+w oknie pyz sa animacje pogrupowane w <akcje> - kazda akcja stanowi odrebna 
+animacje calego obiektu (np. animacje skladajace sie na krolika to "idzie 
+lewo", "skacze prawo" itd.);
+
+przypuscmy, ze chcesz stworzyc animacje od poczatku:
+1) przygotuj plik .xcf (plik z warstwami gimpa) - koniecznie z warstwa 
+background
+2) wstaw go do jakiegos katalogu (w udostepnionym programie jest katalog 
+pyza_factory z gotowym plikiem jmp.xcf)
+3) wcisnij w programie <ctrl-l>  (lewy ctrl - zawsze shift i ctrl wciskaj z 
+lewej strony klawiatury)
+4) pojawi sie okno: path oraz file; w path wpisz nazwe sciezki w ten sposob 
+(bez cudzyslowiow oczywiscie): "pyza_factory/" lub "scripts/szychu/"; w file 
+wpisz np. "jmp.xcf" (pelna sciezka pliku : pyza_factory/jmp.xcf); sciezke 
+wpisujemy osobno, poniewaz ulatwi to wczytywanie duzej ilosci plikow z 
+jednego katalogu); do okienka "file" przechodzisz klikajac na nie, lub 
+wciskajac enter; kiedy aktywne jest wpisywanie pliku enter zatwierdza i 
+wczytuje (jesli jest taki plik), escape wychodzi; mozesz wczytywac animacje 
+(rozszerzenie .pyz) oraz tlo (.bmp), ale o tym pozniej
+5) jak wczytasz plik xcf, w oknie xcf pojawia sie obrazki ulozone jak w 
+gimpie; zaznacz ktorys myszka i ruszaj strzalkami, zeby podgladac je w oknie 
+draw (okno czarne); zaznaczenie calego zbioru pokazuje wszystkie klatki; 
+strzalka w lewo na zbiorze zwija go, a w prawo rozwija;
+ czyli: strzalki - chodzenie i rozwijanie klatek
+ ponadto : pgup, pgdown - przewijanie aktywnego okna
+6) nacisnij enter na jakiejs klatce - stworzysz pierwsza akcje animacji od 
+razu z ta klatka; jezeli chcesz dodawac klatki do tej akcji naciskaj spacje 
+po zaznaczeniu odpowiednich klatek xcf; klatka dodaje sie zawsze pod aktywna 
+klatka pyz; 
+czyli: enter - dodanie akcji
+spacja - dodanie klatki (chyba ze brak akcji, wtedy tworzysz nowa akcje)
+7) w oknie pyz mozesz tez chodzic po klatkach, ponadto mozesz je kopiowac 
+(ctrl-c) i wklejac (ctrl-v) pod dowolna zaznaczona klatka (lub akcja); 
+kopiowac i wklejac mozesz rowniez cale akcje;
+strzalki: chodzenie, zwijanie
+delete : usuwanie klatek, akcji
+klik mysza: zaznaczenie klatki/akcji
+klik mysza + lctrl (przytrzymany) : dodanie klatki/akcji do wczesniej 
+zaznaczonych
+zaznaczenie grupy klatek/akcji : nacisnij lctrl i zaznacz myszka dwie klatki; 
+nastepnie nacisnij lshift - wszystkie klatki pomiedzy nimi zostana zaznaczone
+pgup , pagedown - przesuwanie okna pyz
+8) jak chcesz zapisac animacje wcisnij ctrl-s - nazwa musi konczyc sie 
+na .pyz, np: /pyza_factory/skacz.pyz ; jezeli dasz rozszerzenie .bmp, to 
+zostanie zapisane okno draw; uzywaj tego, kiedy chcesz sobie zbudowac tlo, 
+zeby potem na nim ustawiac jakies animacje (np. las, w ktorym poumieszczasz 
+cyferki); wczytanie nowego tla: <ctrl-l> i nazwa pliku .bmp
+9) jezeli chcesz obejrzec zaznaczone klatki na fullscreenie, wcisnij <ctrl-h> 
+- ponowne wcisniecie przywraca okna xcf i pyz
+10) jezeli chcesz odegrac zaznaczona w oknie pyz animacje, wcisnij <ctrl-p>
+automatycznie ustawi sie fullscreen (powrot <ctrl-h>)
+11) wcisnij <ctrl-d>, zeby ustawic opoznienie miedzy klatkami (standardowo 
+jest 1, czyli maksymalnie szybko - ok. 30 klatek/sek); delay 2 to 15 kl/sek.
+12) zadne dwie akcje nie powinny nazywac sie tak samo, poniewaz odegrana 
+zostanie zawsze pierwsza - dlatego zmieniaj ich nazwy; zmiana nazwy klatki 
+lub akcji: zaznacz ja i wcisnij spacje; teraz mozesz ja inaczej nazwac 
+(backspace kasuje po literce, delete cala nazwe, enter zatwierdza nowa nazwa, 
+escape anuluje)
+-------------------------------------------------------------
+poznales jak budowac animacje, teraz opisze jak je ustawiac:
+okno draw:
+
+        uwaga 1 : wszystkie opcje dzialaja na fullscreenie i z okienkami
+        uwaga 2 : pracuj tylko na klatkach z okna pyz; klatek z xcf uzywaj do 
+budowania pyz
+
+1) wybranie okna draw - kliknij na nim
+2) lub wciskaj <tab> az najedziesz na nie - tab zmienia okno na nastepne, 
+zatem mozesz przy pomocy tego klawisza wracac do okna xcf, pyz, draw i tak 
+wkolko
+3) jak zaznaczysz jakies klatki w oknie pyz, mozesz je przesunac klikajac 
+mysza i przesuwajac ja
+4) jezeli chcesz przesunac ekran wzgledem animacji, wcisnij <spacje> i 
+przesuwaj ekran mysza - dla animacji ekranem jest biala obwodka
+5) jezeli chcesz przesuwac wybrane klatki, ale wzgledem innych, mozesz zrobic 
+tak: zaznacz grupe klatek (aktywujac akcje, lub korzen .pyz listy zaznaczasz 
+od razu wszystko z akcji/wszystkie akcje) i teraz nacisnij <m> i wybierz 
+jakas klatke - przesuniesz tylko ja, a pozostale beda nieruchome;
+6) jezeli chcesz rozmiescic grupe klatek wzdluz prostej, zaznacz grupe klatek 
+i wcisnij <shift> i ruszaj myszka
+7) jezeli chcesz rozmiescic grupe klatek wzdluz kursora myszy, wcisnij <ctrl> 
+i ruszaj mysza
+8) aby przesunac zanzaczone klatki o 1 piksel uzywaj strzalek (kiedy jest 
+aktywne okno draw)
+---------------------------------------------------
+        dobre rady :)
+1) chcesz np. zrobic skrypt do demka - jak ktos sie skrada z jednej strony 
+ekranu do drugiej (np. z lewego brzegu wychodzi za prawy)
+        1.1) budujesz z .xcf akcje idzie (wybierasz w odpowiedniej kolejnosci klatki 
+naciskajac space w oknie .xcf); potem najezdzasz na akcje "new" w oknie .pyz 
+i naciskasz spacje, delete i wpisujesz "idzie", enter); jezeli ci bedzie 
+potem wygodniej, zmien nazwy poszczegolnych klatek;
+        1.2) zaznaczasz wszystkie klatki nalezace do akcji i kopiujesz je (ctrl-c)
+        1.3) zaznaczasz ostatnia klatke akcji i wciskasz ctrl-v np. 10 razy (tyle 
+razy przekopiuje sie caly zestaw)
+        1.4) zaznacz akcje "idzie" (zeby manipulowac wszystkimi klatkami)
+        1.5) wcisnij ctrl-h, zeby miec podglad calego ekranu
+        1.6) przesun wszystkie klatki na jedna strone (np. biegnie z lewej do prawej) 
+- sama mysz
+        1.7) wcisnij shift i przesuwaj mysz do drugiego konca ekranu
+        1.8) powiedzmy, ze zbudowales wymagana animacje, ale chcesz, zeby postac 
+wyszla poza ekran - skopiuj wiec zestaw jeszcze raz i dodaj za ostatnia 
+klatka 
+        1.9) zaznacz klatke za ktora dodales zestaw i dodany zestaw (np. mysz z ctrl 
+na klatce i mysz z ctrl na ostatniej klatce, a potem shift)
+        1.10) masz teraz zaznaczona grupe klatek, ktore maja wychodzic za ekran (poza 
+pierwsza zaznaczona, ktora ma zostac na miejscu)
+        1.11) wcisnij spacje i myszka przesun caly ekran, zebys mial dostep poza 
+niego
+        1.12) teraz wcisnij shift i przesun grupe klatek tak, by ostatnia byla 
+calkowicie za krawedzia ekranu (ktora wyznacza biala prosta linia)
+        1.13) przejdz na fullscreen (ctrl-h) i ustaw ekran tak, zeby miescil sie w 
+ekranie aplikacji
+        1.14) wcisnij ctrl-p, zeby obejrzec animacje
+        1.15) jezeli jakies klatki ci sie nie podobaja, zaznacz cala animacje i 
+uzywaj (m + mysz) do korekcji poszczegolnych klatek na tle calej akcji;
+

@@ -1,0 +1,29 @@
+
+/***************************************************************************/
+class classnextgame	{
+	init()	{
+		new db dbn;
+		new int idgame=0;
+	}
+	load(string sfile)	{
+		idgame = 0;
+		dbn.load(sfile);
+	}
+	next(int n)	{
+		idgame = dbn.findbyrow( gameapi.getgamename() ) + n;
+		int ile = dbn.getrowsno();
+		if( idgame < 0 )	{
+			idgame = ile-1;
+		} else if (idgame>=ile)	{
+			idgame = 0;
+		}
+		gameapi.play( dbn.get( idgame, 0 ) );
+	}
+	checkkey()	{
+		if( keyboard.iskey("n")==true )	{
+			this.next(1);
+		} else if( keyboard.iskey("m")==true ) {
+			this.next(-1);
+		}
+	}
+}

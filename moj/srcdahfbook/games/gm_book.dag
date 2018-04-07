@@ -1,0 +1,205 @@
+
+new string sBookFile;
+new string sBookPrefix;
+new int iBookStart;
+new int iBookEnd;
+new int iCurPage;
+new string sBookDir;
+new string StoryName;
+
+class BookGame : StdGame	{
+	init	{
+		StdGame::init(StoryName);
+		.path = (bookdir + "/" + sBookDir);
+		
+		new int iPageZ = 10;
+		new int iButsZ = 100;
+		new int iExitZ = 200;
+		
+	}
+	cloadexit	{
+		new img imexit;
+		imexit.load( "scripts/" + bookdir + "/sys/" + screenmode + "_exit.jpg" );
+		if( screenmode=="landscape" )	{
+			// pozycja 0,0
+		} else {
+			imexit.setpos(0, iResY-imexit.geth );
+		}
+		imexit.Button_isin;
+		imexit.setz( iExitZ );
+		imexit.addmethod("butclick", func {
+			// pozniej - zapisac stan strony
+			.gotocontents;
+			} );
+		but1.add("imexit");
+	}
+	cloadbutnext	{	.cloadbutpage("next");	}
+	cloadbutprev	{	.cloadbutpage("prev");	}
+	cloadbutpage(string sdir)	{
+		@s = "img"+sdir+"page";
+		new img <s>;
+		@sfile = "scripts/" + bookdir + "/sys/" + screenmode + "_" + sdir + "." + storyfile;
+		<s>.load( sfile );
+		<s>.var2("dir", sdir);
+		<s> {
+			.setz(iButsZ);
+			if( screenmode=="landscape" )	{
+				if( dir=="next" ) .setpos( iResX-.getw, iResY-.geth );
+				else .setpos( 0, iResY-.geth );
+			} else {
+				if( dir=="next" ) .setpos( iResX-.getw, 0 );
+				else .setpos( iResX-.getw, iResY-.geth );
+			}
+			.Button_isin;
+			.addmethod("butclick", func {
+				if( sgmstate!="go") return;
+				.<this+"_click">;
+				} );
+			but1.add(this);
+		};
+	}
+	virtual imgnextpage_click	{	.csetpage(iCurPage+1);	}
+	virtual imgprevpage_click	{	.csetpage(iCurPage-1);	}
+	csetpage(int ipage)	{
+		iCurPage=ipage;
+		if( iCurPage<iBookStart || iCurPage>iBookEnd ) .gotocontents;
+		else <gameapi.getgamename>.cloadpage;
+	}
+	//------------- spis tresci --------------
+	gotocontents	{	.gotogame("BookContents");	}
+}
+
+game BookStory : BookGame	{
+	init	{
+		BookGame::init;
+		.cloadbutnext;
+		.cloadbutprev;
+		.cloadexit;
+		
+		new img impage;
+		.cloadpage;
+		
+		sgmstate = "go";
+	}
+	cloadpage	{	._cloadpage(iCurPage);	}
+	_cloadpage(int ipage)	{
+		iCurPage=ipage;
+		// potem dodamy do contents.beh inne rodzaje plikow
+		sBookFile = storyfile;
+		impage.load( .getgraphpath + sBookPrefix + iCurPage + "." + sBookFile );
+		impage.setz( iPageZ );
+	}
+}
+
+game BookCover : BookGame	{
+	init	{
+		StoryName = "cover";
+		sBookDir = StoryName;
+		BookGame::init;
+		
+		.newimg("imbkg", "cover.jpg", 10);
+		.cloadbutnext;
+		
+		.timer = ("timend", dbconf.dbget("coverdelay:"), "imgnextpage_click");
+		ccs.enter( func { timend.play; } );
+		sgmstate = "go";
+	}
+	imgnextpage_click	{	.gotocontents;	}
+}
+
+game BookContents : BookGame	{
+	init	{
+		StoryName = "contents";
+		sBookDir = StoryName;
+		BookGame::init;
+		.img = ("bkg.jpg");
+		.loadcontents;
+		.stdstart;
+	}
+	loadcontents	{
+		new db dbcon;
+		dbcon.loadbeh( .getgraphpath + "contents.beh" );
+		
+		new gmimgvec grels;
+		int col;
+		string s[2], string sname;
+		for( int row=0; row<dbcon.getrowsno; row++)	{
+			col = 0;
+			match( dbcon.get(row, col) )	{
+				"story:" => {
+					col++;
+					sname = "s" + dbcon.get(row, col); col++;
+					new string <sname>;
+					while( col < dbcon.getcolsno(row) )	{
+						s0 = dbcon.get(row, col); col++;
+						match( s0 )	{
+							"gfx:" => {
+								s0 = dbcon.get(row,col); col++;
+								.img = ( s0 );
+								s0 = "img" + s0.strsubes(".jpg");
+								grels.add( s0 );
+								<s0>.var2("bajka", sname);
+								<sname>.var2("gfx", s0);
+								<s0>.setascontent;
+							}
+							"dir:" => {
+								<sname>.var2("dir", dbcon.get(row,col) );
+								col++;
+							}
+							"prefix:" => {
+								<sname>.var2("prefix", dbcon.get(row,col) );
+								col++;
+							}
+							"start:" => {
+								<sname>.var2("start", dbcon.get(row,col) );
+								col++;
+							}
+							"end:" => {
+								<sname>.var2("end", dbcon.get(row,col) );
+								col++;
+							}
+							? => col++;
+						}
+					}
+				}
+				? => ;
+			}
+		}
+		int h = 0;
+		int w = 0;
+		if( screenmode=="landscape" )	{
+			for( int i=0; i< grels.size; i++)	{
+				@s = grels.get(i);
+				<s>.setpos( (iResX-<s>.getw)/2, h );
+				h += <s>.geth;
+			}
+			grels.move( 0, (iResY-h)/2 );
+		} else {
+			for( int i=0; i< grels.size; i++)	{
+				@s = grels.get(i);
+				<s>.setpos( w, (iResY-<s>.geth)/2 );
+				w += <s>.getw;
+			}
+			grels.move( (iResX-w)/2, 0 );
+		}
+	}
+	setascontent	{
+		.Button_isin;
+		.addmethod("butclick", func {
+			if( sgmstate!="go" ) return;
+			<bajka> {
+				if( start=="cover" ) {
+					.gotogame("BookCover");
+				} else {
+					iBookStart = start;
+					iBookEnd = end;
+					sBookPrefix = prefix;
+					sBookDir = dir;
+					iCurPage = iBookStart;	// moze jakis save kiedys
+					.gotogame("BookStory");
+				}
+			};
+			} );
+		but1.add(this);
+	}
+}

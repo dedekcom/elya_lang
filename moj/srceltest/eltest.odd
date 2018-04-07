@@ -1,0 +1,154 @@
+; Dominik Dagiel   ix 2005
+
+	push "ElTest1"
+	call gameapi,play
+	new int,iResX
+	new int,iResY
+	call engine,getscreenres
+	pop iResY
+	pop iResX
+	game ElTest1
+	method init
+	new font,ftvera
+	push "configs/fonts/Vera.ttf"
+	push 20
+	call ftvera,load
+	new img,imgbkg
+	push "gfx/bkg.jpg"
+	call imgbkg,load
+	push "tim1"
+	push 3000
+	push "ElTest10"
+	cthis timer=
+	new snd,sndsowa
+	push "sounds/sfx/sowa1.wav"
+	call sndsowa,load
+	push "onfinish"
+	push "ElTest11"
+	call sndsowa,addmethod
+	push "tim2"
+	push 3000
+	push "ElTest12"
+	cthis timer=
+	new text,txt1
+	push "ftvera"
+	call txt1,setfont
+	push "Hello World!"
+	call txt1,set
+	push 210
+	push 110
+	push 210
+	call txt1,createtxt
+	call txt1,hide
+	push iResX
+	call txt1,getw
+	pop $b
+	popax
+	sub $a,$b
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	push iResY
+	call txt1,geth
+	pop $b
+	popax
+	sub $a,$b
+	push 2
+	pop $b
+	popax
+	div $a,$b
+	psax
+	call txt1,setpos
+	new anima,ankajko
+	push "gfx/kajko2.pyz"
+	call ankajko,load
+	call ankajko,hide
+	push 700
+	push 400
+	call ankajko,setpos
+	push "onfinish"
+	push "ElTest13"
+	call ankajko,addmethod
+	push "tim3"
+	push 3000
+	push "ElTest14"
+	cthis timer=
+	call tim1,play
+	end method
+	method ElTest10
+	call sndsowa,play
+	end method
+	method ElTest11
+	call tim2,play
+	end method
+	method ElTest12
+	call txt1,show
+	call tim3,play
+	end method
+	method ElTest13
+	push 1
+	popax
+	sub 0,$a
+	cthis actionnr
+	push 1
+	pop $b
+	popax
+	add $a,$b
+	cthis nofactions
+	pop $b
+	popax
+	div $a,$b
+	push $d
+	cthis play
+	end method
+	method ElTest14
+	push "a teraz napis number 2, ale leci: bgrsowa.ogg a kajko tanczy"
+	call txt1,set
+	push 2
+	push 11
+	push 21
+	call txt1,createtxt
+	push 10
+	push 10
+	call txt1,setpos
+	call txt1,show
+	push "sounds/sfx/bgrsowa.ogg"
+	call sndsowa,load
+	call sndsowa,playloop
+	push 0
+	call ankajko,play
+	end method
+	method txtset
+	localstring $1
+	pop $1
+	push $1
+	cthis set
+	cthis create
+	end method
+	method timer=
+	localstring $1
+	localint $2
+	localstring $3
+	pop $3
+	pop $2
+	pop $1
+	push $1
+	spushs
+	spop $e
+	new timer,[$e]
+	push $1
+	spushs
+	push $2
+	spop $a
+	call [$a],setdelay
+	push $1
+	spushs
+	push "onfinish"
+	push $3
+	spop $a
+	call [$a],addmethod
+	end method
+	end game
+

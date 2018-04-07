@@ -1,0 +1,57 @@
+
+game Cs6Druid : StdGame	{
+	init	{
+		StdGame::init("cs6druid");
+		
+// 		maska.pyz  druid.pyz  kokosz.pyz  kon.pyz  znaki.pyz  bkg.pyz
+		.imgs = (A, "bkg.pyz", "znaki.pyz 5", "kon.pyzP 10", "kokosz.pyzP 20", "druid.pyzP 30", "maska.pyz 40");
+		
+		//kokosz: stand  talk    coto    go   standprosi       prosi
+		// druid: stand, go, talk
+		
+		.sfxs = (A, "bgrlas2N 50", "wysypuje1", "konparsk2");
+		
+		.sounds = (A, ":druid1", "Czary mary hokus pokus zaraz ci poka¿ê wyrywanie w³osów!", func { .mko("kokosz1"); },
+			":kokosz1", "Dziadku nie denerwuj siê tak", func { ankokosz.play("stand");
+				andruid.anplayfin("go", func {
+					if( .actionname=="go")	{
+						fxwysypuje1.play;
+						.play("stand");
+						ankokosz.anplayfin("coto", func {
+							match(.actionname) {
+								"coto" => {
+									.play("go");
+								}
+								"go" => {
+									.play("prosi");
+									.cbplay("kokosz3");
+								}
+								"standprosi" => ;
+								? => ;
+							}
+							} );
+						mus.playstr("magia.ogg");
+						.cbplay("kokosz2");
+					}
+					.play("stand");
+					} ); },
+			":kokosz2", "Auæ ojoj co siê dzieje; Uff puff auau³", null,
+			":kokosz3", "Bardzo przepraszam za swoje zachowanie; Ju¿ nigdy nie bêdê wyrywa³ kap³anom w³osów; Proszê odczaruj ze mnie te w³osy", func { ankokosz.play("standprosi"); ccs.close( func { .cbplay("druid2"); ccs.show; } ); },
+			":druid2", "Przeprosiny przyjête; Odczarowanie jest bardzo proste; Co wyros³o mo¿na wyrwaæ",
+				func { .cbplay("kokosz4"); },
+			"kokosz4", "Auuuu! Auæ! Ojoj! Auuu", func { .gotoadv("addojagi", "gameaddojagi0"); }
+		);
+		ccs.enter( func { .mdruid("druid1"); } );
+	}
+	mko(string s)	{
+		ankokosz.play("talk");
+		.cbplay(s);
+	}
+	mdruid(string s)	{
+		andruid.play("talk");
+		.cbplay(s);
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

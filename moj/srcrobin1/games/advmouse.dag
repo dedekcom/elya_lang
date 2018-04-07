@@ -1,0 +1,20 @@
+
+module advmouse	{
+	init()	{
+		new anima anmsc;
+	}
+	public load(string sname)	{
+		anmsc.load(sname);
+		anmsc.hide();
+	}
+	set(string saction)	{
+		anmsc.show();
+		anmsc.setframe( saction, 0 );
+		mouse.setcursor("anmsc");
+		anmsc.hide();
+	}
+	setstd()	{	this.set("std");	}
+	setact()	{	this.set("act");	}
+	setbut()	{	this.set("but");	}
+	get()		{	return anmsc.actionname();	}
+}

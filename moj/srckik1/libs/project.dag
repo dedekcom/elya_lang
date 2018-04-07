@@ -1,0 +1,76 @@
+
+// engine.setdebugstate(1);
+
+new int igmdebug = 0;
+
+/**************************************************************/
+new int igmwinlocal = 0;		// special folder windows
+
+new int igmpad = 0;
+new int igmmac = 0;
+
+public bool checktouchpad	{
+	igmpad;
+}
+
+new string sgmdeveloper = "DDagiel";
+
+new int igmkikpart = 1;  // 0 - twierdza, 1 - mirmilowo, 2 - podstep, 3 - rozprawa
+
+match( igmkikpart )	{
+	1 => "KiK_Mirmilowo";
+	2 => "KiK_Podstep";
+	3 => "KiK_Rozprawa";
+	? => "Kajko_i_Kokosz";
+}
+
+new string sgmproject = _;
+
+/**************************************************************/
+
+public string getwinpath(string spath)	{
+	//("searching: " + spath)->print;
+	string s = engine.getspecialpath("appdata");
+	if( s!=null )	{
+		s + "/" + sgmdeveloper + "/" + sgmproject + "/" + spath;
+	} else spath;
+}
+
+if( igmpad || igmmac )	{
+	engine.addmethod("getsavepath", func { ""; } );
+}
+
+public string getapppath	{
+	if( igmwinlocal ) {
+		.getwinpath("");
+	} else if ( igmpad || igmmac ) {
+		engine.getsavepath;
+	} else {
+		"";
+	}
+}
+
+/**************************************************************/
+
+public buildsavedir	{
+	if( igmwinlocal )	{
+		string s = engine.getspecialpath("appdata");
+		if( s!=null )	{
+			s += "/" + sgmdeveloper;
+			int odp = engine.mkdir(s);
+			odp = 0;
+			if( odp==0 || odp==1 )	{
+				s +=  "/" + sgmproject;
+				odp = engine.mkdir(s);
+				odp = 0;
+				if( odp==0 || odp==1 )	{
+					s+= "/saves";
+					_ = engine.mkdir(s);
+				}
+			}
+		}
+	} else if ( igmpad || igmmac )	{
+		_ = engine.mkdir(engine.getsavepath + "saves");
+	}
+}
+.buildsavedir;

@@ -1,0 +1,39 @@
+path:
+	srcpiast/
+
+src:
+	ogolne/vars.dag
+	ogolne/mouse.dag
+	ogolne/saves.dag
+	ogolne/length.dag
+	ogolne/packs.dag
+	ogolne/containers.dag
+	ogolne/sounds.dag
+	ogolne/game.dag
+	ogolne/buttons.dag
+	ogolne/masks.dag
+	ogolne/pathfinder.dag
+	ogolne/adv.dag
+	games/advpiast.dag
+	games/piast.dag
+	games/part1.dag
+	games/puzzle.dag
+	games/part1las.dag
+	games/platforma.dag
+	games/part2.dag
+	games/lot1.dag
+	games/oboz.dag
+	games/golden.dag
+	games/rzeka.dag
+	games/macki.dag
+	games/part4.dag
+	games/lot2.dag
+	games/northsouth.dag
+	games/bajka.dag
+
+all:
+	dd1.dag
+
+out:
+	srcpiast/ddag.odd
+

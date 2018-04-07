@@ -1,0 +1,56 @@
+game Maluje : DziejeGame, TPainter	{
+	init	{
+		DziejeGame::init("maluje");
+		
+		.gamebg;
+		.tinit(null, null, "bkg.pyz", "pedzel.pyz", "draw.pyz", "farby.pyz", "ld");
+		anbkg.advclip;
+		.path = ("sw2");
+		new gmimgvec grobw;
+		"grobw" .* "kolory.pyz";
+		grobw.setz(50);
+		.path = ("maluje");
+		grdraw.eval( func {
+			.paint(.white,64, 0);
+			.var2("kolor", null);
+			} );
+		new string skolor = null;
+		
+		.sfxs = (A, "pedzel 50", "pedzel2 50");
+		
+		.sounds = (A,
+			"snd1", "Pomalujê pylon z prawej strony identycznie jak ten z lewej", func { <GAME>.unlock; },
+			"sndend", "Proszê jaka piêkna ¶wi±tynia", func { ccs.close( func { BajkaNr=4; gameapi.play("Bajka"); } ); }
+			);
+		.lock;
+		ccs.enter( func { .cbplay("snd1"); } );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+		.tp_mouse_lclick;
+	}
+	mouse_move	{
+		.tp_mouse_move;
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+	onpaint	{
+		if( skolor!=null )	{
+			fxpedzel2.play;
+			<grdraw.getsfound>.kolor = (skolor);
+			1;
+			if( grdraw.each( func { (@id) @b = _; b && .actionname->strsubb(4)==kolor; } ) )	{
+				.lock;
+				.cbplay("sndend");
+			}
+		}
+	}
+	onsetbrush	{
+		skolor = <grpaleta.getsfound>.actionname->strsubb(2);
+		fxpedzel.play;
+	}
+	game_exit	{
+		.tp_exit;
+	}
+}

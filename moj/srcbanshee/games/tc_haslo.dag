@@ -1,0 +1,176 @@
+
+game HasloA : Kajuta	{
+	init	{
+		Kajuta::init("hasloa");
+		.path = ("haslo");
+		
+		.imgs = (A, "bga.jpg", "aon.pyz 5", "apswd.pyzH 5", "apanelon.pyzH 10",
+			"aswiatla.pyzGH 15", "aekranon.pyzH 20", "aczapka.pyz 25");
+		
+		if( clsave.bis("haslo_wpisane") )	{
+			anaon.hide;
+			anapanelon.show;
+			graswiatla.nplay(-1);
+			anaekranon.show;
+		}
+		
+		.sfxs = (A, "dokpanelN 80");
+		
+		ccs.enter( func {
+			if( clsave.bis("haslo_wpisane") )	tim1.play;
+			else igmstate = 1;
+			} );
+		.timer = ("tim1", 3000, func { .mprzejdz("Dok"); } );
+		
+		anaon {
+			.Button_isin;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				if( .actionnr(-1)==0 )	{
+					.play(1);
+					tim2.play;
+				}
+				} );
+			but1.add(this);
+		};
+		
+		.timer = ("tim2", 500, func {
+			anaon.anhide;
+			anapswd.show;
+			anapanelon.show;
+			graswiatla.nplay(-1);
+			} );
+		
+		anapswd {
+			.Button_isin;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				.mprzejdz("HasloB");
+				} );
+			but1.add(this);
+		};
+	}
+}
+
+game HasloB : Kajuta	{
+	init	{
+		Kajuta::init("haslob");
+		.path = ("haslo");
+		
+		.imgs = (A, "bkg.pyz", "klawiatura.pyz 5", "bkeys.pyzGH 10", "btxt.pyz 15", "bstar.pyzGH 20", "cload.pyzGH 25");
+		
+		.sfxs = (A, "dokpanelN 80");
+		
+		new vector vps; vps.type("string");
+		vps.resize( grbstar.size, null );
+		new int idps = -1;
+		
+		@isndon = igmsoundson;
+		igmsoundson = 1;
+		.sounds = (A, "sndpswd", "Please enter password", func {
+				grbkeys.show;
+				grbstar.show;
+				igmstate = 1;
+				},
+			"sndwrong", "Wrong password", func {  anbtxt.setframe("enter",0); igmstate=1; },
+			"sndok", "Passowrd correct", func { tim1.play; },
+			":lilian1", "Hmm. Maybe the map I found can help me determine the correct password.", "stdret"
+			);
+		igmsoundson = isndon;
+		grbkeys.eval( func {
+			.Button_isin;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate!=1 ) return;
+				
+				@s = .actionname;
+				match( s )	{
+					"_enter_" => {
+						string s2 = "";
+						for( int i=0; i<=idps; i++)	{
+							s2+=vps.get(i);
+						}
+						if( s2=="15_space_april_space_1912" )	{
+							igmstate=5;
+							.cbplay("sndok");
+							grbstar.hide;
+							anbtxt.setframe("ok",0);
+						} else {
+							igmstate=5;
+							.mreset;
+							anbtxt.setframe("wrong",0);
+							.cbplay("sndwrong");
+						}
+					}
+					"_del_" => {
+						if( idps>=0 )	{
+							<grbstar.get(idps)>.setframe(-1,0);
+							vps.set( idps, null );
+							idps--;
+						}
+					}
+					? => {
+						if( idps < grbstar.size-1 )
+							idps++;
+						<grbstar.get(idps)>.setframe(-1,1);
+						vps.set( idps, s );
+					}
+				}
+				} );
+			but1.add(this);
+			} );
+		
+		.timer = ("tim1", 1000, func {
+			anklawiatura.hide;
+			grbkeys.hide;
+			anbtxt.hide;
+			grbstar.hide;
+			grcload.nplay(-1);
+			tim2.play;
+			} );
+		.timer = ("tim2", 1500, "mend" );
+		
+		if( igmdebug )	.mbutnext;
+		.mskipminigame;
+		
+		.match3but;
+		if( Trudnosc<2) anmatch3but.move(0,-10);
+		
+		//.tohint(A, "anitemmapafull");
+		
+		.game_mute;
+		ccs.enter( func { .cbplay("sndpswd"); } );
+	}
+	game_mute	{
+		int vol = (iGameMute ? 0 : 100);
+		sndok.setvol(vol);
+		sndpswd.setvol(vol);
+		sndwrong.setvol(vol);
+	}
+	hint_click	{
+		if( igmstate==1 )	{
+			igmstate=0;
+			.txtplay("lilian1");
+		}
+	}
+	mreset	{
+		idps = -1;
+		grbstar.setframe(-1,0);
+	}
+	anbutnext_click	{
+		tim2.play;
+	}
+	mend	{
+		clsave.bset("haslo_wpisane");
+		.mprzejdz("Puzzle");
+	}
+	match3_won	{ .mend;	}
+	skip_minigame	{	.mend;	}
+}
+
+

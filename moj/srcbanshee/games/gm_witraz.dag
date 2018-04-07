@@ -1,0 +1,9 @@
+
+game Tmp1 : StdGame	{
+	init	{
+		StdGame::init("kajuta");
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

@@ -1,0 +1,69 @@
+path:
+	srcmezo/
+
+src:
+	libs/system.dag
+	libs/collections.dag
+	libs/music.dag
+	libs/vars.dag
+	libs/mouse.dag
+	libs/length.dag
+	libs/packs.dag
+	libs/containers.dag
+	libs/sounds.dag
+	libs/game.dag
+	libs/buttons.dag
+	libs/masks.dag
+	libs/basetypes.dag
+	libs/gametools.dag
+	libs/gamecontroller.dag
+	libs/adv.dag
+	libs/saves.dag
+	libs/script.dag
+	gameobjs/painter.dag
+	gameobjs/asker.dag
+	gameobjs/placepointer.dag
+	gameobjs/counter.dag
+	gameobjs/gfxobjects.dag
+	gameobjs/fadeinout.dag
+	gameobjs/texttyper.dag
+	gameobjs/delaytaker.dag
+	gameobjs/imgmover.dag
+	gameobjs/rewinder.dag
+	gameobjs/buttons.dag
+	gameobjs/textbox.dag
+	gameobjs/lexer.dag
+	gameobjs/anfx.dag
+	gameobjs/lang.dag
+	advlibs/advmouse.dag
+	advlibs/advobject.dag
+	advlibs/advhero.dag
+	advlibs/pathfinder.dag
+	advlibs/advstander.dag
+	advlibs/talker.dag
+	advlibs/camera.dag
+	advlibs/advbutton.dag
+	advlibs/advbehaviour.dag
+	advlibs/advpocket.dag
+	advlibs/advcontroller.dag
+	advlibs/advdebugger.dag
+	templates/tmenu.dag
+	templates/tpainter.dag
+	games/advmouse.dag
+	games/advkomputro.dag
+	games/main.dag
+	games/gm_sred.dag
+	games/gm_quiz.dag
+	games/gm_epoki.dag
+	games/gm_kons.dag
+	games/gm_puzzle.dag
+	games/gm_kolo.dag
+	games/gm_menumezo.dag
+	games/gm_outro.dag
+	games/gm_bajka.dag
+	
+all:
+	dd1.dag
+
+out:
+	srcmezo/mezo.odd

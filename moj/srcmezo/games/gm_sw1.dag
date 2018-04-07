@@ -1,0 +1,59 @@
+game Sw1 : DziejeGame	{
+	init	{
+		DziejeGame::init("sw1");
+		
+		.EgiptSave("swiatynia");
+		
+		.gamebg;
+		.imgs = (A, "bg.pyz");
+		.sfxs = (A, "getpuz 60", "putpuz 60");
+		new gmimgvec grels;
+		"grels" ..< "els.pyz";
+		grels.setz(10);
+		grels.hash;
+		new ConRewinder clrew(X1,Y1,X2,Y2);
+		clrew.build("scripts/sw1/strzalki.pyz",5,"imglobcurs","up",10,"grels");
+		clrew.setfxrew("sfx/przesun.wav");
+		
+		.sounds = (A,
+			"snd1", "Kamienie przywiezione przez Chetiego mia³y pos³u¿yæ do budowy ¶wi±tyni; Cheti sam kierowa³ budow±", "mstart",
+			"sndend", "Doskonale; Bry³a ¶wi±tyni gotowa; Teraz musimy j± pomalowaæ", func { ccs.close( func {
+				sgmlastscene = gameapi.getgamename;
+				sgmglobpath = "sw2";
+				sgmgame = "gamesw2";
+				gameapi.play(sgmgame);
+				} ); }
+			);
+		
+		.cbplay("snd1");
+	}
+	mstart	{
+		clrew.unlock;
+		igmstate = 1;
+		mus.playstr("flet.ogg -v 70");
+	}
+	clrew_GET	{
+		if( igmstate!=1 ) return;
+		fxgetpuz.play;
+		_ = .mspickup;
+	}
+	clrew_PUT	{
+		@s = .getmoved;
+		fxputpuz.play;
+		if( <s>.aninlod(15) )	{
+			<s>.setpos(0,0);
+			<s>.setz(5);
+			clrew.freeitem;
+			if( grels.empty )	{
+				igmstate = 2;
+				.cbplay("sndend");
+			}
+		} else clrew.retitem;
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cbplay("sndend");
+	}
+}

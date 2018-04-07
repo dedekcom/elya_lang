@@ -1,0 +1,100 @@
+
+new string sPuzleAnimalsExit = "MenuAnimals";
+
+game PuzleAnimals : MermaidStd, TPuzzle2	{
+	init	{
+		MermaidStd::init("puzle");
+		
+		new bool bPuzRotate = false;
+		
+		.newanima("anzwierz", "puz_"+sChosenAnimal, 10);
+		.copyanima("anzwierz", "anzw");
+		
+		.sfxs = (A, "getpuz 60", "putpuz 60", "ok 40", "podnies1", "zwyciestwo2", "rewind1 70", "pageflip1 80", "brawa1 80");
+		
+		imglobg.show;
+		new img imgbkg;
+		imgbkg.imgclone("imglobg");
+		imglobg.hide;
+		
+		new img imbg;
+		imbg.imgclonesizecol("anzwierz", .white, 64);
+		
+		int dx = 0.1*igmappw;
+		int dy = 0.1*igmapph;
+		@dy2 = 40->igetsc;
+		new Rect rec2( dx, dy+dy2, igmappw-2*dx, igmapph-2*dy-dy2);
+		rec2 { vecgr.add("gmimgvecpuz"); };
+		
+		new gmimgvec grels;
+		int ktory = anzw.nofframes(1)->rand;
+		for( int i=0; i<anzw.nofframes(1); i++)	{
+			@s = "imgz"+i;
+			new img <s>;
+			anzw.setframe(1,i);
+			<s>.imgclonesize("anzw");
+			<s>.blit("anzwierz");
+			
+			if( i==ktory )	{
+				<s>.imgsetoverlay( .grey(128), 128 );
+				new string soveralyed = <s>.imgetoverlay;
+			}
+			<s>.var2("framenr", i);
+			<s>.addmethod("imsetpos", func { (int x, int y)
+				.setpos(x+ilodx, y+ilody);
+				} );
+			<s>.vars2(A, "ilodx", <s>.getpx, "ilody", <s>.getpy);
+			grels.add(s);
+			<s>.setpos( igmappw->rand, igmapph->rand );
+			rec2.fit(s);
+		}
+		anzw.hide;
+		anzwierz.hide;
+		
+		// malpa, tukan, waran, rys, wielblad, tygrys, orangutan 2x3
+		// slon 3x2
+		int rows = 2;
+		int cols = 3;
+		if( sChosenAnimal=="slon" ) {
+			rows = 3;
+			cols = 2;
+		}
+		.tinit("imgbkg", "grels", rows, cols, 0, 0);
+		//iblitopacity = 222;
+		
+		.cbutexit;
+		.loadasker;
+		ccs.enter( func {
+			.unlockall;
+			.advsetstdstate;
+			} );
+	}
+	mupdate	{
+		grels.sortz(15);
+	}
+	butclick_anbutexit	{
+		if( grels.empty ) .stdexit(sPuzleAnimalsExit);
+		else	.askfor(sPuzleAnimalsExit);
+	}
+	tpuzzle_get	{	fxgetpuz.play;	}
+	tpuzzle_putbad	{	fxputpuz.play;		}
+	tpuzzle_blit	{
+		fxpodnies1.play;
+		<soveralyed>.hide;
+	}
+	tpuzzle_join	{	fxpodnies1.play;	}
+	tpuzzle_end	{
+		fxok.play;
+		fxzwyciestwo2.play;
+		fxbrawa1.play;
+		<soveralyed>.hide;
+		imbg.hide;
+	}
+	cmov_PUT	{
+		<GAME>.cput;
+		if( sactpuz!=null )	{
+			rec2.fit(sactpuz);
+		}
+	}
+}
+

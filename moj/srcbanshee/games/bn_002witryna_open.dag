@@ -1,0 +1,89 @@
+
+game mg002_witryna_open : Banshee	{
+	init	{
+		Banshee::init("mg002_witryna_open");
+		
+		mus.playstr("crying_loop -v 40 -l");
+		
+		.imgs = (A, "bkg.jpg ","anim_coord.pyzH", "popup_bkg.pyz 2", /*"znak10.pyz","znak10b.pyz", "znak11.pyz", "znak11b.pyz", "znak12.pyz","znak12b.pyz",*/ "symbol2v.pyzH 5", "ramka.pyzG 400", "popexit.pyz 410"); 
+  	.butpopexit;
+    .loadznakout;
+   // .setasznakbut("anznak10"); 
+   // .setasznakbut("anznak11");
+   // .setasznakbut("anznak12"); 
+    
+    
+	new Film filmb;
+	filmb.musicclass = ("mus");
+	filmb.load("scripts/cs002a_popup_ksiazka/", "film");
+	filmb.setpos( ananim_coord.getpx, ananim_coord.getpy );  
+	filmb.showfirstframe;
+	filmb.setz(300);
+	filmb.hide;
+	filmb.addmethod("onfinish", func {
+		//.stdexit("HO01a_ksmala"); 
+		clsave.bset("e1_ad002a_kdoors_cs002a_ksiazka_shown");
+		.watch_film("cs002a_ksiazka","-mg","HO01a_ksmala");
+		} );  
+  
+ 
+    if (!clsave.bis("e1_cs002a_popup_ksiazka_shown")) 
+    {
+		anpopup_bkg.hide(); 
+		.gui_toloupe("ansymbol2v"); 
+		ansymbol2v.anhideonsetframe;  
+     
+		ansymbol2v{
+			.addmethod("isbutin", func { (int x, int y)
+			.advstdstate && .isin(x,y,0,0) && .loupe_visible;
+			} );
+			.addmethod("butclick", func {
+				if(!clsave.bis("e1_cs002a_popup_ksiazka_shown"))
+				{ 
+					.hide();
+					.gui_removefromloupe("ansymbol2v"); 
+					clsave.bset("e1_cs002a_popup_ksiazka_shown");
+					.advsetstate("state_foutmus");
+					mus.fadeout(1000);
+					.timplay("timend", 1000, func { filmb.play(); } );
+				}       
+			});
+			butgame.add(this);
+		};   
+    }
+    else
+    {
+      ansymbol2v.hide ;
+    } 
+    
+    imgbkg {
+		.addmethod("isbutin", func { (@x, @y)
+			!anpopup_bkg.isin(x,y,0,0);
+			} );
+		.addmethod("butclick", func {
+			if( !.advstdstate ) return;
+			 .mend;
+			} );
+  		butgame.add(this);
+  	};      
+    
+    .stdstart;
+    
+    
+	} //koniec init
+   
+	HINT_CLICK {
+		if (!clsave.bis("e1_cs002a_popup_ksiazka_shown"))	{
+			.showhint2v("ansymbol2v");
+			.showhint2v("guiglass"); 
+		} else {
+			.showhint("anpopexit");
+		}
+	} 
+  
+	mend	{
+		mus.fadeout(1000);
+		.stdexitdefadv("ad002a_kdoors", "gamead002a_kdoors0");
+	} 
+       
+}

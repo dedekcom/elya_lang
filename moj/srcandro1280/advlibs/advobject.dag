@@ -1,0 +1,25 @@
+class classadvobject	{
+	init()	{
+		this.addasadvobject();
+	}
+	addasadvobject()	{
+		if( !AdventureGame ) return;
+		string s = this.getname();
+		grmsmove.addonce(s);
+		grmslrel.addonce(s);
+		grmslclick.addonce(s);
+		grmsrclick.addonce(s);
+	}
+	removefromadvobjs()	{
+		if( !AdventureGame ) return;
+		string s = this.getname();
+		grmsmove.remove(s);
+		grmslrel.remove(s);
+		grmslclick.remove(s);
+		grmsrclick.remove(s);
+	}
+	virtual onmousemove(int x, int y)	{}
+	virtual onmouselclick(int x, int y)		{}
+	virtual onmouselrel(int x, int y)		{}
+	virtual onmouserclick(int x, int y)		{}
+}

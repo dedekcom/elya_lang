@@ -1,0 +1,147 @@
+
+game MainMenu : DziejeGame	{
+	init	{
+		DziejeGame::init("mainmenu");
+		
+		.imgs = (A, "bkg.pyz", "prof.pyzL 30", "maska.pyz 20");
+		.sfxs = (A, "putpuz2 50");
+		.sounds = (A,
+			"sndgo", "Witam w trzecim programie z serii Dzieje Ludzi; Dzi¶ poznamy ¿ycie w staro¿ytnej Mezopotamii", "mendpro",
+			"sndzycie", "¯ycie i wynalazki w staro¿ytnej Mezopotamii", "mendpro",
+			"sndbajka", "Niesamowite przygody Ramidy", "mendpro",
+			"sndquiz", "Wielki test wiedzy o Mezopotamii", "mendpro",
+			"sndgry", "Gry edukacyjne", "mendpro"
+			);
+		
+		new Buttons cbut("buts.pyz");
+		
+		//mus.playstr("eg1wstep.ogg -v 50 eg1petla.ogg -v 50 -l");
+		ccs.enter( func {
+			if( igmbegin )	{
+				igmbegin = 0;
+				.mprof("sndgo");
+			} else igmstate =1;
+		} );
+	}
+	cbut_lclick	{
+		if( igmstate!=1 ) return;
+		match( sobject )	{
+			"zycie" => gameapi.play("Mezo");
+			"gry" => gameapi.play("MenuGry");
+			"bajka" => gameapi.play("Bajka");
+			"quiz" => {
+				sSubMenu = "quiz";
+				gameapi.play("SubMenu");
+			 }
+			? => ;
+		}
+	}
+	cbut_moveon	{
+		if( igmstate==1)	{
+			string s = "snd"+sobject;
+			if( !this.cisplaying() || this.cgetactsnd()!=s )	.mprof(s);
+		}
+	}
+	mprof(string s)	{
+		.cactsndstop(false);
+		.cbplay(s);
+		anprof.play("talk");
+	}
+	mendpro	{
+		igmstate = 1;
+		anprof.play("stand");
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game MenuGry : DziejeGame	{
+	init	{
+		DziejeGame::init("menugry");
+		.path = ("menus");
+		.sfxs = (A, "putpuz2 50");
+		
+		.img = ("bkggry.pyz");
+		new Buttons cbut("menugry.pyz");
+		.sounds = (A,
+			"sndarcheo", "Archeolog", null,
+			"sndepoki", "Dopasuj epoki", null,
+			"sndmuzeum", "Uporz±dkuj muzeum", null,
+			"sndpuzzle", "Puzzle", null,
+			"sndkolo", "Kolorowanie", null
+			);
+	}
+	cbut_lclick	{
+		sSubMenu = sobject;
+		if( sSubMenu=="muzeum" )	{
+			MuzeumLevel = 1;
+			gameapi.play("Muzeum");
+		} else
+			gameapi.play("SubMenu");
+	}
+	cbut_moveon	{
+		fxputpuz2.play;
+		.crselfplay("snd" + sobject);
+	}
+}
+
+new string sSubMenu = "muzeum";
+game SubMenu : DziejeGame	{
+	init	{
+		DziejeGame::init("submenu");
+		.path = ("menus");
+		.subgamebg;
+		.sfxs = (A, "putpuz2 50");
+		.img = ("$scripts/menus/belka"+sSubMenu+".pyz");
+		new Buttons cbut(sSubMenu+"buts.pyz");
+		.sounds = (A,
+			"sndl", "Test normalny", null,
+			"sndt", "Test trudny", null
+			);
+	}
+	cbut_lclick	{
+		match( sSubMenu )	{
+			"archeo" => {
+				if( sobject=="bizuteria" )	{
+					gameapi.play("Bizuteria");
+				} else {
+					sArcheo = sobject;
+					gameapi.play("Archeo");
+				}
+			}
+			"puzzle" => {
+				match(sobject)	{
+					9 => { 3; gameapi.play("Puzzle"); }
+					16 => { 4;gameapi.play("Puzzle"); }
+					25 => { 5; gameapi.play("Puzzle"); }
+					36 => { 6; gameapi.play("Puzzle"); }
+					49 => { 7; gameapi.play("Puzzle"); }
+					86 => {
+						gameapi.play("Puzzle2");
+					}
+					? => ;
+				}
+			}
+			"kolo" =>	{
+				gameapi.play(sobject, "Kolo");
+			}
+			"epoki" => {
+				EpokiLevel = (sobject=="babki" ? 3 : 1);
+				gameapi.play("Epoki");
+			}
+			"muzeum" =>	{
+				
+			}
+			"quiz" => {
+				QuizMode = sobject;
+				gameapi.play("Quiz");
+			}
+			? => ;
+		}
+	}
+	cbut_moveon	{
+		fxputpuz2.play;
+		if( sSubMenu=="quiz" ) .crselfplay("snd"+sobject);
+	}
+}

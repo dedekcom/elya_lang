@@ -1,0 +1,196 @@
+new classgamepause clpause;
+new classgamemusic clmusic;
+clmusic.sndbgrpath("sounds/bgr/");
+clmusic.musicpath("sounds/music/");
+clmusic.load("sounds/music.db");
+
+new snd sndakskermovon;
+sndakskermovon.load("sounds/sfx/butmovon.wav");
+sndakskermovon.setvol(50);
+
+class classasker2 : classasker	{
+	init()	{
+		classasker::init();
+		
+		new snd sndaskexit;		sndaskexit.setstartstopflag(false,true);
+		new snd sndaskexitgame;	sndaskexitgame.setstartstopflag(false,true);
+		new snd sndyes;			sndyes.setstartstopflag(false,true);
+		new snd sndno;			sndno.setstartstopflag(false,true);
+		new snd sndaskrestart;	sndaskrestart.setstartstopflag(false,true);
+		new snd sndaskrestart2;	sndaskrestart2.setstartstopflag(false,true);
+
+		.reload;
+		this.load( classgame::getlangfile("scripts/common/asker.pyz"), 12000 );
+		this.fxonmovon("sndakskermovon");
+	}
+	reload	{
+		this.setwavpath(SNDPATH);
+		@s = .getsndpath;
+		sndaskexit.load( s + "narexit.wav");
+		sndaskexitgame.load( s + "narexitgame.wav");
+		sndyes.load( s + "naryes.wav");
+		sndno.load( s + "narno.wav");
+		sndaskrestart.load( s + "narrestart.wav");
+		sndaskrestart2.load( s + "narrestart.wav");
+	}
+	askexittomenu()	{
+		this.ask( "sndaskexit", "sndyes", "sndno", "myestomenu", "mnotomenu");
+	}
+	askexitgame	{	.ask( "sndaskexitgame", "sndyes", "sndno", "myestomenu", "mnotomenu");	}
+	askrestart()	{
+		this.ask( "sndaskrestart", "sndyes", "sndno", "myesrestart", "mnorestart");
+	}
+	askrestart2()	{
+		this.ask( "sndaskrestart2", "sndyes", "sndno", "myesrestart", "mnorestart");
+	}
+	mnotomenu()	{}
+	myestomenu()	{
+		if( <GAME>.hasvar("clsave") )
+			clsave.free;
+		match( gameapi.getgamename() )	{
+			"MainMenu" => "exit";
+			? => "MainMenu";
+		}
+		gameapi.play;
+	}
+	mnorestart()	{
+		match(gameapi.getgamename)	{
+			"SubMenu" => "MenuGry";
+			? => "MainMenu";
+		}
+		gameapi.play;
+	}
+	myesrestart()	{	this.crestart();	}
+	/*****************************************************************/
+	ask( string sask, string syes, string sno, string sf1, string sf2 )	{
+		if( !ccs.isplaying )	classasker::ask( sask, syes, sno, sf1, sf2 );
+	}
+}
+
+new classasker2 claskexit;
+
+public LANG=(@s)	{
+	LANG = s;
+	SNDPATH = "sounds/";
+	if( LANG=="pl" ) LANG="";
+	if( LANG.length > 0 ) SNDPATH += LANG + "/";
+	
+	claskexit.reload;
+}
+
+module clbuts	{
+	init()	{}
+	load()	{
+		new classbutton buts;
+		buts.build("scripts/common/buttons.pyz", 4000, "imglobcurs");
+		buts.transclickfunc( engine.actclassname(), "butclick");
+		buts.transmovonfunc( engine.actclassname(), "butmovon");
+		buts.transmovofffunc( engine.actclassname(), "butmovoff");
+		buts.disableall();
+		new db dbb;
+		dbb.load("scripts/common/buts.db");
+		new snd sndfxglobon;
+		sndfxglobon.load("sounds/sfx/globbutmovon.wav");
+		sndfxglobon.setvol(50);
+		new @bvisible = true;
+	}
+	reset()	{
+		buts.disableall();	
+		@sgame = gameapi.getgamename;
+		int pos = dbb.findbyrow( sgame );
+		if( pos>=0 )	{
+			int ile = dbb.getcolsno( pos );
+			for( int i=1; i<ile; i++)	{
+				buts.enable( dbb.get( pos, i ) );
+			}
+		}
+	}
+	setcursorpos(int x, int y)	{	buts.setcursorpos(x,y);	}
+	enable(string sbu)	{
+		buts.enable( sbu );
+	}
+	/*****************************************/
+	butmovon(string sc)	{
+		sndfxglobon.play();
+		bvisible = mouse.isvisible;
+		mouse.show;
+		.<this + "_" + sc + "_butmoveon">;
+	}
+	butmovoff(string sc)	{
+		if( !bvisible ) mouse.hide;
+		.<this + "_" + sc + "_butmoveoff">;
+	}
+	butclick(string sc)	{
+		if( sc=="pause" )	{
+			clpause.pause();
+		} else if( sc=="menu" )	{
+			match( gameapi.getgamename )	{
+				"MainMenu" => claskexit.askexitgame;
+				? => {
+					claskexit.askexittomenu();
+				}
+			}
+		} else if (sc=="restart")	{
+			claskexit.askrestart();
+		}
+		.<this + "_" + sc + "_butclick">;
+	}
+}
+
+class classplacepointer2 : classplacepointer    {
+	init()  {
+		classplacepointer::init();
+		this.load("scripts/common/strzalka.pyz");
+	}
+}
+
+/***************************************************/
+// new classnextgame clnextgm;
+igmstate = 0;
+|igmeasy, igmdemo, igmbegin| = false, false, true;
+
+bsms.setstd;
+
+//clnextgm.load("scripts/common/games.db");
+clbuts.load;
+if( !igmdebug && igmipad )	advmouse.load("scripts/common/kursorypad.pyz");
+else advmouse.load("scripts/common/cursors.pyz");
+
+new int Trudnosc = dbconf.dbget("trudnosc:");	// 0 - easy, 1 -normal, 2 - expert
+
+new bool bFullScreen;
+
+gameapi.play("MainLoader");
+game MainLoader : StdGame	{
+	init	{
+		StdGame::init("mainloader");
+		
+		/*new classfullsave clsmen("global.sav");
+		clsmen.stdload;*/
+		if( clsmen.has("fullscreen") )	{
+			bFullScreen = clsmen.get("fullscreen");
+			engine.setfullscreen(bFullScreen);
+		} else {
+			bFullScreen = 1;
+			clsmen.set("fullscreen", 1);
+			clsmen.stdsave;
+			engine.setfullscreen(bFullScreen);
+		}
+		
+		igmdebug = dbconf.dbget("debug_mode:");
+		AdventureMode = dbconf.dbget("adventure_mode:");
+		ibigfish = dbconf.dbget("bigfish:");
+		igamehouse = dbconf.dbget("gamehouse:");
+		
+		new db dbsnd;
+		dbsnd.load("scripts/common/sounds.db");
+		if( igmdebug )	{
+			dbsnd.save( "exports/snd.dlg" );
+		}
+		
+		new db dbl;
+		dbl.loadbeh( .getpath("init.beh") );
+		gameapi.play( dbl.dbgets("startgame:", 1) );
+	}
+}
+/***************************************************/

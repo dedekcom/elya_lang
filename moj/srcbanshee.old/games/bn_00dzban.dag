@@ -1,0 +1,261 @@
+
+game mg00Dzban : Banshee	{
+	init	{
+		Banshee::init("mg00_dzban");
+		
+		.imgsgr = (A, "bgdzban.jpg" , "elsc.pyzG 30", "maski.pyzH 40",
+			"korek.pyz 5", "dzbanspod.pyz 7", "ksiezyc.pyzH 10", "dzban.pyz 15", "zlozone.pyzH 12", "animopen.pyzH 14",
+			"blink.pyzH 35", "dymek.pyzH 50",
+			"grall"
+			);
+		//grall.move(171,0);
+		imgbgdzban.setpos(0,0);
+		.copyanima("andymek", "andymek2");
+		.copyanima("ananimopen", "animopen2");
+		ananimopen.show;
+		ananimopen.setz(40);
+		animopen2.addmethod("onfinish", "mopen_dzban");
+		
+		.setasitemtopck("anksiezyc");
+		
+		.copyanima("anmaski", "anmaski2");
+		anmaski.addtogamevars("anmaski1");
+		
+		new int iilekat = 4;
+		.copyanima(grelsc.first, "anrot1");
+		.copyanima(grelsc.first, "anrot2");
+		anrot1.hide; anrot2.hide;
+		new filter ftrot1; new filter ftrot2;
+		new real robrot;
+		new int ilesteps;
+		anrot1.setpos(anzlozone.getcx, anzlozone.getcy);
+		anrot2.setpos(anzlozone.getcx, anzlozone.getcy);
+		
+		new vector vpos;
+		grelsc.eval( func {
+			.setframe(-1, .actionnr(-1) );
+			vpos.add( vpos.size ); 
+			.setpos( anzlozone.getcx, anzlozone.getcy );
+			} );
+		vpos.hash;
+		grelsc.each( func { (@id) .mchange(id, vpos.get(id) ); } );
+		
+		new int idclick = 0;
+		new string sclicked1;
+		new string sclicked2;
+		grelsc.eval( func {
+			.Button_isinalpha;
+			.addmethod("butmoveon", func {
+				if( sgmstate!="play" ) return;
+				//advmouse.setbut;
+				anblink.setframe(-1, .framenr);
+				anblink.setpos(.getposx, .getposy);
+				anblink.show;
+				} );
+			.addmethod("butmoveoff", func {
+				//advmouse.setstd;
+				anblink.hide;
+				} );
+			.addmethod("butclick", func {
+				if( sgmstate!="play" ) return;
+				if( idclick==0 )	{
+					idclick++;
+					.mmask(this);
+				} else if (idclick==1)	{
+					if( sclicked1!=this )	{
+						idclick++;
+						.mmask(this);
+						sgmstate = "check";
+						timcheck.play;
+					}
+				}
+				} );
+			butgame.add(this);
+			} );
+		.timer = ("timcheck", 500, func {
+			idclick = 0;
+			//sgmstate = "play";
+			//.mchange( <sclicked1>.actionnr(-1), <sclicked2>.actionnr(-1) );
+			.mrot( <sclicked1>.actionnr(-1), <sclicked2>.actionnr(-1) );
+			anmaski1.hide;
+			anmaski2.hide;
+			} );
+		.timer = ("timrot", 50, func {
+			if( ilesteps>0 )	{
+				ftrot1.rotate( -robrot );
+				ftrot2.rotate( robrot );
+				anrot1.setpos(anzlozone.getcx, anzlozone.getcy);
+				anrot2.setpos(anzlozone.getcx, anzlozone.getcy);
+				ilesteps--;
+				.play;
+			} else {
+				ftrot1.unlink; ftrot2.unlink;
+				anrot1.hide; anrot2.hide;
+				<sclicked1>.show; <sclicked2>.show;
+				.mchange( <sclicked1>.actionnr(-1), <sclicked2>.actionnr(-1) );
+				.mcheckend;
+			}
+			} );
+		.stdstart;
+	}
+	mcheckend	{
+		bool b = 1;
+		for( int i=0; i<grelsc.size; i++)	{
+			@s = grelsc.get(i);
+			if( <s>.framenr!=i ) b=0;
+		}
+		if( b )	{
+			sgmstate="state_open";
+			butgame.remove("grelsc");
+			animopen2.play(1);
+			grelsc.hide;
+			anksiezyc.show;
+		} else sgmstate="play";
+	}
+	mchange(int idsrc, int idest)	{
+		if( idsrc==idest ) return;
+		@s = grelsc.get(idsrc);
+		@s2 = grelsc.get(idest);
+		@ifr = <s>.framenr;
+		<s>.setframe( -1, <s2>.framenr );
+		<s2>.setframe( -1, ifr );
+	}
+	mrot(int idsrc, int idest)	{
+		@s = grelsc.get(idsrc);
+		@s2 = grelsc.get(idest);
+		<s>.hide;
+		<s2>.hide;
+		
+		anrot1.show;
+		anrot2.show;
+		@f1 = <sclicked1>.framenr;
+		@f2 = <sclicked2>.framenr;
+		anrot1.setframe( <s>.actionnr(-1), f1 );
+		anrot2.setframe( <s2>.actionnr(-1), f2 );
+		ftrot1.link("anrot1");
+		ftrot2.link("anrot2");
+		ftrot1.setpivottype(2);
+		ftrot2.setpivottype(2);
+		//anrot1.setpos(anzlozone.getcx, anzlozone.getcy);
+		//anrot2.setpos(anzlozone.getcx, anzlozone.getcy);
+		@ile = anrot1.nofframes(-1);
+		if( f1>f2 )	{
+			@steps1 = f1-f2;
+			@steps2 = f2 + (ile-f1);
+			if( steps1 < steps2 )	{
+				.mupdate(steps1, -1);
+			} else {
+				.mupdate(steps2, 1);
+			}
+		} else {
+			@steps1 = f2-f1;
+			@steps2 = f1 + (ile-f2);
+			if( steps1 < steps2 )	{
+				.mupdate(steps1, 1);
+			} else {
+				.mupdate(steps2, -1);
+			}
+		}
+		timrot.play;
+	}
+	mupdate(int steps, int isgn)	{
+		ilesteps = steps * iilekat;
+		robrot = ( isgn*360/(anrot1.nofframes(-1)*iilekat) );
+	}
+	mmask(string s)	{
+		|int x, int y| = mouse.getpos;
+		if( idclick==1 )	{
+			andymek.setpos(x,y);
+			andymek.play(0);
+		} else {
+			andymek2.setpos(x,y);
+			andymek2.play(0);
+		}
+		<"sclicked"+idclick>.set(s);
+		@s2 = "anmaski"+idclick;
+		<s2>.setframe(0, <s>.framenr);
+		<s2>.show;
+	}
+	mopen_dzban	{
+		sgmstate="play";
+	}
+	anksiezyc_TAKE	{	.item_gotocenter;	}
+	anksiezyc_INPCK	{
+		.addtopck("kolatka");
+		sgmstate = "end";
+		.timplay("timend", 1000, func {
+				.gotoadv("ad00_endintro", "gamead00_endintro0");
+				ccs.buildfromscreen;
+			} );
+	}
+	mouse_rclick	{
+		if( igmdebug )	{
+			anksiezyc.show;
+			anksiezyc.setz(200);
+		}
+	}
+}
+
+
+game TestFilm2 : StdGame	{
+	init	{
+		StdGame::init("film");
+		advmouse.set("empty");
+		
+		new Film film1;
+		film1.bcenter = (true);
+		film1.bborders = (true);
+		film1.musicclass = ("mus");
+		
+		film1.playfilm( "scripts/cs01_barghest/", "film" );
+	}
+	mouse_lclick	{
+		if( film1.isplaying ) film1.stop(true);
+	}
+}
+
+game TestFilm : StdGame	{
+	init	{
+		StdGame::init("testfilm2");
+		
+		new Film film1;
+		film1.addmethod("onfinish", "film1_filmend");
+		
+		//film1.setpos(200, 100);
+		.showfps;
+		
+		new TicksCounter tc1;
+		
+		//ccs.enter( func { .playfilm; } );
+		/*.newtext("txtinfo", "print: 1-film1, 2-film2, 3-repeat film", .stdfont(24), .white);
+		txtinfo.setpos( iResX - txtinfo.getw - 10, 0 );
+		txtinfo.setz(20);*/
+		new img imgbg;
+		imgbg.create( iResX, iResY, .black, 255 );
+		imgbg.setz(-1);
+	}
+	key_down	{
+		if( keyboard.iskey("1") )	{
+			film1.setcycle(2);
+			//imgbg.hide;
+			tc1.start;
+			film1.playfilm("scripts/testfilm/", "film");
+		} else if (keyboard.iskey("2") ) {
+			film1.setcycle(2);
+			//imgbg.hide;
+			tc1.start;
+			film1.playfilm("scripts/testfilm2/", "film");
+		} else if  (keyboard.iskey("3")) film1.play;
+	}
+	showfps	{
+		if( !.hasvar("cfps") )	{
+			new CalcFPS cfps;
+			cfps.stdset(14, 10, 10);
+		}
+		cfps.play;
+	}
+	film1_filmend	{
+		.free;
+		tc1.print("film time: ");
+	}
+}

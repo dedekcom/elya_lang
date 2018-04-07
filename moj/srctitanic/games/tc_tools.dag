@@ -1,0 +1,336 @@
+
+class tcramka : gfxObject	{
+	init	{
+		new img imob;
+		new filter ftob;
+		new anima anglowka;
+		anglowka.buildfullname;
+		.vars2(A,"speaker", null);
+		
+		new int iopacity = 65;
+		.cycle = ("timshow", func {
+			if( bshow ) iop+=iopstep;
+			else iop-=iopstep;
+			zoom = iop.to_r/255.0;
+			if( iop>=255 )	{
+				ftob.setzoom(1);
+				ftob.setopacity(255);
+				//anskip.show;
+				.showskip;
+				<.getbuildername>.<.getbuildername + "_show">;
+			} else {
+				if( bshow || (!bshow && iop >= iopacity) )	{
+					ftob.setzoom(zoom);
+					//ftob.setopacity(iop);
+					.play;
+				} else {
+					imob.hide;
+					<.getbuildername>.<.getbuildername + "_hide">;
+				}
+			}
+			} );
+		timshow.vars2(A, "iop", iopacity, "zoom", 0.0, "iopstep", 25, "bshow", 1);
+		timshow.addmethod("mreset", func {
+			if( bshow )	{
+				iop=iopacity;
+				zoom = iop.to_r/255.0;
+				ftob.setzoom(zoom);
+				//ftob.setopacity(iop);
+			} else {
+				iop = 255;
+				zoom = 1;
+			}
+			imob.show;
+			} );
+		
+		//.reload(stxtbox);
+		.hideskip;
+		imob.hide;
+		
+		gfxObject::init("imob");
+	}
+	view(string stxtbox)	{	._reload(stxtbox, "okno");	}
+	sayl(string stxtbox)	{	._reload(stxtbox, "sayl");	}
+	sayr(string stxtbox)	{	._reload(stxtbox, "sayr");	}
+	thinkl(string stxtbox)	{	._reload(stxtbox, "thinkl");	}
+	thinkr(string stxtbox)	{	._reload(stxtbox, "thinkr");	}
+	_reload(string stxtbox, string sokno)	{
+		//anskip.hide;
+		.hideskip;
+		if( stxtbox==null ) return;
+		timshow.stop(false);
+		ftob.unlink;
+		//.newanima("imob1", "$scripts/heroes/"+sokno+".pyz", <stxtbox>.getz-1 );
+		.newanima("imob1", "$scripts/heroes/dymki2.pyz", <stxtbox>.getz-1 );
+		
+		imob1.setframe("pasek", 0);
+		real h = imob1.geth;
+		int ile = <stxtbox>.geth/h;
+		if( ile<2 ) ile=2;
+		
+		imob1.setframe("dol",0);
+		int h2 = imob1.geth;
+		imob1.setframe("top",0);
+		h2 += imob1.geth;
+		
+		delete imob;
+		new img imob;
+		
+		bool bokno = sokno!="okno";
+		int w = imob1.getw;
+		int h3 = h2 + h*ile;
+		int winx = 0;
+		int winw = w;
+		int winh = h3;
+		if( bokno )	{
+			.copyanima("imob1", "imobdymek");
+			imobdymek.setframe(sokno,0);
+			@dx = 10;
+			if( sokno.gete(0,1)=="l" )	{
+				imob1.move( imobdymek.getw + dx, 0 );
+				winx = imob1.getpx;
+				w = imob1.getex - imobdymek.getpx;
+			} else {
+				imobdymek.move( imob1.getw + dx, 0 );
+				w = imobdymek.getex - imob1.getpx;
+			}
+			@h4 = imobdymek.getey - imob1.getpy;
+			if( h4>h3) h3=h4;
+			//imobdymek.move( 0 , imobdymek.geth/2 );
+		}
+		
+		imob.create( w, h3, .transparent );
+		
+		if( bokno )
+			imob.blit("imobdymek");
+		int y = imob1.getey;
+		imob.blit("imob1");
+		@x = imob1.getpx;
+		imob1.setframe("pasek",0);
+		for( int i=0; i<ile; i++) {
+			imob1.setpos(x, y);
+			imob.blit("imob1");
+			y+=imob1.geth;
+		}
+		imob1.setframe("dol",0);
+		imob1.setpos(x,y);
+		imob.blit("imob1");
+		.setskippos;
+		imob.blit("anskip");
+		imob.setz( imob1.getz );
+		anskip.setz( imob.getz + 1 );
+		if( bokno )	{
+			<stxtbox>.move( winx + winw/2 - <stxtbox>.getw/2, (winh - <stxtbox>.geth)/2 );
+		} else {
+			imob.setpos( <stxtbox>.getcx - imob.getw/2, <stxtbox>.getcy - imob.geth/2 );
+		}
+		
+		if( bokno )	{
+			delete imobdymek;
+		}
+		delete imob1;
+		
+		imob.buildfullname;
+		<stxtbox>.blitto(imob.getfullname);
+		<stxtbox>.hide;
+		<gameapi.getgamename>.vardel(imob.getfullname);
+		
+		if( bokno )	{
+			@s = speaker;
+			@i = 0;
+			while( StringChecker::isdigit(s.gete(i,1)) )	{
+				i++;
+			}
+			s = s.strsube(i);
+			@dir = sokno.gete(0,1);
+			anglowka.setpos(0,0);
+			anglowka.load( "scripts/heroes/" + s + dir + ".pyz" );
+			anglowka.setz( .getz+1 );
+			@dx = 90;
+			if( dir == "l" )
+				imob.setpos( anglowka.getcx + dx, anglowka.getpy );
+			else imob.setpos( anglowka.getcx - imob.getw - dx, anglowka.getpy );
+			anglowka.hide;
+			
+			dx = 10;
+			@dy = iResY-anglowka.getey + dx;
+			if( dir=="l" )	dx = -anglowka.getpx - dx;
+			else dx = iResX - anglowka.getex + dx;
+			anglowka.move( dx, dy );
+			imob.move(dx, dy);
+			
+		} else {
+			if( anglowka.nofactions>0 )
+				anglowka.setpos(-1000,-1000);
+		}
+		
+		if( imob.getpx<0 ) imob.move( -imob.getpx, 0 );
+		if( imob.getpy<0 ) imob.move( 0, -imob.getpy );
+		if( imob.getex>iResX) imob.move( iResX-imob.getex, 0);
+		@iddol = iResY-80;
+		if( (imob.getey+anskip.geth)> iddol) imob.move( 0, iddol-(imob.getey+anskip.geth));
+		
+		.setskippos;
+		
+		ftob.link("imob");
+	}
+	ashow	{
+		//anskip.hide;
+		.hideskip;
+		timshow.bshow = (1);
+		timshow.mreset;
+		timshow.play;
+		anglowka.show;
+	}
+	ahide	{
+		.hideskip;
+		anglowka.hide;
+		timshow.bshow = (0);
+		timshow.mreset;
+		timshow.play;
+	}
+	setskippos	{	anskip.setpos( imob.getcx - anskip.getw/2, imob.getey );	}
+	setpos(int x, int y)	{
+		gfxObject::setpos(x,y);
+		.setskippos;
+	}
+	move(int x, int y)	{
+		gfxObject::move(x,y);
+		.setskippos;
+	}
+	hideskip	{
+		anskip.hide;
+		but1.onmousemove;
+		but1.removebut("anskip");
+	}
+	showskip	{
+		but1.add("anskip");
+		anskip.show;
+		but1.onmousemove;
+	}
+	free	{
+		<GAME>.vardel(anglowka.getfullname);
+	}
+}
+
+class itemadder	{
+	init	{
+		new filter ftduch;
+		ftduch.buildfullname;
+		new int _iduchstep = 0;
+		.cycle = ("_timduch", func {
+			idstep++;
+			if( idstep>=_iduchstep )	{
+				<ftduch>.unlink;
+				/*<sduch>.setframe(-1,1);
+				<sduch>.setpos(0,0);*/
+				.<sfunonplace>;
+			} else {
+				real rs = idstep.to_r/_iduchstep.to_r;
+				real r = 1.0 - rs * (1.0 - <sduch>.ratio);
+				//<sduch>.sam_speed = (r);
+				//<sduch>.sam_move;
+				<ftduch>.setzoom( r );
+				<sduch>.move( rs*(<sduch>.xdest-<sduch>.getpx), rs*(<sduch>.ydest-<sduch>.getpy) );
+				.play;
+			}
+			} );
+		_timduch.vars2(A, "idstep", 0, "sduch", null, "idduch", 0, "ftduch", ftduch.getfullname,
+			"sfunonplace", null);
+	}
+	free	{ <GAME>.vardel(ftduch.getfullname);	}
+	showitem(string s, string sfun)	{
+		if( !.hasvar("_fioduch") )
+			new classfadeinout _fioduch;
+		<s>.show;
+		ftduch.unlink;
+		ftduch.link(s);
+		ftduch.setopacity(0);
+		ftduch.setpivottype(0);
+		_fioduch.setopacity(1, 25, ftduch.getfullname, sfun);
+	}
+	hideitem(string s, string sfun)	{
+		ftduch.unlink;
+		ftduch.link(s);
+		_fioduch.setopacity(1, -25, ftduch.getfullname, sfun);
+	}
+	freeitem	{	ftduch.unlink;	}
+	gotonextfr(string s, int istep, string sfunonplace)	{
+		<s>.setframe(-1,1);
+		real x1 = <s>.getpx;
+		real y1 = <s>.getpy;
+		real h1 = <s>.geth;
+		<s>.setframe(-1,0);
+		.gotodest(s, h1, x1, y1, istep, sfunonplace);
+	}
+	gotodestan(string s, string san, int istep, string sfunonplace)	{
+		.gotodest(s, <san>.geth, <san>.getpx, <san>.getpy, istep, sfunonplace);
+	}
+	gotodest(string s, real desth, int destx, int desty, int istep, string sfunonplace)	{
+		ftduch.unlink;
+		ftduch.link(s);
+		ftduch.setpivottype(0);
+		_iduchstep = istep;
+		<s>.vars2(A, "ratio", desth/<s>.geth->to_r, "xdest", destx, "ydest", desty );
+		
+		_timduch.idstep = (0);
+		_timduch.sduch = (s);
+		_timduch.sfunonplace=(sfunonplace);
+		_timduch.play;
+	}
+}
+
+class guitems : classfullsave	{
+	init(string sfile)	{
+		classfullsave::init(sfile);
+		new gmimgvec grit;
+	}
+	last	{	.get("last_scene"); }
+	builditems	{
+		.hidepan2;
+		for( int i=0; i< dbsav.getrowsno; i++)	{
+			if( dbsav.get(i,0)->getb(0, "item_"->length) == "item_" &&
+				dbsav.get(i,1)->to_i )
+				.additem( dbsav.get(i,0)->strsubbs("item_") );
+		}
+	}
+	additem(string s)	{
+		grit.add(s);
+		@san = "anitem"+s;
+		.newanima(san, "$scripts/items/"+s+".pyz", <grpan2.first>.getz);
+		<san>.addtogamevars(san);
+		<san>.vars2(A,"sitem", s, "idgui", grit.size-1);
+		<san>.addmethod("itemonpos", func {
+			.setframe(0,0);
+			string sangui = grpan2.last;
+			<sangui>.setframe(-1,idgui);
+			.setpos( <sangui>.getcx, <sangui>.getcy ); 
+			});
+		<san>.<"iteminit_"+s>;
+		<san>.itemonpos;
+		<san>.Button_stdalpha;
+		<san>.addmethod("butclick", func {
+			@smet = "itemclick_"+sitem;
+			if( <GAME>.hasmet(smet) )	{
+				.<smet>;
+			} else {
+			}
+			} );
+		but1.add(san);
+		.showpan2;
+	}
+	iteminit_szyfr	{
+		new itemadder itszyf;
+	}
+}
+
+class MusicTit : Music	{
+	init	{
+		Music::init;
+	}
+	play	{
+		Music::play;
+		if( iGameMute )
+			gameapi.pausemusic;
+	}
+}

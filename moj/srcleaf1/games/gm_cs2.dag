@@ -1,0 +1,103 @@
+game Cs2 : DziejeGame	{
+	init	{
+		DziejeGame::init("cs2");
+		.gamebg;
+		.sfx = ("bgrrzekaN 50");
+// 		barka.pyz  bkg.pyz  chm1.pyz  chm2.pyz  haset.pyz
+		new gmimgvec gral;
+		new gmimgvec grbg;
+		"grbg" .* "bkg.pyz";
+		grbg.eval( func {
+			.setz( .actionnr(-1) * 10 );
+			} );
+		.imgs = (A, "chm1.pyz", "chm2.pyz", "barka.pyz 5", "haset.pyz 40");
+		gral.addlist(A, "anchm1", "anchm2", "anbarka", "anhaset");
+		gral.eval( "advclip" );
+		grbg.evalclip;
+		gral.addgr("grbg");
+		@s = grbg.first;
+		gral.move(X1 + X2-<s>.getw, Y1);
+		.sounds = (A,
+			"snd1", "¯eglowali wiele dni po spokojnych wodach Nilu", func { igmstate=1; },
+			":has1", "Jeszcze mi Cheti zap³acisz za wszystko; To przez ciebie wyrzucili mnie z posady i zabrali ca³y maj±tek; Strze¿ siê", func {
+				anhaset.play(0);
+				ccs.close( func { gameapi.play("Cs3"); } );
+				}
+			);
+		new real chmstep = 0.3;
+		new real chm2s = 0.2;
+		.cycle = ("timcyk", func {
+			if( igmstate==1 )	{
+				@s = grbg.first;
+				gral.move(3,0);
+				if( <s>.getpx-X1>0 )	{
+					gral.move(X1-<s>.getpx, 0);
+					igmstate = 2;
+					anhaset.play(1);
+					.cbplay("has1");
+				} else if (<s>.getpx-X1<100 && !.hasvar("bylnar") )	{
+					new bool bylnar;
+					mus.playstr("nar.ogg -v 60");
+				}
+			}
+			chmstep+=0.3;
+			chm2s += 0.2;
+			anchm1.move(chmstep,0);
+			anchm2.move(-chm2s,0);
+			if( chm2s>1 ) chm2s-=1;
+			if( chmstep>1 ) chmstep-=1;
+			anbarka.move(-1,0);
+			.play;
+			} );
+		timcyk.play;
+		ccs.enter( func {	.cbplay("snd1"); } );
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Cs3 : DziejeGame	{
+	init	{
+		DziejeGame::init("cs3");
+		.path = ("cs2");
+		.gamebg;
+// 		bg3.pyz  bkg.pyz  chm1.pyz  chm2.pyz  dym3.pyz  haset.pyz  lodz3.pyz
+		.imgs = (A, "bg3.pyz", "dym3P.pyz 5", "lodz3.pyz 10");
+		.sfx = ("bgrrzekaN 50");
+		new gmimgvec gral;
+		gral.addlist(A, "anbg3", "andym3", "anlodz3");
+		anbg3.move(X1,Y1);
+		andym3.move(X1,Y1);
+		gral.evalclip;
+		anlodz3.setpos( X1+X2-anlodz3.lodx, Y1+106 );
+		gral.move(X1+X2-anbg3.getex,0);
+		
+		.sounds = (A,
+			"sndend", "Wreszcie statek przybi³ to portu w stolicy; Cheti pierwszy raz w ¿yciu zobaczy³ wielkie piramidy; Bêd± potrzebowali jeszcze wiele g³azów ¿eby je ukoñczyæ pomy¶la³", func { mus.fadeout(1000); ccs.close( func { gameapi.play("Sw1"); } ); }
+			);
+		
+		new real rly = 0.0;
+		new real rstep = 106.0/(X1+X2-anlodz3.lodx)->to_r;
+		.cycle = ("timcyk", func {
+			@dx = 150;
+			if( anlodz3.getpx+dx<=anlodz3.lodx+X1 )	{
+				.cbplay("sndend");
+				gameapi.setmusicvol(30);
+			} else {
+				rly+=rstep;
+				anlodz3.move(-1,-rly);
+				if( rly>=1 ) rly-=1;
+				if( anbg3.getpx+dx<X1 )	{
+					gral.move(1,0);
+					if( anbg3.getpx+dx<X1+100 && !.hasvar("muzyka"))	{
+						new bool muzyka;
+						mus.playstr("egipt2.ogg -v 50");
+					}
+				}
+				.play;
+			}
+			} );
+		ccs.enter( func { timcyk.play; } );
+	}
+}

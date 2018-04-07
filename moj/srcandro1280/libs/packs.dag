@@ -1,0 +1,152 @@
+class signal_pack	{
+	init()	{}
+	addsignals(string san)	{
+		<san>.addmethod("operator<", func { (string sfun) this.addmethod("onfinish", sfun ); } );
+	}
+}
+/***************************************************************************/
+class ImagePos	{
+	init	{}
+	getex	{	.getpx + .getw;	}
+	getey	{	.getpy + .geth;	}
+	getcx	{	.getpx + .getw/2;	}
+	getcy	{	.getpy + .geth/2;	}
+	setpos(int x, int y)	{	.move(x-.getpx, y-.getpy);	}
+}
+class ImageVisible	{
+	init	{
+		new bool _isvisible=1;
+	}
+	isvisible	{	_isvisible;	}
+	show		{	_isvisible=1;	}
+	hide		{	_isvisible=0;	}
+}
+class Image	{
+	init	{}
+	public resizemethods(string sob)	{
+		<sob>.vars2(A, "getz",0, "getpx",0, "getpy",0, "getw",0, "geth",0, "isvisible", 0);
+		<sob>.addmethod("show", func { isvisible=1; }	);
+		<sob>.addmethod("hide", func { isvisible=0; }	);
+		<sob>.addmethod("setz", func { (int z) getz=z; } );
+		<sob>.addmethod("setpos", func { (int x, int y) getpx=x; getpy=y; } );
+		<sob>.addmethod("move", func { (int x, int y) getpx+=x; getpy+=y; } );
+		<sob>.addmethod("getex", func { getpx+getw; } );
+		<sob>.addmethod("getey", func { getpy+geth; } );
+		<sob>.addmethod("getcx", func { getpx+getw/2; } );
+		<sob>.addmethod("getcy", func { getpy+geth/2; } );
+		<sob>.addmethod("isin", func { (int x, int y, int bv, int ba)
+			if( !ba ) {
+				if( !bv || (bv&&isvisible) )	{
+					x>=getpx && x<.getex && y>=getpy && y<.getey;
+				} else 0;
+			} else 0;
+			} );
+	}
+}
+	// rozszerzenia dla animcaji
+class anima_pack : signal_pack	{
+	init()	{}
+	public resizemethods(string san)	{
+		<san>.addmethod("_clanbuildpomvars", func { new int _ixp; new int _iyp; } );
+		<san>._clanbuildpomvars();
+		<san>.addmethod("setbpos", func {(int x, int y) .setpos( x-.lodx, y-.lody ); });
+		<san>.addmethod("saverelpos", func {(int x,int y)_ixp=x-.getpx;_iyp=y-.getpy;} );
+		<san>.addmethod("setrelpos", func{(int x, int y) .setbpos( x - _ixp, y - _iyp );});
+		<san>.addmethod("mssaverelpos", func {.saverelpos( mouse.getpos );} );
+		<san>.addmethod("mssetrelpos", func {.setrelpos( mouse.getpos );});
+		<san>.addmethod("rplay", func {(string sact)if( !.isplaying(sact) ) .play(sact);});
+		<san>.addmethod("setcpos", func {(int x, int y).setbpos( x-.getw/2, y-.geth/2 );});
+		<san>.addmethod("operator=", func { (string s) .copy(s); } );
+		<san>.addmethod("operator==", func { (string s)
+			.actionnr==<s>.actionnr && .framenr==<s>.framenr; } );
+		this.addsignals(san);
+	}
+}
+
+class timer_pack : signal_pack	{
+	init()	{}
+	resizemethods(string sob)	{
+		this.addsignals(sob);
+	}
+}
+/***************************************************************************/
+class vector_pack	{
+	init()	{}
+	each(string sfun)	{	for( int i=0; i<.size; i++) this.<sfun>(.get(i));	}
+	resizemethods(string svec)	{
+		<svec>.addmethod("each", "each");
+		<svec>.addmethod("operator-", func { (def x) this.remove(x); this; } );
+		<svec>.addmethod("operator+", func { (def x) this.add(x); this; } );
+	}
+}
+
+/***************************************************************************/
+
+public new_object(string styp, string sob)	{
+	new <styp> <sob>;
+	<styp+"_pack">::resizemethods(sob);
+}
+public new_anima(string s)	{	.new_object("anima",s);	}
+public new_vector(string s)	{	.new_object("vector",s);	}
+
+/***************************************************************************/
+
+class classanfilter	{
+	init()	{}
+	buildanfilter()	{
+		new filter ft;
+		ft.link( this.getname() );
+		ft.setpivottype(1);
+	}
+	public build(string san)	{
+		<san>.addmethod("buildanfilter","buildanfilter");
+		<san>.buildanfilter();
+		<san>.addmethod("setopacity",	func {	(int iop) ft.setopacity(iop); }		);
+		<san>.addmethod("setzoom",		func {	(real r) ft.setzoom(r); }			);
+		<san>.addmethod("setangle",		func {	(real r) ft.setangle(r); }			);
+		<san>.addmethod("getangle",		func {	return ft.getangle; }			);
+		<san>.addmethod("rotate",		func {	(real r)	ft.rotate(r); }			);
+		<san>.addmethod("setpivottype",	func {	(int ityp) ft.setpivottype(ityp); }	);
+		<san>.addmethod("unlink",		func {	ft.unlink(); }					);
+		<san>.addmethod("link",			func {	ft.link(this); }					);
+		<san>.addmethod("blend",		func {	(string s) ft.blend(s); }			);
+		<san>.addmethod("mask",		func {	(string s) ft.mask(s); }			);
+	}
+}
+
+/***************************************************************************/
+
+class classancounter	{
+	init()	{
+		new int iile;
+		new int id;
+		new string _san;
+		new vector _vs;
+		new int _pos;
+	}
+	set(string sname, int ile)	{
+		_san = sname;
+		iile = ile;
+		id = 0;
+		_pos = sname.length();
+		_vs.resize( ile, false );
+	}
+	string get()	{
+		string s = _san+id;
+		id = (id+1)%iile;
+		return s;
+	}
+	string getf()	{
+		for(int i=0; i<iile; i++)	{
+			if( !_vs.get(i) )	{
+				_vs.set(i, true);
+				return _san+i;
+			}
+		}
+		return null;	// brak wolnych
+	}
+	retf(string s)	{	_vs.set( s.strsubbs( _san ), false );	}
+	isfree(int pos)	{	return _vs.get(pos);	}
+	int getile()	{	return iile;	}
+	bool allfree	{	_vs.vecsum==0; }
+}

@@ -1,0 +1,2 @@
+./kompiluj ./srcswinki2/swinki.prj
+cp ./srcswinki2/swinki.odd /home/dedek/projekty/rysunki_gimp/swinki/project/scripts/

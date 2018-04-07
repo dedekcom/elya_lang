@@ -1,0 +1,108 @@
+
+module moddbg : classlocker	{
+	init()	{
+		classlocker::init();
+		new string sstate = "init";
+		new int ilastx;
+		new int ilasty;
+		new text txtpos;
+		txtpos.setz(5000);
+		txtpos.setpos( 0, 0 );
+		txtpos.setbkg(0,0,64,16, 0,0,0,192);
+		
+		new text txtswin;
+		txtswin.setz(5000);
+		txtswin.setbkg(0,0,64,16, 0,0,0,192);
+
+		new text txtpod;
+		txtpod.setz(5000);
+		txtpod.setbkg(0,0,128,16, 0,0,0,192);
+
+		this.disable();
+
+	}
+	public enable()	{
+		this.unlock();
+		txtpos.show();
+		txtswin.show();
+		txtpod.show();
+	}
+	public disable()	{
+		this.lock();
+		txtpos.hide();
+		txtswin.hide();
+		txtpod.hide();
+	}
+	public updatetxtpos(int x, int y)	{
+		txtpos.set("" + ( x-clcamera.getposx() ) + "," + ( y-clcamera.getposy() ));
+		txtpos.setpos(x-txtpos.getw-advmouse.lodx,y-txtpos.geth-advmouse.lody);
+		txtpod.setpos(x-txtpod.getw-advmouse.lodx,y-2*txtpod.geth-advmouse.lody);
+		txtpod.set( engine.getimg(x,y,true,true,-2000,2000));
+		y = txtpos.getey - iResY;
+		if( y>0 )	{	txtpos.move(0,-y); txtpod.move(0,-y);	}
+		x = txtpod.getex - iResX;
+		if( x>0 )	{	txtpos.move(-x,0); txtpod.move(-x,0);	}
+		x = -txtpod.getpx;
+		if( x>0 )	{	txtpos.move(x,0); txtpod.move(x,0);	}
+	}
+	public updateswin()	{
+		txtswin.set(" " + (swinka.getposx()-clcamera.getposx()) + "," + (swinka.getposy()-clcamera.getposy()) );
+		txtswin.setpos( swinka.getposx()-32, swinka.getposy() );
+	}
+	msminit(int x, int y)	{	this.updatetxtpos(x,y);	}
+	msmmove(int x, int y)	{
+		clcamera.moveplans(x-ilastx, y-ilasty);
+		this.updatetxtpos(x,y);
+	}
+	public msmove()	{
+		if( this.getlock() )	{	return;	}
+		int x = mouse.getpx();
+		int y = mouse.getpy();
+		this.<"msm"+sstate>(x,y);
+		ilastx=x;
+		ilasty=y;
+	}
+	public mslclick()	{
+		if( this.getlock() )	{	return;	}
+		if( keyboard.iskeydown("space")==true )	{
+			sstate="move";
+		}
+	}
+	public mslrel()	{
+		if( this.getlock()==true )	{	return;	}
+		sstate = "init";
+	}
+	msrclick()	{
+		int x = mouse.getpx();
+		int y = mouse.getpy();
+		int id = grbuts.isin(x,y,true,true);
+		if( id!=false )	{
+			string s = grbuts.get(id-1);
+			s.print();
+		} 
+//		txtpod.set( engine.getimg(x,y,true,true,-1000,1000));
+	}
+	dbkeydown(){
+		if( !igmdebug ) return;
+		if( keyboard.iskeydown("lctrl") ) {
+			if( keyboard.iskey("l") )	{
+				<gameapi.getgamename>.advcacheload;
+			} else if( keyboard.iskey("s") )	{
+				<gameapi.getgamename>.advcachesave;
+			} else if( keyboard.iskey("b") )	{
+				<gameapi.getgamename>.cgetscreenshoot("debug/cache.bmp", 1);
+			}
+		}
+		if( keyboard.iskey("d") )	{
+			if(.getlock)	{
+				this.enable();
+			} else {
+				this.disable();
+			}
+		}
+		if( this.getlock() )	{	return;	}
+		if( keyboard.iskey("s")==true )	{
+			this.updateswin();
+		}
+	}
+}

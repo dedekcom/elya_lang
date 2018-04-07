@@ -1,0 +1,429 @@
+new classgamepause clpause;
+new string sgmgamename;
+new snd sndakskermovon;
+sndakskermovon.load("sounds/wpwars/sfx/butmovon.wav");
+
+class Xer	{
+	init	{
+		new anima anX {
+			.load("scripts/common/x.pyz");
+			.setz(2100);
+			.ansetbpos( 800-.getw, 0 );
+		};
+	}
+	bool onX	{	anX.isin(mouse.getpos,1,0); }
+	Xmove	{	( .onX ) ? bsms.setact : bsms.setstd; }
+}
+
+class clX : classadvbut	{
+	init	{
+		classadvbut::init("clX");
+		new anima anX {
+			.load("scripts/common/x.pyz");
+			.setz(2100);
+			.ansetbpos( 800-.getw, 0 );
+		};
+	}
+	int isin(int x, int y, bool b1, bool b2)	{
+		anX.isin(x,y,b1,false);
+	}
+	clickon()	{	gameapi.play("gamemenu"); 	}
+	moveon()	{	advmouse.setwait();	}
+	moveoff()	{	advmouse.setstd();	}
+}
+
+class Strzalker	{
+	init	{
+		new gmimgvec grstrzal;
+		new anima anstup {
+			.load("scripts/common/strzalki.pyz");
+			.setz(2000);
+			.setframe("up",0);
+			.ansetbpos(400-.getw/2,0);
+		};
+		new anima anstdown {
+			.copy("anstup");
+			.setframe("down",0);
+			.ansetbpos(400-.getw/2,600-.geth);
+		};
+		new anima anstleft {
+			.copy("anstup");
+			.setframe("left",0);
+			.ansetbpos(0,300-.geth/2);
+		};
+		new anima anstright {
+			.copy("anstup");
+			.setframe("right",0);
+			.ansetbpos(800-.getw,300-.geth/2);
+		};
+		grstrzal.addgroup3(A,"anstup","anstdown","anstleft","anstright");
+		new string sStrzala;
+		new int StKrok = 15;
+		new timer timStrzala {
+			.settick(1);
+			.setcycle(1);
+			.addmethod("onfinish","checkstrzaly");
+			.play;
+		};
+		new string Bkg;
+		new string Grl;
+		//.viewstrzaly(sbg,w,h);
+	}
+	centerBg	{
+		<Grl>.move( (800-<Bkg>.getw)/2 - <Bkg>.getpx, (600-<Bkg>.geth)/2 - <Bkg>.getpy );
+	}
+	viewstrzaly(string sbg, int w, int h)	{
+		Bkg = sbg;
+		grstrzal.hide;
+		if( sbg!=null )	{
+			if( <sbg>.getw > w )	{
+				anstleft.show;
+				anstright.show;
+			}
+			if( <sbg>.geth > h )	{
+				anstup.show;
+				anstdown.show;
+			}
+		}
+	}
+	normalmove2	{	if( .normalmove ) bsms.setact; else bsms.setstd;	}
+	bool normalmove	{
+		if( grstrzal.isin(mouse.getpos,1,1) || .onX )		true;
+		else	{
+			sStrzala = null;
+			false;
+		}
+	}
+	bool normalclick	{
+		if( grstrzal.isin(mouse.getpos,1,1) )	{ sStrzala = grstrzal.getsfound; true;	}
+		else if ( .onX )	{	.clickX; true;	}
+		else { sStrzala = null; false; }
+	}
+	virtual clickX	{}
+	normalrel		{	sStrzala=null;	}
+	checkstrzaly	{
+		/*|int x, int y| = mouse.getpos;
+		if( anstleft.isin(x,y,1,1) && imgbg.getex-krok>800 )	imgbg.move(-krok,0);
+		else if (anstright.isin(x,y,1,1) && imgbg.getpx+krok<0 ) imgbg.move(krok,0);
+		else if( anstdown.isin(x,y,1,1) && imgbg.getey-krok>600 )	imgbg.move(0,-krok);
+		else if (anstup.isin(x,y,1,1) && imgbg.getpy+krok<0 ) imgbg.move(0,krok);*/
+		if( Bkg!=null )	{
+			match(sStrzala)	{
+				"anstright" => if( <Bkg>.getex-StKrok>800 )	<Grl>.move(-StKrok,0);
+				"anstleft" => if ( <Bkg>.getpx+StKrok<0 )		<Grl>.move(StKrok,0);
+				"anstdown" => if( <Bkg>.getey-StKrok>600 )	<Grl>.move(0,-StKrok);
+				"anstup" => if ( <Bkg>.getpy+StKrok<0 )		<Grl>.move(0,StKrok);
+				? => ;
+			}
+		}
+		.play;
+	}
+}
+
+class Strzalker2 : classadvbut	{
+	init	{
+		classadvbut::init("clstrzala2");
+		new gmimgvec grstrzal;
+		new anima anstup {
+			.load("scripts/common/strzalki.pyz");
+			.setz(2000);
+			.setframe("up",0);
+			.ansetbpos(400-.getw/2,0);
+		};
+		new anima anstdown {
+			.copy("anstup");
+			.setframe("down",0);
+			.ansetbpos(400-.getw/2,600-.geth);
+		};
+		new anima anstleft {
+			.copy("anstup");
+			.setframe("left",0);
+			.ansetbpos(0,300-.geth/2);
+		};
+		new anima anstright {
+			.copy("anstup");
+			.setframe("right",0);
+			.ansetbpos(800-.getw,300-.geth/2);
+		};
+		grstrzal.addgroup3(A,"anstup","anstdown","anstleft","anstright");
+		new string sStrzala;
+		new int StKrok = 15;
+		new timer timStrzala {
+			.settick(1);
+			.setcycle(1);
+			.addmethod("onfinish","checkstrzaly");
+			.play;
+		};
+		new string Bkg;
+		new string Grl;
+		//.viewstrzaly(sbg,w,h);
+	}
+	centerBg	{
+		<Grl>.move( (800-<Bkg>.getw)/2 - <Bkg>.getpx, (600-<Bkg>.geth)/2 - <Bkg>.getpy );
+	}
+	viewstrzaly(string sbg, int w, int h)	{
+		Bkg = sbg;
+		grstrzal.hide;
+		if( sbg!=null )	{
+			if( <sbg>.getw > w )	{
+				anstleft.show;
+				anstright.show;
+			}
+			if( <sbg>.geth > h )	{
+				anstup.show;
+				anstdown.show;
+			}
+		}
+	}
+	moveoff	{	advmouse.setstd(); sStrzala = null;	}
+	//moveon	{	sStrzala = grstrzal.getsfound;	}
+	clickon	{
+		sStrzala = grstrzal.getsfound;	
+	}
+	normalrel		{	sStrzala=null;	}
+	isin	{	grstrzal.isin;	}
+	strel	{	sStrzala=null;	}
+	moveon()	{	advmouse.setwait();	}
+}
+
+game gameetourist : classadvtourist {
+	init	{
+		.setname( sgmgamename );
+		.addtogamevars( sgmgamename );
+// 		engine.setdebugstate(1);
+		classadvtourist::init;
+		sgmlastscene = sgmgamename;
+		clcamera.setactor(null);
+// 		Xer::init;
+		//Strzalker::init;
+		//Bkg = "imgbkg";
+		/*Grl = "bgr1";
+		.viewstrzaly("imgbkg", 800, 600 );
+		.centerBg;*/
+		anhilary.setpos(-1000,0);
+		anhilary.stop(false);
+		anhilary.hide;
+		new @bTourM = false;
+		new clX clX;
+		new Strzalker2 clstrzala2	{
+			Bkg = "imgbkg";
+			Grl = "bgr1";
+			.viewstrzaly("imgbkg", 800, 600 );
+			.centerBg;
+		};
+	}
+	checkstrzaly	{
+		if( Bkg!=null )	{
+// 			sStrzala.print;
+			match(sStrzala)	{
+				"anstright" => if( <Bkg>.getex-StKrok>800 )	<Grl>.move(-StKrok,0);
+				"anstleft" => if ( <Bkg>.getpx+StKrok<0 )		<Grl>.move(StKrok,0);
+				"anstdown" => if( <Bkg>.getey-StKrok>600 )	<Grl>.move(0,-StKrok);
+				"anstup" => if ( <Bkg>.getpy+StKrok<0 )		<Grl>.move(0,StKrok);
+				? => ;
+			}
+		}
+		.play;
+	}
+	onX	{	0;	}
+	anhilary_ENDFRAME	{	.setz( .getposy - imgbkg.getpy );	}
+	keyboard_KEYDOWN	{	if( keyboard.iskey("escape") )	gameapi.play("gamemenu");	}
+	clickX	{	gameapi.play("gamemenu");	}
+	//mouselclick	{	if( !.normalclick ) .advmsclick;  }
+	mouse_LREL		{	clstrzala2.strel;	}
+	/*mousemove		{
+		if( .normalmove )	{
+			bsms.setact;
+			if( _slastms!=null )	{
+				this.butmoveoff(_slastms);
+				_slastms = null;
+			}
+		} else {
+			if( _slastms==null )
+				advmouse.setstd;
+			.advmsmove;
+			//if( advmouse.get=="normal" ) bsms.setstd;
+		}
+	}*/
+}
+
+game gameoutro_old : classadv	{
+	init()	{
+		classadv::init();
+		this.setgraphpath("scripts/menu/");
+		this.newimg("imgbkg","outro.png",0);
+		
+		new classtxttalker cltalkout;
+		new font _fonttxt;
+		_fonttxt.load( "configs/fonts/l2arial.ttf", 16 );
+		cltalkout.set(null,10);
+		cltalkout.setfontcolor(250, 250, 8 );
+		cltalkout.setfontbg(5,5,222,192);
+		cltalkout.setbgframe( 2, 32, 32, 32);
+		cltalkout.setfont("_fonttxt");
+		cltalkout.herosaydir("outro", 290, 250, "rr");
+		this.cnewtimerfin("timfin", 10000, 1, "mfintimfin");
+		timfin.play;
+	}
+	mfintimfin()	{	gameapi.exit();	}
+	mouselclick()	{	this.mfintimfin();	}
+}
+
+game gameintro : classadv	{
+	init()	{
+		classadv::init();
+		new img imgbkg;
+		imgbkg.load("scripts/mariacka/mariacka.jpg");
+		this.setgraphpath("scripts/menu/");
+		int i = this.loadanframes("annapis", "napisy.pyz", 0, 10);
+		new text txtexit;
+		new text txtstart;
+		new font _fonttxt;
+		_fonttxt.load( "configs/fonts/l2arial.ttf", 16 );
+		txtexit.setfont("_fonttxt");
+		txtexit.setpos(40, 540);
+		txtexit.loadtxt("scripts/menu/wyjscie.txt",255, 255, 200);
+		txtstart.setfont("_fonttxt");
+		txtstart.loadtxt("scripts/menu/start.txt",255, 255, 200);
+		txtstart.setpos(40, 520);
+	}
+	mouselclick	{
+		sgmlastscene = "main";
+		gameapi.play("gameetourist");
+	}
+	keydown	{
+		if( keyboard.iskey("escape") )	gameapi.play("gamemenu");
+	}
+}
+
+new int iMenuStart = 1;
+game gamemenu : classadv , TMenu,  Xer	{
+	init()	{
+		classadv::init;
+		Xer::init;
+		.setwavpath("sounds/wpwars/");
+		.tinit("menu", "scripts/menu/", "mg.pyz");
+		
+		.buildsnds(A,
+			"sndintro", "Wybierz planszê", null,
+			"sndsocreal", "Warszawa socrealistyczna", null,
+			"sndkrolewski", "Trakt Królewski", null,
+			"sndstare", "Stare Miasto", null,
+			"sndwilanow", "Wilanów", null,
+			"snddodatki", "Dodatki", null );
+		if( iMenuStart )	{
+			.cbplay("sndintro");
+			iMenuStart = 0;
+		}
+		igmbegin = true;
+		.cycle = ("timcyc", "fincyc");
+		new @imgkrok = 10;
+		timcyc.play;
+	}
+	cbplay(string s)	{}
+	startgame(@s1, @s2)	{
+		sgmlastscene = s1;
+		sgmgamename = s2;
+		gameapi.play("gameetourist");
+	}
+	socreal_BUTCLICK		{	.startgame("mdm", "pkin");	}
+	krolewski_BUTCLICK	{	.startgame("plac_zamkowy","kosciol_sw_anny");	}
+	stare_BUTCLICK		{	.startgame("kosciol_sw_anny", "plac_zamkowy" );	}
+	dodatki_BUTCLICK	{	gameapi.play("Extras"); }
+	wilanow_BUTCLICK	{	.startgame("menu","wilanow");	}
+	fincyc	{
+		@x = mouse.getposx;
+		if( x < 300 )	{
+			if( anbutbkg.getpx + imgkrok <= 0 )
+				but1 { grbuts.move( imgkrok, 0 ); anbutbkg.move( imgkrok, 0); };
+		} else if (x>500 )	{
+			if( anbutbkg.getex - imgkrok >= 800 )
+				but1 { grbuts.move( -imgkrok, 0 ); anbutbkg.move( -imgkrok, 0); };
+		}
+		.play;
+	}
+	keydown	{	if( keyboard.iskey("escape") )	gameapi.play("gameoutro");	}
+	mouse_lclick	{	if( .onX )	gameapi.play("gameoutro"); }
+	mouse_move	{	if( !but1.busy ) .Xmove;	}
+	exit	{	.game_exit;	}
+}
+
+game gameoutro	{
+	init	{
+		gameapi.play("exit");
+	}
+}
+
+game Extras : classadv, Strzalker, Xer	{
+	init	{
+		classadv::init;
+		.path = ("extras");
+// 		.debug=(1);
+		new img imgbg;
+		.newdbscript("dbl","pliki");
+		new @iddb = -1;
+		new @krok = 10;
+		Xer::init;
+		Strzalker::init;
+		.inc;
+		//.cycle = ("timcyc", "checkmove");
+		//timcyc.play;
+	}
+	inc	{	.next(1);	}
+	dec	{	.next(-1);	}
+	next(int id)	{
+		iddb+=id;
+		if( iddb < 0 )	iddb = dbl.getrowsno-1;
+		else if ( iddb >= dbl.getrowsno )	iddb = 0;
+		@s = dbl.get(iddb,0);
+		imgbg.load("scripts/extras/"+s);
+		if( s.contains("jazdy") )	.viewstrzaly("imgbg", 10000, 10000);
+		else .viewstrzaly("imgbg", 1000, 680);
+		Grl = Bkg;
+		.centerBg;
+	}
+	keydown	{	if( keyboard.iskey("escape") )	gameapi.play("gamemenu");	}
+	clickX	{	gameapi.play("gamemenu");	}
+	mouselclick	{	if( !.normalclick ) .inc;	}
+	mouselrel	{	.normalrel;	}
+	mouserclick	{	.dec;	}
+	mousemove	{	.normalmove2;	}
+}
+
+game Main {
+	init()	{
+		igmstate = 0;
+		
+		igmdebug = false;
+		igmeasy = false;
+		igmdemo = false;
+		
+		advmouse.load("scripts/common/cursors.pyz");
+		modadv.load("scripts/common/defaults.adv");
+		
+		//moddbg.enable();		// enable adv debugger
+		moddbg.disable();
+		
+		sgmlastscene = this.getname();
+		
+// 		gameapi.play(modadv.get("startgame:",1) );
+		sgmgamename = modadv.get("startgame:",1);
+		
+		gameapi.play("gamemenu");
+		return;
+		sgmlastscene = "kosciol_sw_krzyza";
+		sgmgamename = "rondo_palma";
+		sgmlastscene = "miodowa";
+		sgmgamename = "plac_krasinskich";
+		sgmlastscene = "plac_zbawiciela";
+		sgmgamename = "rondo_jazdy";
+		sgmlastscene = "palac_prezydencki";
+		sgmgamename = "plac_pilsudskiego";
+		sgmlastscene = "aleje_ujazdowskie";
+		sgmgamename = "lazienki";
+		gameapi.play("gameetourist");
+	}
+}
+//engine.setdebugstate(1);
+gameapi.play("Main");
+int i;

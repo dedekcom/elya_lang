@@ -1,0 +1,34 @@
+game Egipt 	{
+	init	{
+		new anima imgtlo;
+		imgtlo.load("scripts/plansza/loading.pyz");
+		new timer timgo;
+		timgo.addmethod("onfinish", func { gameapi.play("Egipt2"); } );
+		timgo.settick(1);
+		timgo.setcycle(1);
+		timgo.play;
+		engine.redraw;
+	}
+}
+
+game Egipt2 : Epoka	{
+	init	{
+		if( igmdemo )	{
+			new vector vblok;
+			vblok.type("string");
+			vblok.beginadd("begin", "wielblad", "sfinks", "rydwan", "bron",
+				"instrumenty", "nemes", "meble", "nil", "bogowie", "faraon", "swiatynie",
+				"nawadnianie", "budowapiramidy", "piramidy", "nefretete", "waga",
+				"hipo", "krokodyl", "sandaly", "wino", "swiatyniaskala", "rolnictwo",
+				"maka", "miary", "obelisk", "ciekawostki", "uroda", "ziemia", "kamieniolom",
+				"hieroglify", "mumia", "budowaswiatyni", "matematyka", "bizuteria");
+		}
+		Epoka::init("egipt");
+	}
+	mouse_move	{
+		.lekcjamove;
+	}
+	mouse_lclick	{
+		.lekcjaclick;
+	}
+}

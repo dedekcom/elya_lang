@@ -1,0 +1,159 @@
+new classgamepause clpause;
+new classgamemusic clmusic;
+clmusic.sndbgrpath("sounds/adamigo2/bgr/");
+clmusic.musicpath("sounds/music/");
+clmusic.load("sounds/musicadamigo2.db");
+
+new snd sndakskermovon;
+sndakskermovon.load("sounds/adamigo2/sfx/butmovon.wav");
+
+new Helper clhelp("scripts/help/", "helpcfg.db");
+
+module claskexit : classasker	{
+	init()	{
+		classasker::init();
+		
+		this.setwavpath("sounds/adamigo2/");
+		this.newsnd("sndaskexit", "nar07.wav");
+		this.newsnd("sndyes", "nar08.wav");
+		this.newsnd("sndno", "nar09.wav");
+		this.newsnd("sndaskrestart", "nar11.wav");
+		this.newsnd("sndaskrestart2", "nar14.wav");
+		this.load( "scripts/common/asker.pyz", 2000 );
+		this.fxonmovon("sndakskermovon");
+	}
+	askexittomenu()	{
+		this.ask( "sndaskexit", "sndyes", "sndno", "myestomenu", "mnotomenu");
+	}
+	askrestart()	{
+		this.ask( "sndaskrestart", "sndyes", "sndno", "myesrestart", "mnorestart");
+	}
+	askrestart2()	{
+		this.ask( "sndaskrestart2", "sndyes", "sndno", "myesrestart", "mnorestart");
+	}
+	mnotomenu()	{}
+	myestomenu()	{
+		match( gameapi.getgamename() )	{
+			"gamemenu" => "gameoutro";
+			"gamemodeldow" => "gamemenumodel";
+			"gamemodelproj" => "gamemenumodel";
+			"gamewstawianka" => "MenuPuzzle";
+			"gamewstawiankazgadanka" => "gamemenuwstaw";
+			"gamedopasowankamulti" => "gamemenudopas";
+			"gamedopasowankamonomenu" => "gamemenudopas";
+			"gamedopasowankamono" => "gamemenudopas";
+			"gamesubmenuwstaw" => "gamemenuwstaw";
+			"MenuMemo" => "gamemenu";
+			"Memo" => "MenuMemo";
+			"zgadnijmulti1" => "gamemenu";
+			"zgadnijmulti2" => "gamemenu";
+			"MenuKolorowanka" => "gamemenu";
+			"Kolorowanka" => "MenuKolorowanka";
+			"MenuPuzzleTryb" => "gamemenu";
+			"MenuPuzzle" => "MenuPuzzleTryb";
+			"Puzzle" => "MenuPuzzle";
+			"MenuRoznice" => "gamemenu";
+			"Roznice" => "MenuRoznice";
+			? => "gamemenu";
+		}
+		gameapi.play;
+	}
+	mnorestart()	{
+		match(gameapi.getgamename)	{
+			"Memo" => "gamemenu";
+			? => "gamemenu";
+		}
+		gameapi.play;
+	}
+	myesrestart()	{	this.crestart();	}
+}
+
+
+module clbuts	{
+	init()	{}
+	load()	{
+		new classbutton buts;
+		buts.build("scripts/common/buttons.pyz", 4000, "imglobcurs");
+		buts.transclickfunc( engine.actclassname(), "butclick");
+		buts.transmovonfunc( engine.actclassname(), "butmovon");
+		buts.transmovofffunc( engine.actclassname(), "butmovoff");
+		buts.disableall();
+		new db dbb;
+		dbb.load("scripts/common/buts.db");
+		new snd sndfxglobon;
+		sndfxglobon.load("sounds/adamigo2/sfx/globbutmovon.wav");
+		new @bvisible = true;
+		new img imgadamigo	{
+			.load("scripts/common/adamigo.png");
+			.setz(3900);
+			.setpos( 800 - .getw, 490 );
+			.hide;
+		};
+	}
+	reset()	{
+		buts.disableall();	
+		@sgame = gameapi.getgamename;
+		int pos = dbb.findbyrow( sgame );
+		if( pos>=0 )	{
+			int ile = dbb.getcolsno( pos );
+			for( int i=1; i<ile; i++)	{
+				buts.enable( dbb.get( pos, i ) );
+			}
+		}
+		if( sgame=="gameintro" || sgame=="gameoutro" )	imgadamigo.hide;
+		else imgadamigo.show;
+	}
+	enable(string sbu)	{
+		buts.enable( sbu );
+	}
+	/*****************************************/
+	butmovon(string sc)	{
+		sndfxglobon.play();
+		bvisible = mouse.isvisible;
+		mouse.show;
+	}
+	butmovoff(string sc)	{
+		if( !bvisible ) mouse.hide;
+	}
+	butclick(string sc)	{
+		match(sc)	{
+			"pause"	=>	clpause.pause();
+			"exit"	=>	claskexit.askexittomenu();
+			"restart"	=>	claskexit.askrestart();
+			"help"	=>	clhelp.show;
+			"helpmemo" => clhelp.show;
+			? => ;
+		}
+	}
+}
+
+class classplacepointer2 : classplacepointer    {
+        init()  {
+                classplacepointer::init();
+                this.load("scripts/common/strzalka.pyz");
+        }
+}
+
+/***************************************************/
+// new classnextgame clnextgm;
+igmstate = 0;
+|igmdebug, igmeasy, igmdemo, igmbegin| = false, false, false, true;
+
+bsms.setstd;
+
+//clnextgm.load("scripts/common/games.db");
+clbuts.load;
+
+	gameapi.play("gameintro");
+// 	gameapi.play("gameoutro");
+//gameapi.play("gamemenudopas");
+//  gameapi.play("MenuKolorowanka");
+//     gameapi.play("zgadnijmulti2");
+//    engine.printtypes;
+// engine.setdebugstate(1);
+//       gameapi.play("MenuMemo");
+//  gameapi.play("Roznice");
+//   gameapi.play("Puzzle");
+//   gameapi.play("gamemenu");
+//   gameapi.play("Kolorowanka");
+/***************************************************/

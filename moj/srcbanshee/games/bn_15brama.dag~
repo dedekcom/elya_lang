@@ -1,0 +1,269 @@
+
+game mg15_brama :Banshee {
+	init{
+    Banshee::init("mg15_brama");
+ /*   if (!clsave.bis("e1_runy_zebrane"))
+    {
+      .addtopck("runa_8");  
+      clsave.bset("e1_runy_zebrane");
+      clsave.bset("ma_runa_8");
+    }  */
+    .imgs = (A,"bkg.jpg 1" , "popup_bkg.pyz 2","but_1.pyz 3","but_2.pyz 3","but_3.pyz 3","but_4.pyz 3","but_5.pyz 3","but_6.pyz 3","but_7.pyz 3","but_8.pyz 3", "seq_1.pyzH 3","seq_2.pyzH 3","seq_3.pyzH 3","seq_4.pyzH 3","seq_5.pyzH 3","seq_6.pyzH 3","seq_7.pyzH 3","seq_8.pyzH 3","seq_bad_1.pyzH 4","seq_bad_2.pyzH 4","seq_bad_3.pyzH 4","seq_bad_4.pyzH 4","seq_bad_5.pyzH 4","seq_bad_6.pyzH 4","seq_bad_7.pyzH 4","seq_bad_8.pyzH 4","seq_good.pyzH 4","seq_bad.pyzH 5","anim_1.pyz 6","anim_2.pyzH 7","runy_mask.pyz 8", "ramka.pyz 22","popexit.pyz 23"  );
+     .butpopexit;
+	  .butpopexitisinramka;
+
+    
+   new int sequence_no = 1;
+   new int sequence_step = 0;
+   new bool sequence_finish = false; 
+   new bool sequence_show = false;
+   new bool next_level = false;
+   
+   new int blend_time =  800;
+   new int start_delay = 2000;
+   
+   new vector sequence;  
+   
+  .timer = ("tim1",start_delay,func{anseq_4.anfadein(blend_time,func{anseq_4.anfadeout(blend_time,null);});});
+  .timer = ("tim2",start_delay + blend_time *2,func{anseq_1.anfadein(blend_time,func{anseq_1.anfadeout(blend_time,null);});});
+  .timer = ("tim3",start_delay + blend_time *4,func{anseq_8.anfadein(blend_time,func{anseq_8.anfadeout(blend_time,func{sequence_show = false;});});});
+  .timer =("tim4",start_delay + blend_time *6,func{anseq_8.anfadein(blend_time,func{anseq_8.anfadeout(blend_time,func{sequence_show = false;});});});
+  
+  .timer = ("tim5",start_delay,func{anseq_3.anfadein(blend_time,func{anseq_3.anfadeout(blend_time,null);});});
+  .timer = ("tim6",start_delay + blend_time *2,func{anseq_6.anfadein(blend_time,func{anseq_6.anfadeout(blend_time,null);});});
+  .timer = ("tim7",start_delay + blend_time *4,func{anseq_8.anfadein(blend_time,func{anseq_8.anfadeout(blend_time,null);});});
+  .timer = ("tim8",start_delay + blend_time *6,func{anseq_1.anfadein(blend_time,func{anseq_1.anfadeout(blend_time,func{sequence_show = false;});});}); 
+  
+  .timer = ("tim9",start_delay,func{anseq_4.anfadein(blend_time,func{anseq_4.anfadeout(blend_time,null);});});
+  .timer = ("tim10",start_delay + blend_time *2,func{anseq_3.anfadein(blend_time,func{anseq_3.anfadeout(blend_time,null);});});
+  .timer = ("tim11",start_delay + blend_time *4,func{anseq_8.anfadein(blend_time,func{anseq_8.anfadeout(blend_time,null);});});
+  .timer = ("tim12",start_delay + blend_time *6,func{anseq_7.anfadein(blend_time,func{anseq_7.anfadeout(blend_time,func{sequence_show = false;});});});
+ 
+  .stdstart;     
+ // gra
+  new vector act_sequence; 
+  act_sequence.beginadd("begin",4,1,8);
+   for( int i=1; i<=8; i++)
+   {
+        <"anbut_"+i>.addmethod("isbutin", func { (@x, @y)
+				    .isin(x,y,1,1) && !sequence_show && !sequence_finish;
+				} ); 
+        <"anbut_"+i>.addmethod("butmoveon", func {
+  			  if( !.advstdstate) return; 
+          advmouse.setbut; 
+  				.setframe(-1,1);
+  				} );
+  			<"anbut_"+i>.addmethod("butmoveoff", func {
+  				  if( !.advstdstate) return;  
+             advmouse.setstd;
+            .setframe(-1,0); 
+  				} );
+  		  <"anbut_"+i>.vars2(A, "selected", false);
+        <"anbut_"+i>.vars2(A, "id", i);
+  			<"anbut_"+i>.addmethod("butclick", func {
+  			   if(selected  || sequence_finish) return;
+  				  selected = true;
+            .hide;
+            .add_to_sequence(id);
+              
+        });
+			  butgame.add("anbut_"+i); 
+   }
+   
+    if (clsave.bis("e1_mg15_brama_runy_uzyte") )
+    { 
+       sequence_show =  true; 
+       anruny_mask.hide;
+      .timplay("time_start",200,func{.play_sequence_1;}); 
+    }
+    else
+    {  
+      if (clsave.bis("ma_runa_8"))
+      {
+        .newsnd("snd_brak_runow", "kinnat_c2d2_5");
+        snd_brak_runow.addmethod("onfinish", func {.advsetstdstate;  anruny_mask.butmoveon; });
+        .cbplay("snd_brak_runow");
+        .show_objective("OB11");
+       } 
+       anruny_mask{ 
+        .Button_isinvisalpha;
+        .addmethod("butmoveon", func {
+  				if( !.advstdstate) return;
+  				  if(!clsave.bis("e1_mg15_brama_runy_uzyte"))
+              advmouse.set("use"); 
+                  
+          } );
+  			.addmethod("butmoveoff", func {
+  				if( !.advstdstate ) return;
+  				  advmouse.setstd;
+  				} ); 
+          butgame.add(this);
+                 
+      };
+    }
+  
+   
+  }// koniec init 
+ 
+  mend	{
+   // .set_mg_finished();
+    .stdexitdefadv("ad15_schody", "gamead15_schody0"); 
+  }
+  
+  USE_runa_8	{
+		.advsetstdstate();
+    if(anruny_mask.isin(mouse.getpos,0,1) )	{
+		 	.removefrompck("runa_8");
+		  clsave.bset("e1_mg15_brama_runy_uzyte");
+      sequence_show =  true; 
+      .timplay("time_start",200,func{anruny_mask.anfadeout(400,func{.play_sequence_1;});});
+      advmouse.setstd;
+      butgame.removebut("anruny_mask");
+		} else {
+			 .item_gotopck;
+		}
+  }
+  add_to_sequence(int i)
+  {
+    sequence.add(i);  
+     
+    sequence_step++;
+    if (sequence_step >= act_sequence.size())
+    {
+       sequence_finish = true;  
+      .check_sequence();
+    }
+    
+     
+  } 
+  check_sequence
+  {
+    bool bad_sequence = false;
+    for( int i=0 ;i < act_sequence.size(); i++)
+      {
+        string ss = sequence.get(i);
+        string s = act_sequence.get(i); 
+         
+        if ( ss == s) 
+           <"anseq_"+s>.anfadein(800,func{ this.anfadeout(800,null);});
+        else
+        {
+          <"anseq_bad_"+s>.anfadein(800,func{ this.anfadeout(800,null);});
+           bad_sequence  = true;  
+        }   
+      }
+       
+      if (bad_sequence)
+      {
+        anseq_bad.anfadein(800,func{ this.anfadeout(800,func{.reset_game();});});
+      }
+      else
+      { 
+        next_level =  true;
+        anseq_good.anfadein(800,func{ this.anfadeout(800,func{.reset_game();});});
+      }   
+      
+  }
+  reset_game()
+  {
+     for( int i=0 ;i <sequence.size(); i++)
+    {
+      string s = sequence.get(i);
+      <"anbut_"+s>.anfadein(400,null);
+      <"anbut_"+s>.selected = (false);
+    }  
+     
+     sequence_finish = false;
+     sequence_step = 0;
+     sequence_show =  false; 
+     sequence.free();
+     act_sequence.free();
+      
+     if (next_level)
+     {
+        next_level =  false;
+         
+        sequence_no++;
+        if (sequence_no == 2)
+        { 
+            ananim_1.play(0);
+            act_sequence.beginadd("begin",3,6,8,1);
+            .play_sequence_2; 
+        } 
+        else if (sequence_no == 3)
+        {
+            ananim_2.play(0);
+            act_sequence.beginadd("begin",4,3,8,7);
+            .play_sequence_3;  
+        }
+        else
+        {
+          .finish();
+        }
+        
+     }
+     else if (sequence_no == 1)
+     {
+          act_sequence.beginadd("begin",4,1,8);
+         .play_sequence_1; 
+     }
+    else if (sequence_no == 2)
+     {
+        act_sequence.beginadd("begin",3,6,8,1);
+        .play_sequence_2; 
+     }
+     else
+     {
+        act_sequence.beginadd("begin",4,3,8,7);
+        .play_sequence_3; 
+    }
+  }
+   
+  play_sequence_1
+  {
+    sequence_show =  true;
+    tim1.play();
+    tim2.play();
+    tim3.play();
+  //  tim4.play(); 
+  }
+  play_sequence_2
+  {
+    sequence_show =  true;
+    tim5.play();
+    tim6.play();
+    tim7.play();
+    tim8.play(); 
+  }
+   play_sequence_3
+  {
+    sequence_show =  true;
+    tim9.play();
+    tim10.play();
+    tim11.play();
+    tim12.play(); 
+  }
+  finish
+  {
+    .objective_done(OB11); 
+    .set_mg_finished;
+    .watch_film("cs15_brama", "-def", "ad20_zamekdrzewo");     
+  }
+  
+  
+  HINT_CLICK {
+     if (clsave.bis("ma_runa_8") && !clsave.bis("e1_mg15_brama_runy_uzyte") ) 
+     { 
+       .showhint("anruny_mask"); 
+       .showhintitem("runa_8"); 
+     }
+     else if (clsave.bis("e1_mg15_brama_runy_uzyte") )
+     {
+        .showhint("anseq_4"); 
+     }  
+     else
+        .showhint("anpopexit");   
+  } 
+ 
+}
+ 

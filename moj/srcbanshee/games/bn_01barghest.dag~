@@ -1,0 +1,22 @@
+game mg01_barghest :Banshee {
+	init{
+		Banshee::init("mg01_barghest");
+		
+		.imgs = (A, "bkg.jpg",  "anim_pos.pyz H", "ramka.pyz 20");
+		
+		new Film filmb;
+		filmb.musicclass = ("mus");
+		filmb.addmethod("onfinish", "mend");
+		filmb.load("scripts/cs01_barghest/", "film");
+		filmb.showfirstframe;
+		filmb.setpos( ananim_pos.getpx, ananim_pos.getpy );
+		ccs.enter( func {
+			filmb.play;
+			} );
+	}
+	mend	{ 
+		.stdexitdefadv("ad01_widokogolny", "gamead01_widokogolny0");
+   
+	}
+}
+

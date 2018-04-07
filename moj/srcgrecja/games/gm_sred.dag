@@ -1,0 +1,35 @@
+game Grecja 	{
+	init	{
+		new img imgtlo;
+		imgtlo.load("scripts/plansza/podklad2.png");
+		engine.redraw;
+		gameapi.play("Grecja2");
+	}
+}
+
+game Grecja2 : Epoka	{
+	init	{
+		if( igmdemo )	{
+			new vector vblok;
+			vblok.type("string");
+			vblok.beginadd("begin", "wielblad", "sfinks", "rydwan", "bron",
+				"instrumenty", "nemes", "meble", "nil", "bogowie", "faraon", "swiatynie",
+				"nawadnianie", "budowapiramidy", "piramidy", "nefretete", "waga",
+				"hipo", "krokodyl", "sandaly", "wino", "swiatyniaskala", "rolnictwo",
+				"maka", "miary", "obelisk", "ciekawostki", "uroda", "ziemia", "kamieniolom",
+				"hieroglify", "mumia", "budowaswiatyni", "matematyka", "bizuteria");
+		}
+		Epoka::init("grecja");
+	}
+	mouse_move	{
+		.lekcjamove;
+	}
+	mouse_lclick	{
+		.lekcjaclick;
+	}
+	mouse_rclick	{
+		if( igmdebug )	{
+			gameapi.play(this);
+		}
+	}
+}

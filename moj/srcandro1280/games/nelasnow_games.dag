@@ -1,0 +1,384 @@
+
+game MainMenuNelaSnow : MermaidStd	{
+	init	{
+		MermaidStd::init("menusnow");
+		
+		.imgs = (A, "bgmenu.jpg", "butstrud.pyzG 10", "butstart.pyz 20");
+		
+		new string strudnosc = clsave.get("nelasnow_trudnosc");
+		if( strudnosc==null )	{
+			strudnosc = "easy";
+			clsave.set("nelasnow_trudnosc", strudnosc);
+		}
+		
+		anbutstart.move(-100->igetsc, -50->igetsc);
+		grbutstrud.eval( func {
+			.move(120->igetsc,120->igetsc);
+			.imgsetoverlay(.red,128);
+			.Button_isinalpha;
+			.addmethod("butclick", func {
+				if( .advstdstate )	{
+					sndfxbutclick1.play;
+					strudnosc = .actionname;
+					.msettrud;
+				}
+				} );
+			butgame.add(this);
+			if( strudnosc == .actionname )	{
+				<.imgetoverlay>.hide;
+			}
+			} );
+		
+		anbutstart.Button_addstdalpha;
+		
+		.cbutexit;
+		.cbutmusic;
+		.loadasker;
+		
+		.stdenter;
+	}
+	msettrud	{
+		grbutstrud.eval( func { <.imgetoverlay>.show; } );
+		<.imgetoverlay>.hide;
+		clsave.set("nelasnow_trudnosc",strudnosc);
+	}
+	butclick_anbutexit	{	.askfor("OutroStd");	}
+	butclick_anbutstart	{	.stdexit("NelaSnowFight");	}
+}
+
+game NelaSnowFight : MermaidStd	{
+	init	{
+		MermaidStd::init("snow");
+		.imgs = (A, "bgsnow.png", "els.pyz", "kule.pyzH 60", "live.pyz 100", "bum.pyzH 110");
+		
+		.sfxs = (A, "rekord 50");
+		.mkfxset("zamach2", 8, 50);
+		.mkfxset("zamach3", 8, 50);
+		.mkfxset("cios1", 8, 30);
+		.mkfxset("child0", 4, 40);
+		.mkfxset("child1", 4, 40);
+		//.mkfxset("blink", 8, 50);
+		
+		new string strudnosc = clsave.get("nelasnow_trudnosc");
+		
+		new gmimgvec grels;
+		int imaski = 1;
+		string s, string stim;
+		new gmobjvec grtim;
+		new gmimgvec grzucacz;
+		new real rilesteps = 30.0;
+		ankule.ansetlastframe(0);
+		new real rkulaend = 0.66*ankule.geth;
+		for( int i=0; i<anels.nofactions; i++ )	{
+			anels.setframe(i,0);
+			@sac = anels.actionname->getb(0,1);
+			if( sac=="r" )	{
+				s = "anel" + i;
+				.copyanima("anels",s);
+				<s>.setz( imaski*10 );
+				grels.add(s);
+				<s>.move(0, <s>.geth );
+				real x = (<s>.getpx - <s>.lodx)->to_r/rilesteps;
+				real y = (<s>.getpy - <s>.lody)->to_r/rilesteps;
+				<s>.setasanmover;
+				
+				<s>.hide;
+				stim = "tim"+s;
+				.cycle = (stim, func {
+					if( iidstep > 0 )	{
+						<sanima>.movereal( 0, rdir*rdy );
+						iidstep--;
+						.play;
+					} else {
+						if( rdir == -1.0 )	{
+							rdir = 2.0;
+							.timsetmstick(1500);
+							.play;
+						} else if( rdir==1.0 ) {
+							<sanima>.setpos(0,<sanima>.geth);
+							<sanima>.hide;
+							grzucacz.remove(sanima);
+						} else if( rdir==2.0 )	{
+							.timsetmstick(500);
+							@skula = sanima + "kula";
+							<skula>.setpos( <sanima>.getcx, <sanima>.getpy + <sanima>.geth/3 );
+							<skula>.bmove = (false);
+							<skula>.rdx = ( <skula>.mgetdestx/<skula>.nofframes(idmaska) );
+							<skula>.play(idmaska);
+							.fxsetplay("zamach3");
+							rdir = 3.0;
+							.play;
+						} else if( rdir==3.0 )	{
+							.mspadaj;
+						}
+					}
+					} );
+				<stim>.vars2(A, "sanima", s, "rdx",x, "rdy",y, "rdir",-1.0, "iidstep",rilesteps.to_i, "idmaska",(imaski-1));
+				grtim.add(stim);
+				
+				@skula = s + "kula";
+				.copyanima("ankule",skula);
+				<skula>.setframe(imaski-1,0);
+				<skula>.addmethod("onendframe", func {
+					if( bmove ) {
+						.movereal(rdx, rdy);
+					} else {
+						.movereal(rdx, 0);
+						if( .framename=="go" )	{
+							bmove = true;
+							real ile = .nofframes(-1) - .framenr;
+							//rdx = .mgetdestx/ile;
+							rdy = (igmapph - rkulaend)/ile;
+						}
+					}
+					} );
+				<skula>.addmethod("onfinish", func {
+					.hide;
+					@s = "anbum"+cntbum.next;
+					<s>.play("p"+2->rand);
+					int y = .getpy-20->igetsc;
+					if( y>igmapph ) y=igmapph;
+					<s>.setpos(.getcx + (100-200->rand)->igetsc,y);
+					if( iilelive > 0 )	{
+						//.fxsetplay("blink");
+						.fxsetplay("child"+2->rand);
+						.fxsetplay("cios1");
+						s = "anlive"+(iilelive-1);
+						<s>.hide;
+						iilelive--;
+						if( iilelive==0 )	{
+							<GAME>.mfinish;
+						}
+					}
+					} );
+				<skula>.setasanmover;
+				<skula>.vars2(A, "rdx", 0.0, "rdy",0.0, "bmove",false);
+			} else if( sac=="m" ) {
+				imaski++;
+				s = "anmask" + i;
+				.copyanima("anels",s);
+				<s>.setz( imaski*10 );
+			} else {
+				s = "anbalwany" + i;
+				.copyanima("anels",s);
+				<s>.setz( imaski*10 );
+			}
+		}
+		anels.hide;
+		
+		new int iilelive;
+		match(strudnosc)	{
+			"easy" => iilelive = 20;
+			"medium" => iilelive = 15;
+			"hard" => iilelive = 10;
+			? => ;
+		}
+		@dx = 5->igetsc1;
+		new gmimgvec grlive;
+		for( int i=0; i<iilelive; i++ )	{
+			s = "anlive" + i;
+			.copyanima("anlive", s);
+			<s>.move(i*(anlive.getw+dx), 0);
+			grlive.add(s);
+		}
+		anlive.hide;
+		
+		new img imgrzut;
+		imgrzut.create( <grlive.last>.getex - <grlive.first>.getpx, 15->igetsc, .green, 222 );
+		imgrzut.setpos( anlive.getpx, anlive.getey + 3->igetsc1 );
+		imgrzut.setz(100);
+		new int ilivex = imgrzut.getpx-1;
+		new int iliveex = imgrzut.getex;
+		new int iilerzut = 10;
+		new int iidrzut = iilerzut;
+		new int irzutstep = 1 + imgrzut.getw/iidrzut;
+		.mcliprzut;
+		.cycletimer=("timrzut",40,func {
+			iidrzut++;
+			.mcliprzut;
+			if( iidrzut<iilerzut )
+				.play;
+			} );
+		int ilecnt = 40;
+		new SimpleCounter cntrzut(ilecnt);
+		new SimpleCounter cntpl(ilecnt);
+		new SimpleCounter cntbum(ilecnt);
+		for( i=0; i<ilecnt; i++ )	{
+			s = "anprzut"+i;
+			.copyanima("ankule",s);
+			<s>.setasanmover;
+			<s>.hide;
+			<s>.vars2(A,"santrafiony",null, "idestx",0, "idesty",0, "rdx",0.0, "rdy",0.0);
+			<s>.addmethod("onendframe", func {
+				.movereal(rdx, rdy);
+				} );
+			<s>.addmethod("onfinish", func {
+				if( santrafiony!=null )	{
+					if( <santrafiony>.isin(idestx,idesty,1,1) )	{
+						.fxsetplay("cios1");
+						@stim = "tim"+santrafiony;
+						@s = "anbum"+cntbum.next;
+						<s>.play( <stim>.idmaska );
+						<s>.setpos(idestx,idesty);
+						if( <stim>.rdir!=1.0 )	{
+							<stim>.stop(false);
+							<stim>.mspadaj;
+						}
+					}
+					santrafiony = null;
+				}
+				.hide;
+				} );
+			
+			s = "anbum"+i;
+			.copyanima("anbum", s);
+		}
+		
+		new int itimakcja;
+		match(strudnosc)	{
+			"easy" => itimakcja = 1000;
+			"medium" => itimakcja = 900;
+			"hard" => itimakcja = 800;
+			? => ;
+		}
+		new int icyklakcja = 0;
+		.cycletimer = ("timakcja", itimakcja, func {
+			icyklakcja++;
+			if( icyklakcja % 100 == 0 && itimakcja>500 )	{
+				itimakcja-=100;
+				.timsetmstick(itimakcja);
+			}
+			@s = grtim.rand;
+			if( !<s>.isplaying )	{
+				<s>.mwypusc;
+			}
+			.play;
+			} );
+		timakcja.play;
+		
+		.cbutexit;
+		.cbutmusic;
+		.loadasker;
+		.cloadrecord("arcade_snofight.db", .mgetrecord);
+		.newtext("txtmode", "Mode: "+strudnosc, "fntsecrecord", .red);
+		txtmode.setpos( anbutmuz.getex + 20->igetsc, 3->igetsc );
+		txtime.setpos( txtmode.getpx, txtmode.getpy + txtmode.geth+3->igetsc );
+		timsecrecord.play;
+		
+		.stdenter;
+	}
+	mgetrecord	{	"snow_record_"+strudnosc;	}
+	mspadaj	{
+		.settick(1);
+		iidstep = rilesteps;
+		rdir = 1.0;
+		.play;
+	}
+	mcliprzut	{
+		imgrzut.clip( ilivex,0, ilivex+iidrzut*irzutstep,igmapph );
+	}
+	mgetdestx	{	(igmappw/2 - .getcx)->to_r;	}
+	mwypusc	{
+		<sanima>.show;
+		<sanima>.setpos(0,0);
+		<sanima>.move(0,<sanima>.geth);
+		grzucacz.add(sanima);
+		grzucacz.sortimgs;
+		iidstep = rilesteps;
+		rdir = (-1.0);
+		.play;
+	}
+	butclick_anbutexit	{	.askfor("MainMenuNelaSnow");	}
+	mouse_lclick	{
+		if( .advstdstate )	{
+			if( iidrzut==iilerzut )	{
+				.fxsetplay("zamach2");
+				iidrzut = 0;
+				.mcliprzut;
+				timrzut.play;
+				@s = "anprzut"+cntrzut.next;
+				<s>.setframe("kulebule",0);
+				real x = mouse.getpx;
+				real y = mouse.getpy;
+				real ile = <s>.nofframes(-1);
+				if( grzucacz.isin(x,y,1,1) )	{
+					<s>.santrafiony = (grzucacz.getsfound);
+				}
+				real rx = 2*igmappw/3;
+				real ry = igmapph;
+				<s>.setpos(rx, ry);
+				<s>.rdx = ((x-rx)/ile);
+				<s>.rdy = ((y-ry)/ile);
+				<s>.idestx = (x);
+				<s>.idesty = (y);
+				<s>.play(-1);
+			}
+		}
+	}
+	mfinish	{
+		.advsetstate("state_finito");
+		timsecrecord.stop(false);
+		timakcja.stop(false);
+		
+		.img = ("tabliczkaH.pyz 200");
+		.copyanima("antabliczka", "antexit"); 		antexit.setframe("exit",0);
+		.copyanima("antabliczka", "antrestart"); 	antrestart.setframe("restart",0);
+		antexit.Button_stdalpha;
+		antexit.addmethod("butclick", func { if( .advisstate("state_enpoints") ) .stdexit("MainMenuNelaSnow"); } );
+		butgame.add("antexit");
+		
+		antrestart.Button_stdalpha;
+		antrestart.addmethod("butclick", func { if( .advisstate("state_enpoints")) .stdexit(GAME); } );
+		butgame.add("antrestart");
+		
+		@w = antexit.getw/2;
+		antexit.move(w,0);
+		antrestart.move(w,0);
+		
+		.newtext("txcurtime", "Your time: "+clstrdigit::gettime(icurtime, "ms"), "fntsecrecord", .red);
+		txcurtime.txtcenter("antabliczka");
+		txcurtime.setz( antabliczka.getz + 5 );
+		txcurtime.hide;
+		new bool brekord = false;
+		if( csave.has(.mgetrecord) )	{
+			txcurtime.move(0, -ifontrecordsize/2 );
+			new int icurec = csave.get(.mgetrecord);
+			.newtext("txcurec", "Record: "+clstrdigit::gettime(icurec, "ms"), "fntsecrecord", .red);
+			txcurec.hide;
+			txcurec.setz( antabliczka.getz + 5 );
+			txcurec.txtcenter("antabliczka");
+			txcurec.move( 0, ifontrecordsize/2 );
+			if( icurtime > icurec )	{
+				brekord = true;
+				csave.set(.mgetrecord, icurtime);
+			}
+		} else {
+			csave.set(.mgetrecord, icurtime);
+			brekord = true;
+		}
+		
+		.advsetstate("state_showtabliczka");
+		antabliczka.anzoomin(idymekdelay, func { <GAME> {
+			txcurtime.show;
+			if( .hasvar("txcurec") )
+				txcurec.show;
+			if( brekord )	{
+				.img = ("rekord.pngH "+(antabliczka.getz+20));
+				imgrekord.setpos( (igmappw-imgrekord.getw)/2, antabliczka.getpy - imgrekord.geth/2 );
+				.timplay("timend", 1000, func {
+					fxrekord.play;
+					imgrekord.show;
+					imgrekord.anzoomin(idymekdelay, func {
+						txtime.txtset(clstrdigit::gettime(icurtime, "ms"));
+						txtime.txtcenter("imgrekord");
+						txtime.move(0,20->igetsc);
+						txtime.setz( imgrekord.getz + 5 );
+						.advsetstate("state_enpoints");
+						} );
+					} );
+			} else .advsetstate("state_enpoints");
+			}; } );
+		antexit.anzoomin(idymekdelay,null);
+		antrestart.anzoomin(idymekdelay,null);
+	}
+}

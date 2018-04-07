@@ -1,0 +1,205 @@
+new string sAskerGame;
+new int idymekdelay = 300;
+new bool bHorizon = .readcfg("bHorizon:",true);
+
+class StdGame : classadv, Localize	{
+	init(string s)	{
+		AdventureGame = false;
+		classadv::init(s);
+		Localize::init;
+		.path = (s);
+		
+		advmouse.setstd;
+		
+		if( PrzygodaMode )	{
+			.advsaveonstart;
+			.advsave_game;
+		}
+	}
+	//-------------- adv -------------------------------
+	loadasker	{
+		if( bHorizon )
+			._loadasker("$scripts/common/asker.pyz");
+		else
+			._loadasker("$scripts/common/asker_pion.pyz");
+	}
+	_loadasker(string sfile)	{	._loadasker2(sfile,"anasker");	}
+	_loadasker2(string sfile, string san)	{
+		.newanima(san+"bg", sfile, 1990);
+		<san+"bg">.hide;
+		.copyanima(san+"bg", san+"yes");
+		<san+"yes">.setframe("yes",0);
+		.copyanima(san+"bg", san+"no");
+		<san+"no">.setframe("no",0);
+		<san+"yes">.Button_std;
+		<san+"yes">.addmethod("butclick", func {
+			.<"preclick_"+this>;
+			if( sgmstate=="state_askexit" )	{
+				if( sAskerGame!=null ) {
+					if( sAskerGame=="exit" ) {
+						sgmstate = "state_exitgame";
+						ccs.benableloading=(false);
+						.closexit;
+					} else {
+						.stdexit(sAskerGame);
+					}
+				} else .Button_butclick;
+			}
+			} );
+		<san+"no">.Button_std;
+		<san+"no">.addmethod("butclick", func {
+			.<"preclick_"+this>;
+			if( sgmstate=="state_askexit" )	{
+				if( <GAME>.hasmet("butclick_"+this) )
+					@sfun = "Button_butclick";
+				else @sfun = "advsetstdstate";
+				@san = this->strsube(2);
+				<san+"bg">.anzoomout(idymekdelay,null);
+				<san+"yes">.anzoomout(idymekdelay,null);
+				<san+"no">.anzoomout(idymekdelay,sfun);
+			}
+			} );
+		butgame.add(san+"yes");
+		butgame.add(san+"no");
+	}
+	closexit	{
+		ccs.buildblack;
+		ccs.close( func { gameapi.exit; } );
+	}
+	showasker	{	._showasker("anasker");	}
+	_showasker(string san)	{
+		sgmstate = "state_askexitstart";
+		<san+"bg">.anzoomin(idymekdelay, func { sgmstate = "state_askexit"; .<"asker_"+this->strsubes("bg")+"_shown">; } );
+		<san+"yes">.anzoomin(idymekdelay,null);
+		<san+"no">.anzoomin(idymekdelay,null);
+	}
+	askfor(string s)      {
+		sAskerGame=s;
+		.showasker;
+	}
+	skipenter	{	clsave.bset("GAME_skipenter");	}
+	stdenter	{
+		if( clsave.bis("GAME_skipenter") )	{
+			clsave.bunset("GAME_skipenter");
+			.refreshstdstate;
+		} else
+			ccs.enter( "refreshstdstate" );
+	}
+	refreshstdstate	{
+		.advsetstdstate;
+		butgame.refresh;
+	}
+	timfinito	{
+		if( !<GAME>.hasvar("_timfinito") )	{
+			<GAME>.timer = ("_timfinito", 1000, func {
+				if( .advstdstate ) .mend;
+				} );
+		}
+		_timfinito.play;
+	}
+	//--------------------- buttons ------------------------
+	Button_stdoff	{
+		.addmethod("butmoveoff", func {
+			if( .advstdstate )
+				advmouse.setstd;
+			} );
+	}
+	buildfadebut(bool balpha)	{
+		@s = this + "_copy";
+		<GAME>.copyanima(this, s);
+		<s>.setframe(-1,1);
+		<s>.hide;
+		if( balpha ) .Button_isinalpha;
+		else .Button_isin;
+		.var2("sanbutcopy", s);
+		.addmethod("butmoveon", func {
+			if( .advstdstate )	{
+				advmouse.setact;
+				<sanbutcopy>.anfadein(300, null );
+			}
+			.Button_butmoveon;
+			} );
+		.addmethod("butmoveoff", func {
+			advmouse.setstd;
+			if( <sanbutcopy>.isvisible )
+				<sanbutcopy>.anfadeout(300, "hide");
+			.Button_butmoveoff;
+			} );
+		.Button_stdclick;
+		butgame.add(this);
+	}
+	//-------------- helpful -------------------------------
+	crect(int wleft, int hup, int wright, int hdown)	{
+		new Rect rec( igmoffsetx+wleft.igetsc, igmoffsety+hup.igetsc, igmoffsetx+iResX-wright.igetsc, igmoffsety+iResY-hdown.igetsc);
+	}
+	mkchmura(string san, real rdx)	{
+		@s = "canmov"+san;
+		new AnMover <s>( san, rdx, 0);
+		<s>.enableroll;
+		<s>.play;
+	}
+	mkfxset(string sfx, int ile, int vol)	{
+		for( int i=0; i<ile; i++ )	{
+			@s = "fx" + sfx + i;
+			.newsfx(s, sfx);
+			<s>.setvol(vol);
+		}
+		new int <"_icnt" + sfx> = 0;
+		new int <"_ilecnt" + sfx> = ile;
+	}
+	fxsetplay(string s)	{
+		string scnt = "_icnt" + s;
+		<"fx"+s+[scnt]>.play;
+		<scnt> = ( [scnt]+1 )% ["_ilecnt" + s];
+	}
+	newtxtbut(string sbut, string stext)	{
+		new img <sbut>;
+		.newfont("_fntbutpom", sgmfontfile, 14->igetsc);
+		//public imgborders(int w, int r, int g, int b, int a)
+		.newtext("_txtbutpom", stext, "_fntbutpom", .grey(16));
+		<sbut>.create( 1.2*_txtbutpom.getw, 1.2*_txtbutpom.geth, .grey(192), 255 );
+		@sbut2 = sbut + "_clicked";
+		new img <sbut2>;
+		<sbut2>.imgclone(sbut);
+		<sbut>.imgborderss(2, .white, 128,"1001");
+		<sbut>.imgborderss(2, .black, 128,"0110");
+		<sbut2>.imgborderss(2, .black, 128,"1001");
+		<sbut2>.imgborderss(2, .white, 128,"0110");
+		_txtbutpom.txtcenter(sbut);
+		<sbut>.blit("_txtbutpom");
+		<sbut>.Button_isin;
+		<sbut>.addmethod("butlrel", func {
+			butgame.sclicked = (null);
+			if( !<this+"_timer">.isplaying )
+				<this+"_clicked">.hide;
+			} );
+		<sbut>.addmethod("butclick", func {
+			@stim = this+"_timer";
+			if( !<stim>.isplaying )	{
+				<stim>.play;
+				@sbut2 = this+"_clicked";
+				<sbut2>.setpos(.getpx,.getpy);
+				<sbut2>.show;
+				<sbut2>.setz(.getz);
+				.Button_butclick;
+			}
+			} );
+		_txtbutpom.move(1,1);
+		<sbut2>.blit("_txtbutpom");
+		<sbut2>.hide;
+		@stim = sbut + "_timer";
+		.timer=(stim,250, func {
+			if( butgame.sclicked != sbutton )
+				<sbutton2>.hide;
+			});
+		<stim>.vars2(A, "sbutton",sbut, "sbutton2", sbut2);
+		butgame.add(sbut);
+		delete _txtbutpom;
+		delete _fntbutpom;
+	}
+	//-------------- sys -------------------------------
+	key_down	{
+		if( igmdebug && keyboard.iskeydown("lctrl") && keyboard.iskey("r") )	.crestart;
+	}
+}
+

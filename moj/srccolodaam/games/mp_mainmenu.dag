@@ -1,0 +1,105 @@
+
+public playmainmusic	{
+	music.smixer = ("engine");
+	music.playstr("coralreef.ogg -l -v 50");
+}
+
+
+game Intro : MermaidStd	{
+	init	{
+		MermaidStd::init("intro");
+		.imgs = (A, "bkg.pyz", "tytul.pyzGH 10");
+		
+		ccs.enter( func {
+			.advsetstdstate;
+			<grtytul.get(0)>.anfadein(1000, func {
+				<grtytul.get(1)>.anfadein(1000, func {
+					<grtytul.get(2)>.anfadein(4000, "mend");
+					} );
+				} );
+			} );
+		
+		.playmainmusic;
+	}
+	mend	{
+		.stdexit("MenuImg");
+	}
+	mouse_lclick	{
+		.mend;
+	}
+}
+
+game Outro : MermaidStd	{
+	init	{
+		MermaidStd::init("outro");
+		.imgs = (A, "bkg.jpg");
+		
+		.stdenter;
+		.timplay("timfinish", 12000, "mend");
+	}
+	mend	{
+		if( .advstdstate )	{
+			sgmstate = "state_exit";
+			music.fadeout(800);
+			.closexit;
+		}
+	}
+	mouse_lclick	{
+		.mend;
+	}
+}
+
+game TestCol : MermaidStd {
+	init	{
+		MermaidStd::init("test");
+		.path = ("test");
+		.imgs = (A, "col1.pyz 5");
+		ancol1.move(100,100);
+		.copyanima("ancol1", "ancol2");
+		ancol2.setframe(1,0);
+		ancol2.hide;
+		
+		new img imgbkg;
+		imgbkg.create( igmappw, igmapph, .white, 255 );
+		
+		new img implotno;
+		implotno.create( ancol1.getw, ancol1.geth, .transparent );
+		implotno.setz( 10 );
+		implotno.setpos( ancol1.getpx, ancol1.getpy );
+		
+		new img imbrush;
+		imbrush.create( 50, 50, .red, 128 );
+		imbrush.setz( 50 );
+		
+		new img imb2;
+		imb2.create( 25, 25, .red, 255 );
+		imb2.setpos( 12, 12 );
+		imbrush.blit("imb2");
+		delete imb2;
+		
+		new bool bclicked = false;
+		.cycle = ("timpaint", func {
+			if( bclicked ) {
+				if( keyboard.iskeydown("m") )
+					implotno.paintfromsrc("ancol2", "imbrush");
+				else implotno.paintfromgrey("ancol1", "imbrush");
+			}
+			.play;
+			} );
+		timpaint.play;
+		//ancol1.hide;
+	}
+	mouse_move	{
+		imbrush.setpos( mouse.getpos );
+	}
+	mouse_lclick	{
+		bclicked = true;
+	}
+	mouse_lrel	{
+		bclicked = false;
+	}
+	mouse_rclick	{
+		imbrush.paint( 255->rand, 255->rand, 255->rand, 255, 2 );
+	}
+}
+

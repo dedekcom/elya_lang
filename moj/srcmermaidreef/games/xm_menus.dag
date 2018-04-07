@@ -1,0 +1,6 @@
+
+game MenuXmas : MermaidStd	{
+	init	{
+		MermaidStd::init("mainmenu");
+	}
+}

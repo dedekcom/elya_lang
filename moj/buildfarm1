@@ -1,0 +1,3 @@
+./kompiluj ./srcfarm1/farm1.prj
+#cp ./srcfarm1/farm1.odd /home/dedek/projekty/rysunki_gimp/farm1/project/scripts/
+awk -f optimize.awk ./srcfarm1/farm1.odd | awk -f optimize.awk > /home/dedek/projekty/rysunki_gimp/farm1/project/scripts/farm1.odd

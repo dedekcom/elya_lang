@@ -1,0 +1,84 @@
+game ho19intro :Banshee {
+	init{
+		Banshee::init("ho19_intro");
+		.imgs = (A,"bkg.jpg 1","ogien.pyzH 2", "torch.pyzH 3", "pochodnia_mask.pyzH 4");
+		.sfxs =(A, "bgrszumN 10","bgrlas2N 5", "las5N 5", "openhead" ); 
+		clsave.bset("e1_ad19_szopa_swiatlo_zgaszone"); 
+		.newsndfree("snd_intro", "kinnat_c2d2_10a");
+		snd_intro.addmethod("onfinish", "advsetstdstate");     
+		
+		//.addtopck("pochodnia_ogien");	
+		anogien.setdrawmode(1); 
+		
+		new ImgRect recexit {
+			.Button_isin;
+			.Button_moveoffms;
+			.addmethod("butmoveon", func { advmouse.set("godd"); });
+			.setrect( 0, 0.8 * igmapph, igmappw, igmapph );
+			.setz(300); 
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+					   .stdexitdefadv("ad19_szopa", "gamead19_szopa0");  
+			});
+			butgame.add(this);
+		};  
+		
+		if(!clsave.bis("e1_ad19_szopa_swiatlo_zapalone"))
+		{
+			anpochodnia_mask{
+				.addmethod("isbutin", func { (int x, int y)
+					 .isin(x,y,0,1)  ;
+				} ); 
+				
+				.addmethod("butmoveon", func {
+					advmouse.set("use");
+				} );
+				
+				.addmethod("butmoveoff", func {
+					advmouse.setstd;
+				} );
+				
+				.addmethod("butclick", func {
+					if( !.advstdstate ) return;
+						if(!clsave.bis("e1_ad19_szopa_swiatlo_zapalone"))
+							.cbplay("snd_intro");
+				});
+				  
+				butgame.add(this);
+			};  
+		}
+		//anogien.play(0);
+		.stdstart;
+	} // koniec init  
+   
+	USE_pochodnia_ogien	{
+		.advsetstdstate(); 
+		if(anpochodnia_mask.isin(mouse.getpos,0,1) )	{
+			anogien.play(0);
+			fxopenhead.play; 
+			antorch.anfadein(700,func{.stdexit("HO19_Szopa"); });
+			clsave.bset("e1_ad19_szopa_swiatlo_zapalone"); 
+			.removefrompck("pochodnia_ogien");
+			butgame.removebut("anpochodnia_mask");
+			advmouse.setstd;
+		} else  
+			.item_gotopck;
+	}  
+	 
+	mend	{
+		.stdexitdefadv("ad19_szopa", "gamead19_szopa0");  
+	} 
+  
+	HINT_CLICK {
+		if (clsave.bis("ma_pochodnia_ogien") && !clsave.bis("e1_ad19_szopa_swiatlo_zapalone"))
+		{
+		  .showhint("anpochodnia_mask");
+		  .showhintitem("pochodnia_ogien");  
+		}
+		 
+		else
+			.showhint("recexit");   
+		 
+	}		
+}
+ 

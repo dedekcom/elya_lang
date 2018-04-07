@@ -1,0 +1,31 @@
+path:
+	srcinstalator/
+
+src:
+	libs/system.dag
+	libs/collections.dag
+	libs/vars.dag
+	libs/mouse.dag
+	libs/containers.dag
+	libs/sounds.dag
+	libs/game.dag
+	libs/basetypes.dag
+	libs/gametools.dag
+	libs/gamecontroller.dag
+	libs/adv.dag
+	gameobjs/painter.dag
+	gameobjs/counter.dag
+	gameobjs/gfxobjects.dag
+	gameobjs/buttons.dag
+	gameobjs/lang.dag
+	advlibs/advmouse.dag
+	stdgame/stdgame.dag
+	stdgame/main.dag
+	games/gm_menus.dag
+
+
+all:
+	dd1.dag
+
+out:
+	srcinstalator/instalator.odd

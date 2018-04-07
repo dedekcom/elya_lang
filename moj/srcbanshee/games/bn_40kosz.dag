@@ -1,0 +1,45 @@
+
+game mg40_kosz : Banshee	{
+	init	{
+		Banshee::init("mg40_kosz");
+		
+		.imgs = (A, "bkg.jpg 1", "popup_bkg.pyz 2","kwadrat_1.pyzH 3",
+			"popexit.pyz 45", "ramka.pyz 42");
+		.sfxs = (A,"bgrmorze3N 10"); 	
+		.butpopexit;
+		.butpopexitisinramka;
+		
+		if(!clsave.bis("takenan_ankwadrat_1"))
+		{
+			ankwadrat_1.show;
+			.setasitemtopck("ankwadrat_1"); 
+		} 
+		 
+		.stdstart;
+	}
+	
+	ankwadrat_1_TAKE {
+		.stackitem_topck("kwadrat");
+		.set_mg_finished;   
+	}
+	ankwadrat_1_INPCK {
+		.additemtostack("kwadrat"); 
+		.timfinito;
+	} 
+
+	 
+	
+	 
+	
+	mend	{
+		.stdexitdefadv("ad40_pomost", "gamead40_pomost0");
+	}
+	HINT_CLICK	{
+		if(!clsave.bis("takenan_ankwadrat_1"))
+			.showhint("ankwadrat_1");
+		else
+			.showhint("anpopexit");
+	}
+	 
+}
+

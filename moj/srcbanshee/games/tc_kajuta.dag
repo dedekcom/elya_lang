@@ -1,0 +1,1384 @@
+
+/*game Platforma : Kajuta1	{
+	init	{
+		Kajuta1::init("02platforma");
+		.setsndbase("platforma");
+		
+		.imgsgr = (A, "hotel.jpg 10", "hotel2.jpgH 5",
+			"grall");
+		
+		.loadsnddb;
+		.sounds=(A, ":lektor4", "Przy udziale ogromnych ¶rodków firm prywatnych zbudowano najnowocze¶niejsz± platformê hotelow± na ¶wiecie. Jest w stanie wytrzymaæ najwiêksze sztormy wystêpuj±ce na tych wodach", func { tcr.ahide; tim3.play; }
+			);
+		
+		
+		new classfadeinout clfio;
+		
+		.cycle = ("timpos", func {
+			@dx = -5;
+			imghotel.move(dx, 0);
+			if( imghotel.getex < iResX )	{
+				imghotel.move( iResX-imghotel.getex, 0 );
+				timhotel.play;
+			} else
+				.play;
+			} );
+		.timer = ("timhotel", 500, func {
+				imghotel2.show;
+				clfio.imgtransparency(1, -3, "imghotel", func {
+					imghotel.hide;
+					tim2.play;
+				} );
+			} );
+		.timer = ("tim2", 1000, func {
+				igmstate++;
+				.tcheckend;
+			} );
+		.timer = ("tim3", 2000, func {
+				igmstate++;
+				.tcheckend;
+			} );
+		ccs.enter( func {
+			//timhotel.play;
+			timpos.play;
+			.timplay("tim4", 1500, func { .txtplay("lektor4"); } );
+			} );
+	}
+	tcheckend	{
+		if( igmstate==2 )	{
+			.mprzejdz("Winda");
+		}
+	}
+	tit_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}*/
+
+game Platforma : Kajuta1	{
+	init	{
+		Kajuta1::init("02platforma");
+		.setsndbase("platforma");
+		
+		.imgsgr = (A, "hotel.jpg", "hel1.pyzP 5", /*"maska.pyz 15",*/ "hel2.pyzH 20",
+			"grall");
+		
+		.sfxs = (A, "bgrmorze2N 40");
+		.timplay("timhel", 4000, func { mus.playstr("helikopter.ogg"); } );
+		
+		.loadsnddb;
+		.sounds=(A, ":lektor4", "Przy udziale ogromnych ¶rodków firm prywatnych zbudowano najnowocze¶niejsz± platformê hotelow± na ¶wiecie. Jest w stanie wytrzymaæ najwiêksze sztormy wystêpuj±ce na tych wodach", func { tcr.ahide;  }
+			);
+		
+		.copyanima("anhel2", "anhel");
+		
+		anhel.setframe(2,0);
+		anhel2.setpos( iResX - anhel2.lodx, 0.01*iResY );
+		anhel.hide;
+		new int idestx = anhel.getpx;
+		new int idesty = anhel.getpy;
+		new real rdesth = anhel.geth;
+		new real rstepx = -6.0;
+		new real rstepy = 1.8;
+		new real rodleg = rstepy.length(anhel2.getpx - idestx, anhel2.getpy - idesty);
+		new real rgox = 0.0;
+		new real rgoy = 0.0;
+		new real istartx = anhel2.getpx - 5.0;
+		new real istarty = anhel2.getpy - 3.0;
+		
+		new filter fthel;
+		
+		.timer = ("tim3", 14000, func {
+			fthel.link("anhel2");
+			fthel.setpivottype(1);
+			anhel2.play(0);
+			tim5.play; 
+			} );
+		.cycle = ("tim5", func {
+			.modleg;
+			if( anhel2.isplaying(-1)==false )
+				anhel2.play(0);
+			if( anhel2.getposx-50 > idestx )	{
+				//("" + istartx + " "+anhel2.getposx)->print;
+				.play;
+			} else {
+				if( !.hasvar("playend") )	{
+					.var("playend");
+					.mend;
+				}
+				.play;
+			}
+			} );
+		//tim5.setcycle(2);
+		
+		ccs.enter( func {
+			.timplay("tim4", 1500, func { .txtplay("lektor4"); } );
+			tim3.play;
+			} );
+	}
+	modleg	{
+		/*real rx = istartx - idestx;
+		real ry = istarty - idesty;
+		real rd = rx.length(rx,ry) / rodleg;*/
+		real rx = anhel2.getposx - idestx;
+		real ry = anhel2.getposy - idesty;
+		real rd = rx.length(rx,ry) / rodleg;
+		
+		@r1 = 0.05;
+		@r2 = 1.2;
+		
+		if( rd<=0 )
+			rd=0.1;
+		real rzoom = r1 + r2*rd;
+		if( rzoom>0.1 )
+			fthel.setzoom( rzoom );
+		
+		/*istartx -= 5;
+		istarty += 1;
+		anhel2.setpos( istartx, istarty );*/
+		
+		rgox += rstepx * rd;
+		rgoy += rstepy * rd;
+		int x = rgox;
+		int y = rgoy;
+		if( x || y )	{
+			rgox -= x;
+			rgoy -= y;
+			anhel2.move(x,y);
+			istartx+=x;
+			istarty+=y;
+		}
+	}
+	mend	{
+		.mprzejdz("Winda");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .mend;
+	}
+}
+
+game Winda : Kajuta1	{
+	init	{
+		Kajuta1::init("03winda");
+		.setsndbase("winda");
+		
+		.imgs = (A, "03winda.jpg", "windaa.jpg", "bat.pyz 5", "winda.pyzG 10", "metry.pyz 11", "bable.pyzP 7");
+		
+		new img imgwinda;
+		imgwinda.create( iResX, 800, 1,6,12,255 );
+		imgwinda.setpos( 0, imgwindaa.getey );
+		img03winda.setpos( 0, imgwinda.getey );
+		anbat.setpos( 0, imgwinda.getey );
+		
+		new gmimgvec grall;
+		grall.addlist(A, "img03winda", "imgwindaa", "imgwinda", "anbat");
+		
+		/*@dy = iResY - anwinda.getey;
+		anwinda.move(0, dy);
+		anbable.move(0, dy);*/
+		
+		anbat.move(0, -300);
+		
+		.loadsnddb;
+		.sounds = (A, ":lektor5", "Jednak szczytem my¶li technicznej jest podwodne muzeum. Zastosowano tu najnowocze¶niejsze materia³y aby konstrukcja mog³a wytrzymaæ napór ogromnego ci¶nienia.",
+			func { tcr.ahide; }
+			);
+		
+		mus.playstr("ambient_podwodny.ogg -v 60");
+		
+		.cycle = ("tim2", func {
+			grall.move(0, -5);
+			if( img03winda.getey < 1.35*iResY && !.hasvar("gobat") )	{
+				new int gobat;
+				anbat.play(0);
+			}
+			/*if( img03winda.getey < 1.05*iResY && !.hasvar("finitobandito") )	{
+				new int finitobandito;
+				.mend;
+			}*/
+			if( img03winda.getey < iResY )	{
+				.timplay("tim3", 500, "mend" );
+			} else .play;
+			} );
+		
+		ccs.enter( func {
+			.timplay("tim1", 1000, func { tim2.play; .txtplay("lektor5"); } ); 
+			} );
+	}
+	mend	{	.mprzejdz("Podwodnemuzeum"); }
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .mend;
+	}
+}
+
+game Podwodnemuzeum : Kajuta	{
+	init	{
+		Kajuta::init("04podwodnemuzeum");
+		.setsndbase("podwodnemuzeum");
+		
+		//.imgs = (A, "podwodnemuzeum.jpg");
+		.imgs = (A, "woda.jpg", /*"wiel1.pyzP 5", "wiel2.pyzP 7", */ "maska1.pyz 10",
+			/*"delf1.pyzP 12",*/ "lawica1.pyzP 15"/*, "lawica2.pyzP 20"*/, "bkg.png 25");
+		
+		.loadsnddb;
+		.sounds = (A, ":lektor6", "Twórcy muzeum zdecydowali siê na zbudowanie repliki wraku, g³ównie z powodów technicznych. Prawdziwy wrak jest w bardzo z³ym stanie i wszelka zmiana ¶rodowiska mog³aby zniszczyæ go do koñca.", 
+			func { .txtplay("lilian1"); },
+			":lilian1", "Jaki osza³amiaj±cy widok! Muszê zobaczyæ ca³e muzeum od ¶rodka. O... tam widzê jake¶ tablice informacyjne", 
+			func { tcr.ahide; igmstate=1;
+				.showpanel; 
+				<grpan.getsac("belka")>.hide;
+			},
+			":lilian2", "Tam w oddali widzê ¶wiat³a biurowców, pewnie tam muszê pój¶æ.", "stdret"
+			);
+		
+		mus.playstr("kopula.ogg -l -v 60");
+		
+		.mexits;
+		
+		if( clsave.is("epizod", "e1_muzeum") && !clsave.bis("e1_podwodnemuzeum_enter") )
+			.hidepanel;
+		
+		if( clsave.is("epizod", "e1_muzeum") )	{
+			if( clsave.bis("e1_hotablicepamiatki") )
+				.blockexit("41dok");
+			else
+				.titblock(A, "07trap", "41dok");
+		}
+		
+		//anwiel2.move( iResX - anwiel2.getpx, 0 );
+		//anwiel1.move( iResX, 0 );
+		.cycle = ("timryby", func {
+			/*anwiel1.move(-3, 0);
+			anwiel2.move(-4, 0);
+			if( anwiel2.getpx < -3*iResX )
+				anwiel2.move( iResX - anwiel2.getpx, 0 );
+			if( anwiel1.getpx < -2*iResX )
+				anwiel1.move( iResX - anwiel1.getpx, 0 );*/
+			/*andelf1.move(2, 0);
+			if( andelf1.getpx > iResX )
+				andelf1.setpos( -400 - andelf1.lodx, 0 );*/
+			anlawica1.move(-1, 0);
+			if( anlawica1.getpx < iResX/2 )
+				anlawica1.move( iResX - anlawica1.getpx , 0 );
+			.play;
+			} );
+		timryby.play;
+		
+		ccs.enter( func {
+			if( clsave.is("epizod", "e1_muzeum") )	{
+				.grextohint;
+				if( clsave.bis("e1_podwodnemuzeum_enter") )	{
+					igmstate=1;
+				} else {
+					clsave.bset("e1_podwodnemuzeum_enter");
+					.txtplay("lektor6");
+				}
+			} else if ( clsave.is("epizod", "e3_powrot") )	{
+				.extohint("41dok");
+				if( clsave.bgo("e3_podwodnemuzeumenter") ) .txtplay("lilian2");
+				else igmstate=1;
+			}
+			} );
+	}
+	click_07trap	{
+		.mprzejdz("Trap");
+	}
+	click_05tablice	{
+		.mprzejdz("Tablice");
+	}
+	click_41dok	{
+		.mprzejdz("Dok");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Tablice : Kajuta	{
+	init	{
+		Kajuta::init("05tablice");
+		.setsndbase("tablice");
+		
+		.imgs = (A, "05tablice.jpg", "swiece.pyzG 5");
+		grswiece.eval( func {
+			//.setdelay(4);
+			.play(-1);
+			.setframe(-1, .nofframes(-1)->rand);
+			} );
+		
+		.loadsnddb;
+		.sounds = (A, ":kasjer1", "Tutaj widz± pañstwo listê wszystkich ofiar katastrofy; Te ¶wiece przynie¶li krewni i znajomi ofiar; Na ekranie obok mog± pañstwo zobaczyæ przedmioty znalezione na wraku; Zachêcamy pañstwa do przejrzenia byæ mo¿e znajdziecie co¶ co nale¿a³o do waszych krewnych", func { .txtplay("lilian1"); },
+			":lilian1", "To nazwiska ludzi którzy zginêli. Bardzo d³uga lista. To straszna tragedia.",
+				func { .txtplay("lilian2"); },
+			":lilian2", "Na ekranie dotykowym mo¿na zobaczyæ przedmioty tych ludzi.", "stdret",
+			":lilian3", "Poszukam wejscia do wnêtrza muzuem.", "stdret",
+			":lilian4", "Tam lezy jakas podarta fotografia.", "stdret"
+			);
+		
+		.snd=("lektor15", "lektor15", "stdret" );	// nie ma tutaj nic do zrobienia
+		
+		mus.playstr("tablice.ogg -l");
+		
+		.mexits;
+		
+		if( clsave.is("epizod", "e1_muzeum") )	{
+			if( !clsave.bis("e1_hotablicepamiatki") )	{
+				.titblock(A, "07trap");
+				.extohint("06ho_tablicepamiatki");
+			} else	{
+				//.grextohint;
+				.extohint("07trap");
+			}
+		} else if (clsave.is("epizod", "e4_end") )	{
+			.dititblock(A, "04podwodnemuzeum", "07trap", "06ho_tablicepamiatki");
+			.img=("zdjecie.pyz 10");
+			new itemadder clz;
+			anzdjecie {
+				.Button_stdalpha;
+				.addmethod("butclick", func {
+					if( igmstate!=1) return;
+					.setframe(1,0);
+					but1.removebut(this);
+					clz.showitem( this, func {
+						.timplay("tim1", 1500, func { clz.hideitem("anzdjecie", func {
+							anzdjecie.hide;
+							.mprzejdz("Zdjecie");
+							} ); } );
+						} );
+					} );
+				but1.add(this);
+			};
+			.hoverhint("anzdjecie");
+		}
+		
+		ccs.enter( func {
+			if( clsave.is("epizod", "e1_muzeum") )	{
+				if( clsave.bis("e1_tablice_enter") )	{
+					if( clsave.last == "Tablicepamiatki" )	{
+						.txtplay("lilian3");
+					} else
+						igmstate=1;
+				} else {
+					clsave.bset("e1_tablice_enter");
+					.txtplay("kasjer1");
+				}
+			} else if ( clsave.is("epizod", "e3_powrot") )	{
+				igmstate=1;
+				.extohint("04podwodnemuzeum");
+			} else if ( clsave.is("epizod", "e4_end") )	{
+				igmstate=1;
+			}
+			} );
+	}
+	hint_click	{ 
+		if( clsave.is("epizod", "e4_end") ) {
+			igmstate=0;
+			.playhint("anzdjecie");
+			.txtplay("lilian4"); 
+		}
+	}
+	click_07trap	{
+		.mprzejdz("Trap");
+	}
+	click_06ho_tablicepamiatki	{
+		if( clsave.bis("e1_hotablicepamiatki") )	{
+			igmstate=0;
+			.txtplay("lektor15");
+		} else {
+			clsave.bset("e1_hotablicepamiatki");
+			.mprzejdz("Tablicepamiatki");
+		}
+	}
+	click_04podwodnemuzeum	{
+		.mprzejdz("Podwodnemuzeum");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+		/*if( igmstate==5 )	{
+			clsave.free;
+			.mprzejdz("MainMenu");
+		}*/
+	}
+}
+
+game Trap : Kajuta	{
+	init	{
+		Kajuta::init("07trap");
+		
+		.imgs = (A, "07trap.jpg", "wiatrak.pyzG 5");
+		grwiatrak.nplay(-1);
+		.setsndbase("trap");
+		
+		mus.playstr("kopula.ogg -l -v 50");
+		
+		.loadsnddb;
+		.sounds = (A, ":kasjer1", "Zapraszamy pañstwa do zwiedzania wraku. Jego replika jest ca³kowicie bezpieczna. Na ekranach dotykowych mo¿ecie pañstwo zobaczyæ materia³y historyczne zwi±zane z budow± i eksploatacj± Titanica." , func {
+				tcr.ahide;
+				.mprzejdz("HOTrap");
+			}
+			);
+		
+		.mexits;
+		ccs.enter( func {
+			if( clsave.is("epizod", "e1_muzeum") )	{
+				//.grextohint;
+				if( !clsave.bis("e1_traphistorial") )
+					.extohint("historial");
+				else if( !clsave.bis("e1_traphistoriar") )
+					.extohint("historiar");
+				else .extohint("08kasy");
+				
+				if( clsave.bis("e1_trap_enter") )	{
+					igmstate=1;
+				} else {
+					clsave.bset("e1_trap_enter");
+					.txtplay("kasjer1");
+				}
+			} else if ( clsave.is("epizod", "e3_powrot") )	{
+				igmstate=1;
+				.extohint("04podwodnemuzeum");
+			}
+			} );
+	}
+	click_08kasy	{
+		.mprzejdz("Kasy");
+	}
+	click_historial	{
+		clsave.bset("e1_traphistorial");
+		.mprzejdz("InfoTrapL");
+	}
+	click_historiar	{
+		clsave.bset("e1_traphistoriar");
+		.mprzejdz("InfoTrapR");
+	}
+	click_04podwodnemuzeum	{
+		.mprzejdz("Podwodnemuzeum");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Kasy : Kajuta	{
+	init	{
+		Kajuta::init("08kasy");
+		.setsndbase("kasy");
+		
+		.imgs = (A, "08kasy.jpg");
+		
+		.loadsnddb;
+		.sounds = (A, ":kasjer1", "Na tych ekranach dotykowych mog± pañstwo zapoznaæ siê faktami i materia³ami zebranymi na temat samej katastrofy.", "stdret",
+			":lilian1","Muszê wyj¶æ na zewn±trz statku i tam znajdê droge do doków z batyskafami.", "stdret",
+			":lilian2", "I better head into the replica.", "stdret"
+			);
+		
+		mus.playstr("kopula.ogg -l -v 50");
+		
+		.mexits;
+		
+		if( clsave.bis("e1_hotitanic") )	{
+			.diblockexit("08ho_titanic");
+			.hodone("08ho_titanic");
+		} else .titblock(A, "07trap", "09korytarzmuzeum");
+		
+		ccs.enter( func {
+			if( clsave.is("epizod", "e1_muzeum") )	{
+				//.grextohint;
+				if( clsave.bis("e1_kasy_enter") )	{
+					igmstate=1;
+				} else {
+					clsave.bset("e1_kasy_enter");
+					.txtplay("kasjer1");
+					.extohint("08ho_titanic");
+				}
+			} else if ( clsave.is("epizod", "e3_powrot") )	{
+				if( clsave.bgo("e3_kasyenter") ) .txtplay("lilian1");
+				else igmstate=1;
+				.extohint("07trap");
+			}
+			} );
+	}
+	hint_click	{
+		if( clsave.is("epizod", "e1_muzeum") && clsave.bis("e1_hotitanic") )	{
+			igmstate=0;
+			.txtplay("lilian2");
+		}
+	}
+	click_historia	{ .mprzejdz("InfoKasyL"); }
+	click_08ho_titanic	{
+		clsave.bset("e1_hotitanic");
+		.mprzejdz("HOTytan");
+	}
+	click_07trap	{
+		.mprzejdz("Trap");
+	}
+	click_09korytarzmuzeum	{
+		.mprzejdz("Korytarzmuzeum");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Korytarzmuzeum : Kajuta	{
+	init	{
+		Kajuta::init("09korytarzmuzeum");
+		.setsndbase("korytarzmuzeum");
+		
+		.imgs = (A, "09korytarzmuzeum.jpg", "drzwi.pyz 5");
+		
+		mus.playstr("kopula.ogg -l -v 40");
+		
+		.loadsnddb;
+		.sounds = (A, ":kasjer1", "Zachêcamy pañstwa do zwiedzania ró¿nych pomieszczeñ; Proszê siê nie krêpowaæ my czuwamy nad waszym bezpieczeñstwem i nic pañstwu nie grozi; Zachêcamy do zg³êbiania tajemnic wraku i jego tragicznego rejsu", "stdret",
+			":lilian15", "S³ysza³am ¿e na pok³adzie statku by³o morderstwo; Czy wie pan co¶ wiêcej na ten temat",
+				func { .txtplay("kasjer2"); },
+			":kasjer2", "Niestety nie za wiele; Wiemy tylko tyle ile ¶wiadkowie mogli przekazaæ jednak z trzeciej klasy niewielu ludzi ocala³o; By³a zamkniêta krata i ci biedacy zostali tam na wieki; Kajuty trzeciej klasy mo¿na zobaczyæ na prawdziwym wraku wykupuj±c dodatkow± wycieczkê batyskafem z przewodnikiem",
+				func { .txtplay("lilian16"); },
+			":lilian16", "Gdzie mogê wykupiæ tak± wycieczkê?",
+				func { .txtplay("kasjer3"); },
+			":kasjer3", "Na drugim koñcu muzeum s± budynki administracyjne National Geographic; Proszê siê tam udaæ i tam wszystko bêdzie mo¿na za³atwiæ", "stdret",
+			":lilian17", "Ciekawe co jest za tymi drzwiami?", func { .mprzejdz("HOKajutamuzeum"); }
+			);
+		
+		.sfxs = (A, "opendoor");
+		
+		.mexits;
+		
+		ccs.enter( func {
+			if( clsave.is("epizod", "e1_muzeum") )	{
+				if( clsave.bis("e1_korytarzmuzeum_enter") )	{
+					igmstate=1;
+				} else {
+					clsave.bset("e1_korytarzmuzeum_enter");
+					.txtplay("kasjer1");
+				}
+				if( !clsave.bis("e1_hokajutamuzeum") )	.extohint("10kajutamuzeum");
+				else .grextohint;
+			} else if ( clsave.is("epizod", "e3_powrot") )	{
+				if( !clsave.bis("e3_przewodnik") )	{
+					clsave.bset("e3_przewodnik");
+					.txtplay("lilian15");
+				} else igmstate=1;
+				.extohint("08kasy");
+			}
+			} );
+	}
+	click_08kasy	{
+		.mprzejdz("Kasy");
+	}
+	click_10kajutamuzeum	{
+		andrzwi.play(1);
+		fxopendoor.play;
+		if( !clsave.bis("e1_hokajutamuzeum") )	{
+			clsave.bset("e1_hokajutamuzeum");
+			igmstate=0;
+			.txtplay("lilian17");
+		} else
+			.mprzejdz("Kajutamuzeum");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Kajutamuzeum : Kajuta	{
+	init	{
+		Kajuta::init("10kajutamuzeum");
+		.setsndbase("kajutamuzeum");
+		
+		.imgs = (A, "kajutamuzeum.jpg", "lustromask.pyzH");
+		//anlustromask.mhobjmask;
+		
+		mus.playstr("kopula.ogg -l -v 40");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian3", "Kim jeste¶? aaaaaaaaaaaa", func { .txtplay("prab1"); },
+			":prab1", "D³ugo czeka³am  na ciebie; Wiele dusz wspiera³o dzia³ania ludzi aby¶ mog³a tu dotrzeæ",
+				func { .txtplay("lilian4"); },
+			":lilian4","Czuje jakbym ciê zna³a; By³a¶ tutaj w dniu katastrofy?", func { .txtplay("prab2"); },
+			":prab2","Znasz mnie z opowie¶ci; Widzê ¿e dosta³a¶ jedyn± pami±tkê po mnie; W dniu katastrofy wrzuci³am medalion do jednej z ³odzi ratunkowych; Niestety medalion nie jest kompletny zgubi³am na pok³adzie kilka jego elementów", 
+				func { .txtplay("lilian5"); },
+			":lilian5","Prababcia?! Jak to mo¿liwe ¿e z tob± rozmawiam? Czemu musia³a¶ tu zgin±æ? Mam tyle pytañ do ciebie; Mama mówi³a ¿e pracowa³a¶ tutaj jako pielêgniarka na górnych pok³adach; Czy ju¿ zostaniesz z nami ?",
+				func { .txtplay("prab3"); },
+			":prab3","Niestety mój ¶wiat jest ju¿ gdzie indziej ale czekali¶my na ciebie i musisz nam pomóc aby podobne rzeczy nie wydarzy³y siê w przysz³o¶ci",
+				func { .txtplay("lilian6"); },
+			":prab4","W dniu katastrofy na dolnych pok³adach zostali zamkniêci ludzie biedota która emigrowa³a do Ameryki; Chcia³am im pomóc ale niestety nie mog³am otworzyæ kraty która oddziela³a ich poziom od wolno¶ci; Pomó¿ nam mo¿emy jeszcze to zmieniæ",
+				func { .txtplay("lilian6"); },
+			":lilian6","Ale jak? aaaaaaaaaaa",
+				func { .txtplay("prab5"); },
+			":prab5","To lustro przeniesie ciê do 1912 roku do dnia kiedy wydarzy³a siê katastrofa; Odszukaj proszê wszystkie klucze do kraty a tak¿e wszystkie brakuj±ce czê¶ci medalionu; Bêdê ciê wspieraæ; Nie bój siê",
+				func { .txtplay("lilian9"); },
+			":lilian9", "What can I do to save them?", func { .txtplay("prab6"); },
+			":prab6","Jeszcze jedno; Widzê ¿e masz ju¿ album na zdjêcia który pomo¿e wielu duszom na spokojne odej¶cie; Spotkasz na swojej drodze duchy; Nie bój siê ich i zaopiekuj siê nimi; One pomog± tobie a ty bardzo pomo¿esz im",
+				func { .txtplay("prab7"); },
+			":prab7","One more thing, I see that you have a picture album containing photos of passengers who died during the tragic wreck. Throughout your journey, you will meet with spirits from the Titanic, but don't be afraid of them. Help them out, and they will help you in return! Farewell, Lilian, and good luck!", func { tcr.ahide; ccs.playfin( func {
+					anbabki.hide;
+				}, func { 
+					.txtplay("lilian7");
+				} ); },
+			":lilian7", "Wow! Ja chyba ¶niê! Najpierw duch przy schodach teraz moja prababcia i na dodatek to magiczne lustro przenosz±ce do innego wymiaru; Co¶ niedobrego dzieje siê z moj± g³ow±; ale jednak sprawdzê czy prababcia mówi³a prawdê", "stdret",
+			":lilian8", "Mo¿e w biurze muzeum bêd± wiedzieli czy jest jakas mo¿liwo¶æ dostania siê na prawdziwy wrak. Zapytam kogo¶ z obs³ugi.", "stdret",
+			":prab19","Dziêkujê ci Lilian; Mam ju¿ wszystkie klucze dziêki którym uratuje bardzo wielu ludzi",
+				func {
+					tcr.ahide;
+					clkey.hideitem( "ankluczes", func {
+						clkey.freeitem;
+						ankluczes.hide;
+						.txtplay("lilian24"); 
+						} );
+				},
+			":lilian24","Tak siê cieszê ¿e mog³am ciê zobaczyæ; Czy spotkamy siê jeszcze?", func { .txtplay("prab20"); },
+			":prab20","¯egnaj Lilian", func { tcr.ahide; .mprzejdz("Tablice"); }
+			);
+		
+		.mexits;
+		
+		if (clsave.is("epizod", "e3_powrot") )	{
+			.diblockexit("11kajutalustro");
+			.extohint("09korytarzmuzeum");
+		} else if (clsave.is("epizod", "e4_end") )	{
+			.titblock(A, "09korytarzmuzeum", "11kajutalustro" );
+			.img=("babki.pyz 10");
+			.newanima("ankluczes", "klucze.pyz", 100);
+			ankluczes.hide;
+			new itemadder clkey;
+		} else .extohint("11kajutalustro");
+		
+		ccs.enter( func {
+			if( clsave.is("epizod", "e1_muzeum") )	{
+				if( clsave.bis("e1_kajutamuzeum_enter") )	{
+					igmstate=1;
+				} else {
+					clsave.bset("e1_kajutamuzeum_enter");
+					.img = ("babcia.pyzH 10");
+					anbabcia.addmethod("onfinish", func {
+						if( .actionnr(-1)==0 )	{
+							ccs.playfin( func { anbabcia.play(1); }, 
+								func {
+									.timplay("timbabka2", 500, func {
+										ccs.playfin( func { delete anbabcia;
+												.img=("babki.pyz 10"); },
+											func { .txtplay("lilian3"); } ); 
+										} );
+								} );
+						}
+						} );
+					.timplay("timbabka", 1000, func { anbabcia.play(0); fxshowhint.play; });
+				}
+			} else if (clsave.is("epizod", "e3_powrot") )	{
+				if( clsave.bgo("e3_kajutamuzeumenter") )	.txtplay("lilian8");
+				else igmstate=1;
+			} else if ( clsave.is("epizod", "e4_end") )	{
+				grklucze.hide;
+				clsave.set("ma_klucz1",0);
+				clsave.set("ma_klucz2",0);
+				clsave.set("ma_klucz3",0);
+				clsave.set("ma_klucz4",0);
+				clsave.set("ma_klucz5",0);
+				clsave.set("ma_klucz6",0);
+				clkey.showitem("ankluczes", func { clkey.freeitem; .txtplay("prab19"); });
+			}
+			} );
+	}
+	click_09korytarzmuzeum	{
+		if( clsave.is("epizod", "e3_powrot") && !clsave.bis("e3_hokorytarzmuzeum") )	{
+			clsave.bset("e3_hokorytarzmuzeum");
+			.mprzejdz("HOKorytarzmuzeum");
+		} else
+			.mprzejdz("Korytarzmuzeum");
+	}
+	click_11kajutalustro	{
+		clsave.set("epizod", "e2_1912");
+		.mprzejdz("Kajutalustro");
+	}
+	/*anlustromask_click	{
+		if( anbabki.isvisible )
+			.mprzejdz("Kajutalustro");
+	}*/
+	tit_lclick	{
+		//.cactsndstop(true);
+	}
+}
+
+game Kajutalustro : Kajuta	{
+	init	{
+		Kajuta::init("11kajutalustro");
+		.setsndbase("kajutalustro");
+		
+		.imgsgr = (A, "kajutalustro.png",
+			"grall");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian6", "Jednak to prawda!", func { .txtplay("prab7"); },
+			":prab7","Pomó¿ mi Lilian; Znajd¼ klucze!", "stdret",
+			":prab18","Zosta³ teraz ostatni klucz; Niestety znajdziesz go w swoich czasach na prawdziwym wraku; Powodzenia Lilian", "stdret",
+			":prab19","Dziêkujê ci Lilian; Mam ju¿ wszystkie klucze dziêki którym uratuje bardzo wielu ludzi",
+				func {
+					tcr.ahide;
+					clkey.hideitem( "ankluczes", func {
+						clkey.freeitem;
+						ankluczes.hide;
+						.txtplay("lilian24"); 
+						} );
+				},
+			":lilian24","Tak siê cieszê ¿e mog³am ciê zobaczyæ; Czy spotkamy siê jeszcze?", func { .txtplay("prab20"); },
+			":prab20","¯egnaj Lilian", func { tcr.ahide; .mprzejdz("Tablice"); },
+			":lilian25","Przeszukam to pomieszcznie zanim przeniosê siê do moich czasów.", func {
+				tcr.ahide;
+				.timplay("timbum2", 300, func {
+					fxstatekbum.play;
+					timbum.setcycle(2);
+					timbum.var2("idbum", 20);
+					timbum.play;
+					} );
+				},
+			":lilian26", "We've hit the iceberg! I need to hurry and find this ring!", "stdret"
+			);
+		
+		//mus.playstr("titanic3.ogg -l -v 60");
+		.mexits;
+		
+		.sfxs = (A, "bgrsala2N");
+		
+		if( clsave.is("epizod", "e2_1912") )	{
+			if( clsave.bis("e2_kajutalustrofinito") )	{
+				.dititblock(A, "11ho_kajutalustro", "12schody");
+				.hodone("11ho_kajutalustro");
+			} else if( clsave.bis("e2_morderstworozwiazane") )	{
+				.dititblock(A, "10kajutamuzeum", "12schody");
+				.sfx = ("statekbum");
+				.cycle = ("timbum", func {
+					if( idbum%2 ) grall.move(-1,0);
+					else grall.move(1,0);
+					idbum--;
+					if( idbum>0 ) .play;
+					else .txtplay("lilian26");
+					} );
+			} else {
+				.titblock(A, "10kajutamuzeum", "11ho_kajutalustro");
+			}
+		} else if (clsave.is("epizod", "e4_end") )	{
+			.titblock(A, "11ho_kajutalustro", "12schody", "10kajutamuzeum" );
+			.imgs=(A, "$scripts/10kajutamuzeum/babki.pyz 10");
+			.newanima("ankluczes", "klucze.pyz", 100);
+			ankluczes.hide;
+			new itemadder clkey;
+		}
+		.grextohint;
+		ccs.enter( func {
+			if( clsave.is("epizod", "e2_1912") )	{
+				if( clsave.bis("e2_kajutalustrofinito") )	{
+					//.txtplay("prab18");
+					.rosie_go;
+				} else if( clsave.bis("e2_morderstworozwiazane") )	{
+					.txtplay("lilian25");
+				} else if( clsave.bis("e2_kajutalustro_enter") )	{
+					igmstate=1;
+				} else {
+					clsave.bset("e2_kajutalustro_enter");
+					.txtplay("lilian6");
+				}
+			} else if ( clsave.is("epizod", "e4_end") )	{
+				grklucze.hide;
+				clsave.set("ma_klucz1",0);
+				clsave.set("ma_klucz2",0);
+				clsave.set("ma_klucz3",0);
+				clsave.set("ma_klucz4",0);
+				clsave.set("ma_klucz5",0);
+				clsave.set("ma_klucz6",0);
+				clkey.showitem("ankluczes", func { clkey.freeitem; .txtplay("prab19"); });
+			}
+			} );
+	}
+	rosie_help	{	.txtplay("prab18");	}
+	click_12schody	{
+		.mprzejdz("Schody");
+	}
+	click_10kajutamuzeum	{
+		clsave.set("epizod", "e3_powrot");
+		.mprzejdz("Kajutamuzeum");
+	}
+	click_11ho_kajutalustro	{
+		clsave.bset("e2_kajutalustrofinito");
+		.mprzejdz("HOKajutalustro");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Schody : Kajuta	{
+	init	{
+		Kajuta::init("12schody");
+		.setsndbase("schody");
+		
+		.imgs = (A, "12schody.jpg", "skrytka.pyz 10");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1", "Jestem niewidzialna; Mogê wej¶æ wszêdzie i nikt mnie nie zobaczy", "stdret",
+			":lilian2", "Zepsuty zegar Co¶ mi podpowiada ¿e to nie jedyna jego funkcja",
+				func { tcr.ahide; .mprzejdz("Zegar"); },
+			":lilian3", "Mam pierwszy z sze¶ciu zaginionych kluczy! Muszê przeszukaæ pok³ad Tytanika w poszukiwaniu pozosta³ych oraz drugiej czê¶ci medalionu prababci.", "stdret",
+			":lilian4", "Poszukam sali o której mówi³a prababcia.", "stdret",
+			":lilian5", "Wydje mi siê, ¿e wejscie do sali tureckiej by³o blisko kanapy.", "stdret"
+			);
+		
+		.sfxs = (A, "bgrsala2N");
+		.mexits;
+		
+		if( clsave.bis("e2_schody_otwarta_skrytka") )	{
+			anskrytka.setframe("open", 0);
+			.diblockexit("13ho_skrytkaschody");
+			.hodone("13ho_skrytkaschody");
+		}
+		if( clsave.is("epizod", "e2_1912") )	{
+			if( clsave.bis("e2_recepcjalustro") )	{
+				//.img = ("e2ludzie2.pyzG 20");
+				.titblock(A, "38salaturecka", "36salabalowarecepcja", "11kajutalustro" );
+				.extohint("14korytarz3odnogi");
+			} else if( clsave.bis("e2_wnioskitajemnica") )	{
+				//mus.playstr("gwarludzi.ogg -l -v 50");
+				.sfx=("gwarludziN 50");
+				.img = ("e2ludzie2.pyzG 20");
+				if( clsave.bis("e2_recepcjaszafa") && !clsave.bis("e2_hosalaturecka") ) {
+					.titblock(A, "14korytarz3odnogi", "11kajutalustro");
+					.extohint("38salaturecka");
+				} else {
+					.titblock(A, "38salaturecka", "14korytarz3odnogi", "11kajutalustro");
+					.grextohint;
+				}
+			} else {
+				.img = ("e2ludzie.pyzG 20");
+				//mus.playstr("gwarludzi.ogg -l -v 50");
+				.sfx=("gwarludziN 50");
+				if( !clsave.bis("e2_schody_otwarta_skrytka") )	{
+					.titblock(A, "38salaturecka", "14korytarz3odnogi", "36salabalowarecepcja");
+					.extohint("13ho_skrytkaschody");
+				} else {
+					.titblock(A, "38salaturecka", "36salabalowarecepcja");
+					.extohint("14korytarz3odnogi");
+				}
+			}
+		}
+		
+		ccs.enter( func {
+			if( clsave.is("epizod", "e2_1912") )	{
+				if( clsave.bis("e2_schody_enter") )	{
+					if( clsave.bis("e2_schody_otwarta_skrytka") && !clsave.bis("e2_schodykoment1") )	{
+						clsave.bset("e2_schodykoment1");
+						.txtplay("lilian3");
+					} else if (clsave.bis("e2_wnioskitajemnica") && clsave.bgo("e2_schodykomentsalabalowa") )	{
+						.txtplay("lilian4");
+					} else {
+						igmstate=1;
+					}
+				} else {
+					clsave.bset("e2_schody_enter");
+					.txtplay("lilian1");
+				}
+			}
+			} );
+	}
+	hint_click	{
+		if( clsave.bis("e2_recepcjaszafa") && !clsave.bis("e2_hosalaturecka") ) {
+			igmstate=0;
+			.playexhint("38salaturecka");
+			.txtplay("lilian5");
+		}
+	}
+	click_38salaturecka	{
+		.mprzejdz("Salaturecka");
+	}
+	click_14korytarz3odnogi	{
+		if( !clsave.bis("e2_hokorytarz3odnogi") )	{
+			clsave.bset("e2_hokorytarz3odnogi");
+			.mprzejdz("HOKorytarz3odnogi");
+		} else
+			.mprzejdz("Korytarz3odnogi");
+	}
+	click_36salabalowarecepcja	{
+		.mprzejdz("Salabalowarecepcja");
+	}
+	click_13ho_skrytkaschody	{
+		clsave.bset("e2_schody_otwarta_skrytka");
+		igmstate = 0;
+		.txtplay("lilian2");
+	}
+	click_11kajutalustro	{
+		.mprzejdz("Kajutalustro");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Korytarz3odnogi : Kajuta	{
+	init	{
+		Kajuta::init("14korytarz3odnogi");
+		.setsndbase("korytarz3odnogi");
+		
+		.imgs = (A, "14korytarz3odnogi.jpg");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian1", "Pójdê prosto korytarzem.", "stdret",
+			":lilian2", "Mo¿e teraz pójdê w inna stronê?", "stdret",
+			":lilian3", "Teraz zosta³a mi tylko jedna droga.", "stdret"
+			);
+		
+		//mus.playstr("titanic2.ogg -l -v 60");
+		.sfxs = (A, "bgrsala2N");
+		.mexits;
+		
+		if( clsave.is("epizod", "e2_1912") )	{
+			if( clsave.bis("e2_hokuchnia") )	{
+				.titblock(A, "15korytarzambulatorium", "20korytarzkrata");
+				.extohint("18kajutabos");	// potem z kajutybos od razu do kajutylustro
+			} else if( clsave.bis("e2_recepcjalustro") )	{
+				.titblock(A, "15korytarzambulatorium", "18kajutabos");
+				.extohint("20korytarzkrata");
+			} else {
+				if( clsave.bis("ma_klucz3") )	{
+				} else if( clsave.bis("ma_klucz2") )	{
+					.blockexit("20korytarzkrata");
+				} else {
+					.titblock(A, "20korytarzkrata", "18kajutabos");
+				}
+			}
+		}
+		//.tohint(A, "grext");
+		new int ipodpokor = 0;
+		ccs.enter( func {
+			if( clsave.bis("e2_hoskrzyniaplay") && !clsave.bis("e2_ko3ostatniadroga") )	{
+				.txtplay("lilian3");
+				ipodpokor = 3;
+			} else if( clsave.bis("e2_hoambulatorium") && !clsave.bis("e2_kor3koment2") )	{
+				.txtplay("lilian2");
+				ipodpokor = 2;
+			} else if( !clsave.bis("e2_hokorytarz3odnogidone") )	{
+				//clsave.bset("e2_hokorytarz3odnogidone");
+				.txtplay("lilian1");
+				ipodpokor = 1;
+			} else igmstate=1;
+			} );
+	}
+	hint_click	{
+		match(ipodpokor)	{
+			1 => { igmstate=0; .txtplay("lilian1"); .playexhint("15korytarzambulatorium"); }
+			2 => { igmstate=0; .txtplay("lilian2"); .playexhint("18kajutabos"); }
+			3 => { igmstate=0; .txtplay("lilian3"); .playexhint("20korytarzkrata"); }
+			? => ;
+		}
+	}
+	click_15korytarzambulatorium	{
+		clsave.bset("e2_hokorytarz3odnogidone");
+		.mprzejdz("Korytarzambulatorium");
+	}
+	click_20korytarzkrata	{
+		clsave.bset("e2_ko3ostatniadroga");
+		.mprzejdz("Korytarzkrata");
+	}
+	click_18kajutabos	{
+		clsave.bset("e2_kor3koment2");
+		.mprzejdz("Kajutabos");
+	}
+	click_12schody	{
+		.mprzejdz("Schody");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Korytarzambulatorium : Kajuta	{
+	init	{
+		Kajuta::init("15korytarzambulatorium");
+		.setsndbase("korytarzambulatorium");
+		
+		.loadsnddb;
+		.sounds = (A, ":lilian7", "To pewnie gabinet prababci", func { .mprzejdz("HOAmbulatorium2"); },
+			":lilian1", "Sprawdzê czy drzwi s± otwarte. Byæ mo¿e znajdê tam co¶ ciekawego.", "stdret"
+			);
+		
+		.sfxs = (A, "opendoor", "bgrsala2N", "foto2 30" );
+		
+		/*if( clsave.is("epizod", "e2_1912") )
+			.img = ("15korytarzambulatorium2.jpg");
+		else .img = ("15korytarzambulatorium.jpg");*/
+		.img = ("15korytarzambulatorium.jpg");
+		
+		.imgs = (A, /*"animy1.pyzG",*/ "zegar.pyzP 5", "zegarmask.pyz 10", "doors.pyz 5");
+		//granimy1.nplay(-1);
+		
+		//mus.playstr("titanic2.ogg -l -v 60");
+		
+		.mexits;
+		
+		if( clsave.bis("e2_hoambulatorium") ) .extohint("14korytarz3odnogi");
+		else .extohint("16ambulatorium");
+		
+		ccs.enter( func {
+			if( !clsave.bis("e2_weszlakorambulatorium") )	{
+				clsave.bset("e2_weszlakorambulatorium");
+				.txtplay("lilian1");
+			} else igmstate=1;
+			} );
+	}
+	click_16ambulatorium	{
+		andoors.setframe(0,1);
+		fxopendoor.play;
+		if( !clsave.bis("e2_korytarzambulatorium_enter") )	{
+			clsave.bset("e2_korytarzambulatorium_enter");
+			igmstate=0;
+			.txtplay("lilian7");
+		} else 	{
+			.mprzejdz("Ambulatorium");
+		}
+	}
+	click_14korytarz3odnogi	{
+		.mprzejdz("Korytarz3odnogi");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Ambulatorium : Kajuta	{
+	init	{
+		Kajuta::init("16ambulatorium");
+		.setsndbase("ambulatorium");
+		
+		.titsounds = (A, ":lilian1", "Rosemary must have been in a hurry, she left many items in disarray! What a caring woman, risking her own life to try to save those trapped passengers.", "stdret",
+			":lilian2","Mo¿e apteczka skrywa co¶ w swoim wnêtrzu?", func { .mprzejdz("HOAmbulatorium"); },
+			":lilian3", "Nie ma tu ju¿ nic do zrobienia. Idê szukaæ kluczy w innych miejscach.", "stdret"
+			);
+		
+		.imgs = (A, /*"16ambulatorium.jpg"*/ "bkg.pyz", "firany.pyzG 5", "polka.pyz 10");
+		grfirany.nplay(-1);
+		
+		.sfxs = (A, "przeciagN");
+		//mus.playstr("titanic2.ogg -l -v 60");
+		
+		.mexits;
+		
+		if( clsave.bis("e2_hoambulatorium") )	{
+			anpolka.setframe(2,0);
+			.diblockexit("17ho_ambulatorium");
+			.hodone("17ho_ambulatorium");
+			.extohint("15korytarzambulatorium");
+		} else .extohint("17ho_ambulatorium");
+		
+		ccs.enter( func {
+			if( clsave.last == "HOAmbulatorium" )	{
+				.txtplay("lilian3");
+			} else if( clsave.bgo("e2_weszlaambulatorium") )	{
+				.txtplay("lilian1");
+			} else igmstate=1;
+			} );
+	}
+	click_17ho_ambulatorium	{
+		anpolka.play(1);
+		clsave.bset("e2_hoambulatorium");
+		igmstate=0;
+		.txtplay("lilian2");
+	}
+	click_15korytarzambulatorium	{
+		.mprzejdz("Korytarzambulatorium");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Kajutabos : Kajuta	{
+	init	{
+		Kajuta::init("18kajutabos");
+		.setsndbase("kajutabos");
+		
+		.imgs = (A, "kajutabos.png 5", "morze.pyzP", "dymek.pyzP 10", "skrzynia.pyz 20");
+		
+		.sfxs = (A, "bgrmorzeN 70", "skrzyniaopen 30");
+		
+		.loadsnddb;
+		.sounds = (A, ":prab14","Rozwi±za³a¶ zagadkê ¶mierci dziewczyny; Nieszczê¶liwa mi³o¶æ a¿ po grób",
+				func { .txtplay("lilian17"); },
+			":lilian17", "It was the officer! He killed the woman because she didn't return his love!", 
+				func { .txtplay("prab15"); },
+			":prab15","Za chwilê dojdzie do katastrofy; Musisz wróciæ do swojego czasu aby zdobyæ ostatni klucz",
+				func { .txtplay("lilian14"); },
+			":lilian14","Nie zd±¿ê uratowaæ tych nieszczê¶ników!", func { .txtplay("prab16"); },
+			":prab16", "Dasz radê;  ja ci w tym bardzo pomogê; Teraz jednak musisz wróciæ do mojego pokoju i odnale¼æ tam pier¶cionek jaki znalaz³am przy tej zabitej dziewczynie; Ostatni klucz ma przy sobie oficer który jest gdzie¶ we wraku Titanica; Musisz wróciæ do swoich czasów i tam go odszukaæ", func { .txtplay("prab17"); },
+			":prab17","Po¶piesz siê Lilian", func { .mprzejdz("Kajutalustro"); },
+			":lilian15", "To chyba kajuta jakiego¶ oficera, rozejrzê siê.", "stdret",
+			":lilian16", "Maybe I overlooked something in the trunk last time I searched through it.", "stdret"
+			);
+		
+		.mexits;
+		grext.mhide("do_19skrzynia");
+		
+		if( !clsave.bis("ma_klucz3") || (clsave.bis("e2_hokuchnia") && !clsave.bis("e2_hoskrzyniaagain")) )	{
+			.antohint("anskrzynia");
+		} else .extohint("14korytarz3odnogi");
+		
+		anskrzynia.mhobj;
+		.hoverhint("anskrzynia");
+		if( clsave.bis("18kajutabos_skrzynia_open") )
+			anskrzynia.setframe("open", 0);
+		//.tohint(A, "grext", "anskrzynia");
+		if( clsave.bis("e2_hoskrzyniaagain") && !clsave.bis("e2_morderstworozwiazane") )	{
+			clsave.bset("e2_morderstworozwiazane");
+			//.txtplay("prab14");
+			.rosie_go;
+		} else {
+			//.mstdenter;
+			ccs.enter( func {
+				if( clsave.bgo("e2_kajutaoficerenter") )	{
+					.txtplay("lilian15");
+				} else igmstate=1;
+				} );
+		}
+	}
+	rosie_help	{
+		.txtplay("prab14");
+	}
+	//click_19skrzynia	{}
+	click_14korytarz3odnogi	{
+		.mprzejdz("Korytarz3odnogi");
+	}
+	anskrzynia_click	{
+		if( anskrzynia.actionname=="close" )	{
+			clsave.bset("18kajutabos_skrzynia_open");
+			anskrzynia.setframe("open", 0);
+			fxskrzyniaopen.play;
+		} else {
+			if( clsave.is("epizod", "e2_1912") )	{
+				if( clsave.bis("e2_hokuchnia") && !clsave.bis("e2_hoskrzyniaagain") )	{
+					clsave.bset("e2_hoskrzyniaagain");
+					HiddenExclude = "els_";
+					HiddenEls = "els2_";
+					.mprzejdz("Skrzynia");
+				} else if( !clsave.bis("ma_klucz3") )
+					.mprzejdz("Skrzynia");
+			}
+		}
+	}
+	hint_click	{
+		if( clsave.bis("e2_hokuchnia") && !clsave.bis("e2_hoskrzyniaagain") )	{
+			igmstate=0;
+			.txtplay("lilian16");
+		}
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Korytarzkrata : Kajuta	{
+	init	{
+		Kajuta::init("20korytarzkrata");
+		.setsndbase("korytarzkrata");
+		
+		.imgs = (A, "20korytarzkrata.jpg", "krata.pyz 10", "kufer.pyz 10"/*, "maska.pyz 5", "morze.pyzP 1"*/);
+		
+		.titsounds = (A, ":lilian1", "Krata blokuje przej¶cie. Spróbujê j± otworzyæ.", "stdret",
+			":lilian2", "Super! Uda³o mi siê! Schody prowadz± na górê.", "stdret"
+			);
+		
+		//mus.playstr("titanic2.ogg -l -v 60");
+		
+		.sfxs = (A, "skrzyniaopen 30", "bgrsala2N");
+		.mexits;
+		
+		if( clsave.bis("e2_otworzyl_krate") )	{
+			ankrata.setframe(1,0);
+			.diblockexit("klodki");
+			.extohint("21korytarznamostek");
+		} else {
+			.blockexit("21korytarznamostek");
+		}
+		
+		if( clsave.bis("e2_kuferkorytarznamostek") )	{
+			.blockexit("20ho_korytarzkrata");
+			.disablexit("20ho_korytarzkrata");
+			.hodone("20ho_korytarzkrata");
+			if( !clsave.bis("e2_otworzyl_krate") )
+				.extohint("klodki");
+		} else {
+			.blockexit("klodki");
+			.extohint("20ho_korytarzkrata");
+		}
+		//.tohint(A, "grext");
+		ccs.enter( func {
+			if( clsave.last=="Klodki")
+				.txtplay("lilian2");
+			else if( clsave.bgo("e2_korytarzkrataenter") )
+				.txtplay("lilian1");
+			else igmstate=1;
+			} );
+	}
+	click_20ho_korytarzkrata	{
+		// if otwarte
+		clsave.bset("e2_kuferkorytarznamostek");
+		clsave.bset("item_szyfr");
+		igmstate = 2;
+		ankufer.setframe(1,0);
+		fxskrzyniaopen.play;
+		.timplay("tim1", 1000, func { .mprzejdz("HOKorytarzkrata"); } );
+	}
+	click_21korytarznamostek	{
+		if( !clsave.bis("e2_hokorytarznamostek") )	{
+			clsave.bset("e2_hokorytarznamostek");
+			.mprzejdz("HOKorytarznamostek");
+		} else
+			.mprzejdz("Korytarznamostek");
+	}
+	click_klodki	{
+		// game klodki
+		clsave.bset("e2_otworzyl_krate");
+		.mprzejdz("Klodki");
+	}
+	click_14korytarz3odnogi	{
+		.mprzejdz("Korytarz3odnogi");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Korytarznamostek : Kajuta	{
+	init	{
+		Kajuta::init("21korytarznamostek");
+		
+		//.imgs = (A, /*"21korytarznamostek.jpg"*/ "niebo.pyzP", "bkg.pyz 5", "lampy.pyzG 10");
+		.imgs = (A, "21korytarznamostek.jpg", "lampy.pyzG 10");
+		grlampy.nplay(-1);
+		.sfxs = (A, "bgrsala2N");
+		//mus.playstr("titanic2.ogg -l -v 60");
+		.mexits;
+		//.tohint(A, "grext");
+		.extohint("22mostek");
+		.mstdenter;
+	}
+	click_20korytarzkrata	{
+		.mprzejdz("Korytarzkrata");
+	}
+	click_22mostek	{
+		.mprzejdz("Mostek");
+	}
+	tit_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game Mostek : Kajuta	{
+	init	{
+		Kajuta::init("22mostek");
+		.setsndbase("mostek");
+		
+		.imgs = (A, "22mostek.jpg", "22mostek2.jpg", "maska.pyz 5", "morze.pyzP 2");
+		
+		.loadsnddb;
+		.sounds = (A, ":oficer1","Panie kapitanie! Mam z³± wiadomo¶æ; Dokonano ohydnego morderstwa w kajucie klasy trzeciej",
+				func { .txtplay("kapitan1"); },
+			":kapitan1","No jeszcze tego nam brakowa³o; Co dok³adnie siê sta³o?",
+				func { .txtplay("oficer2"); },
+			":oficer2","Dzisiaj rano niejaki Brandon, znalaz³ cia³o swojej przysz³ej narzeczonej i od razu zawiadomi³ obs³ugê statku; Lekarz stwierdzi³ zgon w wyniku g³êbokiej rany zadanej no¿em",
+				func { .txtplay("kapitan2"); },
+			":kapitan2","Powinna siê tym zaj±æ policja; Proszê zaplombowaæ jej kajutê i niczego nie ruszaæ",
+				func { .txtplay("oficer3"); },
+			":oficer3","Z ca³ym szacunkiem ale kiedy dop³yniemy do portu morderca mo¿e uciec; Zaplombowanie samej kajuty nic nie da; Kaza³em zamkn±æ kratê wej¶ciowa na trzeci pok³ad",
+				func { .txtplay("kapitan3"); },
+			":kapitan3","Wie pan czym to grozi? Co bêdzie w przypadku jakiej¶ nie daj Bo¿e katastrofy?",
+				func { .txtplay("oficer4"); },
+			":oficer4","Klucz mam przy sobie wiec w razie nag³ego wypadku szybko otworzê kratê; Proszê siê nie obawiaæ przecie¿ ten statek jest niezatapialny",
+				func { .txtplay("kapitan4"); },
+			":kapitan4","Dobrze; Ma pan racje; Zostawmy zamkniête przedzia³y trzeciej klasy; Klucz proszê mieæ przy sobie",
+				func { tcr.ahide; ccs.playfin( func { img22mostek.hide; img22mostek2.show; ancaptain.hide; },
+					func { .txtplay("lilian8"); } ); },
+			":lilian8","O czym oni mówi±? Jakie morderstwo? Mo¿e to jest w³a¶nie ta mroczna tajemnica o której mówi³a Prababcia ?", "stdret",
+			":lilian9","Przeszukam to pomieszczenie mo¿e znajdê jakies wskazówki ", "stdret",
+			":lilian10","Plan statku z zaznaczonymi miejscami? Pewnie to s± miejsca skrytek gdzie oficer schowa³ klucze; Ciekawe dlaczego to zrobi³? Mówi³ ¿e klucze trzyma przy sobie", func {
+				clmap.hideitem("anmapka2", null);
+				.txtplay("lilian11");
+				},
+			":lilian11","Muszê dalej szukaæ kluczy; Obieca³am ¿e pomogê uwolniæ tych nieszczê¶ników", "stdret",
+			":lilian12", "Te belki pod sufitem s± do¶æ du¿e. Przyjrzê siê im bli¿ej.", "stdret"
+			);
+		
+		//mus.playstr("titanic2.ogg -l -v 60");
+		.sfxs = (A, "bgrszumoceanuN 60", "mapafound");
+		
+		.mexits;
+		
+		.diblockexit("21korytarznamostek");
+		.extohint("23korytarzdolnypoklad");
+		
+		if( clsave.bis("e2_pogadal_kapitan") )	{
+			img22mostek.hide;
+		} else {
+			img22mostek2.hide;
+			new itemadder clmap;
+			.imgs = (A, "mapka.pyz 10", "mapka2.pyzH 100", "captain.pyz 10");
+			anmapka	{
+				.Button_stdalpha;
+				.addhintpad("anmapka");
+				.addmethod("butclick", func {
+					if( igmstate!=1 ) return;
+					igmstate = 2;
+					.hide;
+					fxmapafound.play;
+					anmapka2.ancenterscreen;
+					clsave.bset("e2_ma_mapke");
+					clmap.showitem("anmapka2", func { .txtplay("lilian10"); } );
+					grhint.remove("anmapka");
+					.removehintpad("anmapka");
+					} );
+				but1.add(this);
+			};
+		}
+		
+		ccs.enter( func {
+			if( clsave.bis("e2_pogadal_kapitan") )
+				igmstate=1;
+			else {
+				clsave.bset("e2_pogadal_kapitan");
+				.txtplay("oficer1");
+			}
+			} );
+	}
+	click_21korytarznamostek	{
+		if( clsave.bis("e2_ma_mapke") )
+			.mprzejdz("Korytarznamostek");
+		else {
+			igmstate=0;
+			.txtplay("lilian9");
+		}
+	}
+	click_23korytarzdolnypoklad	{
+		if( clsave.bis("e2_ma_mapke") )	{
+			if( !clsave.bis("e2_hokorytarzdolnypoklad") )	{
+				clsave.bset("e2_hokorytarzdolnypoklad");
+				.mprzejdz("HOKorytarzdolnypoklad");
+			} else
+				.mprzejdz("Korytarzdolnypoklad");
+		} else {
+			igmstate=0;
+			.txtplay("lilian9");
+		}
+	}
+	tit_lclick	{
+		//if( igmstate==0 ) .cactsndstop(true);
+	}
+	hint_click	{
+		if( !clsave.bis("e2_ma_mapke") )	{
+			igmstate = 0;
+			.txtplay("lilian12");
+			.playhint("anmapka");
+		}
+	}
+}

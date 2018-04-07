@@ -1,0 +1,284 @@
+
+new string QuizMode = "l";		// latwy, trudny
+
+game Quiz : DziejeGame	{
+	init	{
+		DziejeGame::init("quiz");
+		
+		.sfxs = (A, "nasadza 80");
+		
+		.sounds = (A,
+			"sndl1","wskaz na mapie gdzie lezy starozytna grecja", "mgo",
+			"sndl2","ktora dyscypline sportu przedstawia malowidlo na greckiej wazie", "mgo",
+			"sndl3","ktore greckie malowidlo przedstawia powyzsza dyscypline sportu", "mgo",
+			"sndl4","wskaz lwy z mykenskiej bramy", "mgo",
+			"sndl5","wskaz starozytny dysk ktorym rzucali zawodnicy", "mgo",
+			"sndl6","wskaz grecki nocnik", "mgo",
+			"sndl7","wskaz koloumne ze swiatyni ateny nike", "mgo",
+			"sndl8","wskaz lampe oliwna", "mgo",
+			"sndl9","wskaz glowice jonska", "mgo",
+			"sndl10","wskaz glowice koryncka", "mgo",
+			"sndl11","wskaz glowice dorycka ", "mgo",
+			"sndl12","ktora z kobiet jest grecka panna mloda", "mgo",
+			"sndl13","wskaz teatralna maske komiczna", "mgo",
+			"sndl14","wskaz pancerz atlety", "mgo",
+			"sndl15","wskaz symbol nowozytnych igrzysk olimpijskich", "mgo",
+			"sndl16","kim jest siedzacy sportowiec", "mgo",
+			"sndl17","czym rzucal dyskobol podczas starozytnych igrzysk", "mgo",
+			"sndl18","jaki element zbroi zaklada grecki wojownik", "mgo",
+			"sndl19","wskaz instrument wykonany ze skorupy zolwia", "mgo",
+			"sndl20","wskaz kariatyde z erechtejonu", "mgo",
+			"sndl21","wskaz greckiego krola", "mgo",
+			"sndl22","wskaz tarcze greckiego wojownika", "mgo",
+			"sndl23","wskaz grecka swiatynie", "mgo",
+			"sndl24","wskaz greckie kolumny", "mgo",
+			"sndl25","wskaz greckie krzeslo", "mgo",
+			"sndl26","wskaz grecka tarcze", "mgo",
+			"sndl27","z czego wykonywano pancerz wielowarstwowy", "mgo",
+			"sndl28","wskaz pancerz atelty", "mgo",
+			"sndl29","wskaz pancerz wielowarstwowy", "mgo",
+			"sndl30","wskaz starozytna grecka monete", "mgo",
+			"sndl31","symbole aten to", "mgo",
+			"sndl32","wkaz plan teatru greckiego", "mgo",
+			"sndl33","wskaz helm grecki", "mgo",
+			"sndl34","wskaz helm grecki", "mgo",
+			"sndl35","wskarz greckiego szewca", "mgo",
+
+			"sndt1", "co odkryl sir artur evans?", "mgo",
+			"sndt2", "jakie miasto odnalazl artur schlieman?", "mgo",
+			"sndt3", "wskaz gdzie znajduje sie palac w knossos", "mgo",
+			"sndt4", "wskaz wspolczesna wersje starozytnej monety atenskiej", "mgo",
+			"sndt5", "ktory obrazek przedstawia prawidlowa liste 7 cudow starozytnego swiata", "mgo",
+			"sndt6", "ilu ludzi potrzeba aby podniesc drugi fragment kolumny jesli do pierwszego potrzeba czworo ludzi, oba fragmenty waza tyle samo", "mgo",
+			"sndt7", "pokaz typowy grecki akropol", "mgo",
+			"sndt8", "wskaz helm koryncki", "mgo",
+			"sndt9", "ktore zwierze czczono w knossos na krecie?", "mgo",
+			"sndt10", "gdy archimedes odkryl prawo wyporu siedzial w wannie? na luzku? czy krzesle?", "mgo",
+			"sndt11", "jaki instrument przedstawia powyzszy schemat?", "mgo",
+			"sndt12", "pokaz tarcze spartanskiego hoplity", "mgo",
+			"sndt13", "w ktorej swiatyni znajdowal sie posag zeusa?", "mgo",
+			"sndt14", "w ktorej swiatyni znajdowal sie ten posag ateny?", "mgo",
+			"sndt15", "w okolicy ktorego miasta odnaleziono ta zbroje", "mgo",
+			"sndt16", "co trzyma grecki mlodzieniec?", "mgo",
+			"sndt17", "wskaz twierdzenie pitagorasa", "mgo",
+			"sndt18", "jakie znieksztalcenia nadawano greckim swiatyniom, aby sprawialy wrazenie idealnie prostych?", "mgo",
+			"sndt19", "na ktorym obrazku narysowano dwie czerwone idealnie proste linie", "mgo",
+			"sndt20", "pokaz grobowiec agamemnona", "mgo",
+			"sndt21", "wskaz nieprawidlowy komplet zbroi greckiego wojownika", "mgo",
+			"sndt22", "wskaz prawidlowy komplet zbroi greckiego wojownika", "mgo",
+			"sndt23", "wskaz najstarsza latarnie morska", "mgo",
+			"sndt24", "ktory dzban sluzyl do schladzania napojow w upalne dni?", "mgo",
+			"sndt25", "co symbolizuje 5 kolorow w kolach olimpijskich?", "mgo",
+			"sndt26", "do ktorej starozytnej dyscypliny sportu pasuje but wspolczesnego sportowca", "mgo",
+			"sndt27", "ktorego z tych elementow nie przywiazywano do pancerza atlety?", "mgo",
+			"sndt28", "wskaz grecki ornament", "mgo",
+			"sndt29", "wskaz grecka kitare", "mgo",
+			"sndt30", "ktory z lwow nie pochodzi z myken", "mgo",
+			"sndt31", "pokaz scytyjskiego lucznika", "mgo",
+			"sndt32", "wskaz czerwone kropki o tej samej wielkosci", "mgo",
+			"sndt33", "pokaz stope kolosa rodyjskiego", "mgo",
+			"sndt34", "ile widzisz narysowanych na czarnym tle kwadratow?", "mgo",
+			"sndt35", "ktory wojownik nie pasuje do starozytnej grecji", "mgo",
+			
+			"sndgo", "Witaj w te¶cie wiedzy o Staro¿ytnej Grecji; Kliknij na mnie je¶li chcesz ¿ebym powtórzy³ pytanie; Uwa¿aj mo¿e siê zdarzyæ ¿e w pytaniu jest wiêcej ni¿ jedna poprawna odpowied¼; Zaczynamy", func { igmstate=0; .mfight; },
+			"sndno", "Niee", null,
+			"sndyes", "Tak ", null,
+			"sndend", "Twój wynik", null
+		);
+		.imgs = (A, "bkg.pyz", "kolo.pyz 5", "lapki.pyz 5", /*"$lang/logo.pyz 5",*/ "prof.pyz 10");
+		.lang_an("anlogo", "logo", 5);
+		
+		new int iwynik;
+		new Button buts;
+		anprof.Button_isinalpha;
+		anprof.Button_moveonms;
+		anprof.Button_moveoffms;
+		anprof.addmethod("butclick", func {
+			if( igmstate==1 )	{
+				.mpytaj;
+			}
+			} );
+		buts.add("anprof");
+		
+		new gmimgvec grok;
+		"grok" .* "okeje.pyz";
+		grok.setz(50);
+		grok.hide;
+		
+		new int ifontpoint = 32;
+		new string sfont = .stdfont( ifontpoint );
+		.newtext("txtpyt", "", sfont, 255,253,178);
+		.newtext("txtok", "", sfont, 255,253,178);
+		.newtext("txtbad", "", sfont, 255,253,178);
+		
+		new gmimgvec grels;
+		new vector vtmp;
+		new int ilepyt;
+		new int idpyt = -1;
+		new string sbgimg = null;
+		new int badodp = 0;
+		new int okodp = 0;
+		match( QuizMode )	{
+			"l" => {	vtmp.vecnewint(35);	ilepyt = 10;	}
+			"t" => {	vtmp.vecnewint(35);	ilepyt = 10;	}
+			? => ;
+		}
+		vtmp.hash;
+		for( int i=0; i<ilepyt; i++)	{
+			grels.add( QuizMode + (vtmp.get(i)+1) );
+		}
+		new gmimgvec grsq;
+		"grsq" .* "kwadraty.pyz";
+		grsq.hide;
+		grsq.eval( func {
+			.Button_isinvis;
+			.Button_moveonms;
+			.Button_moveoffms;
+			.addmethod("butclick", func {
+				if( igmstate==1 )	{
+					if( .isvisible )	{
+						<grok.get(.actionnr(-1))>.hide;
+						.hide;
+						fxnasadza.play;
+					} else {
+						<grok.get(.actionnr(-1))>.show;
+						.show;
+						fxnasadza.play;
+					}
+				}
+				} );
+			buts.add(this);
+			} );
+		new gmimgvec grodp;
+		
+		buts.load("grprzyc", "przyciski.pyz", func { (@id)
+			.Button_stdalpha;
+			.addmethod("butclick", func {
+				if( igmstate==1 )	{
+					bool odp = true;
+					for( int i=0; i<3; i++)	{
+						@s = <grodp.get(i)>.framename;
+						@s2 = grsq.get(i);
+						if( (<s2>.isvisible && s.contains("ok")) || (!<s2>.isvisible && !s.contains("ok")) )	{
+							//<grok.get(i)>.show;
+						} else {
+							odp = false;
+						}
+					}
+					igmstate = 0;
+					if( odp )	{
+						okodp++;
+						anprof.play("yes");
+						.cbplay("sndyes");
+					} else {
+						badodp++;
+						anprof.play("no");
+						.cbplay("sndno");
+					}
+				}
+				} );
+			} );
+		
+		buts.unlock;
+		
+		.timer = ("timwait", 1000, "mfight");
+		anprof.addmethod("onfinish", func { if(.actionname=="yes" || .actionname=="no") timwait.play; } );
+		
+		.mprof("sndgo");
+		igmstate = 5;
+	}
+	mlevelsav	{
+		match(QuizMode)	{
+			"l" => "archeo";
+			"s" => "szkielety";
+			"t" => "konstruktor";
+			? => ;
+		}
+	}
+	msave(string s)	{
+		csav.bset("enable_"+s);
+		csav.stdsave;
+	}
+	mgetpyt	{	grels.get(idpyt); }
+	mpytaj	{
+		.mprof( "snd" + .mgetpyt );
+	}
+	mprof(string s)	{
+		anprof.play("talk");
+		igmstate = 0;
+		.cbplay(s);
+	}
+	mendpro	{	anprof.play("stand"); }
+	mgo	{
+		igmstate = 1;
+		.mendpro;
+	}
+	mprepare	{	<GAME> {
+		idpyt++;
+		grok.hide;
+		grodp.deleteallgm;
+		grodp.free;
+		if( sbgimg!=null )	{
+			delete <sbgimg>;
+			sbgimg = null;
+		}
+		"grodp" ..< (.mgetpyt+".pyz");
+		if( grodp.size > 3 )	{
+			sbgimg = grodp.first;
+			grodp.removefirst;
+		}
+		grodp.hash;
+		grsq.hide;
+		@x = <grsq.first>.getpx;
+		for( int i=0; i<3; i++)	{
+			@s = grodp.get(i);
+			@s2 = grsq.get(i);
+			<s>.setpos( <s2>.getpx - x, 0 );
+		}
+		txtpyt.txtset( "" + (idpyt+1) + "/" + grels.size );
+		txtpyt.setpos( 91-(txtpyt.getw/2), 751-txtpyt.geth );
+		.msetpoint;
+	}; }
+	msetpoint	{
+		txtok.txtset( okodp );
+		txtok.setpos( 256-(txtok.getw/2), 751-txtok.geth);
+		txtbad.txtset( badodp );
+		txtbad.setpos( 406-(txtbad.getw/2), 751-txtbad.geth);
+	}
+	mfight	{
+		if( idpyt>=grels.size-1 )	{
+			igmstate = 2;
+			.msetpoint;
+			<GAME> {
+				grok.hide;
+				grodp.hide;
+				grsq.hide;
+				if( sbgimg!=null )	{
+					<sbgimg>.hide;
+				}
+			
+				iwynik = (okodp.to_r/ilepyt.to_r)*100.0;
+				.newtext("txtend", ""+iwynik+"%", .stdbold(64), 245,245,151);
+				new img imgb;
+				imgb.create( txtend.getw + 20, txtend.geth+20, 248,108,0, 255 );
+				imgb.setz(500);
+				imgb.ancenterscreen;
+				imgb.move( 0, -150 );
+				imgb.imgborders(2, 0,32,224, 255);
+				txtend.setz(510);
+				txtend.setpos( (iResX-txtend.getw)/2, (iResY-txtend.geth)/2 - 150 );
+				
+				.cbplay("sndend");
+			};
+		} else {
+			.mprepare;
+			.mpytaj;
+		}
+	}
+	mouse_lclick	{
+		if( igmstate==5 ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}

@@ -1,0 +1,274 @@
+
+game Outro : DziejeGame	{
+	init	{
+		DziejeGame::init("outro");
+		.img = ("bkg.pyz");
+		new gmimgvec grnap;
+		"grnap" .* "napisy.pyz";
+		
+		
+		
+		if( igmmystery )	{
+			.path = ("mystery");
+			
+			new gmimgvec grmyst;
+			"grmyst" .* "outro.pyz";
+			grmyst.setz(100);
+			
+			.path = ("outro");
+			
+			.lang_db("dbend", "napisymystery");
+		} else {
+			.lang_db("dbend", "napisy");
+		}
+		
+		if( LANG=="" )	{	// pl
+			new gmimgvec grob;
+			"grob" .* "programy.pyz";
+			.lang_db("dbgry", "gry");
+		}
+		new int ystart = Y2 - 100->igetsc;
+		new int ystop = 177->igetsc;
+		@ifont = 24->igetsc;
+		@stdfont = .stdfont(ifont);
+		new TextDb tdend( stdfont, ifont, "$var:dbend", .mcol, iResX/2, ystart, 2->igetsc1, 5->igetsc1, "center");
+		tdend.mtxtclip;
+		tdend.move( -tdend.W/2, 0);
+		if( LANG=="" )	{	// pl
+			grob.mclip;
+			@s = grob.first;
+			@dy = 50->igetsc;
+			new gmimgvec grels;
+			for( int i=0; i<grob.size; i++)	{
+				s = grob.get(i);
+				if( i==0 )	<s>.setpos( 0, tdend.getey + dy - <s>.getpy );
+				else <s>.setpos( 0, <grob.get(i-1)>.getey - <s>.getpy + dy );
+				@s2 = "tdg"+i;
+				new TextDb <s2>( stdfont, ifont, "$row:dbgry,"+i, .mcol, <s>.getex+50->igetsc, <s>.getpy,
+					2->igetsc1, 5->igetsc, "left");
+				<s2>.mtxtclip;
+				grels.add(s);
+				grels.add(s2);
+			}
+		}
+		.cycle = ("timcyk", func {
+			tdend.move(0, -1);
+			if( LANG=="" )	{	// pl
+				grels.move(0, -1);
+				if( <grob.last>.getey<ystop && igmstate==0 )	.mouse_lclick;
+				else .play;
+			} else {
+				if (tdend.getey<ystop && igmstate==0 ) .mouse_lclick;
+				else .play;
+			}
+			} );
+		timcyk.setcycle(2);
+		timcyk.play;
+		mus.playstr("monoton.ogg -v 50 -l");
+	}
+	mcol	{	return 0,32,224;	}
+	mtxtclip	{
+		grtxt.mclip;
+	}
+	mclip	{
+		.eval( func { .clip( 0, ystop, iResX, ystart ); } );
+	}
+	mouse_lclick	{
+		if( igmstate==0 )	{
+			igmstate = 1;
+			mus.fadeout(1000);
+			ccs.close( func { gameapi.exit; } );
+		}
+	}
+}
+
+
+// oryginalne polskie, zakomentowane 11.08.29 podczas robienia wersji angielskiej na appstore
+/*game Outro : DziejeGame	{
+	init	{
+		DziejeGame::init("outro");
+		.img = ("bkg.pyz");
+		new gmimgvec grnap;
+		"grnap" .* "napisy.pyz";
+		
+		new gmimgvec grob;
+		"grob" .* "programy.pyz";
+		
+		.lang_db("dbend", "napisy");
+		.lang_db("dbgry", "gry");
+		new int ystart = Y2 - 100;
+		new int ystop = 177;
+		@ifont = 24;
+		@stdfont = .stdfont(ifont);
+		new TextDb tdend( stdfont, ifont, "$var:dbend", .mcol, iResX/2, ystart, 2, 5, "center");
+		tdend.mtxtclip;
+		tdend.move( -tdend.W/2, 0);
+		grob.mclip;
+		@s = grob.first;
+		@dy = 50;
+		new gmimgvec grels;
+		for( int i=0; i<grob.size; i++)	{
+			s = grob.get(i);
+			if( i==0 )	<s>.setpos( 0, tdend.getey + dy - <s>.getpy );
+			else <s>.setpos( 0, <grob.get(i-1)>.getey - <s>.getpy + dy );
+			@s2 = "tdg"+i;
+			new TextDb <s2>( stdfont, ifont, "$row:dbgry,"+i, .mcol, <s>.getex + 50, <s>.getpy, 2, 5, "left");
+			<s2>.mtxtclip;
+			grels.add(s);
+			grels.add(s2);
+		}
+		.cycle = ("timcyk", func {
+			tdend.move(0, -1);
+			grels.move(0, -1);
+			if( <grob.last>.getey<ystop && igmstate==0 )	.mouse_lclick;
+			else .play;
+			} );
+		timcyk.setcycle(2);
+		timcyk.play;
+		mus.playstr("monoton.ogg -v 50 -l");
+	}
+	mcol	{	return 0,32,224;	}
+	mtxtclip	{
+		grtxt.mclip;
+	}
+	mclip	{
+		.eval( func { .clip( 0, ystop, iResX, ystart ); } );
+	}
+	mouse_lclick	{
+		if( igmstate==0 )	{
+			igmstate = 1;
+			mus.fadeout(1000);
+			ccs.close( func { gameapi.exit; } );
+		}
+	}
+}*/
+
+/*game Outro : Computro	{
+	init	{
+		Computro::init("outro");
+// 		bkg.pyz  logo.pyz  maskdol.pyz  maskgora.pyz  robo.pyz
+		.imgs = (A, "bkg.pyz", "logoP.pyz 50", "maskdol.pyz 20", "maskgora.pyz 20", "roboP.pyz 40");
+		mus.playstr("bitewna.ogg -v 50 -l");
+		
+		.lang_db("dbend", "napisy");
+		new TextDb tdend( .stdfont(16), 16, "$var:dbend", .white, 100, 600, 2, 5, "left");
+		.cycle = ("timcyk", func {
+			tdend.move(0, -1);
+			if( tdend.getey<0 && igmstate==0 )	.mouse_lclick;
+			else .play;
+			} );
+		timcyk.setcycle(2);
+		timcyk.play;
+	}
+	mouse_lclick	{
+		if( igmstate==0 )	{
+			igmstate = 1;
+			mus.fadeout(1000);
+			ccs.close( func { gameapi.exit; } );
+		}
+	}
+}*/
+
+game Intro : DziejeGame	{
+	init	{
+		DziejeGame::init("intro");
+		new bool bgraj = true;
+		.img = ("d1.pyz");
+		.sfxs = (A, "zamykaloch", "otwieradrzwi1", "wlacznik 30", "podnapis 70");
+		string s;
+		for( int i=0; i<=4; i++)	{
+			s = "fxdzwon"+i;
+			.newsfx(s, "dzwon.wav");
+			<s>.setvol(30);
+		}
+		.timer = ("tim1", 2000, func { fxzamykaloch.play; } );
+		fxzamykaloch.addmethod("onfinish", func { <GAME> {
+			delete and1;
+			.img = ("d2.pyz");
+			fxotwieradrzwi1.play;
+			gameapi.setmusicvol(20);
+			and2.anplayfin(-1, func { <GAME> {
+				.timer = ("tim2", 1500, func { <GAME> {
+					delete and2;
+					.img = ("d3.pyz");
+					fxwlacznik.play;
+					and3.anplayfin(-1, func { <GAME> {
+						if( igmmystery )	{
+							.path = ("mystery");
+							new gmimgvec graut;
+							"graut" .* "intro.pyz";
+							graut.hide;
+							fxdzwon0.play;
+							<graut.first>.show;
+							igmstate=1;
+							.timer = ("tim3", 1200, func {
+								match(igmstate)	{
+									1, 2 => {
+										<graut.get(igmstate)>.show;
+										igmstate++;
+										<"fxdzwon"+(igmstate%2)>.play; 
+										tim3.play;
+									}
+									3 => {
+										fxpodnapis.play;
+										<graut.last>.anplayfin(-1, func {
+											//anlogo.show;
+											.timer = ("timend", 3000, "mend");
+											timend.play;
+											} );
+									}
+									? => ;
+								}
+								} );
+							tim3.play;
+						} else {
+							//autorzy.pyz  bgtxt.pyz  d1.pyz  d2.pyz  d3.pyz  logo.pyz  tytul.pyz
+							.imgs = (A, "bgtxtH.pyz", "logo.pyz 5", "tytulH.pyz 5");
+							new gmimgvec graut;
+							"graut" .* "autorzy.pyz";
+							graut.hide;
+							fxdzwon0.play;
+							.timer = ("tim3", 700, func {
+								match(igmstate)	{
+									0, 1, 2, 3 => .mview;
+									4 => {
+										anbgtxt.show;
+										fxpodnapis.play;
+										antytul.anplayfin(-1, func {
+											//anlogo.show;
+											.timer = ("timend", 3000, "mend");
+											timend.play;
+											} );
+									}
+									? => ;
+								}
+								} );
+							tim3.play;
+						}
+						}; });
+					}; } );
+				tim2.play;
+				}; });
+			}; } );
+			
+		gameapi.playmusic("sounds/bgr/dzungla.wav");
+		gameapi.setmusicvol(10);
+		ccs.enter( func { tim1.play; } );
+	}
+	mview	{
+		<graut.get(igmstate)>.show;
+		igmstate++;
+		if( (igmstate+1)%2 )
+			<"fxdzwon"+igmstate>.play;
+		tim3.play;
+	}
+	mend	{
+		if( bgraj )	{
+			bgraj = false;
+			ccs.close( func { gameapi.play("MainMenu"); } );
+		}
+	}
+	mouse_lclick	{
+		.mend;
+	}
+}

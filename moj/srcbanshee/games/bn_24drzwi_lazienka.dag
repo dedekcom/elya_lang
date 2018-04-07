@@ -1,0 +1,88 @@
+
+game mg24_drzwi_lazienka :Banshee {
+	init{
+    Banshee::init("mg24_drzwi_lazienka");
+    //   .addtopck("gwizdek");
+    .imgs = (A,"bkg.jpg 1" , "popup_bkg.pyz 2" ,"aniolek.pyzH 3", "open.pyzH 5","gwizdek.pyzH 6","muzyka.pyzH 7", "ramka.pyz 22","popexit.pyz 23"  );
+    .sfxs = (A, "bgrwiatrN 10", "fletN 20", "noc2N 20", "openhead",  "flet3" );
+	.butpopexit;
+	.butpopexitisinramka;
+	  
+    anmuzyka.addmethod("onfinish", func{ advmouse.setstd; .hide; .advsetstdstate; fxopenhead.play; anopen.anfadein(1200,func{ .timplay("timend", 800, "timfinito" );  }); });  
+    
+    if (clsave.bis("e1_mg24_drzwi_lazienka_gwizdek_in"))
+   {
+      drzewo.show;
+   }
+   else
+   {
+      ananiolek{
+        .addmethod("isbutin", func { (int x, int y)
+  			   .isin(x,y,0,0)  ;
+  				} ); 
+  			.addmethod("butmoveon", func {
+  		 	    if (!clsave.bis("e1_mg24_drzwi_lazienka_gwizdek_in"))
+					advmouse.set("use"); 
+				else
+					advmouse.setstd;
+  			 } );
+  			.addmethod("butmoveoff", func {
+  			   advmouse.setstd;
+  			} );
+			
+			.addmethod("butclick", func {
+					if( !.advstdstate || clsave.bis("e1_mg24_drzwi_lazienka_gwizdek_in")) return;
+						.cbplay("snd_gwizdek");
+				} );  
+			 
+			
+        butgame.add(this);
+      }; 
+    }
+    
+       
+    
+     if (!clsave.bis("e1_mg24_drzwi_lazienka_after_intro") ) {
+      .newsndfree("snd_intro", "kinnat_c3d3_13a");
+      snd_intro.addmethod("onfinish", func {.advsetstdstate;});
+      .cbplay("snd_intro");
+      clsave.bset("e1_mg24_drzwi_lazienka_after_intro");
+    }  
+	
+	if(!clsave.bis("e1_mg24_drzwi_lazienka_gwizdek_in"))
+	{
+		.newsndfree("snd_gwizdek", "kinnat_c3d3_13d");
+		snd_gwizdek.addmethod("onfinish", "advsetstdstate"); 
+	}
+ 	
+	.stdstart;
+  }// koniec init 
+ 
+  USE_gwizdek	{
+	   .advsetstdstate(); 
+     if(ananiolek.isin(mouse.getpos,0,0) )	{
+         fxflet3.play;
+		.removefrompck("gwizdek");
+		.set_mg_finished;
+        angwizdek.anfadein(500,func{  anmuzyka.play(0);}); 
+        clsave.bset("e1_mg24_drzwi_lazienka_gwizdek_in");
+        advmouse.setstd;
+      } else  
+	   .item_gotopck;
+  }
+ 
+  mend	{
+    .stdexitdefadv("ad24_schody", "gamead24_schody0"); 
+  }
+  
+  HINT_CLICK {
+    if( clsave.bis("ma_gwizdek") )	{
+			.showhint("ananiolek");
+			.showhintitem("gwizdek");
+       
+		} else 
+      .showhint("anpopexit");
+  } 
+ 
+}
+ 

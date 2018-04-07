@@ -1,0 +1,200 @@
+
+game mg03_rycerz :Banshee {
+	init{
+		Banshee::init("mg03_rycerz");
+		.imgs = (A,"bkg.jpg 1","popup_bkg.pyz 2","tarcza_mask.pyzH 3", "tarcza.pyzH 3",  "miecz_mask.pyzH 4", "miecz.pyzH 5", "gzyms2.pyzH 6","ramka.pyz 7", "popexit.pyz 8");
+		.butpopexit;
+		//  .addtopck("tarcza"); //do testow  
+		//  .addtopck("miecz"); //do testow 
+		
+		.sfxs = (A, "bgrwiatrN 30", "miecz 30", "ceglaput 50"); 
+		if (!clsave.bis("taken_gzyms2") )
+		{
+			.setasitemtopck("angzyms2");
+			angzyms2.show();
+		} 
+		
+		if (!clsave.bis(save_prefix+"intro_spoken"))
+		{
+			.newsndfree("snd_intro", "rycerz_c1d1_5_1");
+			snd_intro.addmethod("onfinish", func{
+			 clsave.bset(save_prefix+"intro_spoken");	
+			 if (clsave.bis("taken_gzyms2"))
+				.timfinito; 
+			.advsetstdstate;});  
+			subtitle.setcolor(180,255,0);
+			.cbplay("snd_intro");
+			sgmstate = "rycerz_gada";	
+			subtitle.restorecolor;
+			 		
+		}  	
+		
+		.newsndfree("snd_rycerz_1", "rycerz_c1d1_5");
+		snd_rycerz_1.addmethod("onfinish", func{ .advsetstdstate; .timfinito;});  
+		
+		.newsndfree("snd_brak_sprzetu", "kinnat_c1d1_5_2");
+		snd_brak_sprzetu.addmethod("onfinish", "advsetstdstate");  
+		 
+			
+	    imgbkg {
+			.addmethod("isbutin", func { (@x, @y)
+				!anpopup_bkg.isin(x,y,0,0);
+				} );
+			.addmethod("butclick", func {
+				if( !.advstdstate ) return;
+				 .mend;
+				} );
+			butgame.add(this);
+		}; 
+
+		if(!clsave.bis("e1_rycerz_ma_tarcze"))
+		{
+			antarcza_mask
+			{
+			  .Button_isinvisalpha;
+			  .addmethod("butmoveon", func {
+					 
+					if(!clsave.bis("e1_rycerz_ma_tarcze"))
+						advmouse.set("use"); 
+						
+				} );
+				.addmethod("butmoveoff", func {
+				 
+					  advmouse.setstd;
+					} ); 
+				.addmethod("butclick", func {
+					if( !.advstdstate || sgmstate=="getitem") return;
+					  if (!clsave.bis("e1_rycerz_ma_tarcze"))
+							.cbplay("snd_brak_sprzetu");
+					} );			 	
+					
+				 
+				butgame.add(this);
+			}; 
+		}
+		else
+		{
+			antarcza.show;
+		}
+		
+		if(!clsave.bis("e1_rycerz_ma_miecz"))
+		{
+			anmiecz_mask
+			{
+			  .Button_isinvisalpha;
+			  .addmethod("butmoveon", func {
+					 
+					if(!clsave.bis("e1_rycerz_ma_miecz"))
+						advmouse.set("use"); 
+						
+				} );
+				.addmethod("butmoveoff", func {
+				 
+					  advmouse.setstd;
+					} ); 
+					
+				.addmethod("butclick", func {
+					if( !.advstdstate || sgmstate=="getitem") return;
+					  if (!clsave.bis("e1_rycerz_ma_miecz"))
+						.cbplay("snd_brak_sprzetu");
+					} );	
+					
+				butgame.add(this);
+			};  		
+	 	}
+		else
+		{
+			anmiecz.show;
+		}
+		.stdstart;  
+		
+		 
+		
+    }// koniec init 
+  
+	mend	{
+		.stdexitdefadv("ad03_placglowny", "gamead03_placglowny0"); 
+	}
+  
+	angzyms2_TAKE	{	
+		if (clsave.bis(save_prefix+"intro_spoken"))
+			.popitem_gotocenter("gzyms2");	
+	}
+	
+	angzyms2_INPCK {
+      .addtopck("gzyms2");
+	  if (!clsave.bis("ma_miecz") && !clsave.bis("ma_tarcza"))
+		.timfinito; 
+    } 
+
+  
+	USE_tarcza	{
+		.advsetstdstate;
+		if( antarcza_mask.isin(mouse.getpos,0,0) )	{
+			fxceglaput.play;
+			clsave.bset("e1_rycerz_ma_tarcze");
+			 
+			.removefrompck("tarcza");
+			advmouse.setstd;
+			butgame.removebut("antarcza_mask");
+			if (clsave.bis("e1_rycerz_ma_miecz"))
+			{
+				.objective_done("OB5");
+				.set_mg_finished;
+				antarcza.anfadein(500,func{
+					subtitle.setcolor(180,255,0);
+					.cbplay("snd_rycerz_1");
+					subtitle.restorecolor;
+				});
+			}
+			else
+				antarcza.anfadein(500,null);
+		} else .item_gotopck;
+	} 
+	USE_miecz	{
+		.advsetstdstate;
+		if( anmiecz_mask.isin(mouse.getpos,0,0) )	{
+			//fxceglaput.play;
+			fxmiecz.play; 
+			clsave.bset("e1_rycerz_ma_miecz");
+			anmiecz.anfadein(500,null);
+			.removefrompck("miecz");
+			butgame.removebut("anmiecz_mask");
+			
+			if (clsave.bis("e1_rycerz_ma_tarcze"))
+			{
+				.objective_done("OB5");
+				.set_mg_finished;
+				anmiecz.anfadein(500,func{
+					subtitle.setcolor(180,255,0);
+					.cbplay("snd_rycerz_1");
+					subtitle.restorecolor;
+				});
+			}	 
+			else
+				anmiecz.anfadein(500,null);
+			
+			advmouse.setstd;
+		} else .item_gotopck;
+	} 
+   
+   
+  HINT_CLICK {
+	if(!clsave.bis("taken_gzyms2")) 
+	{
+		.showhint("angzyms2");
+	}
+	else if (clsave.bis("ma_tarcza") && !clsave.bis("e1_rycerz_ma_tarcze"))	{
+    	.showhint("antarcza_mask");
+		.showhintitem("tarcza");
+    } 
+	else if (clsave.bis("ma_miecz") && !clsave.bis("e1_rycerz_ma_miecz"))	{
+    	.showhint("anmiecz_mask");
+		.showhintitem("miecz");
+    } 
+	
+	else
+    .showhint("anpopexit");   
+  }
+}
+ 

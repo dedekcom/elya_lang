@@ -1,0 +1,101 @@
+
+############### ustawienia systemowe #################
+
+sgmdeveloper:	PlayWay
+sgmproject:	ChronicleKeeper
+lang:		eng
+
+# project
+enginedebug:	0	# engine.setdebugstate(enginedebug)
+igmdebug:	1
+igmpcdebug:	0	# true do testowania wersji touchpad na pc
+igmexportan:	0	# wyeksportuj animacje na danej scenie do png (if igmdebug)
+igmimportan:	0	# importuj animacje z png (if igmdebug)
+
+igmwinlocal:	1	# true zeby zbudowac katalogi do save i odczytywac z user/appdata
+igmmac:		0
+igmipad:	1
+igmiphone:	0
+igmandroid:	0
+
+# vars
+igmdemo:	0
+igmsoundson:	1
+
+# sounds
+sfxpath:		sounds/sfx/
+sndbgrpath:		sounds/sfx/
+musicpath:		sounds/music/
+
+igmsubtitle:		1	# subtitles on/off
+igmsubshadow:		0	# cien pod subtitles
+igmsubblackbg:		170	# czarne tlo pod subtitles - if 0 then brak, if > 0 then opacity
+sgmsubtitlespos:	up 0	# subtitles if > 0 u gory + igmsubtitlepos, if < 0 na dole 
+igmlektor:		1
+igmchardelay:		100
+igmsubmindelay:		2000
+subtitles_src:		subtitles.db
+#subtitles_font:		configs/fonts/timesit.ttf
+#subtitles_font:		configs/fonts/Rom_Ftl_Srif_bold_Std_2011.ttf
+subtitles_font:		configs/fonts/LinLibertine_RB.ttf
+subtitles_fontsize:	24
+
+# fonty
+sgmfontfile:		configs/fonts/normal.ttf
+sgmfontmono:		configs/fonts/mono.ttf
+sgmfontmonobold:	configs/fonts/monobold.ttf
+sgmfontbold:		configs/fonts/monobold.ttf
+sgmfontitalic:		configs/fonts/timesit.ttf
+
+###################### ustawienia gry #################################
+
+# testowe
+PrzygodaMode: 1
+
+# systemowe
+popup_speed:		0.15
+# 1000 ms = 1 sekunda
+showpopup_time:		300
+autohintdelay:		5000
+
+# HO
+#hoguifont:		configs/fonts/Rom_Ftl_Srif_bold_Std_2011.ttf
+hoguifont:		configs/fonts/LinLibertine_RB.ttf
+item_txtname_size:	36
+#bookfont:		configs/fonts/Rom_Ftl_Srif_bold_Std_2011.ttf
+bookfont:		configs/fonts/LinLibertine_RB.ttf
+
+tutorial_font_size:	22
+
+# za czeste klikanie
+hoclick_delay:		1000
+hoclick_times:		500
+hoclick_kara:		6000
+
+##########################
+# startgame: BanTest2
+
+#startgame: MainMenu
+
+startgame: gameadvdef
+
+# startgame: gamead004_kspok0
+# startgame: gamead00_endintro0
+# startgame: mgBook
+# startgame: mg002_witryna_open
+# startgame: HO01a_ksmala
+# startgame: HO09_Brzegjeziora
+# startgame: mg04_tarcza
+#startgame: mg03_pnacza
+# startgame: mg02Gniazdo
+# startgame: mg02SkrytkaL
+#startgame: HO07_Gruz
+# startgame: StartBanshee
+# startgame: mg00Dzban
+# startgame: mg01Fontanna
+# startgame: mg01Schody
+# startgame: mg02Klodkabrama
+# startgame: TestFilm2
+# startgame: mg15_brama
+# startgame: MojTest
+startgame: mg02Klodkabrama

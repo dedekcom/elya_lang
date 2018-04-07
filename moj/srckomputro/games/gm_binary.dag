@@ -1,0 +1,185 @@
+game Binary : Komputro {
+	init	{
+		Komputro::init("binary");
+		.path = ("binary");
+		.bkg = ("bg.pyz");
+		.loadlekcja;
+		
+		.sfxs = (A, "mikrofala", "type 20");
+		.sounds = (A,
+			"sndend", "¦wietnie! Teraz jeste¶ gotowy do kolejnych lekcji",
+				func { gameapi.play("Tasma");	}
+			);
+		
+		.newsnd("sndok", "linuks0.wav");
+		new gfxSquare gsh(10,50,315,490);
+		gsh.set(.grey(200), 128);
+		gsh.build;
+		gsh.shadow(2,2,192);
+		
+		new @stdfont12 = .snewfont( "configs/fonts/normal.ttf", 12);
+		new @stdfont16 = .snewfont( "configs/fonts/bold.ttf", 16);
+		new @stdfont8 = .snewfont( "configs/fonts/normal.ttf", 8);
+		.monofont("fnbin", 14);
+		
+		new img imgprint {
+			.create(100,14,.white,128);
+			.setz(0);
+			.hide;
+		};
+		
+		string s, @pos;
+		@w = 40;
+		@x = 660;
+		new gmimgvec grtxt;
+		for( int i=0; i<8; i++)	{
+			s = "gsb"+i;
+			new gfxSquare <s>(x-i*w,50,w,w);
+			<s>.set(.white, 255);
+			<s>.build;
+			<s>.border(1,1,.black,240);
+			
+			pos = <s>.getcx;
+			.mtextx("txtd"+i, "2", pos, 63, 16);
+			.mtextx("txtp"+i, i, pos+<"txtd"+i>.getw, 58, 12);
+			.mtextx("txtdwa"+i, 2->pow(i), pos, 93, 16);
+			grtxt.add("txtdwa"+i);
+			grtxt.add("txtd"+i);
+			grtxt.add("txtp"+i);
+			grtxt.add(s);
+		}
+		
+		new @Level = 1;
+		new @X = 470;
+		
+		new vector vz1;
+		vz1.beginadd("begin", 1, 5, 20, 43, 2, 15, 7, 32, 8, 21, 0 , 51, 17, 6);
+		new ConTextTyper ttp("fnbin", 14, .black, "0", 20);
+		new @sublevel = 0;
+		.newimgarray("grzad1", "text", "txtz", vz1.size);
+		grzad1.each( func { (@id)
+			.setfont("fnbin");
+			.setpos(X, 255+id*(14+2) );
+			} );
+		ttp.setpos(X, 255);
+		ttp.onenter(GAME, func {
+			if( vz1.get(sublevel)==ttp.get || (igmdebug&&keyboard.iskeydown("lshift")) )	{
+				fxmikrofala.play;
+				sndok.play;
+				<grzad1.get(sublevel)>.txtsetcol(ttp.get,.black);
+				sublevel++;
+				if( sublevel>=vz1.size )	{
+					Level++;
+					sublevel=0;
+					<GAME>.<"view"+Level>;
+				} else {
+					imgprint.move(0,16);
+					ttp.move(0,14+2);
+					ttp.txtset("");
+					ttp.enable;
+				}
+			} else {
+				ttp.enable;
+			}
+			} );
+		.viewzad;
+	}
+	view2	{
+		.viewzad;
+		vz1.free;
+		vz1.beginadd("begin",1111011,1,111100,11011,100100011,10001010111,
+			1010001,1000,110100,1101001101,1100100,1011,100110000,
+			1111010000011);
+		
+		new gfxSquare gsd1(650,300,100,2);
+		gsd1.set(.white, 255);
+		gsd1.build;
+		gsd1.shadow(1,1,128);
+		new gfxSquare gsd2(710,280,2,250);
+		gsd2.set(.white, 255);
+		gsd2.build;
+		gsd2.shadow(1,1,128);
+		
+		@ile = 20;
+		new img imgliczba {
+			.create(56,15,.white,128);
+			.setz(0);
+			.setpos(652,283);
+		};
+		new ConTextTyper tth("fnbin", 14, .black, "0", 4);
+		tth.setpos(653,284);
+		tth.onenter( GAME, func {
+			int liczba = tth.get;
+			grzad2.txtreset;
+			greszt.txtreset;
+			int id = 0;
+			while(liczba>0)	{
+				<greszt.get(id)>.txtsetcol(liczba%2, .black);
+				liczba/=2;
+				<grzad2.get(id)>.txtsetcol(liczba, .black);
+				id++;
+			}
+			} );
+		.newtextposz("txtreszta","Rest","fnbin",.black,715,280,0);
+		.newtextposz("txtwpisz","Number:","fnbin",.black,650,268,0);
+		
+		.newimgarray("grzad2", "text", "txtr", ile );
+		grzad2.each( func { (@id)
+			.setpos(650,306+(id*14+2));
+			.setfont("fnbin");
+			} );
+		.newimgarray("greszt", "text", "txtre", ile );
+		greszt.each( func { (@id)
+			.setpos(720,306+(id*14+2));
+			.setfont("fnbin");
+			} );
+	}
+	ttp_ontype	{	fxtype.play;	}
+	view3	{
+		.viewzad;
+		tth.disable;
+		vz1.free;
+		vz1.beginadd("begin",10,11,100,101,110,111,1000,1001,1010,1011,1100,1101,
+			1110,1111);
+		.with(A, "txtreszta", "txtwpisz", "greszt", "grzad2", "tth", "imgliczba", "gsd1", "gsd2", "hide");
+	}
+	view4	{	.cbplay("sndend");	}
+	viewzad	{
+		if( Level<3)	{
+			.deletegmobj("tdopis");
+			new TextDb tdopis(stdfont12, 12, "opis"+Level+".db", .grey(255), 13,55, 3,250, "left");
+			tdopis.stdshadow(1);
+		}
+		.deletegmobj("tdhp");
+		new TextDb tdhp(null, 12, "zad"+Level+".db", 255,255,255, 330,130, 2,50, "left");
+		tdhp.stdshadow(1);
+		.deletegmobj("tdzad1");
+		//(tdhp.getey+20)->print;
+		new TextDb tdzad1("fnbin", 14, "przyk"+Level+".db", .black, 350,222, 2,50, "left");
+		tdzad1.setshadow(.white, 1);
+		
+		ttp.setpos(X, 255);
+		ttp.txtset("");
+		ttp.enable;
+		imgprint.setpos(X,255);
+		imgprint.show;
+		
+		grzad1.txtreset;
+	}
+	mtextx(@sname, @s, @x, @y, @size)	{
+		.newtext(sname, s, ["stdfont"+size], .black);
+		<sname>.setpos(x - <sname>.getw/2,y);
+	}
+	mouse_lclick	{
+		if( Level==2 )	{
+			|int x, int y| = mouse.getpos;
+			if( imgprint.isin(x,y,1,1) )	{
+				ttp.enable;
+				tth.disable;
+			} else if ( imgliczba.isin(x,y,1,1) )	{
+				tth.enable;
+				ttp.disable;
+			}
+		}
+	}
+}
