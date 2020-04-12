@@ -1,0 +1,3 @@
+bash kompilujwin ./srcturniej/computro.prj
+#cp ./srccomputro/computro.odd /home/dedek/projekty/rysunki_gimp/computro/project/scripts/
+awk -f optimize.awk ./srcturniej/computro.odd | awk -f optimize.awk > /c/projects/dagiel/turniej/project/scripts/computro.odd

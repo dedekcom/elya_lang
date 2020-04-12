@@ -1,0 +1,29 @@
+game Egipt 	{
+	init	{
+		new anima imgtlo;
+		imgtlo.load("scripts/plansza/loading.pyz");
+		new timer timgo;
+		timgo.addmethod("onfinish", func { gameapi.play("Egipt2"); } );
+		timgo.settick(1);
+		timgo.setcycle(1);
+		timgo.play;
+	}
+}
+
+game Egipt2 : Epoka	{
+	init	{
+		if( igmdemo )	{
+			new vector vblok;
+			vblok.type("string");
+			vblok.beginadd("begin", "mamuty", "lbizon", "ltrzcina", "ozdoby", "stone",
+				"mlotek", "jaskinia", "igla");
+		}
+		Epoka::init("egipt");
+	}
+	mouse_move	{
+		.lekcjamove;
+	}
+	mouse_lclick	{
+		.lekcjaclick;
+	}
+}

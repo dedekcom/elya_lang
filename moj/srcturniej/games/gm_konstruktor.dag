@@ -1,0 +1,904 @@
+
+new int SzkieletyHard = 0;
+game Szkielety : MenuGry	{
+	init	{
+		MenuGry::init;
+		.path=("szkielety");
+		.sfxs=(A, sSubObraz);
+		.setsndbase("szkielety");
+		new DelayMover cmov;
+		.newanima("anend", sSubObraz+"end.pyz", 0);
+		anend.hide;
+		.copyanima("anend", "anend2");
+		anend2.setz(10);
+		anend2.anaddfilter;
+		.newanima("anpom", sSubObraz+"podpo.pyz", 0);
+		anpom.hide;
+		new classsimplebutton cbx;
+		cbx.build("scripts/szkielety/"+sSubObraz+"x.pyz", "imglobcurs", 0, 0, 0, 0);
+		new classfadeinout clfio;
+		
+		new gmimgvec grels;
+		"grels" ..< (sSubObraz+"skel.pyz");
+		grels.setz(5);
+		.crect2;
+		match( sSubObraz )	{
+			"mamut" => new Rect rec3(12,184, 445, 504);
+			"pies" => new Rect rec3(7,184, 445, 504);
+			"bawol" => new Rect rec3(583,198, 430, 484);
+			"kon" => new Rect rec3(583,198, 430, 484);
+			"nosor" => new Rect rec3(583,198, 430, 484);
+			? => ;
+		}
+		rec3.fitgrouprand("grels");
+		.sounds=(A,
+			"sndgo", "Praca archeologa wymaga wiele wiedzy i cierpliwo¶ci; Spróbuj odtworzyæ prehistoryczne zwierzê którego ko¶ci le¿± na planszy; Najed¼ na przycisk pomoc je¶li masz problemy",
+				func { igmstate=1; .cunstop;	},
+			"sndok", "Có¿ za precyzyjnie odtworzony szkielet! Widzê zadatki na prawdziwego archeologa! Najed¼ na przycisk X aby obejrzeæ szkielet wewn±trz zwierzêcia",
+				func { .cstop; igmstate=111; }
+			);
+		.cglowa("sndgo");
+		//.unlockall;
+	}
+	cmov_GET	{
+		if( grels.isin(mouse.getpos,1,1) )	{
+			@s = grels.getsfound;
+			<s>.setz(50);
+			fxgetpuz.play;
+			.mssetobj( s );
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		rec2.fit(s);
+		if( <s>.aninlod(20) )	{
+			fxok.play;
+			<s>.setz(0);
+			<s>.setpos(0,0);
+			grels.remove(s);
+			if( grels.empty )	{
+				cmov.lock;
+				anend.show;
+				anend2.show;
+				clfio.setopacity( 1, 10, "anend2", func {
+					anend.hide;
+					.cglowa("sndok");
+					<"fx"+sSubObraz>.play;
+					} );
+			}
+		} else {
+			<s>.setz(5);
+			fxputpuz.play;
+		}
+	}
+	cbx_MOVEON		{	fxstep.play;	if( igmstate==111 ) anend2.setframe(0,1);	}
+	cbx_MOVEOFF	{	if( igmstate==111 ) anend2.setframe(0,0);	}
+	help_moveon	{
+		if( !cmov.getlock )	{
+			anpom.setframe( SzkieletyHard, ( anpom.framenr ? 0 : 1 ) );
+			anpom.show;
+		}
+	}
+	help_moveoff	{	anpom.hide;	}
+	mouse_lclick	{
+		if( igmstate==111 )	gameapi.play("MenuSzkielety");
+		else if (igmstate==0)	.cactsndstop(true);
+	}
+	exit_click	{	.askfor("MenuSzkielety");	}
+}
+
+game Konstruktor3_1 : MenuGry	{
+	init	{
+		MenuGry::init;
+		.path=("konstr3/"+sSubObraz);
+		.setsndbase(sSubObraz);
+		new DelayMover cmov;
+		new gmimgvec grels;
+		new int itoler = 20;
+		"grels" ..< "els.pyz";
+		grels.each( func { (@id)
+			if( sSubObraz=="bis2" ) .setz(10+.framenr*10);
+			else .setz(300+.framenr*10);
+			new vector vp;
+			} );
+		//711,211
+		new Rect rec2(10,150, 1004, 618);
+		
+		new Rect rec(650, 211, 350, 400);
+		
+		.importbank("sndtak", "myes", "cstop");
+		match(sSubObraz)	{
+			"bis1" => {.imgs = (A, "podklad.pyz", "maska.pyz 75");
+				.require(9,7);
+				.sounds = (A,
+				"sndgo", "Zosta³e¶ mianowany g³ównym architektem Biskupina; Pomó¿ dokoñczyæ budowê",
+					"cstart",
+				"sndend", "¦wietnie! W takim grodzie mo¿emy siê czuæ bezpiecznie", "cexit"
+				);
+				.removehelp;
+				}
+			"bis2" => { .imgs = (A, "podklad.pyz", "start2.pyz 90", "start3.pyz 105");
+				.require(5,4);	.require(12,11);	.require(13,12);	.require(9,5);
+				.require(5,6);
+				.sounds = (A,
+				"sndgo", "Zbuduj bramê i wie¿ê obronn± Biskupina", "cunstop",
+				"sndend", "Doskonale! Z wie¿y dostrze¿emy niebezpieczeñstwo i obronimy gród", "cexit"
+				);
+				.removehelp;
+				}
+			"bis3" => { .imgs=(A,"podklad.pyz", "helpH.pyz 5", "podpoH.pyz 1000");
+				.copyanima("anpodpo", "anpodpogo");
+				itoler = 30;
+				new classplacepointer2 clp;
+				new classsimplebutton cbgo;
+				cbgo.build("scripts/konstr3/bis3/podpobut.pyz", "imglobcurs", 0, 0, 100, 0);
+				.require(3,0);	.require(4,1);	.require(5,2);
+				.require(6,3);	.require(6,4);	.require(6,5);
+				.require(7,3);	.require(7,4);	.require(7,5);
+				.require(8,6);	.require(8,7);
+				.require(9,6);	.require(9,7);
+				.require(10,6);	.require(10,7);
+				.require(11,6);	.require(11,7);
+				.require(15,12);	.require(15,13);
+				.require(16,13);	.require(16,14);
+				.sounds = (A,
+					"sndgo", "Budowniczy nie zd±¿y³ zbudowaæ k³adki ale zrobi³ jej projekt na piasku; Dokoñcz budowê; W razie problemów kliknij przycisk pomoc", "cunstop",
+					"sndend", "Dobrze; Zbudowa³e¶ most ¿e ho ho", "cexit"
+				);
+				}
+			"rampa" => { .imgs=(A,"podklad.pyz", "glaz.Hpyz 10");
+				rec.set(10, 150, 1004, 255);
+				.removehelp;
+				.sfxs=(A, "putbadpuz", "demolka", "ciagna", "glaz");
+				anglaz.addmethod("onendframe", func {
+					if( .framename=="check" && grels.size ) {
+						fxdemolka.play;
+						.play(1);
+						grcopyel.hide;
+						grspada.eval1("play",-1);
+						grspada.each( func { (@id)
+							if( grels.findfr(id)!=-1 ) .hide;
+							} );
+					} else if (.framename=="glaz")	{
+						fxglaz.play;
+					}
+					} );
+				anglaz.addmethod("onfinish", func {
+					if( .actionnr(-1) )	.cglowa("sndups");
+					else .cglowa("sndend");
+					} );
+				new gmobjvec grcopyel;
+				grcopyel.copy("grels");
+				new gmimgvec grspada;
+				"grspada" .* "spada.pyz";
+				grspada.hide;
+				new classsimplebutton cbrampa;
+				cbrampa.build("scripts/konstr3/rampa/butgo.pyz", "imglobcurs", 0, 0, 100, 0);
+				.require(1, 0);
+				.require(5, 2);	.require(5, 3);
+				.require(6, 2);	.require(6, 3);
+				.require(7, 3);	.require(7, 4);
+				.require(8, 3);	.require(8, 4);
+				.sounds = (A,
+				"sndgo", "Budowniczy Stonehenge musz± wtoczyæ na dwa bloki g³az; Zbuduj im rampê podjazdow±", "cunstop",
+				"sndups", "Ojoj wszystko trzeba zbudowaæ od pocz±tku", func { .cstop; igmstate=16; },
+				"sndend", "Brawo konstruktorze! Rampa wytrzyma³a ciê¿ar", "cexit"
+				);
+				}
+			? => ;
+		}
+		
+		rec.fitgrouprand("grels");
+		.cglowa("sndgo");
+	}
+	cstart	{	.cunstop; }
+	cbrampa_MOVEON	{	fxputbadpuz.play;	}
+	cbrampa_CLICK	{
+		if( igmstate!=111 && igmstate!=16 && grels.findfr(0)==-1 && grels.findfr(1)==-1)	{
+			igmstate = 111;
+			fxciagna.play;
+			cmov.lock;
+			anglaz.play(0);
+		}
+	}
+	help_moveon	{
+		if( sSubObraz=="bis3" )	{
+			anhelp.setframe(0, anhelp.framenr ? 0 : 1 );
+			anhelp.show;
+		}
+	}
+	help_moveoff	{
+		if( sSubObraz=="bis3" )	anhelp.hide;
+	}
+	cbgo_MOVEON	{	fxstep.play;	}
+	cbgo_CLICK	{
+		fxok.play;
+		anpodpo.show;
+		anpodpogo.play(1);
+	}
+	require(@i1, @i2)	{
+		<grels.get(i1)> (i2) { (@id)
+			vp.add(id);
+		};
+	}
+	hasrequired	{
+		for( int i=0; i< vp.size; i++ )
+			if( grels.findfr(vp.get(i))!=-1 ) return false;
+		true;
+	}
+	mouse_lclick	{
+		if( sndgo.isplaying )	.cactsndstop(true);;
+		if( igmstate==16 )	gameapi.play("Konstruktor3_1");
+		.cquit(sSubObraz=="rampa" ? "MenuKons4" : "MenuKons3");
+		if (anglowa.isin(mouse.getpos, 1, 1) && !.cisplaying )	{
+			.cglowa("sndgo");
+		}
+	}
+	cmov_GET	{
+		if( sSubObraz=="bis3" && anpodpo.isvisible )	{
+			anpodpogo.anhide;
+			anpodpo.hide;
+		} else if( grels.isin(mouse.getpos,1,1) )	{
+			@s = grels.getsfound;
+			if( sSubObraz!="bis2" )
+				<s>.setz(600);
+			fxgetpuz.play;
+			.mssetobj( s );
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		rec2.fit(s);
+		if( <s>.aninlod(itoler) && <s>.hasrequired )	{
+			<s>.setpos(0,0);
+			if( sSubObraz!="bis2" ) <s>.setz(10+<s>.framenr*10);
+			grels.remove(s);
+			fxok.play;
+			if( grels.empty && sSubObraz.getb(0,3)=="bis")	{
+				.cglowa("sndend");
+			} else .cglowa("sndtak");
+		} else {
+			if( sSubObraz!="bis2" ) <s>.setz(300+<s>.framenr*10);
+			fxputpuz.play;
+		}
+	}
+	exit_click	{
+		if( igmstate!=16 ) .askfor( sSubObraz=="rampa" ? "MenuKons4" : "MenuKons3" );
+	}
+}
+
+game Konstruktor2_3 : MenuGry	{
+	init	{
+		MenuGry::init;
+		.path=("konstr2/dom3");
+		.sfxs=(A,"upadl2");
+		.setsndbase("dom3");
+		new DelayMover cmov;
+		.imgs=(A, "podklad.pyz", "kolek.pyz 100", "zatyczka.pyz 110");
+		.sfxs=(A,"getitem");
+		anzatyczka.ansetbpos(701,509);
+		ankolek.ansetbpos(663,160);
+		new gmimgvec grdach;
+		"grdach" .* "dach.pyz";
+		grdach.setz(95);
+		grdach.setdelay(3);
+		new gmimgvec grsciana;
+		.crect2;
+		"grsciana" ..< "sciana.pyz";
+		grsciana.setz(90);
+		new gmimgvec grdrzwi;
+		"grdrzwi" ..< "drzwi.pyz";
+		new Rect recsciana(800, 260, 200, 200);
+		recsciana.fitgrouprand("grsciana");
+		new Rect recdach(800, 460, 200, 200);
+		recdach.fitgrouprand("grdach");
+		new string sdzwiek = "sndintro";
+		new bool bdzwiek = false;
+		.sounds = (A,
+			"sndintro", "Teraz zbudujesz prehistorycznych kamienny domek; Zacznij od ¶ciany", "gonext",
+			"sndgo1", "Dobrze; Teraz zbuduj dach", "gonext",
+			"sndgo2", "Dom prawie gotowy; Zatkaj dach bo zbiera siê na deszcz", "gonext",
+			"sndgo3", "Super mamy ju¿ gotowy dom; teraz tylko wybierz kilka kamieni ze ¶ciany ¿eby¶my mieli jak we¶æ do ¶rodka", "gonext",
+			"sndend", "Wspaniale zbudowa³e¶ piêkny kamienny dom; Spróbuj pobudowaæ inne", "cexit"
+			);
+		new int savx;
+		new int savy;
+		new int iileok = 0;
+		.removehelp;
+		.cglowa("sndintro");
+	}
+	gonext	{	.unlockall; .cunstop; if( bdzwiek) bdzwiek=false; else igmstate++;	}
+	cmov_GET	{
+		|int x, int y| = mouse.getpos;
+		string s;
+		match(igmstate)	{
+			1 => if( grsciana.isin(x,y,1,1) && <grsciana.getsfound>.getz==90)	{
+				s = grsciana.getsfound;
+				savx = <s>.getpx;
+				savy = <s>.getpy;
+				.mssetobj( s );
+				fxgetpuz.play;
+				}
+			2 => {
+				if( grdach.isin(x,y,1,1) && <grdach.getsfound>.getz==95 ) {
+					s = grdach.getsfound;
+					savx = <s>.getpx;
+					savy = <s>.getpy;
+					.mssetobj(s);
+					fxgetpuz.play;
+				} else if (ankolek.isin(x,y,1,1) && ankolek.getz==100) {
+					.mssetobj("ankolek");
+					fxgetpuz.play;
+				}
+			}
+			3 => if( anzatyczka.isin(x,y,1,1) ) { savx=anzatyczka.getpx; savy=anzatyczka.getpy;
+				.mssetobj("anzatyczka"); fxgetpuz.play;}
+			4 => if( grdrzwi.isin(x,y,1,1) )	{
+				@id = grdrzwi.getfound;
+				fxgetitem.play;
+				match(id)	{
+					0 => <grdrzwi.get(0)>.hide;
+					1, 2 => if( !<grdrzwi.get(0)>.isvisible ) <grdrzwi.get(id)>.hide;
+					3 => if( !(<grdrzwi.get(1)>.isvisible || <grdrzwi.get(2)>.isvisible) ) {
+							<grdrzwi.get(3)>.hide;
+							cmov.lock;
+							.cglowa("sndend");
+						}
+					? => ;
+				}
+				}
+			? => ;
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		rec2.fit(s);
+		fxputpuz.play;
+		match( igmstate )	{
+			1 => {
+				@id = <s>.framenr;
+				if( <s>.aninlod(20) && (id<2 || <grsciana.get(id-2)>.aninlod(0)) )	{
+					<s>.setpos(0,0);
+					<s>.setz(80);
+					iileok++;
+					if( iileok==grsciana.size )	{
+						iileok=0;
+						cmov.lock;
+						sdzwiek="sndgo1";
+						.cglowa("sndgo1");
+					}
+				} else	<s>.ansetbpos(savx, savy);
+			}
+			2 => {
+				if( s=="ankolek" )	{
+					if( ankolek.aninlod(20) )	{
+						ankolek.setz(98);
+						ankolek.setpos(0,0);
+					}
+				} else {
+					if( ankolek.getz==100 )	{
+						if( <s>.aninlod(20) )	{
+							cmov.lock;
+							<s>.setpos(0,0);
+							<s>.anplayfin(-1, func {
+								@x = .getpx;
+								@y = .getpy;
+								.setframe(-1,0);
+								.ansetbpos(x,y);
+								.unlockall;
+								fxupadl2.play;
+								} );
+						} else {
+							<s>.ansetbpos(savx, savy);
+						}
+					} else {
+						if( <s>.aninlod(20) )	{
+							iileok++;
+							<s>.setpos(0,0);
+							<s>.setz(93);
+							if( iileok==2 )	{
+								cmov.lock;
+								sdzwiek="sndgo2";
+								.cglowa("sndgo2");
+							}
+						} else {
+							<s>.ansetbpos(savx, savy);
+						}
+					}
+				}
+			}
+			3 => if( anzatyczka.aninlod(20) )	{
+					anzatyczka.setpos(0,0);
+					cmov.lock;
+					sdzwiek="sndgo3";
+					.cglowa("sndgo3");
+				}
+			? =>;
+		}
+	}
+	mouse_lclick	{
+		if (anglowa.isin(mouse.getpos, 1, 1) && !.cisplaying )	{
+			cmov.lock;
+			bdzwiek=true;
+			.cglowa(sdzwiek);
+		}
+		.cquit("MenuKons2");
+	}
+	exit_click	{	.askfor("MenuKons2");	}
+}
+
+game Konstruktor2_2 : MenuGry	{
+	init	{
+		MenuGry::init;
+		.path=("konstr2/"+sSubObraz);
+		.setsndbase(sSubObraz);
+		new DelayMover cmov;
+		new string sdzwiek = "sndintro";
+		.crect2;
+		.img=("podklad.pyz");
+		new gmimgvec grels;
+		"grels" ..< "kola.pyz";
+		grels.setz(20);
+		new gmimgvec grshow;
+		"grshow" ..< "show.pyz";
+		grshow.hide;
+		new int ilevel = 0;
+		new int ishowlev = 0;
+		new classplacepointer2 clp;
+		.timer=("timtik", 1000, "showlev");
+		.showlev;
+		if( sSubObraz=="dom2" )	new Rect rec(100, 300, 400, 300);
+		else new Rect rec(130, 200, 700, 150);
+		rec.fitgrouprand("grels");
+		grels.each( func { (@id)
+			new vector vpom;
+			vpom.add(.framenr);
+			.addmethod("contains", func { (int id) vpom.contains(id); } );
+			.addmethod("getproper", func {
+				@id = ilevel-1;
+				if( .framenr==id ) this;
+				else {
+					@s = grels.get(id);
+					.ansetbpos(<s>.getpx, <s>.getpy);
+					s;
+				}
+				} );
+			} );
+		if( sSubObraz=="dom2" )	{
+			<grels.get(3)> { vpom.add(7); };
+			<grels.get(7)> { vpom.add(3); };
+			.sounds = (A,
+				"sndintro", "W tej grze zbudujesz popularn± w czasach prehistorycznych ziemiankê",
+					func { .cglowa("sndgo1"); @s = grels.first;
+					|int x, int y| = <s>.getpos;	<s>.setpos(0,0);
+					clp.showob(s, "ld");	<s>.setpos(x,y); },
+				"sndgo1", "W te ko³a bêdziesz wstawia³ po kolei kafelki z czynno¶ciami które trzeba wykonaæ najpierw",
+					func { .cglowa("sndgo2"); clp.showob( grshow.first, "rd"); },
+				"sndgo2", "Je¶li wstawisz poprawny kafelek na tym kawa³ku ziemi zobaczysz jak prehistoryczny my¶liwy buduje ziemiankê",
+					func { .cglowa("sndgo3"); clp.stoph; },
+				"sndgo3", "Zaczynamy; najpierw wstaw pod kó³ko numer 1 kafelek z elementem którym wykopiesz dó³", func { .cunstop; <GAME>.unlockall; },
+				"sndok1", "Tak jest; za pomoc± rogu ³osia my¶liwy wykopa³ dó³ pod ziemiankê; Nim po³o¿ymy dach musimy wzmocniæ dó³ ¿eby siê nie zapad³", "gonext",
+				"sndok2", "¦wietnie pale powstrzymaj± osypywanie siê ziemi; Teraz zbuduj konstrukcjê dachu", "gonext",
+				"sndok3", "OK; Czas na nieprzemakalny sufit", "gonext",
+				"sndok4", "Dobrze skóry ochroni± ziemiankê przed wilogoci± i nie przepuszcz± piasku; Teraz wzmocnij dach", "gonext",
+				"sndok5", "Ziemia dobrze chroni przed zimnem ale potrzebujemy jeszcze co¶ na ni± po³o¿yæ ¿eby wiatr jej nie rozrzuci³ lub nie zamieni³a siê w b³oto", "gonext",
+				"sndok6", "Super dach gotowy; Teraz wzmocnij pod³ogê", "gonext",
+				"sndok7", "Kamienie s± stabilne ale za twarde; Po³ó¿ dywan", "gonext",
+				"sndok8", "Pozosta³o nam umieszczenie wojownika w ziemiance", "gonext",
+				"sndok9", "Gratulujê zbudowa³e¶ wojownikowi wspania³y dom", "cexit"
+			);
+		} else if (sSubObraz=="stone")	{
+			<grshow.first>.hide;
+			<grels.get(4)> { vpom.add(7); };
+			<grels.get(7)> { vpom.add(4); };
+			.imgs = (A, "poczatek.pyz", "ups.pyzH");
+			.sfxs=(A, "glaz", "ciagna", "upadl", "padlglaz");
+			anups.addmethod("onfinish", func {
+				.unlockall;
+				ilevel=5;
+				sdzwiek="sndok"+4;
+				grshow.hide;
+				<grshow.get(4)>.show;
+				rec.fitgrouprand("grels");
+				<grels.get(4)>.setz(20);
+				for( int i=0; i<4; i++ ) <grels.get(i)>.setpos(0,0);
+				.hide;
+				} );
+			.sounds = (A,
+				"sndintro", "W tej grze pokierujesz prehistorycznymi budowniczymi przy pracach w Stonehenge",
+					func { .cglowa("sndgo1"); @s = grels.first;
+					|int x, int y| = <s>.getpos;	<s>.setpos(0,0);
+					clp.showob(s, "ld");	<s>.setpos(x,y); },
+				"sndgo1", "W te kwadraty bêdziesz wstawia³ po kolei kafelki z czynno¶ciami które trzeba wykonaæ najpierw",
+					func { .cglowa("sndgo2"); <grshow.first>.show; anpoczatek.hide;
+						/*clp.showob( grshow.first, "rd");*/
+						clp.show(784,423,"ld");
+						 },
+				"sndgo2", "Twoi ludzie musz± po³o¿yæ g³az na dwóch blokach kamiennych",
+					func { .cglowa("sndgo3"); clp.stoph; },
+				"sndgo3", "Zaczynamy; Najpierw usyp podjazd pod kamienne bloki",
+					 func { .cunstop; <GAME>.unlockall; },
+				"sndok1", "Mamy ju¿ nasyp; Co dalej?", "gonext",
+				"sndok2", "Ok Po tych belkach wtoczymy g³az", "gonext",
+				"sndok3", "G³az przygotowany Co teraz?", "gonext",
+				"sndok4", "Do g³azu przywi±zali¶my liny; Co dalej?", "gonext",
+				"sndok5", "Uff ale wysoko wci±gnêli¶my; Czas trochê odpocz±æ i posiliæ siê", "gonext",
+				"sndok6", "G³az zabezpieczony teraz mo¿emy je¶æ", "gonext",
+				"sndok7", "No to wci±gamy dalej", "gonext",
+				"sndok8", "Hip hip hurra nakryli¶my bloki kamienne", "cexit",
+				"sndups", "Ojojoj my tu jemy a g³az niezabezpieczony! Wci±ganie trzeba zaczynaæ od nowa", "cunstop"
+				);
+		}
+		.removehelp;
+		cmov.lock;
+		.cglowa("sndintro");
+	}
+	gonext	{	.cunstop;	}
+	showlev	{
+		if( sSubObraz=="stone" ) {
+			igmstate=10;
+			if( ilevel>0 )	<grshow.get(ilevel-1)>.hide;
+			<grshow.get(ilevel)>.anplayfin(ilevel, func { igmstate=1; } );
+			ilevel++;
+			return;
+		}
+		<grshow.get(ishowlev)>.show;
+		ishowlev++;
+		if( ishowlev < grshow.size && <grshow.get(ishowlev)>.actionnr(-1)==ilevel )
+			timtik.play;
+		else {
+			ilevel++;
+		}
+	}
+	cmov_GET	{
+		if( igmstate==10 ) return;
+		if( !timtik.isplaying && grels.isin(mouse.getpos, 1,1) && <grels.getsfound>.getz==20)	{
+			@s = grels.getsfound;
+			<s>.setz(40);
+			fxgetpuz.play;
+			.mssetobj( s );
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		fxputpuz.play;
+		rec2.fit(s);
+		@ilev = ilevel-1;
+		@s2 = grels.get(ilev);
+		<s>.setz(20);
+		if( 0->length(<s>.getpx-<s2>.lodx, <s>.getpy-<s2>.lody)<15 )	{
+			if( <s>.contains(ilev) )	{
+				s = <s>.getproper;
+				<grshow.first>.hide;
+				igmstate=5;
+				sdzwiek = "sndok"+ilevel;
+				.cglowa(sdzwiek);
+				.showlev;
+				<s>.setpos(0,0);
+				<s>.setz(10);
+				cmov.lock;
+			} else if (sSubObraz=="stone" && ilevel==6 && <s>.framenr==6 )	{
+				grshow.hide;
+				cmov.lock;
+				.cglowa("sndups");
+				anups.play(-1);
+			}
+		}
+	}
+	mouse_lclick	{
+		if( igmstate==5 ) igmstate=1;
+		else if (anglowa.isin(mouse.getpos, 1, 1) && !.cisplaying )	{
+			cmov.lock;
+			.cglowa(sdzwiek);
+		} else if( igmstate!=10 && .cgetactsnd!="sndups") .cactsndstop(true);
+		.cquit(sSubObraz=="stone" ? "MenuKons4" : "MenuKons2");
+	}
+	exit_click	{	.askfor(sSubObraz=="stone" ? "MenuKons4" : "MenuKons2");	}
+}
+
+game Konstruktor2_1 : MenuGry	{
+	init	{
+		MenuGry::init;
+		.path=("konstr2/chata");
+		.setsndbase("chata");
+		.imgs=(A, "podklad.pyz", "ognisko.pyz 1");
+		anognisko.play(0);
+		new gmimgvec grmov;
+		"grmov" ..< "mov.pyz";
+		grmov.hide;
+		grmov.setz(100);
+		new gmimgvec grlezy;
+		"grlezy" ..< "leza.pyz";
+		grlezy.each( func { (@id) .setz(10+.framename); } );
+		new gmimgvec grstos;
+		"grstos" ..< "elementy.pyz";
+		grstos.hide;
+		grstos.setz(1);
+		<grstos.get(0)>.setz(0);
+		<grstos.get(1)>.setz(0);
+		new DelayMover cmov;
+		.newdbscript("dborder", "order.db");
+		new int ordrow = 0;
+		
+		.sounds = (A,
+			"sndgo", "Zbuduj lepiankê; Zacznij od paleniska i postawienia ¶cian", "cunstop",
+			"sndend", "Super! Sam bym w takiej fajnej lepiance pomieszka³", "cexit"
+			);
+		.removehelp;
+		.cglowa("sndgo");
+	}
+	cmov_GET	{
+		if( grlezy.isin(mouse.getpos,1,1) )	{
+			@s = grlezy.getsfound;
+			<s>.hide;
+			@s2 = grmov.get(grlezy.getfound);
+			<s2>.show;
+			<s2>.ansetbpos( <s>.getpx-(<s2>.getw-<s>.getw)/2, <s>.getpy-(<s2>.geth-<s>.geth)/2 );
+			fxgetpuz.play;
+			.mssetobj( s2 );
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		@ifr = <s>.framenr;
+		<s>.hide;
+		fxputpuz.play;
+		if( <s>.aninlod(30) && dborder.dbrowcontains(ordrow,ifr) )	{
+			dborder.removeat( ordrow, dborder.dbfindinrow( ordrow, ifr ) );
+			<grstos.get( ifr )>.show;
+			fxok.play;
+			if( dborder.getcolsno(ordrow)==0 )	{
+				ordrow++;
+				if( ordrow>= dborder.getrowsno )	{
+					cmov.lock;
+					.cglowa("sndend");
+				}
+			}
+		} else {
+			<grlezy.get( ifr )>.show;
+		}
+	}
+	mouse_lclick	{
+		.cquit("MenuKons2");
+		if (anglowa.isin(mouse.getpos, 1, 1) && !.cisplaying )	{
+			.cglowa("sndgo");
+		} else if (sndgo.isplaying)	.cactsndstop(true);
+	}
+	exit_click	{	.askfor("MenuKons2");	}
+}
+
+game Konstruktor3 : MenuGry	{		// lodzie szkieletowe
+	init	{
+		MenuGry::init;
+		.path=("konstr1");
+		.setsndbase("szkielet");
+		.newanima("anpodpo", sSubObraz+"podpo.pyz", 0);
+		.copyanima("anpodpo", "anlod1");
+		.copyanima("anpodpo", "anlod2");
+		anlod1.setframe(0,1);	anlod1.hide;	anlod1.setz(13);	anlod1.anaddfilter;
+		anlod2.setframe(0,2);	anlod2.hide;	anlod2.setz(15);	anlod2.anaddfilter;
+		new gmimgvec grmov;
+		"grmov" ..< (sSubObraz+"mov.pyz");
+		grmov.setz(100);
+		new gmimgvec grin;
+		"grin" ..< (sSubObraz+"in.pyz");
+		grin.setz(10);
+		grin.hide;
+		new DelayMover cmov;
+		new classfadeinout clfio;
+		new classfadeinout clfio2;
+		
+		.sounds = (A,
+			"sndgo", "skonstruuj szkielet ³odzi", "cunstop",
+			"sndok", "gratulujê ¶wietny z ciebie konstruktor", func { .cstop; igmstate=111; }
+			);
+		.removehelp;
+		.cglowa("sndgo");
+	}
+	cmov_GET	{
+		if( grmov.isin(mouse.getpos, 1, 1) )	{
+			fxgetpuz.play;
+			.mssetobj(grmov.getsfound);
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		@s2 = grin.get(<s>.framenr);
+		fxputpuz.play;
+		if( 0->length(<s>.getpx-<s2>.getpx, <s>.getpy-<s2>.getpy) < 20 )	{
+			grmov.remove(s);
+			<s>.hide;
+			<s2>.show;
+			if( grmov.empty )	.mend;
+		} else {
+			<s>.setpos(0,0);
+		}
+	}
+	mend	{
+		cmov.lock;
+		anpodpo.hide;
+		anlod1.show;
+		clfio.setopacity( 1, 10, "anlod1", func {
+			anlod2.show;
+			clfio2.setopacity( 1, 10, "anlod2", func { 
+				.cglowa("sndok"); } );
+			} );
+	}
+	mouse_lclick	{	if( igmstate==111 ) gameapi.play("MenuKons1_3");	}
+	exit_click	{	.askfor("MenuKons1_3");	}
+}
+
+new int KolejneLevel = 0;
+game Konstruktor2 : MenuGry	{		// ustawianie kolejnosci wytwarzania
+	init	{
+		MenuGry::init;
+		.path=("kolejne");
+		.setsndbase("porzadki");
+		.imgs=(A, "spod.pyzH", "zestawy.pyzH 100");
+		.sfxs=(A, "przechyladrzewo", "ogien", "rzezbiarz", "dowody", "drzewobum", "zamach 60");
+		new gmimgvec grels;
+		new gmimgvec grspod;
+		new int ikolejny;
+		new Rect rec(100, 300, 824, 300);
+		
+		new DelayMover cmov;
+		.crect2;
+		
+		.sounds = (A,
+			"sndgo0", "U³ó¿ schemat budowy ³ódki z trzciny", "cunstop",
+			"sndgo1", "U³ó¿ schemat powstawania skórzanej kamizelki", "cunstop",
+			"sndgo2", "U³ó¿ schemat budowy siekierki z kamienia", "cunstop",
+			"sndgo3", "U³ó¿ schemat budowy ³ódki z mamuta", "cunstop",
+			"sndgo4", "U³ó¿ schemat budowy ³ódki d³ubanki", "cunstop",
+			"sndend", "Doskonale! Wszystkie zestawy u³o¿one!", "cexit"
+			);
+		new anima annagroda;
+		annagroda.addmethod("onfinish", func { .hide; <GAME>.buildlev; } );
+		.removehelp;
+		.buildlev;
+	}
+	buildlev	{
+		if( KolejneLevel>=anzestawy.nofactions )	{
+			cmov.lock;
+			.cglowa("sndend");
+			return;
+		}
+		ikolejny = 1;
+		grels.deleteallgm;
+		grspod.deleteallgm;
+		grels.free;
+		grspod.free;
+		anzestawy.setframe(KolejneLevel,0);
+		int x = (iResX-anzestawy.nofframes(KolejneLevel)*anspod.getw)/2;
+		int y = 300;
+		string s;
+		for( int i=0; i<anzestawy.nofframes(KolejneLevel); i++)	{
+			s = "ansp"+i;
+			.copyanima("anspod", s);
+			grspod.add(s);
+			<s>.setpos(x,y);
+			<s>(i) { (@i)
+				.show;
+				.var2("idzes", -1);
+				new vector vp;
+				vp.add(i);
+			};
+			x+=anspod.getw;
+			s = "anz"+i;
+			.copyanima("anzestawy", s);
+			grels.add(s);
+			<s>	{
+				.show;
+				.var2("idspod",-1);
+			};
+			<s>.setframe(KolejneLevel,i);
+		}
+		rec.fitgrouprand("grels");
+		if( KolejneLevel==2 )	{
+			.cdodaj(0,1);	.cdodaj(0,2);
+			.cdodaj(1,0);	.cdodaj(1,2);
+			.cdodaj(2,0);	.cdodaj(2,1);
+		} else if (KolejneLevel==3)	{
+			.cdodaj(1,2);
+			.cdodaj(2,1);
+		}
+		.cglowa("sndgo"+KolejneLevel);
+	}
+	cdodaj(@i1, @i2)	{
+		<grspod.get(i1)>(i2) { (@i2) vp.add(i2); };
+	}
+	cmov_GET	{
+		if( grels.isin(mouse.getpos, 1, 1) )	{
+			fxgetpuz.play;
+			@s = grels.getsfound;
+			<s>.setz(100+ikolejny);
+			ikolejny=(ikolejny+1)%200;
+			grels.sortimgs;
+			.mssetobj( s );
+			if( <s>.idspod != -1 )	{
+				<grspod.get(<s>.idspod)>.idzes = (-1);
+				<s>.idspod = (-1);
+			}
+		}
+	}
+	cmov_PUT	{
+		@s = .getfree;
+		rec2.fit(s);
+		fxputpuz.play;
+		grspod.eval1( func { (@san)
+			if( idzes==-1 && 0->length( .getposx-<san>.getposx, .getposy-<san>.getposy) < 20 )	{
+				<san>.setpos( .getposx, .getposy );
+				idzes = <san>.framenr;
+				<san>.idspod=( this->strsubbs("ansp") );
+			}
+			}, s );
+		if( grspod.ineach( func { (@id) vp.contains(idzes); } ) )	{
+			fxok.play;
+			annagroda.load( .getgraphpath + "nagroda"+ KolejneLevel + ".pyz" );
+			annagroda.setpos(-250,0);
+			grspod.hide;
+			grels.hide;
+			KolejneLevel++;
+			annagroda.play(0);
+		}
+	}
+	mouse_lclick	{	.cquit("MenuKons1");	}
+	exit_click	{	.askfor("MenuKons1");	}
+}
+
+game Konstruktor1 : MenuGry	{		// lodz z bawola
+	init	{
+		MenuGry::init;
+		new vector vecpos;
+		vecpos.beginadd("begin", 364,195, 49,433, 27,217, 589,190 );
+		.path = ("konstr1");
+		.setsndbase("kons1");
+		new int ileczesci = .loadanframes("anszkielet", sSubObraz+".pyz", 2, 10);
+		_anszkielet.setz(20);
+		_anszkielet.show;
+		new gmimgvec grczesci;
+		grczesci.additer("anszkielet", 0, ileczesci);
+		grczesci.each( func { (@id) id*=2; .ansetbpos(vecpos.get(id), vecpos.get(id+1) ); } );
+		new DelayMover cmov;
+		.lockall;
+		.sounds = (A,
+			"sndgo", "Skonstruuj obiekt który widzisz przed sob±", "cunstop",
+			"sndfin", "Wspaniale! Idealna konstrukcja", "cexit"
+			);
+		.importbank("sndtak", "myes", "cstop");
+		sndtak.startrand;
+		.removehelp;
+		.cglowa("sndgo");
+	}
+	cmov_GET	{
+		if( grczesci.isin(mouse.getpos,1,1) && <grczesci.getsfound>.getz==10)	{
+			@s = grczesci.getsfound;
+			<s>.setz(900);
+			.mssetobj(s);
+			fxgetpuz.play;
+		}
+	}
+	cmov_PUT	{
+		string s = .getmover;
+		if( cllen.ilen( <s>.getpx, <s>.getpy, <s>.lodx, <s>.lody) < 40 )	{
+			<s>.setz(11);
+			<s>.setpos(0,0);
+			.free;
+			ileczesci--;
+			if( ileczesci==0 )	{
+				.cglowa("sndfin");
+				grczesci.hide;
+				_anszkielet.setframe(1,0);
+			} else {
+				.ohyeah;
+				.cbplay2("sndtak");
+			}
+		} else {
+			<s>.setz(10);
+			.retobj;
+		}
+		fxputpuz.play;
+	}
+	mouse_lclick	{	.cquit("MenuKons1");	}
+	exit_click	{	.askfor("MenuKons1");	}
+}

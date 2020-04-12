@@ -1,0 +1,623 @@
+/* 
+	behavioury : skladowe cut-scen w przygodzie
+*/
+
+class classbehhero 	{
+	init()	{
+		new string _snextbeh = null;
+		new string _stdfinfun = null;	// std funkcja przekazana do odegrania na finish
+		new string _stdfinobj = null;
+		new string _stype = null;	// typ behavioura
+		new string _scaller;	// kto go wywoluje (tego behavioura)
+		new bool bblock = true;	// blokuj przed dzialaniami gracza
+		//new string bonce = null;	// jednorazowego uzytku
+		new bool bparal = false;
+	}
+	public gonext(string scaller)	{
+		bool bfin = false;
+		if( bparal )	{
+			bfin = <_sstarter>.behret( this.getname() );
+		} else if ( <_sstarter>.isenumer() && _sstarter!=this.getname())	{
+			bfin = true;
+		} else {
+			if( _snextbeh!=null )	{
+				<_snextbeh>.eval( scaller );
+			} else {
+				bfin = true;
+			}
+		}
+		if( bfin )	{
+			this.finishbeh(scaller);
+		}
+	}
+	public finishbeh(string scaller)	{
+		if( scaller!=null )	{
+			<scaller>.reteval();
+		} else {
+			modstnd.resume();
+			string s = this.getactbeh();
+			<_sstarter>.callbehfin();
+			if( this.getactbeh()==s )	{
+				this.setactbeh(null);
+			}
+		}
+	}
+	public playfin(string sob, string sfun)	{
+		this.setfinfun(sob,sfun);
+		_bmslock = this.advgetlock();
+		this.advmssetlock( bblock );	// zapamietuje mysz
+		modstnd.pause();	// stop standery
+		this.eval(null);
+	}
+	public eval(string scaller)	{
+		this.setactbeh( this.getname() );		// zapamietanie kto teraz "gra"
+		_scaller = scaller;
+		this._eval();	
+	}
+	public rewind()	{
+		//if( bblock==false && .hasaddedmet("_rew")/* || igmdebug*/)	{
+		if( .hasaddedmet("_rew") )	{
+			this._rew();
+		}
+	}
+	public reteval()	{
+		this.gonext(_scaller);
+	}
+	callbehfin()	{
+		this.advmssetlock( _bmslock );	// przywrocenie blocka myszy
+		
+		this.callfun(_stdfinobj,_stdfinfun);
+		_stdfinobj = null;
+		_stdfinfun = null;
+		
+		this.< this.getname()->strsubbs( _sbeh )+"_FINISH">();
+	}
+// 	_rewenter	{}
+// 	_rewclose	{}
+	_evalenter	{
+		ccs.obenter(this, "reteval");
+	}
+	_evalclose	{
+		ccs.obclose(this, "reteval");
+	}
+	_evalmusic	{
+		_music.playvec(vmus.getfullname, 0);
+		.reteval;
+	}
+	_evalscript()	{
+		if( _id>=0 )	{
+			int id = _id;
+			@s = <_sdb>.get(_row,id);
+			while( s!=")" )	{
+				<_sscr>.ARG=(id-_id, s);
+				id++;
+				s = <_sdb>.get(_row,id);
+			}
+		}
+		<_sscr>.call( _sfun2 );
+		this.reteval();
+	}
+// 	_rewscript()	{}
+	_evalmet()	{
+		this.callfun(_sob2,_sfun2);
+		this.reteval();
+	}
+// 	_rewmet()	{}
+	_evalsave()	{
+		clsave.set( ssavvar, ssavval );
+		this.reteval();
+	}
+// 	_rewsave()	{}
+	_evalgame()	{
+		string s = gameapi.getgamename;
+		match( _styp )	{
+			"-def" => <s>.playfromscript(_spath, _sgame);
+			"-adv" => <s>.playnewgamepath(_sgame, _spath);
+			? => <s>.playnewgame(_sgame);
+		}
+		this.reteval();
+	}
+// 	_rewgame()	{}
+	_evalread()	{	clhilarytxt.herosaydir( _sread, _ix, _iy, _sdir );	}
+	_rewread()	{
+		clhilarytxt.stop();
+		this.reteval();
+	}
+	_evalwait()	{	timwait.play();	}
+	//_rewwait()	{	timwait.stop(true);	}
+	_evaltalk()	{
+		string sptf = _spathpref + _san;
+		string s = _stalkpref + _san;
+		if( engine.varexist(sptf) && <s>.getdir != <s>.getpropdir(_sdir) )	{
+			<sptf>.heroturn(_sdir, this, "_evaltalk");
+			return;
+		}
+		this.advanstand(_san);
+		<s>.settalktype( modadv.gettalktype() );
+		<s>.setsnd( __swav );
+		<s>.checkamounts( __sbase );
+		<s>.herosaydir(isort, bstt, bstp, this.getname(), "reteval", <s>.getpropdir(_sdir) );
+	}
+	_rewtalk()	{	<_stalkpref+_san>.stop(true);	}
+	_evalsetpos()	{
+		int x, int y;
+		string _sptf = _spathpref + _san;
+		if( _idestx=="-id" )	{
+			y=<_sptf>.getbyname(_idesty);
+			x = <_sptf>.getxver(y);
+			y = <_sptf>.getyver(y);
+			<_san>.setpos(x ,y  );
+		} else {
+			x=_idestx;
+			y=_idesty;
+			<_san>.setpos(x + clcamera.getposx() ,y + clcamera.getposy() );
+		}
+		if( _bssc ) clcamera.setscene;
+		if( engine.varexist(_sptf) ) <_sptf>.scalean();
+		<_san>.setz( <_san>.getposy );
+		if( _sdir!="auto" )	<_san>.setdir(_sdir);
+		this.reteval();
+	}
+// 	_rewsetpos()	{}
+	_evalwalk()	{
+		int x, int y;
+		if( _idestx=="-id" )	{
+			y=<_sptf>.getbyname(_idesty);
+			x = <_sptf>.getxver(y) - <_sptf>.getposx;
+			y = <_sptf>.getyver(y) - <_sptf>.getposy;
+		} else if (_idestx == "-hero")	{
+			x = <_idesty>.getposx;
+			y = <_idesty>.getposy;
+			bool b = true;
+			if( <_sptf>.ptfgoto(x,y)>=0 )	{
+				y = <_sptf>.getgover(1);
+				if( y>=0 )	{
+					x = <_sptf>.getxver(y);
+					y = <_sptf>.getyver(y);
+					b = false;
+				}
+			}
+			<_sptf>.stop(false);
+			if(b)	{
+				@s = _sptf.strsubbs( _spathpref );
+				x = <s>.getposx;
+				y = <s>.getposy;
+			}
+		} else {
+			x=_idestx;
+			y=_idesty;
+		}
+		<_sptf>.herowalkto2( x + clcamera.getposx(), 
+			y + clcamera.getposy(), this.getname(), "reteval" );
+	}
+	_evalturn	{
+		string s = _sdir;
+		if( !s.in(A, "uu", "ru", "rr", "rd", "dd", "ld", "ll", "lu") )	{
+			string s2 = <_sptf>.getanim;
+			s = <_sptf>.vecdir( <s>.getposx-<s2>.getposx, <s>.getposy-<s2>.getposy );
+		}
+		<_sptf>.heroturn(s, this, "reteval");
+	}
+// 	_rewwalk()	{}
+	_evalanorder()	{
+		this.advanstand(_san);
+		_ = this.analizeaninstr(_sdb, _irow, _icol, _san);
+		this.reteval();
+	}
+// 	_rewanorder()	{}
+	_evalanplay()	{
+		if( !<_san>.hasvar("bthisfin") )	{
+			<_san>.setasadvanima;
+		}
+		this.advanstand(_san);
+		<_san>.thisfinish(true);
+		if( StringChecker::isdigit(_sact) ) _sact = <_san>.nameofaction(_sact);
+		<_san>.playspec2( _sact, this.getname(), "reteval");
+	}
+	_rewanplay()	{	/*<_san>.stop(true);*/	}
+	_evalsndbg()	{
+		_sndbg.play();
+		this.reteval();
+	}
+// 	_rewsndbg()	{}
+	_evalsndplay()	{
+		sndp.play();
+	}
+	_rewsndplay()	{	sndp.stop(true);	}
+	_evalcall()	{
+		string s = scallobj;
+		if( s.contains("$") )	{
+			s = s.strsubb(1);
+			s = engine.varexist(s) ? [s] : <sscript>.get(s);
+			if( s==null )	{
+				this.reteval();
+				return;
+			}
+		}
+		s = this.getbeh(s);
+		<s>.eval( this.getname() );
+	}
+// 	_rewcall()		{}
+	_evalnull()	{	this.reteval();	}		// obiekt niezdefiniowany
+// 	_rewnull()	{}
+	_evalstart()	{
+		int i, string s;
+		vbif.free;
+		if( bonce!=null )	{
+			//s = this.getname()->strsubbs( _sbeh );
+			if( !clsave.bis( bonce ) )	{
+				clsave.bset( bonce ); 
+			} else {
+				this.finishbeh(_scaller);
+				return;
+			}
+		}
+		if( (iisifsave==0&&clsave.is(sisifsave,sisifvar)) || (iisifsave==1&&!clsave.is(sisifsave,sisifvar)) )	{
+			this.finishbeh(_scaller);
+			return;
+		}
+		if( brand)	{
+			i = vecbehs.size();
+			i>0 ? < vecbehs.get( i.rand ) >.eval( _scaller ) : this.reteval();
+		} else if( bparal)	{
+			vecbehs2.veccopy("vecbehs");
+			for( i=0; i<vecbehs.size(); i++)	{
+				<vecbehs.get(i)>.eval( _scaller );
+			}
+		} else if (ienumer>0)	{
+			<vecbehs.get( this.nextenum()-1 )>.eval( _scaller );
+		} else	{
+			this.reteval();
+		}
+	}
+// 	_rewstart()	{}
+	_ifst(bool b, bool b2)	{
+		match(ifst)	{
+			1 => b && b2;
+			2 => b || b2;
+			? => b;
+		}
+	}
+	bool _oper_check(string s)	{
+		//s=="|" ? 2 : s=="&";
+		match(s)	{
+			"|" => 2;
+			"&" => 1;
+			? => 0;
+		}
+	}
+	_ifcheck	{
+		bool b[2];
+		string s[2];
+		int i1 = istart;
+		ifst = 0;	// initial state
+		while(i1<istop)	{
+			s0 = <_db>.get(irow, i1);
+			s1 = <_db>.dbchecknext(irow, i1);
+			match( s1 )	{
+				"=" => {
+					i1+=2;
+					b1 = clsave.is(s0, <_db>.get(irow, i1) );
+					b0 = ._ifst(b1, b0);
+					ifst = ._oper_check( <_db>.dbchecknext(irow, i1) );
+					if( ifst ) i1++;
+				}
+				"!=" => {
+					i1+=2;
+					b1 = !clsave.is(s0, <_db>.get(irow, i1) );
+					b0 = ._ifst(b1, b0);
+					ifst = ._oper_check( <_db>.dbchecknext(irow, i1) );
+					if( ifst ) i1++;
+				}
+				"&" => { i1++;
+					b1 = ( (s0.getb(0,1)=="!") ? (!clsave.bis(s0.strsubb(1))) : clsave.bis(s0) );
+					b0 = ._ifst(b1, b0);
+					ifst=1;
+				}
+				"|" => { i1++;
+					b1 = ( (s0.getb(0,1)=="!") ? (!clsave.bis(s0.strsubb(1))) : clsave.bis(s0) );
+					b0 = ._ifst(b1, b0);
+					ifst=2;
+				}
+				? => {
+					b1 = ( (s0.getb(0,1)=="!") ? (!clsave.bis(s0.strsubb(1))) : clsave.bis(s0) );
+					b0 = ._ifst(b1, b0);
+				}
+			}
+			i1++;
+		}
+		<_sstarter>.bif=(b0);
+		b0;
+	}
+	_checkif	{
+		if( ._ifcheck )	{
+			.reteval;
+		} else {
+			<_sstarter> (this) { (string s)
+				int poz = 0;
+				int end = vecbehs.size;
+				int found = 0;
+				for(int i =vecbehs.find(s)+1; i<end; i++ )	{
+					match( <vecbehs.get(i)>.gettyp )	{
+						"IF" => poz++;
+						"FI" => {
+							if( poz==0 )	{
+								found = i;
+								i = end;
+							} else poz--;
+						}
+						"ELSE", "ELIF" => {
+							if( poz==0 )	{
+								found = i;
+								i = end;
+							}
+						}
+						? => ;
+					}
+					//!<vecbehs.get(i)>.gettyp->in(A,"FI","ELSE","ELIF")
+				}
+				<vecbehs.get(found)>.eval(_scaller);
+			};
+		}
+	}
+	_evalIF	{
+		<_sstarter>.ifpush;
+		._checkif;
+	}
+	_gotofi(string s)	{
+		int poz = 0;
+		for( int i = vecbehs.find(s)+1; i<vecbehs.size; i++) {
+			match(<vecbehs.get(i)>.gettyp)	{
+				"IF" => poz++;
+				"FI" => {
+					if( poz==0 )	{
+						<vecbehs.get(i)>.eval(_scaller);
+						return;
+					} else poz--;
+				}
+				? => ;
+			}
+		}
+	}
+	_evalELIF	{
+		if( <_sstarter>.bif )	{
+			<_sstarter>._gotofi(this);
+		} else ._checkif;
+	}
+	_evalELSE	{
+		if( <_sstarter>.bif ) <_sstarter>._gotofi(this);
+		else .reteval;
+	}
+	_evalFI	{
+		<_sstarter>.ifpop;
+		.reteval;
+	}
+// 	_rewIF	{}
+// 	_rewELSE	{}
+// 	_rewFI	{}
+// 	_rewELIF	{}
+	/***********************/
+	gettyp	{	_stype;	}
+	settype(string stype)	{
+		_stype = stype;
+		this.addmethod("_eval", "_eval" + stype );
+		if( .hasmet("_rew"+stype) )	{
+			this.addmethod("_rew", "_rew" + stype );
+		}
+	}
+	setflags(string snextob)	{
+		 _snextbeh = snextob;	
+	}
+	setfinfun(string stdfinobj, string stdfinfun)	{
+		_stdfinobj = stdfinobj;
+		_stdfinfun = stdfinfun;
+	}
+	setasstarter(string bone, bool brandom, bool bpar, bool block, int ienum, int iifsave, string sifsave, string sifvar)	{
+		this.settype("start");
+		new string _sstarter=this.getname();
+		new bool brand = brandom;
+		new bool _bmslock;		// tmp do przechowania locka myszy
+		new vector vecbehs;
+		bblock = block;
+		vecbehs.type("string");
+		new string bonce = bone;
+		bparal = bpar;
+		new int ienumer = ienum;
+		if( ienum>0 )	{
+			new int _iencnt = 1;
+		} else if( bpar )	{
+			new vector vecbehs2;
+			vecbehs2.type("string");
+		}
+		new int iisifsave=iifsave;
+		if( iifsave>=0 )	{
+			new string sisifsave = sifsave;
+			if( sifvar!=null )
+				new string sisifvar = sifvar;
+		}
+		new vector vbif;
+	}
+	bif	{	vbif.last;	}
+	bif=(bool b)	{	vbif.set( vbif.size-1, b);	}
+	ifpush	{	vbif.add(1);	}
+	ifpop	{	_ = vbif.pop;	}
+	int isenumer()	{
+		return ienumer;	
+	}
+	int nextenum()	{
+		if( _iencnt > vecbehs.size() )	{
+			_iencnt = ienumer+1;
+		} else {
+			_iencnt++;
+		}
+		return _iencnt-1;
+	}
+	addtostarter(string sob)	{	vecbehs.add( sob );	}
+	bool getblock()	{	return bblock;	}
+	addflags(string sst,  bool block, bool bpar)	{
+		new string _sstarter=sst;
+		bblock = _stype=="read" ? false : block;
+		bparal = bpar;	// czy nalezy wykonac rownolegle
+	}
+	bool behret(string sob)	{
+		vecbehs2.remove(sob);
+		return vecbehs2.size()==0;
+	}
+	_setasif(string sdb, int row, int i1, int i2)	{
+		new int istart = i1;
+		new int istop = i2;
+		new string _db = sdb;
+		new int irow = row;
+		new int ifst = 0;
+	}
+	setasIF(string sdb, int row, int i1, int i2)	{
+		.settype("IF");
+		._setasif(sdb, row, i1, i2);
+	}
+	setasELIF(string sdb, int row, int i1, int i2)	{
+		.settype("ELIF");
+		._setasif(sdb, row, i1, i2);
+	}
+	setas(string s)	{	.settype(s);	}
+	setasscript(string sscr, string sfun, string sdb, int row, int id)	{
+		this.settype("script");
+		new string _sscr = sscr;
+		new string _sfun2 = sfun;
+		new int _id = id;
+		new string _sdb = sdb;
+		new int _row = row;
+	}
+	setasuse(string sitem)	{
+		.settype("use");
+		new string _sitem = sitem;
+	}
+	_evaluse	{
+		<_spocketpref+.getmainhero>.pckremove( _sitem );
+		.reteval;
+	}
+// 	_rewuse	{ }
+	_evaltopck	{
+		<_spocketpref+.getmainhero>.additem( _sitem, _sfile );
+		.reteval;
+	}
+// 	_rewtopck	{}
+	setastopck(string sitem, string sfile)	{
+		.settype("topck");
+		new string _sitem = sitem;
+		new string _sfile = sfile;
+	}
+	setasmet(string sob, string sfun)	{
+		this.settype("met");
+		new string _sob2 = sob;
+		new string _sfun2 = sfun;
+	}
+	setassaver(string svar, string sval)	{
+		this.settype("save");
+		new string ssavvar = svar;
+		new string ssavval = sval;
+	}
+	setasnewgamer(string styp, string spath, string sgame)	{
+		this.settype("game");
+		new string _sgame=sgame;
+		new string _styp = styp;
+		new string _spath = spath;
+	}
+	setasreader(string sfile, int x, int y, string sdir)	{
+		this.settype("read");
+		new string _sread = sfile;
+		new int _ix = x;
+		new int _iy = y;
+		new string _sdir = sdir;
+	}
+	setaswaiter(int delay)	{
+		this.settype("wait");
+		new timer timwait;
+		timwait.settick(1);
+		timwait.delay(delay);
+		timwait._csplbuild( this.getname(), "reteval" );
+		timwait.addmethod("onfinish", "_csplfinish");
+	}
+	setassndbg(string ssnd, int vol)	{
+		this.settype("sndbg");
+		new snd _sndbg;
+		_sndbg.setstartstopflag(false, true);
+		_sndbg.load( this.getsndpath() + ssnd + ".wav" );
+		_sndbg.setvol(vol);
+	}
+	setasanorder(string sdb,int irow,  int icol, string san)	{
+		this.settype("anorder");
+		new string _sdb = sdb;
+		new int _irow = irow;
+		new int _icol = icol;
+		new string _san = san;
+	}
+	setascaller(string sbeh, string sscr)	{
+		this.settype("call");
+		new string scallobj = sbeh;
+		new string sscript = sscr;
+	}
+	_csplbuild(string sob, string sfin)	{
+		new string _sobj = sob;
+		new string _sfinfun = sfin;
+	}
+	_csplfinish()	{
+		this.callfun(_sobj, _sfinfun);
+	}
+	setassndplayer(string sfile, int vol)	{
+		this.settype("sndplay");
+		new snd sndp;
+		sndp.setstartstopflag( false, true );
+		sndp.load( this.getsndpath()+sfile+".wav" );
+		sndp._csplbuild( this.getname(), "reteval" );
+		sndp.addmethod("onfinish", "_csplfinish");
+		sndp.setvol(vol);
+	}
+	setasposer(string san, string  idestx, int idesty, int bssc, string sdir )	{
+		this.settype("setpos");
+		new string _san = san;
+		new string _idestx = idestx;
+		new int _idesty = idesty;
+		new bool _bssc = bssc;
+		new string _sdir = sdir;
+	}
+	setasturn(string sptf, string sdir)	{
+		this.settype("turn");
+		new string _sptf = sptf;
+		new string _sdir = sdir;
+	}
+	setaswalker(string sptf, string idestx, string idesty )	{
+		this.settype("walk");
+		new string _sptf = sptf;
+		new string _idestx = idestx;
+		new string _idesty = idesty;
+	}
+	setasanplayer(string san, string sact)	{	
+		this.settype("anplay");
+		new string _san = san;
+		new string _sact = sact;
+	}
+	setastalker(string san, string swav, string sbase, int itypsort,
+			bool bstart, bool bstop, string sdir )	{
+		this.settype("talk");
+		new string _san = san;
+		
+		new string __swav = swav;
+		new string __sbase = sbase;
+		
+ 		new int isort = itypsort;
+ 		new bool bstt = bstart;
+ 		new bool bstp = bstop;
+ 		new string _sdir = sdir;
+	}
+	setasenter	{	.settype("enter");	}
+	setasclose	{	.settype("close");	}
+	setasmusic(string sdb, int row, int colstart, int colend)	{
+		.settype("music");
+		new vector vmus;	vmus.type("string");
+		vmus.buildfullname;
+		while ( colstart>=0 && colstart<colend )	{
+			vmus.add( <sdb>.get(row, colstart) );
+			colstart++;
+		}
+	}
+}

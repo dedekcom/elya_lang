@@ -1,0 +1,646 @@
+// 
+class cTur	{		// obiekt kodu turtla
+	init	{
+		.vars2(A, "typ", null, "vi1", 0, "vi2", 0, "vs1", null);
+	}
+}
+
+class cTurtle	{
+	init	{
+		new real X;
+		new real Y;
+		new real dir;
+		new real dcos;
+		new real dsin;
+		new real da;
+		new bool bPen = true;
+		new bool bpion;
+		new bool bwrap = true;
+		
+		/*new int pR;	new int pG;	new int pB;	// pen color
+		new int pW=1;	// pen width
+		new int cR=255;	new int cG=255;	new int cB=255;	// canvas color
+		new int cX=20;	new int cY=20;		// canvas move
+		new int cW=400;	new int cH=400;*/
+		.vars2(A, "pR", 0, "pG", 0, "pB", 0, "pW", 1, "cR", 255, "cG", 255, "cB", 255,
+			"cX", 20, "cY", 10, "cW", 400, "cH", 400);
+		
+		new img imgdot;
+		.mkdot;
+		imgdot.hide;
+		
+		new img imgcan	{
+			.setpos(cX, cY);
+			.setz(10);
+		};
+		.mkcan;
+		
+		.reset;
+	}
+	goto(real x, real y)	{
+		X=x; Y=y;
+	}
+	gox(real x)	{ .goto(x,Y);	}
+	goy(real y)	{ .goto(X,y);	}
+	center	{	.goto(cW/2, cH/2);	}
+	reset	{	.dir=(90);	.center;	.show; .wrapon; }
+	dir=(int id)	{
+		dir = id%360;
+		if( dir<0 ) dir+=360;
+		dcos = dir->cos;
+		dsin = dir->sin;
+		if( dcos.abs > /*0.1/(cW->to_r)*/0 )	{
+			bpion = false;
+			da = dsin/dcos;
+		} else bpion=true;
+	}
+	tl(int id)	{	.dir = (dir+id);	}
+	tr(int id)	{	.dir = (dir-id);	}
+	putpixel(real x, real y)	{
+		if( bPen )	{
+			imgdot.setpos(x, y);
+			imgcan.blit("imgdot");
+		}
+	}
+	fw(real id)	{
+		real r = id.abs;
+		bool bhide = 0;		// anzolw bvisible
+		if( id<0 ) {
+			// anzolw.hide;
+			.tl(180);
+		}
+		if( r>5000 )	{
+			.merr("outofrange");
+			return;
+		}
+		real x = X;
+		real y = Y;
+		real xstep;
+		real ystep;
+		imgcan.move(-cX,-cY);
+		if( bpion )	{
+			ystep=( dir>0 && dir<180 ? -1 : 1 );
+			xstep = 0;
+		} else {
+			if ( da.abs <= 1 )	{
+				xstep = ( dir>90 && dir<270 ? -1 : 1 );
+				ystep = da.abs;
+				if( dir>0 && dir<180 ) ystep=-ystep;
+			} else {
+				xstep=1.0/da.abs;
+				if( dir>90&&dir<270 ) xstep=-xstep;
+				ystep = ( dir>0 && dir<180 ? -1 : 1 );
+			}
+		}
+		real dr = da.length(xstep, ystep);
+		if( bwrap )	{
+			if( x<0 ) x=cW-1;
+			else if (x>=cW) x=0;
+			if( y<0 ) y=cH-1;
+			else if (y>=cH) y=0;
+			.putpixel(x,y);
+		} else {
+			if( x>=0 && x<cW && y>=0 && y<cH )
+				.putpixel(x,y);
+		}
+		while(r>0)	{
+			if( bpion ) {
+				y+=ystep;
+			} else {
+				x+=xstep;
+				y+=ystep;
+			}
+			if( bwrap )	{
+				if( x<0 ) x=cW-1;
+				else if (x>=cW) x=0;
+				if( y<0 ) y=cH-1;
+				else if (y>=cH) y=0;
+				.putpixel(x,y);
+			} else {
+				if( x>=0 && x<cW && y>=0 && y<cH )
+					.putpixel(x,y);
+			}
+			r-=dr;
+		}
+		imgcan.move(cX,cY);
+		.goto(x, y);
+		if( id<0 )	{
+			.tr(180);
+			//anzolw.show if bhide
+		}
+	}
+	bw(real id)	{	.fw(-id); }
+	turshow	{}
+	turhide	{}
+	show	{	imgcan.show;	}
+	hide	{	imgcan.hide;	}
+	penup	{	bPen=false;	}
+	pendown	{	bPen=true;	}
+	canvascolor(int ir, int ig, int ib)	{
+		cR = .between(0, ir, 255);
+		cG = .between(0, ig, 255);
+		cB = .between(0, ib, 255);
+		.mkcan;
+	}
+	pencolor(int ir, int ig, int ib)	{
+		pR = .between(0, ir, 255);
+		pG = .between(0, ig, 255);
+		pB = .between(0, ib, 255);
+		.mkdot;
+	}
+	penwidth(int iw)	{
+		pW = .between(1,iw,20);
+		.mkdot;
+	}
+	wrapon	{	bwrap=true;	}
+	wrapoff	{	bwrap=false;	}
+	mkdot	{	imgdot.create( pW, pW, pR, pG, pB, 255 );	}
+	mkcan	{
+		imgcan.create(cW, cH, cR, cG, cB, 255);
+		/*imgdot.setpos(cX, cY);
+		imgdot.setpos(1, 1);
+		imgcan.blit("imgdot");*/
+	}
+	prepare	{
+		pR=0;	pG=0;	pB=0;	// pen color
+		pW=1;	// pen width
+		cR=255;	cG=255;	cB=255;	// canvas color
+		.mkdot;
+		.mkcan;
+	}
+}
+
+game Turtle : Computro	{
+	init	{
+		Computro::init("turtle");
+		
+		new string Code;
+		Lexer::setas("Code");
+		new db dbcode;
+		new vector vcode;
+		vcode.type("string");
+		
+		new int Line = 0;	// linia kodu
+		new string sError;
+		new int iState = 0;	// status parsera 0 - timer go, 1 - fast go, 2 - finish error, 3 - finish ok
+		
+		new map cvars("real");
+		new real iarg1;
+		new real iarg2;
+		new real iarg3;
+		.lang_db("dbparse", "parser");
+		new int ifstack;	// stos petli
+		
+		new cTurtle ctur;
+		
+		new @ifontsize = 10;
+		.monofont("fnkod", ifontsize);
+		new @stdfont = .snewfont(sgmfontfile, ifontsize);
+// 		.debug =(1);
+		new GUITextBoxTyper ttk("fnkod", ifontsize, 0.6*ifontsize, .black, "at0; ,[](){}-+_/=#<>*.\"\\!?%:&",
+			495,30, 282,800, 2);	//int x, int y, int w, int h, int dy)	{
+		ttk.setz(100);
+		
+		Code.consts = (A, "for", "repeat", "to", "(", ")", "[", "]", "/", "%", "*","+","-", "=", ",","#");
+		
+		new RPN rpn;
+		
+		new img imgbg;
+		imgbg.create(800,600, 192,192,255,255);
+		
+		new int iParseDelay = 10;	// fast
+		.timer = ("timparse", iParseDelay, "mparse");
+		
+		ctur.prepare;
+		@dx = 8;
+		new GUI gui("butgame");
+		
+		gui.newrewinder("rewcode", 493 , 28, 0,500, "ttk");
+		ttk.setrewinder("rewcode");
+		
+		gui.newbutton("butstart", "START", 80, 25);
+		gui.newbutton("butstop", "STOP", 80, 25);
+		gui.newbutton("butspeed1", "x1", 25, 25);
+		gui.newbutton("butspeed2", "x2", 25, 25);
+		gui.newbutton("butspeed3", "x3", 25, 25);
+		butstart.setpos(rewcodebg.getpx, rewcodebg.getey+4 );
+		butstop.setpos(butstart.getex+4, butstart.getpy );
+		butspeed1.setpos(butstop.getex+14, butstart.getpy );
+		butspeed2.setpos(butspeed1.getex+4, butstart.getpy );
+		butspeed3.setpos(butspeed2.getex+4, butstart.getpy );
+		new string sbutclick = null;
+		butspeed3.butclick;
+		
+		gui.newwndtext("wincode", rewcodebg.getw, rewcodebg.geth);
+		wincode.setpos(rewcodebg.getpx, rewcodebg.getpy);
+		rewcodebg.blit("wincode");
+		gui.delobj("wincode");
+		
+		new img imgpars;
+		imgpars.create(ttk.W-10, ifontsize, .yellow, 255);
+		imgpars.hide;
+		
+		gui.newwnd("wintxt", 420, 170);
+		wintxt.setpos(20, 420 );
+		
+		.newtext("txtzolw", .mturtleoutput, stdfont, .black);
+		txtzolw.setpos( wintxt.getpx+20, wintxt.getey-txtzolw.geth-5 );
+		.newtext("txtpars", .mparseoutput, stdfont, .black);
+		txtpars.setpos( wintxt.getpx+20, txtzolw.getpy-txtpars.geth-5 );
+		
+		new int izadanie = 1;
+		.lang_db("dbprog","progs");
+		.lang_db("dbzad","zad");
+		new LangTxt ltxt("txt");
+		gui.newbutton("butnext", ltxt.get("next"), 150, 25);
+		gui.newbutton("butprev", ltxt.get("prev"), 150, 25);
+		butprev.setpos(wintxt.getex+10, wintxt.getey-butnext.geth);
+		butnext.setpos(butprev.getex+10, butprev.getpy);
+		.mloadzad;
+		
+		ccs.enter( "mstart" );
+	}
+	mparseoutput	{	"Parser output: ";	}
+	mturtleoutput	{	"Turtle output: ";	}
+	mloadzad	{	<GAME>	{
+		if( igmdebug )	{
+			delete dbzad;
+			.lang_db("dbzad","zad");
+			delete dbprog;
+			.lang_db("dbprog","progs");
+		}
+		ttk.copyfromdbss("dbprog","--start_"+izadanie+"--","--end_"+izadanie+"--");
+		if( gui.hasvar("rewzad") )	{
+			gui.dellist(A,"rewzad","winzad");
+		}
+		@x = wintxt.getpx+10;
+		@y = wintxt.getpy + 10;
+		new TextDb tdzad(stdfont, ifontsize, "$row:dbzad,"+(izadanie-1), .black, x+2, y+2, 2, wintxt.getz+10, "left");
+		@w = tdzad.getw+4;
+		@w2 = wintxt.getw-36;
+		if( w<w2 ) w = w2;
+		gui.newwndtext("winzad", w, tdzad.geth+4);
+		winzad.setpos(x,y);
+		tdzad.blitto("winzad");
+		winzad.setz(30);
+		gui.newrewinder("rewzad", x-2 , y-2, w2, txtpars.getpy-y-27, "winzad");
+		.deletegmobj("tdzad");
+	};	}
+	mout(string s)	{	txtpars.txtset(.mparseoutput+s);	}
+	merr(string s)	{
+		@id = dbparse.findbyrow(s);
+		if( id>=0 )	sError += dbparse.get(id,1);
+	}
+	merr2(string s, string s2)	{	.merr(s); sError+=s2+" ";	}
+	bool mload(int id)	{
+		if( rpn.end )	{
+			match( rpn.error )	{
+				0 => {
+					<"iarg"+id> = rpn.count;
+					if( rpn.error!=0 )	{
+						.merr2(null, rpn.perror+"; ");
+						return false;
+					} else {
+						rpn.start;
+						return true;
+					}
+				}
+				? => .merr2(null, rpn.perror+"; ");
+			}
+		} else {	.merr("exexpr");	}
+		false;
+	}
+	bool readarg(int istart, int ile)	{	.readarg2(istart,ile,false,false);	}
+	bool readarg2(int istart, int ile, bool bracket, bool bto)	{
+		string s;
+		int ktory = 1;
+		rpn.start;
+		for( int i=istart; i<vcode.size; i++)	{
+			match( vcode.get(i) )	{
+				"$int", "$real" => { i++; rpn.num(vcode.get(i)); }
+				"$const" => { i++;
+					match(vcode.get(i))	{
+						"+", "-", "*", "/", "%",  "(", ")" => rpn.op(vcode.get(i));
+						"," => {
+							ktory++;
+							if( ktory<=ile )	{
+								if( !.mload(ktory-1) ) return false;
+							} else {
+								.merr("unex,");
+								return false;
+							}
+						}
+						"[" => {
+							if( bracket ) {
+								@b = .mload(ktory);
+								if ( ktory==ile ) return i;
+								else return false;
+							} else {
+								.merr2("unexfr", "[");
+								return false;
+							}
+						}
+						"to" => {
+							if( bto ) {
+								@b = .mload(ktory);
+								if ( ktory==ile ) return i+1;
+								else return false;
+							} else {
+								.merr2("unexfr", "to");
+								return false;
+							}
+						}
+						? => {
+							.merr2("unexfr", vcode.get(i));
+							return false;
+						}
+					}
+				}
+				"$alpha" => { i++;
+					s = vcode.get(i);
+					if( cvars.contains(s) ) {
+						rpn.num( cvars.get(s) );
+					} else {
+						.merr2("novar", s);
+						return false;
+					}
+				}
+				? => {
+					.merr2("unexfr", vcode.get(i));
+					return false;
+				}
+			}
+		}
+		@b = .mload(ktory);
+		if ( ktory==ile ) b;
+		else {
+			.merr("lowargs");
+			false;
+		}
+	}
+	mparse	{
+		string s, int id, int id2, string s2;
+		vcode.free;
+		for( int i=Line; i < ttk.Rows; i++)	{
+			s = ttk.getid(i);
+			s.clear;
+			if( s.length>0 )	{
+				ttk.updaterewpos(i);
+				imgpars.show;
+				imgpars.setpos( ttk.idpx(i), ttk.idpy(i) );
+				Line=i+1;
+				Code.start(s);
+				Code.gettoken("vcode", true);
+				match(vcode.get(0))	{
+					"$const" => {
+						match(vcode.get(1))	{
+							"for" => if( vcode.vecchecknext(1)=="$alpha" )	{
+								s = vcode.get(3);
+								if( vcode.vecchecknext(3)=="$const" && vcode.vecchecknext(4)=="=" )	{
+									id = .readarg2(6,1,false,true);
+									if( id )	{
+										id2 = iarg1;
+										id = .readarg2(id, 1, true, false);
+										if( id && id+1>=vcode.size )	{
+											cvars.set( s, id2 );
+											<GAME>.mpushfor( s, iarg1 );
+										} else .merr("badfor4");
+									} else .merr("badfor3");
+								} else .merr("badfor2");
+							} else .merr("badfor");
+							"repeat" => if (.readarg2(2,1,true,false) )	{
+								if( iarg1 <= 0 )	{
+									.merr("badrepeat2");
+								} else
+									<GAME>.mpushrep( iarg1 );
+							} else .merr("badrepeat");
+							"]" => {
+								if( vcode.size > 2 )	.merr("only]");
+								else {
+									if( ifstack>0 )	{
+										s = "_ctur"+ifstack;
+										match(<s>.typ)	{
+											"for" => {
+												s2 = <s>.vs1;
+												id = cvars.get( s2 );
+												if( id >= <s>.vi1 )	{
+													cvars.remove(s2);
+													<GAME>.mpop;
+												} else {
+													cvars.set(s2, id+1);
+													Line = <s>.vi2;
+												}
+											}
+											"repeat" => {
+												id = <s>.vi1;
+												id--;
+												if( id )	{
+													<s>.vi1=(id);
+													Line = <s>.vi2;
+												} else <GAME>.mpop;
+											}
+											? => ;
+										}
+									} else .merr("nostart");
+								}
+							}
+							"#" => ;
+							? => .merr2("wrongcmd", vcode.get(1));
+						}
+					}
+					"$alpha" =>	{
+						match(vcode.get(1))	{
+							"forward" => if( .readarg(2,1) )	{
+								ctur.fw(iarg1);
+							} else .merr("forward");
+							"backward" =>  if( .readarg(2,1) )	{
+								ctur.bw(iarg1);
+							} else .merr("backward");
+							"turnleft" =>  if( .readarg(2,1) )	{
+								ctur.tl(iarg1);
+							} else .merr("turnleft");
+							"turnright" =>   if( .readarg(2,1) )	{
+								ctur.tr(iarg1);
+							} else .merr("turnright");
+							"direction" =>   if( .readarg(2,1) )	{
+								ctur.dir=(iarg1+90);
+							} else .merr("direction");
+							"center" => ctur.center;
+							"go" =>   if( .readarg(2,2) )	{
+								ctur.goto(iarg1, iarg2);
+							} else .merr("go");
+							"gox" =>   if( .readarg(2,1) )	{
+								ctur.gox(iarg1);
+							} else .merr("gox");
+							"goy" =>   if( .readarg(2,1) )	{
+								ctur.goy(iarg1);
+							} else .merr("goy");
+							"print" =>   if( .readarg(2,1) )	{
+								txtzolw.txtset(.mturtleoutput + iarg1);
+							} else .merr("print");
+							"penup" => ctur.penup;
+							"pendown" => ctur.pendown;
+							"show" => ctur.turshow;
+							"hide" => ctur.turhide;
+							"wrapon" => ctur.wrapon;
+							"wrapoff" => ctur.wrapoff;
+							"pencolor" =>  if( .readarg(2,3) )	{
+								ctur.pencolor(iarg1, iarg2, iarg3);
+							} else .merr("pencolor");
+							"penwidth" => if( .readarg(2,1) )	{
+								ctur.penwidth(iarg1);
+							} else .merr("penwidth");
+							"canvascolor" => if( .readarg(2,3) )	{
+								ctur.canvascolor(iarg1, iarg2, iarg3);
+							} else .merr("canvascolor");
+							? => if( vcode.vecchecknext(1)=="$const" && vcode.vecchecknext(2)=="=" && .readarg(4,1) )	{
+								cvars.set( vcode.get(1), iarg1 );
+							} else .merr2("wrongcmd", vcode.get(1));
+						}
+					}
+					? => {
+						.merr("wrongcmd");
+					}
+				}
+				if( sError=="" )	{
+					if( iState==0 )	{
+						timparse.play;
+					}
+				} else {
+					.mout(sError);
+					<GAME>.mflush;
+					iState = 2;		// error
+				}
+				return;
+			}
+		}
+		if( ifstack>0 )	{
+			.merr("noend");
+			iState = 2;	// error
+		} else {
+			.merr("OK");
+			iState = 3;	// finish
+		}
+		.mout(sError);
+		.startwrite;
+	}
+	string mpush	{
+		ifstack++;
+		@s = "_ctur"+ifstack;
+		new cTur <s>;
+		s;
+	}
+	mpushrep(int ile)	{
+		if( ifstack<50 )	{
+			@s = .mpush;
+			<s>.typ=("repeat");
+			<s>.vi1 = (ile);
+			<s>.vi2 = (Line);
+		}
+	}
+	mpushfor(string svar, int ikrok)	{
+		if( ifstack<50 )	{
+			@s = .mpush;
+			<s>.typ = ("for");
+			<s>.vs1 = (svar);
+			<s>.vi1 = (ikrok);
+			<s>.vi2 = (Line);
+		}
+	}
+	mpop	{
+		if( ifstack>0 )	{
+			delete <"_ctur"+ifstack>;
+			ifstack--;
+		}
+	}
+	mflush	{	while( ifstack > 0 )	.mpop;	}
+	mstop	{
+		timparse.stop(false);
+		.mflush;
+		delete cvars;
+		new map cvars("real");
+	}
+	mstart	{
+		ttk.enable;
+		sError = "";
+		ifstack = 0;
+		igmstate = 1;
+		imgpars.hide;
+	}
+	meval	{
+		//ttk.disable;
+		ctur.reset;
+		txtzolw.txtset(.mturtleoutput);
+		Line = 0;
+		igmstate = 2;
+		timparse.delay(iParseDelay);
+		iState=0;
+		//ttk.activate(0);
+		ttk.disable;
+		if( iState==0 )	{
+			.mparse;
+		} else {
+			while(iState==1)	{
+				.mparse;
+			}
+		}
+	}
+	/*key_down	{
+		if( igmstate!=1 && igmdebug )	{
+			if( keyboard.iskey("s") )	{
+				ttk.save("scripts/turtle/savedprog.db");
+			}
+		}
+	}*/
+	unclicklastspeed(int id, int delay)	{
+		if( sbutclick!=null ) <sbutclick>.unclick;
+		sbutclick = "butspeed"+id;
+		iParseDelay=delay;
+		timparse.delay(iParseDelay);
+	}
+	butspeed1_lclick	{	.unclicklastspeed(1, 1);	}
+	butspeed2_lclick	{	.unclicklastspeed(2, 60);	}
+	butspeed3_lclick	{	.unclicklastspeed(3, 300);	}
+	butstart_lclick	{
+		butstart.unclick;
+		if( igmstate==1 )	{
+			ctur.prepare;
+			<GAME>.meval;
+		}
+	}
+	startwrite	{
+		<GAME>	{
+			.mstop;
+			.mstart;
+		};
+	}
+	butstop_lclick	{
+		butstop.unclick;
+		if( igmstate==2 )	.startwrite;
+	}
+	butnext_lclick	{
+		butnext.unclick;
+		if( igmstate==1 )	{
+			if( izadanie<10 )	{
+				izadanie++;
+				.mloadzad;
+			} else {
+				igmstate = 0;
+				ccs.close( func {
+					if( PrzygodaMode)
+						.gotoadv("adxvsala", "gameadxvsala2");
+					else gameapi.play("Menu");
+					} );
+			}
+		}
+	}
+	butprev_lclick	{
+		butprev.unclick;
+		if( igmstate==1 )	{
+			if( izadanie>1 )	{
+				izadanie--;
+				.mloadzad;
+			}
+		}
+	}
+}

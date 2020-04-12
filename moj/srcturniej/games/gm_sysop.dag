@@ -1,0 +1,768 @@
+game Sysop : Computro	{
+	init	{
+		Computro::init("sysop");
+		
+		new string kcsystem = clsave.get("kcsystem");
+		new string subepizod = clsave.get("subepizod");
+		new string slastact = clsave.get("kcsystem_slastact");
+		
+		new int systate = 0;	// stan gry
+		
+		new int ihelp;
+		.lang_db("dbhp", "helps");
+		new gmimgvec grhelps;
+		
+		new int iconstate = clsave.get("iconstate");
+		new bool benter = false;
+		
+		sgmlastscene = "Sysop";
+		
+		.sounds = (A,
+			":ania1", "System siê instaluje", null,
+			":ania2", "System zainstalowany; Teraz musimy po³±czyæ siê z sieci±", "mgotogame",
+			":ania3", "To nasz system; Mamy 2 zainstalowane programy; Zak móg³by¶ przypomnieæ co mówi³ admin?", func { <GAME>.mhelps(3); .cbplay("zak1"); },
+			":zak1", "Mam trzy wypowiedzi wybieraj je do ods³uchania", "gmunlockall",
+			":ania4", "Brak po³±czenia z sieci±; To pewnie jaka¶ przegl±darka", func { .cbplay("zak2"); },
+			":zak2", "FTP to protokó³ i program do wymiany plików; Jak bêdziemy mieli sieæ ¶ci±gniemy za jego pomoc± oprogramowanie z serwera", "munlockhelp",
+			":ania5", "A wiêc to jest konsola; Ju¿ to widzia³am nie raz; Teraz powinnam wpisaæ polecenie", null,
+			":ania6", "Najpierw muszê zdobyæ ten adres MAC", null,
+			":ania7", "Hmm to chyba nie to polecenie", null,
+			":ania8", "Dobra idziemy zanie¶æ adres adminowi", "mexit",
+			":ania9", "Gdzie¶ w tych danych jest ten adres; Przepiszê go do notesu", "mnotes",
+			":ania10", "To jak Zak? Zanosimy taki adres adminowi?", null,
+			":zak3", "Tak zobaczmy co powie", null,
+			":zak4", "Sam nie wiem popatrzmy jeszcze trochê", null,
+			// ftp
+			":ania11", "Admin mówi³ ¿e mamy po³±czyæ siê z serwerem przez FTP; To pewnie ten drugi program", "gmunlockall",
+			":ania12", "Ok widzê 2 programy; Jeden z nich to edytor tekstu", null,
+			":ania14", "Program ju¿ zainstalowany", null,
+			":ania_word", "Zainstalowa³am edytor tekstu Word",null,
+			":ania_calc", "Zainstalowa³am arkusz kalkulacyjny", null,
+			":ania15", "Najpierw musimy zainstalowaæ sterowniki do drukarki", null,
+			":ania16", "Na razie nie mam czasu na u¿ycie tego programu", null,
+			// ssh
+			":ania17", "Spróbujmy zalogowaæ siê na to konto; W³±cz pomoc", func { .cbplay("zak5"); },
+			":zak5", "Dobra; Wykonuj czynno¶ci po kolei", func { <GAME>.mhelps(1); .gmunlockall; },
+			":zak6", "Z³e has³o; Wpisz to które pokazujê w pomocy", null,
+			":ania18", "Uda³o siê; Co teraz?", func { .cbplay("zak7"); },
+			":zak7", "Jeste¶my w systemie uniksowym; Generujê now± pomoc ¿eby¶my rozeznali siê w sytuacji", func { subepizod = "kcssh2"; <GAME>.mhelps(1); .mconunlock; },
+			":zak8", "O rany! Poznajê te pliki; To konto rektora przez które wprowadza zakupy do Komputera Centralnego", func { .cbplay("ania19"); },
+			":ania19", "Jak mo¿emy je skopiowaæ?", func { .cbplay("zak9"); },
+			":zak9", "Musimy siê wylogowaæ i u¿yæ programu escepe; Postêpuj wed³ug moich wskazówek", func { subepizod="kcssh3";<GAME>.mhelps(2); .mconunlock; },
+			":zak10", "Syntax Error", func { isyntax++; if( isyntax==4 ) .cbplay("ania20"); },
+			":ania20", "Ju¿ przestañ z tym syntax error bo mnie denerwujesz", func { .cbplay("zak10"); },
+			":zak11", "Inaczej nie mogê", null,
+			":zak12", "Super; Otwórz teraz arkusz kalkulacyjny", func { subepizod="kcssh4";<GAME>.mhelps(1); .mconunlock; }
+			);
+		new int isyntax = 0;
+		
+		match(kcsystem)	{
+			"install" => {
+				.imgs = (A, "bginstall.pyz", "logoinstall.pyz 10");
+				.cbplay("ania1");
+				anlogoinstall.anplayfin(0, func {
+					clsave.set("kcsystem", "loading");
+					gameapi.play("Sysop");
+					} );
+			}
+			"loading" => {
+				.imgs = (A, "bgload.pyz", "loading.pyz 10");
+				.copyanima("anloading", "annapisload");
+				annapisload.setframe(1,0);
+				.copyanima("anloading", "annapison");
+				annapison.setframe(2,0);
+				annapison.hide;
+				new int ixclip = anloading.getpx;
+				anloading.clip( 0, 0, ixclip, iResY );
+				
+				.timer = ("timload", 200, func {
+					.delay(200 + 200->rand);
+					ixclip+=50+50->rand;
+					anloading.clip( 0, 0, ixclip, iResY );
+					if(ixclip>=iResX)	{
+						clsave.set("kcsystem", "ready");
+						gameapi.play("Sysop");
+					} else
+						.play;
+					} );
+				timload.play;
+			}
+			"ready" => {
+				.imgs = (A, "bgsys.pyz");
+				if( subepizod=="kcinstall" )
+					.cbplay("ania2");
+				new Button butstart;
+				butstart.load("grbutstart", "readybut.pyz", func { (@id)
+					.Button_isin;
+					.addmethod("butclick", func {
+						if( .framenr==2 || subepizod=="kcinstall") return;
+						.setframe(0, 2);
+						.timer = ("timstart", 250, func {
+							clsave.set("kcsystem", "go");
+							gameapi.play("Sysop");
+							} );
+						timstart.play;
+						} );
+					.addmethod("butmoveon", func {
+						if( .framenr!=2 )	{
+							bsms.setact;
+							.setframe(0,1);
+						}
+						} );
+					.addmethod("butmoveoff", func {
+						if( .framenr!=2 )	{
+							bsms.setstd;
+							.setframe(0, 0);
+						}
+						} );
+				} );
+			}
+			"go" => {
+				.imgs = (A, "bgsys.pyz", "syswin.pyz 10");
+				new gmimgvec grwinbut;
+				new gmimgvec grdesk;
+				
+				new Button butoff;
+				butoff.load("grbutoff", "sysoff.pyz", func { (@id)
+					.Button_isin;
+					.addmethod("butclick", func {
+						if( igmstate!=0 )	return;
+						
+						match(subepizod)	{
+							"kcifconfig" => {
+								
+								//return;
+							}
+							? => ;
+						}
+					
+						if( .framenr==2 ) return;
+						.setframe(0, 2);
+						
+						clsave.set("kcsystem_slastact", slastact);
+						.mexit;
+						} );
+					.addmethod("butmoveon", func {
+						if( .framenr!=2 )	{
+							bsms.setact;
+							.setframe(0,1);
+						}
+						} );
+					.addmethod("butmoveoff", func {
+						if( .framenr!=2 )	{
+							bsms.setstd;
+							.setframe(0, 0);
+						}
+						} );
+				} );
+				.mshow("con");
+				.mshow("ftp");
+				.mcheckshow("print");
+				.mcheckshow("word");
+				.mcheckshow("calc");
+				
+				match( subepizod )	{
+					"kcifconfig" => {
+						.newsnd("sndh1", "admin_13");
+						.newsnd("sndh2", "admin_14");
+						.newsnd("sndh3", "admin_18");
+						if( !clsave.bis("poczatek_kcifconfig") )	{
+							clsave.bset("poczatek_kcifconfig");
+							.mplay("ania3");
+						} else {
+							.mhelps(3);
+							.gmunlockall;
+						}
+					}
+					"kcword" => {
+						if( !clsave.bis("poczatek_kcword") )	{
+							clsave.bset("poczatek_kcword");
+							.mplay("ania11");
+						} else .gmunlockall;
+					}
+					"kcprinter" => {
+						if( !clsave.bis("kcsys_print") )	{
+							clsave.bset("kcsys_print");
+							.newanima("anwinprinter", "win_print.pyz", 2000);
+							.lock=(1);
+							igmstate = 8;
+							.timer = ("timprint", 5000, func {
+								anwinprinter.hide;
+								<GAME>.mshow("print");
+								<GAME>.mexit2(1500);
+								} );
+							timprint.play;
+						}
+					}
+					"kcssh" => {
+						.mplay("ania17");
+					}
+					? => ;
+				}
+			}
+			? => ;
+		}
+	}
+	mexit	{	.mexit2(250);	}
+	mexit2(int ile)	{
+		igmstate = 0;
+		.lock=(true);
+		.timer = ("timstart", ile, "mgotogame" );
+		timstart.play;
+	}
+	munlockhelp	{	grhelps.eval("unlock");	}
+	mlockhelp		{	grhelps.eval("lock");	}
+	mplay(string s)	{
+		.lock = (1);
+		.cbplay(s);
+	}
+	mgotogame	{
+		clsave.set("iconstate", iconstate);
+		if( clsave.get("game_day")=="5" )
+			.gotoadv("adinania","gameadinania2");
+		else	.gotoadv("adinania","gameadinania0");
+	}
+	mcheckshow(string s)	{	if( clsave.bis("kcsys_"+s) )	.mshow(s);	}
+	mshow(string s)	{
+		.newanima("an" + s, "win" + s + ".pyz", 20);
+		string s2 = "but"+s;
+		s = "an" + s;
+		string sdesk = s + "desk";
+		.copyanima(s, sdesk);
+		<s+"desk">.setframe(1,0);
+		new Button <s2>;
+		<s2>.add(s);
+		<s2>.add(sdesk);
+		
+		<s>	{
+			.addmethod("isbutin", func { (@x,@y)
+				@id = .framenr;
+				.setframe(0,1);
+				.isin(x,y,1,0);
+				.setframe(0,id);
+				} );
+			.addmethod("butclick", func {
+				if( igmstate!=0 )	return;
+				if( slastact!=null )	{
+					<slastact>.setframe(0,0);
+				}
+				slastact = this;
+				.setframe(0,1);
+				<GAME>.<this+"_click">;
+				} );
+			._msact;
+			._msstd;
+		};
+		<sdesk>	{
+			.Button_isin;
+			._msact;
+			._msstd;
+			.addmethod("butclick", func {
+				if( igmstate!=0 )	return;
+				<GAME>.<this->strsubes("desk")+"_click">;	
+				} );
+		};
+		if( slastact==s )	<s>.setframe(0, 1);
+		
+		grwinbut.add(s);
+		grdesk.add(sdesk);
+	}
+	_msact	{	.addmethod("butmoveon", func {	bsms.setact;	} );	}
+	_msstd	{	.addmethod("butmoveoff", func {	bsms.setstd;	} );	}
+	_msact2	{	.addmethod("butmoveon", func {	bsms.setact; .setframe(-1,1);	} );	}
+	_msstd2	{	.addmethod("butmoveoff", func {	bsms.setstd; .setframe(-1,0);	} );	}
+	mhelps(int ile)	{
+		if( .hasvar("ihelpfont") )	.delhelps;
+		new int ihelpfont = 14;
+		new string shelpfont = .stdfont(ihelpfont);
+		string s, string s2;
+		new gmobjvec grhpdel;
+		for( int i=1; i<=ile; i++ )	{
+			s = "anbh" + i;
+			.newanima(s, "help"+i+".pyz", 20);
+			grhpdel.add(s);
+			<s> (i) { (@id)
+				new int ibut = id;
+				.Button_isin;
+				._msact;
+				._msstd;
+				.addmethod("butclick", func {
+					if( <GAME>.hasvar("imgh") )	<GAME>.delhelp;
+					if( igmstate!=0 || .cisplaying)	return;
+					igmstate = 2;
+					//.lock=(true);
+					.mlockhelp;
+					<GAME>.mhelp(ibut);
+					} );
+			};
+			s2 = "buth" + i;
+			new Button <s2>;
+			<s2>.add(s);
+			grhelps.add(s2);
+		}
+	}
+	delhelps	{
+		if( .hasvar("imgh") )	.delhelp;
+		grhelps.deleteallgmobj;
+		grhelps.free;
+		grhpdel.deleteallgm;
+		delete grhpdel;
+		delete ihelpfont;
+		delete <shelpfont>;
+		delete shelpfont;
+	}
+	mhelp(int id)	{
+		ihelp = id;
+		
+		id = dbhp.findbyrow( subepizod + "_" + id);
+		new img imgh;
+		imgh.create( 400, 20 + (ihelpfont+4)*(dbhp.getcolsno(id)-1) , .grey(240), 240 );
+		imgh.setpos( 380, <"anbh"+ihelp>.getpy - 10 );
+		imgh.setz(1000);
+		new gmimgvec grth;
+		string s;
+		for( int i=1; i<dbhp.getcolsno(id); i++ )	{
+			s = "txth"+i;
+			.newtext(s, dbhp.get(id,i), shelpfont, .grey(20) );
+			<s>.setpos(0, (ihelpfont+4)*(i-1) );
+			<s>.setz(1010);
+			grth.add(s);
+		}
+		grth.move( imgh.getpx+10, imgh.getpy + 10 );
+		
+		if( engine.varexist("sndh"+ihelp) )
+			.cbplay("sndh" + ihelp);
+	}
+	delhelp	{
+		delete imgh;
+		grth.deleteallgm;
+		delete grth;
+	}
+	mouse_lclick	{
+		match( igmstate )	{
+			0 => .cactsndstop(true);
+			1 => ;
+			2 => igmstate = 3;
+			3 => {
+				igmstate = 0;
+				.delhelp;
+				.cactsndstop(false);
+				//.lock = (false);
+				.munlockhelp;
+			}
+			4 => igmstate = 0;
+			5 => ;	// moving ftp
+			//? => .cactsndstop(true);
+			? => ;
+		}
+	}
+	/*************************** sygnaly **************************/
+	mwinexit	{
+		.cactsndstop(false);
+		.newanima("anwinexit", "closewin.pyz", 110);
+		anwinexit {
+			.Button_isin;
+			._msact2;
+			._msstd2;
+			.addmethod("butclick", func {
+				if( igmstate!=0 )	return;
+				.lock = (1);
+				.setframe(0,2);
+				<GAME> {
+					if( !.hasvar("timwinclose") )	{
+						.timer = ("timwinclose", 100, func {	<GAME> {
+							.deletegmobj("butclosewin");
+							delete anwinexit;
+							grwindow.deleteallgm;
+							delete grwindow;
+							grgmwin.deleteallgmobj;
+							delete grgmwin;
+							.cactsndstop(true);
+							.lock=(0);
+							}; } );
+					}
+					timwinclose.play;
+				};
+				} );
+		};
+		new Button butclosewin;
+		butclosewin.add("anwinexit");
+	}
+	_win_click(string swin)	{
+		.lock = (1);
+		bsms.setstd;
+		.mwinexit;
+		.newanima("anwindow", "win_"+swin+".pyz", 100);
+		new gmobjvec grwindow;
+		new gmobjvec grgmwin;
+		grwindow.add("anwindow");
+		igmstate = 4;
+	}
+	/*************************** obsluga ftp **********************************/
+	anftp_click	{
+		._win_click("ftp");
+		match(subepizod)	{
+			"kcifconfig" => {
+				new string sftpfont = .stdfont(20);
+				.newtext("txtwinftp", "Connection error", sftpfont, .grey(20) );
+				txtwinftp.setpos( anwindow.getpx + 30, anwindow.getpy + 90 );
+				txtwinftp.setz( anwindow.getz + 10 );
+				grwindow.addlist(A, "txtwinftp", "sftpfont", sftpfont );
+				.cbplay("ania4");
+			}
+			"kcword", "kcssh", "kcssh2", "kcssh3", "kcssh4" => {
+				.copyanima("anwindow", "_anword");
+				_anword.setframe(1,0);
+				.copyanima("anwindow", "_ancalc");
+				_ancalc.setframe(1,1);
+				//new ConImgMover cftp;
+				new DelayMover cftp;
+				cftp.setclickrel(false);
+				cftp.unlock;
+				new gmimgvec grftp;
+				grftp.addlist(A, "_anword", "_ancalc");
+				.copyanima("anwindow", "_anword2");
+				_anword2.setframe(2,0);
+				_anword2.hide;
+				.copyanima("anwindow", "_ancalc2");
+				_ancalc2.setframe(2,1);
+				_ancalc2.hide;
+				grwindow.addlist(A,"_anword", "_ancalc", "grftp", "_anword2", "_ancalc2");
+				grgmwin.add("cftp");
+				if( subepizod=="kcword" )	{
+					if( !clsave.bis("a_zobaczyla_ftp") )	{
+						clsave.bset("a_zobaczyla_ftp");
+						.cbplay("ania12");
+					}
+				}
+			}
+			? => ;
+		}
+	}
+	cftp_GET	{
+		if( grftp.isin(mouse.getpos,1,0) )	{
+			@s = grftp.getsfound;
+			s+=2;
+			<s>.show;
+			cftp.mssetobj(s);
+			igmstate = 5;
+		}
+	}
+	cftp_PUT	{
+		@s = cftp.getfree;
+		<s>.hide;
+		<s>.setpos(0,0);
+		igmstate = 0;
+		if( !anwindow.isin(mouse.getpos, 1, 0) )	{
+			igmstate = 4;
+			s = ( <s>.framenr ? "calc" : "word");
+			if( clsave.bis("kcsys_"+s) )	.cbplay("ania14");
+			else {
+				clsave.bset("kcsys_"+s);
+				<GAME>.mshow(s);
+				<"but"+s>.lock;
+				.cbplay("ania_"+s);
+			}
+		}
+	}
+	/*************************** obsluga konsoli **********************************/
+	ancon_click	{
+		._win_click("konsola");
+		.munlockhelp;
+		
+		new @stdmono12 = .stdmono(12);
+		new @cols = 25;
+		string s;
+		new int xwin = anwindow.getpx + 30;
+		new int ywin = anwinexit.getpy + 68;
+		for( int i=0; i<cols; i++)	{
+			s = "txti" + i;
+			new text <s>;
+			<s>.setfont(stdmono12);
+			<s>.setpos(xwin,ywin+i*12);
+			<s>.createtxt(.white);
+			<s>.setz( anwindow.getz + 10 );
+			grwindow.add(s);
+		}
+		new @column = 0;
+		new @ilimit = 70;
+		new @Dir = "~";
+		new @spasswd = "";
+		new @suser = "student";
+		new @shost = "kchost";
+		
+		new string Code;
+		Lexer::setas("Code");
+		Code.consts = (A, "../", "./","/", "..", ".", "|", ">", ">>", "<" , "<<","'", "@", ":");
+		new vector vec1;
+		vec1.type("string");
+		
+		new ConTextTyper ttp(stdmono12, 12, .white, "at0 !@#$%^&*()-=_+{}|\\[];':\",./<>?", ilimit);
+		ttp.onenter(GAME, "mcheckcon");
+		ttp.setz( anwindow.getz + 10 );
+		
+		grwindow.addlist(A, "stdmono12", stdmono12, "cols", "column", "ilimit", "Code", "vec1", "Dir", "suser", "shost", "xwin", "ywin", "spasswd");
+		grgmwin.add("ttp");
+		
+		.mready;
+		
+		if( subepizod=="kcssh" ) clsave.bset("a_poznala_konsole");
+		else if( !clsave.bis("a_poznala_konsole") )	{
+			clsave.bset("a_poznala_konsole");
+			.cbplay("ania5");
+		}
+	}
+	mpos(int id)	{
+		ttp.txtset("");
+		ttp.setpos(xwin + <"txti"+id>.getw, ywin+id*12);
+		ttp.limit = ( ilimit-<"txti"+id>.get->length );
+	}
+	menable	{	.mpos(column);	ttp.unlock; ttp.enable;	}
+	mout(string s)	{	<"txti"+column>.txtset(s);	}
+	moutln(string s)	{	.mout(s); .mnewline;	}
+	mrewind	{
+		for( int i=0; i<cols-1; i++)	<"txti"+i>.txtset( <"txti"+(i+1)>.get );
+		<"txti"+(cols-1)>.txtset("");
+	}
+	mclear	{
+		grti.txtreset;
+		column = 0;
+	}
+	mnewline	{
+		column++;
+		if( column==cols )	{
+			column--;
+			.mrewind;
+		}
+	}
+	//ttp_ontype	{	fxtype2.playif;	}
+	mread	{
+		Code = ttp.get;
+		Code.id = (0);
+		Code.clear;
+	}
+	bool mcode(string s)	{
+		if( Code.length )	{
+			Code.expects(s, " ", true);
+		} else	{
+			false;
+		}
+	}
+	mput	{
+		@s = "txti"+column;
+		.mread;
+		<s>.txtset( <s>.get + Code );
+		ttp.txtset("");
+		.mnewline;
+	}
+	mready	{	.mout(suser + "@" + shost+":"+Dir+"$ ");	.menable;	}
+	mgocon	{	.mput;	.mready;	}
+	mcplay(string s)	{	ttp.enable;	.cbplay(s);	}
+	mcheckcon	{
+		benter = true;
+		.mread;
+		match( subepizod )	{
+			"kcifconfig" => {
+				if( .mcode("$alpha ifconfig") )	{
+					.mput;
+					.moutln("eth0      Link encap:Ethernet  HWaddr 00:10:A4:78:85:80  ");
+					.moutln("          UP BROADCAST MULTICAST  MTU:1500  Metric:1");
+					.moutln("          RX packets:0 errors:0 dropped:0 overruns:0 frame:0");
+					.moutln("          TX packets:1 errors:0 dropped:0 overruns:1 carrier:0");
+					.moutln("          collisions:0 txqueuelen:100 ");
+					.moutln("          RX bytes:0 (0.0 b)  TX bytes:342 (342.0 b)");
+					.moutln("          Interrupt:11 Base address:0xb000 ");
+					.moutln("");
+					.moutln("lo        Link encap:Local Loopback  ");
+					.moutln("          inet addr:127.0.0.1  Mask:255.0.0.0");
+					.moutln("          UP LOOPBACK RUNNING  MTU:16436  Metric:1");
+					.moutln("          RX packets:44 errors:0 dropped:0 overruns:0 frame:0");
+					.moutln("          TX packets:44 errors:0 dropped:0 overruns:0 carrier:0");
+					.moutln("          collisions:0 txqueuelen:0 ");
+					.moutln("          RX bytes:2808 (2.7 KiB)  TX bytes:2808 (2.7 KiB)");
+					.moutln("");
+					.mconplay("ania9");
+				} else {
+					.mnocon;
+				}
+			}
+			"kcword", "kcprinter" => .mgocon;
+			"kcssh" => {
+				if( iconstate==0 )	{
+					if( .mcode("$alpha ssh $alpha shop $const @ $alpha kcentral") )	{
+						.mput;
+						.moutln("shop@kcentral's password: ");
+						iconstate = 1;
+						spasswd = "";
+					} else .mnocon;
+				}
+			}
+// kcssh2_1|Wpisz: ls|ls - list directory contents - wy¶wietla zawarto¶æ katalogu
+// kcssh3_1|Aby siê wylogowaæ wpisz: exit
+// kcssh3_2|Skopiuj plik Purchase_2008_08_02.cal na swój dysk. U¿yj programu scp i dok³adnej sk³adni:|scp login@host:path/Purchase_2008_08_02.cal .|login: shop|host: kcentral|path: .|passwd: io2pb6ku
+			"kcssh2" => {
+				if( .mcode("$alpha ls") )	{
+					.mput;
+					.moutln("Purchase_2008_01_12.cal  Purchase_2008_06_08.cal");
+					.moutln("Purchase_2008_01_15.cal  Purchase_2008_06_26.cal");
+					.moutln("Purchase_2008_03_05.cal  Purchase_2008_07_21.cal");
+					.moutln("Purchase_2008_04_01.cal  Purchase_2008_08_02.cal");
+					iconstate = 2;
+					.mconplay("zak8");
+				} else {
+					.mnocon;
+				}
+			}
+			"kcssh3" => {
+				if( iconstate==2 )	{
+					if( .mcode("$alpha exit") )	{
+						.mput;
+						.moutln("Connection to kcentral closed.");
+						Dir = "~";
+						suser = "student";
+						shost = "kchost";
+						.mgocon;
+						iconstate = 3;
+						.mconunlock;
+					} else {
+						.mnocon;
+					}
+				} else if (iconstate==3)	{
+					//scp login@host:path/Purchase_2008_08_02.cal .
+					if( .mcode("$alpha scp $alpha shop $const @ $alpha kcentral $const : $const ./ $alpha Purchase_2008_08_02 $const . $alpha cal $const .") )	{
+						.mput;
+						.moutln("shop@kcentral's password: ");
+						iconstate = 4;
+						spasswd = "";
+					} else {
+						.mnocon;
+					}
+				}
+			}
+			? => ;
+		}
+	}
+	key_down	{
+		if( benter )	{
+			benter = false;
+			return;
+		}
+		if (iconstate==1 || iconstate==4)	{
+			if( .mreadpas )	{
+				if( spasswd == "io2pb6ku" )	{
+					if( iconstate==1)	{
+						.moutln("Last login: 2008.08.02");
+						Dir = "~] ";
+						suser = "[shop";
+						shost = "kcentral";
+						.mgocon;
+						.mconplay("ania18");
+					} else {
+						.moutln("Purchase_2008_08_02.cal              100% 4355     4.3KB/s   00:00");
+						.mgocon;
+						.mconplay("zak12");
+					}
+				} else {
+					.moutln("Invalid password");
+					.mgocon;
+					.mcplay("zak6");
+				}
+				if( iconstate==1 )		iconstate = 0;
+				else iconstate = 3;
+			}
+		}
+	}
+	bool mreadpas	{
+		if( keyboard.iskey("enter") )	{
+			.mnewline;
+			return true;
+		} else if( keyboard.iskey("backspace")) {
+			spasswd = spasswd.strsube(1);
+		} else spasswd += keyboard.getkey;
+		false;
+	}
+	mconunlock	{
+		.munlockhelp;
+		butclosewin.unlock;
+		ttp.enable;
+		igmstate = 0;
+	}
+	mconplay(string s)	{
+		.mready;
+		ttp.disable;
+		butclosewin.lock;
+		igmstate = 1;
+		.mlockhelp;
+		.cbplay(s);
+	}
+	mnocon	{
+		if( Code.length ) .mcplay("ania7");
+		else .mgocon;
+	}
+	mnotes	{	<GAME>	{
+		.newanima("annotes", "$scripts/common/notes.pyz", 2000 );
+		.copyanima("annotes", "annottop");
+		annottop.anplayfin(1, func {
+			.cycle = ("timtop", func {
+				annotes.move(-8,6);
+				annottop.move(-8,6);
+				if( annotes.getex > 350 )	.play;
+				else {	<GAME> {
+					new ConTextTyper ttmac("fntnotes",ifntnotes, .notescol, "at0 !@#$%^&*()-=_+{}|\\[];':\",./<>?", inoteslimit);
+					ttmac.setpos( annotes.getpx+inotesx, annotes.getpy+inotesy);
+					ttmac.enable;
+					ttmac.setz(2010);
+					ttmac.onenter( GAME, func {
+						string s = ttmac.get;
+						s.clear;
+						if( s.length==0 ) return;
+						
+						igmstate = 1;
+						.mlockhelp;
+						claskexit.ask( "ania10", "zak3", "zak4", func {	<GAME> {
+							new db dbmac;
+							dbmac.dbbuild(A, ttmac.get, 1);
+							dbmac.setseparator("|");
+							dbmac.save("lang/anotes_MAC.db");
+							clsave.set("anotes_text", "MAC");
+							string s = ttmac.get->to_u;
+							s.clear;
+							s.change(" ", "");
+							clsave.set("prawidlowy_MAC", s=="00:10:A4:78:85:80");
+							
+							.mgotogame;
+							}; } , func {
+								igmstate = 0;
+								.munlockhelp;
+								ttmac.enable;
+							} );
+						} );
+					igmstate = 0;
+					.munlockhelp;
+				}; }
+				} );
+			timtop.play;
+			} );
+	}; }
+	/*********************** wlaczenie worda *****************************/
+	anword_click	{
+		match( subepizod )	{
+			"kcword" => {
+				igmstate = 4;
+				if( clsave.bis("kcsys_print") )	{
+					gameapi.play("Word");
+				} else .cbplay("ania15");
+			}
+			? => ;
+		}
+	}
+	/*********************** calc *****************************/
+	ancalc_click	{
+		match( subepizod )	{
+			"kcssh4" => gameapi.play("Calc");
+			? => {	igmstate = 4;
+				.cbplay("ania16");
+			}
+		}
+	}
+}

@@ -1,0 +1,80 @@
+game Info : Computro	{
+	init	{
+		Computro::init("info");
+		
+		//new img imbg;
+		//imbg.create(800,600,.grey(240),255);
+		.img = ("bkg.pyz");
+		
+		new GUI gui("butgame");
+		
+		.sounds = (A,
+			"sndgo1", "Dzisiejszy ¶wiat zalewaj± informacje; Codziennie niezliczone wiadomo¶ci p³yn± do nas z telewizora radia i internetu; Czy jeste¶my przygotowani na taki nat³ok informacji? Zobaczmy jak ¿y³ pierwotny cz³owiek", "mnext",
+			"snd1", "Ca³e ¿ycie otacza³a go przyroda; Jedynym no¶nikiem informacji by³ drugi cz³owiek z którym czêsto porozumiewa³ siê bez s³ów", "mnext",
+			"snd2", "Ludzie ¿yli w ma³ych spo³eczno¶ciach a starsi przekazywali m³odym wiedzê; Wiedzy tej nie spisywano wiêc czêsto ginê³a wraz ze ¶mierci± do¶wiadczonych osobników", "mnext",
+			"snd3", "Du¿o wa¿niejsza od posiadanej wiedzy by³a dla przeciêtnego cz³owieka zrêczno¶æ; Od tego czy rozpali ogieñ upoluje zwierzê lub umknie drapie¿nikowi zale¿a³o jego prze¿ycie", "mnext",
+			"snd4", "Przez tysi±ce lat ¿ycie ludzi bieg³o podobnie", "mnext",
+			"sndgo2", "Z czasem w ciep³ych suchych rejonach Ziemi na ¿yznych terenach wzd³u¿ rzek powsta³y du¿e skupiska ludzi", "mnext",
+			"snd5", "Ludzie zaczêli gromadziæ wiedzê i stworzyli pierwsze cywilizacje zdolne do budowania skomplikowanych konstrukcji", "mnext",
+			"snd6", "Ludzka pamiêæ nie wystarcza³a do zachowania odkryæ technicznych i matematycznych", "mnext",
+			"snd7", "Dlatego ludzie wymy¶lili pismo; Pierwsi skrybowie uwa¿ani byli za wielkich czarowników; Zwykli ludzie nie mogli poj±æ jak mo¿na przechowywaæ wiedzê na papirusie lub glinianej tabliczce", "mnext",
+			"snd8", "Przez d³ugi czas litery traktowano jak magiczne znaki; Tymczasem by³y to proste rysunki odwzorowuj±ce realne pojêcia; Czêsto jeden rysunek mia³ wiele pokrewnych znaczeñ", "mnext",
+			"snd9", "Z czasem znaki upraszczano; Pismo rozpowszechnia³o siê i coraz wiêksza ilo¶æ informacji przechodzi³a na nastêpne pokolenia", func { .mnext; .mshow; },
+			"sndgo3", "Lecz jeszcze niespe³na 300 lat temu przeciêtny cz³owiek przeczyta³ przez ca³e swoje ¿ycie mniej informacji ni¿ zawiera jedno wydanie dzisiejszego ogólnokrajowego dziennika", "mnext",
+			"snd10", "Zdecydowana wiêkszo¶æ ludzi ¿y³a na wsi i ma³o kto opuszcza³ kiedykolwiek rodzinne strony", "mnext",
+			"snd11", "Wielkie zmiany nadesz³y wraz z rewolucj± przemys³ow± pod koniec 18 wieku", "mnext",
+			"snd12", "Wynalezienie maszyny parowej umo¿liwi³o masowe przemieszczanie ludzi najpierw po Europie pó¼niej po ca³ej kuli ziemskiej", "mnext",
+			"snd13", "Pojawi³a siê bur¿uazja; Klasa przedsiêbiorców zamieszkuj±cych du¿e miasta", "mnext",
+			"sndgo4", "Zjawiska te da³y pocz±tek nowemu porz±dkowi spo³ecznemu Kapitalizmowi a wraz z nim nowej ga³êzi nauki Ekonomii", "mnext",
+			"snd14", "Dawniej uczeni formowali ró¿ne niesprawdzalne teorie czêsto na pograniczu mistyki i religii", "mnext",
+			"snd15", "Wraz z rewolucj± przemys³ow± rozwija³ siê jednak nowy typ naukowca; Wolnego od ideologii i szukaj±cego potwierdzenia swoich teorii w ¶cis³ych obserwacjach przyrody", "mnext",
+			"snd16", "Jego praca wi±za³a siê z wykonywaniem niezliczonych pomiarów i wymaga³a coraz bardziej rozbudowanego aparatu matematycznego", "mnext",
+			"snd17", "Ilo¶æ odkryæ i wiedza o ¶wiecie ros³a tak szybko ¿e aby normalnie funkcjonowaæ w spo³eczeñstwie wszystkie dzieci musia³y zacz±æ chodziæ do szko³y", "mnext",
+			"sndgo5", "Dzisiaj dzienna dawka informacji któr± przetwarza pojedynczy cz³owiek jest wiêksza ni¿ kiedykolwiek; Czy nasze organizmy przystosowane przez prawie ca³± historiê gatunku ludzkiego do ¿ycia po¶ród przyrody wytrzymaj± takie natê¿enie?", "mnext"
+			);
+		new int iscena = 1;
+		new int ishow = 0;
+		new int iwav = 1;
+		new gmimgvec grels;
+		.mloadscene;
+	}
+	mloadscene	{
+		grels.deleteallgm;
+		grels.free;
+		"grels" .* ("scena"+iscena+".pyz");
+		grels.hide;
+		ishow=0;
+		.mshow;
+		.cbplay("sndgo"+iscena);
+	}
+	mshow	{
+		<grels.get(ishow)>.show;
+		ishow++;
+	}
+	mnext	{	<GAME>	{
+		if( ishow>=grels.size )	{
+			iscena++;
+			if(iscena>5 )	<GAME>.mplay;
+			else {
+				.mloadscene;
+			}
+		} else {
+			.mshow;
+			.cbplay("snd"+iwav);
+			iwav++;
+		}
+	}; }
+	mplay	{
+// 		grels.deleteallgm;
+// 		grels.free;
+		ccs.close( func { .gotoadv("adaula", "gameadaula0"); } );
+		//gui.newcheckbox("cb1");
+		//cb1.winsetpos(400,300);
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug ) clpause.pause;
+	}
+}

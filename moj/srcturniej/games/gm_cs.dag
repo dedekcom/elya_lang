@@ -1,0 +1,46 @@
+game CShol : Computro	{
+	init	{
+		Computro::init("cshol");
+		.imgs = (A, "bg.pyz", "giaro.pyz 10", "winc.pyz 10");
+		.sounds = (A,
+			":giaro1", "no i w³a¶nie idê zobaczyæ tamten sprzêt; Mo¿e to jaka¶ b³êdna dostawa by³a", func { .winc(1); },
+			":winc1", "S³uchaj ja chyba wiem co to za czê¶ci; Pewnie chodzi o wyposa¿enie do pracowni; Zostaw to mnie", func { .giaro(2); },
+			":giaro2", "Acha; My¶la³em ¿e to mo¿e jaka¶ pomy³ka", func { .winc(2); },
+			":winc2", "Nie wszystko w porz±dku ja siê tym zajmê", func { .giaro(3); },
+			":giaro3", "Dobra dziêki", func {
+				mus.fadeout(1000);
+				ccs.close( func { .gotoadv("adhol","gameadhol0"); }
+				); }
+			);
+		ccs.enter( func {
+			mus.playstr("plama.ogg -v 30");
+			//.giaro(1);
+			.winc(1);
+		} );
+	}
+	giaro(int id)	{
+		.cbplay("giaro"+id);
+		angiaro.play("talk");
+		anwinc.play("stand");
+	}
+	winc(int id)	{
+		.cbplay("winc"+id);
+		angiaro.play("stand");
+		anwinc.play("talk");
+	}
+	mouse_lclick	{
+		if( igmdebug ) .cactsndstop(true);
+	}
+}
+
+game CSgim : Computro	{
+	init	{
+		Computro::init("csgim");
+		.imgs = (A, "bkg.pyz", "asystent.pyz 10");
+		anasystent.anplayfin(0, func {
+			//sgmlastscene = "CSgim";
+			.gotoadv("adgim","gameadgim2");
+			} );
+	}
+}
+

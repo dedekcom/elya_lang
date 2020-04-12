@@ -1,0 +1,128 @@
+game Obrazrle : Computro	{
+	init	{
+		Computro::init("obrazrle");
+		
+		.imgs = (A, "bkg.pyz", "maski.pyz 5", "herbH.pyz");
+		new img imgbkg;
+		imgbkg.copy("anbkg");
+		anbkg.hide;
+		.copyanima("anmaski", "anblik");
+		anblik.setframe(1,0);
+		
+		new vector vecorigin;
+		new vector vecnew;
+		
+		new int ilesq = 8;
+		new @sqw = anherb.getw/ilesq;
+		new @sqh = anherb.geth/ilesq;
+		int c[3];
+		int dy, string s, int dx, int j, string s2, int id;
+		int x = anherb.getpx;
+		int y = anherb.getpy;
+		new gmimgvec grels;
+		new gmobjvec gcols;
+		new int ifont = 12;
+		new string stdfont12 = .stdfont(ifont);
+		@wk = 80;
+		@hk = 40;
+		.newtext("txtcol", "", stdfont12, .grey(15));
+		txtcol.hide;
+		int pos, int oldpos=-1, int ile=0, int lastx;
+		for( int i=0; i<ilesq; i++)	{
+			dy = y+i*sqh;
+			lastx = 140;
+			for( j=0; j<ilesq; j++)	{
+				dx = x+j*sqw;
+				|c0,c1,c2| = anherb.getrgb(dx+5, dy+5);
+				s = "img"+i+"_"+j;
+				new img <s> {
+					.vars2(A,"icol",-1,"iid",vecorigin.size);
+				};
+				vecorigin.add(c0);
+				vecorigin.add(c1);
+				vecorigin.add(c2);
+				//<s>.create(sqw, sqh, c0,c1,c2,255);
+				<s>.create(sqw, sqh, .grey(30),255);
+				<s>.setpos(dx, dy);
+				vecnew.add(-1);
+				vecnew.add(-1);
+				vecnew.add(-1);
+				
+				grels.add(s);
+				
+				s = ""+c0+"_"+c1+"_"+c2;
+				pos = gcols.find(s);
+				if( pos<0 )	{
+					id = gcols.size;
+					pos = id;
+					gcols.add(s);
+					s2 = "imgcol"+id;
+					new img <s2>;
+					<s2>.create(wk, hk, c0,c1,c2,255 );
+					txtcol.txtset(id);
+					txtcol.setpos( (wk-ifont)/2, (hk-ifont)/2 );
+					<s2>.blit("txtcol");
+					<s2>.setpos(143+id*(wk+8),122);
+					<s2> (id,c0,c1,c2)	{ (@id,@c0,@c1,@c2)
+						.vars2(A,"id",id,"R",c0,"G",c1,"B",c2);
+						.addmethod("mcol", func { return R,G,B; } );
+					};
+				}
+				if( pos==oldpos ) ile++;
+				else if( oldpos!=-1 )	{
+					lastx = .mblitcopies(ile,oldpos,lastx,dy);
+					oldpos=pos;
+					ile=1;
+				} else {
+					oldpos=pos;
+					ile=1;
+				}
+			}
+		}
+		if( ile!=0 )	_ = .mblitcopies(ile,oldpos,lastx,dy);
+		.sounds = (A,
+			":fel1", "Jaki¶ abstrakcyjny ten obraz; Wygl±da jak ekran dotykowy", "mret",
+			":fel2", "Gotowe; To chyba jaki¶ herb", func {	<GAME> {
+				new Buttons butend("powrot.pyz");
+				}; }
+			);
+		.cbplay("fel1");
+	}
+	butend_lclick	{
+		clsave.bset("obraz_zlozony");
+		.gotoadv("adkaplica", "gameadkaplica");
+	}
+	mret	{	igmstate=1;	}
+	int mblitcopies(int ile, int oldpos, int lastx, int dy)	{
+		txtcol.txtset("("+ile+"*"+oldpos+") ");
+		txtcol.setpos(lastx, dy);
+		imgbkg.blit("txtcol");
+		lastx + txtcol.getw+4;
+	}
+	mnext	{	.mset((icol+1)%gcols.size);	}
+	mset(int id)	{
+		icol = id;
+		int c[3];
+		|c0,c1,c2| = <"imgcol"+id>.mcol;
+		.create(sqw, sqh, c0,c1,c2, 255);
+		txtcol.setpos(.getcx-ifont/2, .getcy-ifont/2);
+		txtcol.txtset(id);
+		.blit("txtcol");
+		vecnew.set(iid,c0);
+		vecnew.set(iid+1,c1);
+		vecnew.set(iid+2,c2);
+		if( vecorigin.veceq("vecnew") )	{
+			igmstate = 0;
+			.cbplay("fel2");
+		}
+	}
+	mouse_lclick	{
+		if( igmstate!=1 ) return;
+		if( grels.isin(mouse.getpos,1,1) )	{
+			<grels.getsfound>.mnext;
+		}
+	}
+	mouse_rclick	{
+		if( igmdebug )	.cbplay("fel2");
+	}
+}

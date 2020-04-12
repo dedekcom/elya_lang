@@ -1,0 +1,155 @@
+game Schody : Computro	{
+	init	{
+		Computro::init("schody");
+// 		bkg.pyz  maska.pyz  plyta.pyz
+		.imgs = (A, "bkg.pyz", "maska.pyzH 20", "plyta.pyz 10");
+		.sfxs = (A, "otwiera_wlaz 50", "start_wlaz 50", "end_wlaz 50", "wciska_glaz 70");
+		new img imgbkg;
+		imgbkg.copy("anbkg");
+		anbkg.hide;
+		anplyta.addmethod("onendframe", func {
+			grtxt.each( func { (@id)
+				if( .getpy< anplyta.getcy-5 ) .move(2,2);
+				else .move(2,-2);
+				} );
+			} );
+		anplyta.addmethod("onfinish", func {
+			anmaska.show;
+			fxotwiera_wlaz.playloop;
+			.cycle = ("timcyk", func {
+				anplyta.move(2, 0);
+				grtxt.move(2, 0);
+				if( anplyta.getpx<642 )	{
+					.play;
+				} else {
+					mus.fadeout(1500);
+					fxend_wlaz.objplayfin( func {
+						clsave.bset("schody_odsloniete");
+						.gotoadv("adkaplica", "gameadkaplica");
+						} );
+				}
+				} );
+			timcyk.play;
+			} );
+		// ffc600 - zloty
+		new font fn12;
+		new int ifn12 = 12;
+		fn12.load( sgmfontitalic, ifn12 );
+		new font fn20;
+		new int ifn20 = 20;
+		fn20.load( sgmfontitalic, ifn20 );
+		new gmimgvec grels;
+		"grels" .* "klocki.pyz";
+		grels.setz(30);
+		.newtext("txtnr", "", "fn12", .mgold);
+		new img imblit;
+		/*new vector vecnr;
+		if( !engine.fileexist("scripts/schody/numery.vec") )	{
+			for( int i=0; i<grels.size; i++)	vecnr.add(30->rand);
+			vecnr.save("scripts/schody/numery.vec");
+		}
+		vecnr.load("scripts/schody/numery.vec");*/
+		grels.each( func { (@id)
+				imblit.copy(this);
+				txtnr.txtsetcol( id+1, .mshadow );
+				txtnr.setpos( imblit.getcx - txtnr.getw/2 + 1, imblit.getcy - txtnr.geth/2 + 1 );
+				imblit.blit("txtnr");
+				txtnr.createtxt( .mgold );
+				txtnr.move(-1,-1);
+				imblit.blit("txtnr");
+				
+				.setframe(-1,1);
+				imblit.copy(this);
+				txtnr.move(2,2);
+				txtnr.createtxt( .mshadow );
+				imblit.blit("txtnr");
+				txtnr.createtxt( .mgold );
+				txtnr.move(-1,-1);
+				imblit.blit("txtnr");
+				.setframe(-1,0);
+			} );
+		imblit.hide;
+		
+		.lang_db("dbc", "tekst");
+		new gmimgvec grtxt;
+		.newtext("txtup", .mgetdb(0), "fn20", .mgold );
+		txtup.setpos( anplyta.getcx - txtup.getw/2, anplyta.getpy + 17 );
+		txtup.setz(12);
+		.mtxtshadow("txtup");
+		
+		.newtext("txtdown", .mgetdb(1), "fn20", .mgold );
+		txtdown.setpos( anplyta.getcx - txtdown.getw/2, anplyta.getey - 32 - txtdown.geth );
+		txtdown.setz(12);
+		.mtxtshadow("txtdown");
+		
+		.newtext("txtwzor", "-2", "fn20", .mgold );
+		txtwzor.setz(12);
+		txtwzor.setpos( anplyta.getpx+50, anplyta.getcy - txtwzor.geth/2 );
+		.mtxtshadow("txtwzor");
+		.newtext("txtpodp", "C-2 -> A", "fn12", .mgold );
+		txtpodp.setz(12);
+		txtpodp.setpos( anplyta.getpx+40, txtwzor.getpy+26 );
+		._mtxtshadow("txtpodp","fn12");
+		
+		//133,97
+		@s = "A";
+		@y = 97;
+		@x = anmaska.getpx - 30;
+		.newtext("txtalf", "A", "fn12", .mgold );
+		while(s.getbyte(0)<=BYTEZ)	{
+			txtalf.txtsetcol( s, .mshadow );
+			txtalf.setpos(x, y);
+			imgbkg.blit("txtalf");
+			txtalf.move(-1,-1);
+			txtalf.createtxt( .mgold );
+			imgbkg.blit("txtalf");
+			y+= txtalf.geth + 2;
+			s.setbyte( 0, s.getbyte(0)+1 );
+		}
+		txtalf.hide;
+		
+		.sounds = (A,
+			":fel1", "Co tu mamy; Po lewej stronie alfabet; Na p³ycie jakie¶ literki; Najpewniej zaszyfrowany napis", func { .cbplay("ania1"); },
+			":ania1", "U góry i na dole kamienne przyciski", func { .cbplay("zak1"); },
+			":zak1", "A na lewej czê¶ci p³yty minus 2 i poni¿ej jaki¶ wzór; Kombinujcie ja jestem jeszcze za s³aby do rozgryzania algorytmów", func { igmstate = 1; }
+			);
+		.cbplay("fel1");
+	}
+	mtxtshadow(string stxt)	{	._mtxtshadow(stxt,"fn20");	}
+	_mtxtshadow(string stxt, string sfont)	{
+		@s = stxt+"s";
+		.newtext(s, <stxt>.get, sfont, .mshadow );
+		<s>.setpos( <stxt>.getpx+1, <stxt>.getpy+1 );
+		<s>.setz(<stxt>.getz-1);
+		grtxt.add(s);
+		grtxt.add(stxt);
+	}
+	string mgetdb(int row)	{
+		@s = dbc.get(row,0)->to_u;
+		int ba = BYTEA - 2;
+		int bz = BYTEZ - BYTEA+1;
+		for( int i=0; i<s.length; i++)	{
+			if( s.getbyte(i)!=BYTESPACE )
+				s.setbyte( i, (s.getbyte(i)-ba)%bz+BYTEA );
+		}
+		s;
+	}
+	mgold	{	return 255,204,0; }
+	mshadow	{	.grey(32);	}
+	mouse_lclick	{
+		if( igmdebug )	.cactsndstop(true);
+		if( igmstate!=1 ) return;
+		if( grels.isin(mouse.getpos,1,1) )	{
+			@s = grels.getsfound;
+			fxwciska_glaz.play;
+			<s>.setframe(-1,!<s>.framenr);
+			s ="";
+			for( int i=0; i<grels.size; i++) s+= <grels.get(i)>.framenr;
+			if( s==dbc.get(2,0) )	{
+				igmstate = 0;
+				fxstart_wlaz.play;
+				anplyta.play(-1);
+			}
+		}
+	}
+}

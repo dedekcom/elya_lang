@@ -1,0 +1,451 @@
+game Word : Computro	{
+	init	{
+		Computro::init("word");
+		
+		sgmlastscene = "Word";
+		
+		.img = ("bkg.pyz");
+		
+		new Buttons buts("buts.pyz");
+		buts	{
+			.mgetbut("bold");
+			.mgetbut("italic");
+			.mgetbut("left");
+			.mgetbut("center");
+			.mgetbut("right");
+			<grbuts.getsac("print")>.addtogamevars("anprint");
+			.lock;
+		};
+		
+		new classplacepointer2 clp;
+		
+		.sounds = (A,
+			":zak1", "Aniu przeskanowa³em ci wzór podania ale nie umiem go wype³niæ", func { clp.showob("imgtxt", "ll"); .cbplay("zak2");	},
+			":zak2", "Przepisz tutaj podanie i poprawnie je wype³nij", func { clp.show(<sfirsthelp>.getpx+<sfirsthelp>.getw/2, <sfirsthelp>.getpy, "dd"); .cbplay("zak3");	},
+			":zak3", "Klikaj na te znaki zapytania ¿eby przeczytaæ jak dok³adnie napisaæ ka¿d± liniê tekstu", func { clp.showob("anprint", "lu"); .cbplay("zak4"); },
+			":zak4", "Kiedy podanie bêdzie wype³nione poprawnie wydrukuj je", func { clp.showob("anbold", "ru"); .cbplay("zak5"); },
+			":zak5", "Wszystkie opcje takie jak pogrubienie nachylenie czy zmiana rozmiaru tekstu znajduj± siê tutaj", func { clp.stoph; .mstart; },
+			":zak_err", "Nie mo¿emy drukowaæ; W tej linii jest b³±d", func { <GAME>.vardel("imger"); .mstart; },
+			":zak_ok", "Super dokument idealnie skopiowany; Pirania nie powinna siê czepiaæ; Ustaw jeszcze kilka parametrów i drukujemy", func { /* buts2.unlock; */; },
+			":zak_quit", "Najpierw napiszmy podanie", null
+			);
+		
+		new font fnital;
+		fnital.load( sgmfontitalic, 36 );
+		new font fnbold;
+		fnbold.load(sgmfontmonobold, 36);
+		.newtext("txtitalic", "I", "fnital", .black);
+		.newtext("txtbold", "B", "fnbold", .black);
+		txtitalic.setpos( anitalic.getcx-txtitalic.getw/2, anitalic.getcy-txtitalic.geth/2 );
+		txtbold.setpos( anbold.getcx - txtbold.getw/2, anbold.getcy-txtbold.geth/2 );
+		txtitalic.setz(10);
+		txtbold.setz(10);
+		
+		new font fnsize;
+		new int ifontsize = 10;
+		new string senumfont = .stdfont(10);
+		.mfontsize(0);
+		
+		new img imgtxt	{
+			.create(273, 390, .grey(242), 255);
+			.setpos( 60, 140 );
+			.setz(5);
+			new img im1;
+			im1.create(.getw, 1, .grey(192), 240);
+			im1.setpos(.getpx, .getpy);
+			.blit("im1");
+			im1.move(0, .geth-im1.geth);
+			.blit("im1");
+			im1.create(1, .geth, .grey(192), 240);
+			im1.setpos(.getpx, .getpy);
+			.blit("im1");
+			im1.move(.getw-im1.getw, 0);
+			.blit("im1");
+			delete im1;
+		};
+		new img imszablon;
+		imszablon.copy("imgtxt");
+		imszablon.setpos( iResX - imszablon.getw - imgtxt.getpx, imgtxt.getpy );
+		new int ikartax = 90;
+		new int ikartay = 170;
+		new int ienumpos = 15;
+		new string schars = "a0 -.,:";
+		new int idty = 3;
+		new TextBoxTyper ttt("fnsize", ifontsize, 0.6*ifontsize, .black, schars, ikartax,ikartay, 217,310, idty);
+		ttt.cut(17);
+		ttt.setz(20);
+		ttt.enablemove = (false);
+		.menum;
+		
+		string s;
+		for( int i=0; i<ttt.Rows; i++)	{
+			s = "fntt_" + i;
+			new font <s>;
+			new int <"i" + s> = ifontsize;
+			<s>.load( sgmfontmono, ifontsize );
+			<s> {
+				.vars2(A,"bold", 0, "italic", 0);
+			};
+			ttt.settyper( i, s, ifontsize, 0.6*ifontsize, .black, schars, "left");
+		}
+		
+		.mfontstd;
+		.mdir("left");
+		
+		.lang_db("dbsz", "szablon");
+		int i[3], string s[3];
+		new font fntp;
+		new gmimgvec grel;
+		new gmimgvec grhelps;
+		new string sfirsthelp = null;
+		int x = ikartax - imgtxt.getpx + imszablon.getpx;
+		int y = ikartay;
+		for( i = 0; dbsz.get(i,0)!="<expect>"; i++ )	{
+			s2 = "txen"+i;
+			.newtext(s2, ""+(i+1)+":", senumfont, .grey(24));
+			<s2>.setpos(x-<s2>.getw-ienumpos, y);
+			<s2>.setz(40);
+			if( dbsz.getcolsno(i)>1) {
+				s0 = dbsz.get(i,1);
+				i1 = s0;	// sczytaj rozmiar
+				if( s0.contains("b") ) fntp.load( sgmfontmonobold, i1 );
+				else if (s0.contains("i") ) fntp.load( sgmfontitalic, i1 );
+				else fntp.load( sgmfontmono, i1);
+				grel.free;
+				i2 = 0;
+				for( i0 = 2; i0<dbsz.getcolsno(i); i0++)	{
+					s1 = dbsz.get(i,i0);
+					i0++;
+					s = "tx"+i+"_"+i0;
+					match(s1)	{
+						"t", "x" => {
+							.newtext(s, dbsz.get(i, i0), "fntp", s1=="t" ? .black : .blue);
+							<s>.setpos(x+i2, y);
+							i2 += <s>.getw;
+							<s>.setz(30);
+							grel.add(s);
+						}
+						"op" => {
+							s1 = "txh"+i;
+							.newtext(s1, dbsz.get(i, i0), "fntp", .white);
+							<s1>.setpos( <s2>.getpx+5, y );
+							if( <s1>.getex > iResX-20 )
+								<s1>.setpos( iResX-<s1>.getw-20, y );
+							<s1> {
+								.setz(100);
+								new img imbg;
+								imbg.create( .getw+10, .geth+2, .red, 222 );
+								imbg.setpos( .getpx-5, .getpy-1 );
+								imbg.setz(90);
+								imbg.hide;
+								.hide;
+							};
+							s1 += "h";
+							if( sfirsthelp==null ) sfirsthelp=s1;
+							.newtext( s1, "?", "fntp", .white );
+							<s1>.setpos( <s2>.getex+2, y );
+							<s1> {
+								.setz(80);
+								new img imbg;
+								imbg.create( .getw+2, .geth+2, .red, 222 );
+								imbg.setz(40);
+								imbg.setpos( .getpx-1, .getpy-1 );
+							};
+							grhelps.add(s1);
+						}
+						? => ;
+					}
+				}
+				if( s0.contains("c") )	grel.move( (ttt.W - i2)/2, 0 );
+				else if (s0.contains("r") ) grel.move( ttt.W - i2, 0 );
+				y += i1 + idty;
+			} else {
+				y+=ifontsize + idty;
+			}
+		}
+		// podpowiedzi: <sdb>.findbyrow(sfrom)+1
+		i0 = 0;
+		i1 = 0;
+		new gmimgvec grpod;
+		i2 = 0;
+		@ipodpo = 16;
+		@spodpofont = .stdfont(ipodpo);
+		for( i=dbsz.findbyrow("<podp>")+1; i<dbsz.getrowsno; i++)	{
+			s = "txpod"+i;
+			.newtext(s, dbsz.get(i, 0), spodpofont, .grey(32) );
+			<s>.setz(200);
+			<s>.move(0, i2*ipodpo);
+			i2++;
+			if( <s>.getw > i0 ) i0 = <s>.getw;
+			i1+=<s>.geth;
+			grpod.add(s);
+		}
+		new img imgpod;
+		imgpod.create( i0+30, i1+10, .grey(244), 222 );
+		grpod.move( (iResX-i0)/2, iResY-i1-20 );
+		imgpod.setpos( <grpod.first>.getpx - 15, <grpod.first>.getpy - 5 );
+		imgpod.setz(190);
+		imgpod.imgborders(1, .grey(23), 228);
+		
+		igmstate = 0;
+		.cbplay("zak1");
+	}
+	mstart	{
+		ttt.enable;
+		buts.unlock;
+		igmstate = 1;
+	}
+	menum	{
+		int dx = ienumpos;
+		string s0;
+		if( !.hasvar("gren") )	{
+			new gmimgvec gren;
+			for( int i=0; i<ttt.Rows; i++)	{
+				s0 = "txte"+i;
+				new text <s0>;
+				gren.add(s0);
+				<s0>.setz(20);
+				<s0>.setfont(senumfont);
+				<s0>.txtsetcol(""+(i+1)+":", .grey(24));
+			}
+		}
+		for( int i =0; i<gren.size; i++)	{
+			s0 = gren.get(i);
+			<s0>.setpos(ikartax-<s0>.getw-dx, ttt.idpy(i));
+		}
+	}
+	//string mgetdir	{	if( ancenter.isvisible ) "center"; else if (anright.isvisible ) "right"; else "left"; }
+	string mgetdir	{	ttt { <.actual>.Sdir; }; }
+	mupdate	{
+		string s = "fntt_"+ttt.Row;
+		int size = ["i"+s];
+		ttt.settyper( ttt.Row, s, size, 0.6*size, .black, schars, .mgetdir);
+	}
+	ttt_activate	{
+		<GAME>.mfontsize( <.actual>.iFontSize-ifontsize );
+		<GAME>.mdir( <.actual>.Sdir );
+		if( <"fntt_"+Row>.bold ) anbold.show; else anbold.hide;
+		if( <"fntt_"+Row>.italic ) anitalic.show; else anitalic.hide;
+		<"tt"+ Row>.enable;
+	}
+	ttact	{	ttt { <"tt"+ Row>.enable; }; }
+	mfontsize(int id)	{
+		id=.between(8, ifontsize+id, 32);
+		
+		string s;
+		if( .hasvar("ttt") && 0.6*ttt.getact->length*id > ttt.W ) return;
+		
+		ifontsize = id;
+		
+		.vardelif("txtsize");
+		fnsize.load(sgmfontmono, ifontsize);
+		.newtext("txtsize", ifontsize, "fnsize", .black);
+		txtsize.setpos( 453-txtsize.getw/2, 97-txtsize.geth/2 );
+		txtsize.setz(10);
+		
+		if( .hasvar("ttt") )	{
+			s = "fntt_"+ttt.Row;
+			if( <s>.bold )	<s>.load(sgmfontmonobold, ifontsize);
+			else if (<s>.italic )	<s>.load(sgmfontitalic, ifontsize);
+			else <s>.load(sgmfontmono, ifontsize);
+			<"i"+s> = ifontsize;
+			.mupdate;
+			.menum;
+		}
+	}
+	mgetbut(string s)	{
+		string s2 = "an"+s;
+		.copyanima(grbuts.getsac(s), s2);
+		<s2>.setframe(-1,1);
+		<s2>.addtogamevars(s2);
+	}
+	mfontstd	{
+		anbold.hide;
+		anitalic.hide;
+		<"fntt_"+ttt.Row>.bold = (false);
+		<"fntt_"+ttt.Row>.italic = (false);
+		.mfontsize(0);
+	}
+	mfontbold	{
+		anbold.show;
+		anitalic.hide;	
+		<"fntt_"+ttt.Row>.bold = (true);
+		.mfontsize(0);
+	}
+	mfontitalic	{
+		anbold.hide;
+		anitalic.show;
+		<"fntt_"+ttt.Row>.italic = (true);
+		.mfontsize(0);
+	}
+	mdir(string sdir)	{
+		anleft.hide;	ancenter.hide;	anright.hide;
+		<"an"+sdir>.show;
+		if( ttt(sdir) {(@sdir) <.actual>.Sdir!=sdir; } )	{
+			ttt (sdir) { (@sdir) <.actual>.Sdir = (sdir); };
+			.mupdate;
+			ttt.activateact;
+		}
+	}
+	buts_lclick	{
+		match(sobject)	{
+			"up" => { <GAME>.mfontsize(1); .ttact;	}
+			"down" => { <GAME>.mfontsize(-1); .ttact;	}
+			"left", "right", "center" => <GAME>.mdir(sobject);
+			"bold" => {
+				if( anitalic.isvisible )
+					<GAME>.mfontstd;
+				if( anbold.isvisible ) <GAME>.mfontstd;
+				else <GAME>.mfontbold;
+				.ttact;
+			}
+			"italic" => {	if( anbold.isvisible )
+					<GAME>.mfontstd;
+				if( anitalic.isvisible ) <GAME>.mfontstd;
+				else <GAME>.mfontitalic;
+				.ttact;
+			}
+			"close" => .cbplay("zak_quit");
+			"print" => {
+				new vector vec1;
+				vec1.type("string");
+				string s[4];
+				int i[4];
+				igmstate = 3;
+				buts.lock;
+				ttt.disable;
+				bool bleft;
+				bool bright;
+				for( int i=0; i<ttt.Rows; i++)	{
+					s0 = ttt.getid(i);
+					if( dbsz.getcolsno(i)==1 )	{
+						s0.clear;
+						if( s0!="" )	{
+							.merror(i);
+							delete vec1;
+							return;
+						}
+					} else {
+						s1 = dbsz.get(i,1);
+						s2 = "fntt_" + i;
+						s3 = .mttval(i, "Sdir");
+						bright = s1.contains("r");
+						bleft = !bright && !s1.contains("c");
+						if( ["i"+s2]!=s1.getb(0,2) ||
+							(s1.contains("b") && !<s2>.bold ) ||
+							(s1.contains("i") && !<s2>.italic) ||
+							(bright && s3!="right") ||
+							(s1.contains("c") && s3!="center") ||
+							(bleft && s3!="left")
+							)	{
+							.merror(i);
+							delete vec1;
+							return;
+						}
+						s1 = "";
+						i2 = 0;
+						if( bright )	{
+							while(s0.getb(i2,1)==" ") {
+								i2++;
+								s1 = " " + s1;
+							}
+						}
+						for( i0=2; dbsz.get(i,i0)!="op"; i0++ )	{
+							s2 = dbsz.get(i,i0);
+							i0++;
+							match(s2)	{
+								"t" => {
+									s3 = dbsz.get(i,i0);
+									if( s0.getb(i2, s3.length)==s3 )	{
+										i2 += s3.length;
+										s1 += s3;
+									} else {
+										.merror(i);
+										delete vec1;
+										return;
+									}
+								}
+								"x" => {
+									vec1.vecbuildfromstring( dbsz.get( dbsz.findbyrow( "e" + dbsz.get(i,0) ), 1 ), "," );
+									i1 = 1;
+									for( i3=0; i3< vec1.size; i3++)	{
+										s3 = vec1.get(i3);
+										if( s0.getb(i2, s3.length)==s3 && (i2+s3.length==s0.length || s0.getb(i2+s3.length,1)==" ") )	{
+											i1 = 0;
+											i2 += s3.length;
+											s1 += s3;
+										}
+									}
+									if(i1) {
+										.merror(i);
+										delete vec1;
+										return;
+									}
+								}
+								? => ;
+							}
+						}
+						if( s0 != s1 )	{
+							s3 = s0.strsubb(s1.length);
+							s3.clear;
+							if( !(bleft && s3=="") )	{		// same spacje z tylu i kierunek lewo
+								.merror(i);
+								delete vec1;
+								return;
+							}
+						}
+					}
+				}
+				delete vec1;
+				igmstate = 5;
+				// tmp
+				.mfinish;
+			}
+			? => ;
+		}
+	}
+	merror(int id)	{ <GAME> (id){(@id)
+		new img imger;
+		imger.create( .mttval(id, "W"), .mttval(id, "iFontSize"), .red, 192);
+		imger.setpos( .mttval(id, "X"), .mttval(id, "Y") );
+		imger.setz(imgtxt.getz);
+		.cbplay("zak_err");
+	}; }
+	def mttval(int id, string sval)	{
+		ttt (id, sval) { (@id, @sval) <"tt"+id>.<sval>; };
+	}
+	mshow	{
+		.show;
+		imbg.show;
+	}
+	mhide	{
+		.hide;
+		imbg.hide;
+	}
+	mhelp	{
+		buts.lock;
+		igmstate = 0;
+		.cbplay("zak1");
+	}
+	mouse_lclick	{
+		match( igmstate )	{
+			0, 4 => .cactsndstop(true);
+			1 => {
+				if( grhelps.isin(mouse.getpos, 1, 0) )	{
+					<grhelps.getsfound->strsube(1)>.mshow;
+					igmstate = 2;
+				}
+			}
+			2 => {
+				<grhelps.getsfound->strsube(1)>.mhide;
+				igmstate = 1;
+			}
+			3 => igmstate = 4;
+			? => ;
+		}
+	}
+	mfinish	{
+		clsave.set("wydruk_podania", 1);
+		.gotoadv("adinania","gameadinania0");
+	}
+}

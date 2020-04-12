@@ -1,0 +1,208 @@
+game Intro : Computro	{
+	init	{
+		Computro::init("intro");
+		.img = ("bg.png");
+		new real rsetzoom = 0.67;
+		new real rzoomer = 0.003;
+		//new real rzoomer = 0.03;
+		imgbg.anaddfilter;
+		imgbg.setzoom(rsetzoom);
+		imgbg.ancenterscreen;
+		
+		.lang_db("dbtxt", "teksty");
+		new @stdfont32 = .stdfont(28);
+		new string stxtstart = dbtxt.dbgets("txtstart",1);
+		.newtext("txtdata", stxtstart, stdfont32, .grey(248));
+		txtdata.setz(10);
+		txtdata.setpos( iResX-txtdata.getw-20, 20 );
+		txtdata.txtset("");
+		
+		//.cutscene;
+		
+		.sounds=(A,
+			"rektor1", "Witam was bardzo serdecznie w murach naszej Akademii; Rozpoczynamy kolejny rok zajêæ w ponad sze¶æsetletniej historii szko³y", "mcheck0",
+			"rektor2", "Nazywam siê Antoni Bêbenek i mam zaszczyt piastowaæ stanowisko rektora", func { .mscene2; .mrektor("rektor3"); },
+			"rektor3", "Wyk³adam zajêcia od ponad piêædziesiêciu lat; Budowa³em pierwsze komputery lampowe", 
+				func { .mscene1; .rektor("rektor4"); },
+			"rektor4", "Pamiêtam jak sumator zbudowali¶my w 61 ho ho; Mo¿na by³o u³amki dodawaæ i mno¿yæ; To by³y czasy", 
+				func { .rektor("rektor5"); },
+			"rektor5", "Ale wróæmy do dzi¶; O czym to ja; Acha", func { .mscene2; .mrektor("rektor6"); },
+			"rektor6", "Akademia w której rozpoczynacie naukê jest niezwyk³a; Jedyna w swoim rodzaju; Ca³ym ¿yciem Akademii zarz±dza Komputer Centralny", func { .mrektor("rektor7"); },
+			"rektor7", "Tak tak moi drodzy; Od planów lekcji przydzia³u pokojów finansów ksiêgowo¶ci po wzywanie mechaników i hydraulików; Wszystko spoczywa na barkach a raczej tranzystorach Komputera Centralnego; Dziêki temu mo¿emy skupiæ wszystkie wysi³ki na badaniach i nauczaniu", func { .mrektor("rektor8"); },
+			"rektor8", "Oto moi przyjaciele którzy poprowadz± z wami zajêcia", func { .mrektor("rektor9"); },
+			"rektor9", "Profesor Wincenty; Ekspert podstaw informatyki; To on zainicjowa³ budowê Komputera Centralnego w 1973 roku", func { .mrekfin; anwinc._mplay("winc1"); },
+			"winc1", "Wincenty; Mi³o mi", func { anwinc.play("stand"); .mrektor("rektor11"); },
+			"rektor11", "Profesor Sêp; Sieci neuronowe", func { .mrekfin; ansep._mplay("sep1"); },
+			"sep1", "Witam uprzejmie", func { ansep.play("stand"); .timer = ("timgiar", 30, func {
+					if( anbgprof.getex-5 > iResX )	{
+						grsc1.move(-5, 0);
+						.play;
+					} else {
+						.mrektor("rektor10");
+					}
+				} );
+				timgiar.play;
+				},
+			"rektor10", "Doktor Giaro; Specjalista z dziedziny sztucznej inteligencji", func { .mrekfin; angiaro._mplay("giaro1"); },
+			"giaro1", "Bardzo mi mi³o", func { .mscene1; .reks(12); },
+			"rektor12", "Historia Akademii zaczyna siê w roku 1405 od przybycia braci Benedyktynów którzy za³o¿yli tu swój klasztor", func { .reks(13); },
+			"rektor13", "Zakonnicy s³ynêli z wytwarzanego wina i wysokiego poziomu nauczania", func { .reks(14); },
+			"rektor14", "Do dzi¶ przetrwa³ po nich g³ówny budynek i nieczynna ju¿ kaplica", func { .reks(15); },
+			"rektor15", "W roku 1895 na miejscu starych ruin zbudowano nowy gmach w którym teraz jeste¶my", func { .reks(16); },
+			"rektor16", "A nasza szko³a otrzyma³a nazwê Akademia Maszyn; Wykszta³ci³o siê tutaj wielu wspania³ych in¿ynierów i powstawa³y maszyny które potem trafia³y do fabryk", 
+				func { .reks(17); },
+			"rektor17", "50 lat pó¼niej Akademia przekszta³ci³a siê w szko³ê nowoczesnych technologii elektrycznych", func { .rek(18); },
+			"rektor18", "Nied³ugo potem trafi³em tu ja i rozpoczêli¶my z profesorem Wincentym i profesorem Sêpem prace nad mózgiem elektronowym", func { .reks(19); },
+			"rektor19", "Naszym dzie³em jest Komputer Centralny", func { .rek(20); },
+			"rektor20", "Jednak prawdziwy prze³om nast±pi³ kilka lat temu wraz z nadej¶ciem doktora Giaro", func { .reks(21); },
+			"rektor21", "Doktor jest bliski zbudowania pierwszego my¶l±cego robota", func { .rek(22); },
+			"rektor22", "¯yczê i wam aby¶cie miêli swój udzia³ w prze³omowych wynalazkach", func { .rek(23); },
+			"rektor23", "Tymczasem przygotujcie siê do pierwszych jutrzejszych zajêæ", func { grsc1.move( -anbgprof.getpx, 0); .mscene2; .mrektor("rektor24"); },
+			"rektor24", "Komputer Centralny przydzieli³ ka¿demu z was pokój w Internacie a starsi studenci zanie¶li tam wasze rzeczy; Kiedy wyjdziecie z auli mój asystent da ka¿demu kartê magnetyczn± do pokoju i plan lekcji; Dziêkujê za uwagê", func { .mrekfin;
+				mus.fadeout(1000);
+				ccs.close( func {
+					clsave.set("game_day", 1);
+					.gotoadv("adaula","gameadaula0");
+					ccs.show;
+					});
+				}
+		);
+		
+		new img im2;
+		im2.create(iResX, iResY, .white, 255);
+		im2.anaddfilter;
+		im2.hide;
+		
+		/*new img imx;
+		imx.create(300, 300, .white, 255);
+		@dx = (imgbg.getw-iResX)/2;
+		@dy = (imgbg.geth-iResY)/2;
+		imx.setpos(200+dx, 200+dy);
+		imx.blit("imgbg");
+		imx.move(-dx, -dy);*/
+				
+		new string simbg = "imgbg";
+		
+		.cnewtimerfin("timstart", 50, stxtstart.length+1, func { timtik.play; } );
+		timstart.addmethod("ontick", func {
+			txtdata.txtset( stxtstart.getb(0, txtdata.get->length+1) );
+			txtdata.txtshadow(1, stdfont32);
+			} );
+		new real RY = iResY/2;
+		.timer = ("timtik", 1300, func {
+// 			.tickstart;
+			if( .getdelay==1300 )	{
+				.delay(30);
+				.play;
+				return;
+			}
+			if( rsetzoom<1 ) RY -= rsetzoom;
+			if( rsetzoom<1 && rsetzoom+rzoomer>=1 )	{
+				simbg = "im2";
+				im2.blit("imgbg");
+				//imgbg.unlink;
+				imgbg.hide;
+				im2.show;
+				RY = iResY/2;
+				gameapi.setmusicvol(30);
+				.cbplay("rektor1");
+			} else gameapi.setmusicvol(60);
+			rsetzoom+=rzoomer;
+			<simbg>.setzoom(rsetzoom);
+			//<simbg>.ancenterscreen;
+			
+			<simbg>.ansetcpos( iResX/2, RY);
+			
+			if( rsetzoom<1.4 )
+				.play;
+			else {
+				<GAME>	{
+					delete imgbg;
+					/*new img im3;
+					im3.create(iResX, iResY, .white, 255);
+					im3.blit("im2");
+					delete im2;*/
+					.mcheck0;
+				};
+			}
+// 			.tickstop;
+			} );
+		
+		ccs.enter( func {
+			timstart.play;
+			mus.playstr("sala.ogg sala.ogg -l -v 30");
+			} );
+		
+		
+		// debug
+ 		/*delete imgbg;
+ 		igmstate=1;
+ 		.mcheck0;*/
+		// debug
+	}
+	mendintro	{
+		clsave.set("game_day", 1);
+		.gotoadv("adaula","gameadaula0");
+		ccs.show;
+	}
+	mcheck0	{
+		<GAME> {
+			igmstate++;
+			if( igmstate==2 )	{
+				ccs.playfin( func {
+					delete txtdata;
+					delete im2;
+					
+					new gmimgvec grsala;
+					"grsala" .* "sala.pyz";
+					.imgs = (A, "slajdy.pyzH 10", "bgprof.pyzH", "giaroH.pyz 10", "rektorH.pyz 10", "sepH.pyz 10", "wincH.pyz 10", "reksmall.pyz", "mrok.pyz 20", "swiatlo.pyzH 20");
+					<grsala.get(4)>.setz(1);
+					new gmimgvec grsc1;
+					.copyanima("anbgprof", "anbiurko");
+					anbiurko.setframe(1,0);
+					anbiurko.setz(15);
+					grsc1.addlist(A, "anbgprof", "angiaro", "anrektor", "ansep", "anwinc", "anbiurko", "answiatlo");
+					}, func {
+					.rektor("rektor2");
+					} );
+			}
+		};
+	}
+	_mplay(string s)	{
+		.play("talk");
+		<GAME>.cbplay(s);
+	}
+	rek(int n)	{	.rektor("rektor"+n);	}
+	reks(int n)	{	.rek(n); .mslajd;	}
+	rektor(string s)	{	anreksmall._mplay(s);	}
+	rekfin	{	anreksmall.play("stand");	}
+	mrektor(string s)	{	anrektor._mplay(s);	}
+	mrekfin	{	anrektor.play("stand");	}
+	mscene1	{	// sala
+		if( anslajdy.actionnr(-1)>0 ) anslajdy.show;
+		grsala.eval1("play", -1);
+		grsc1.anhide;
+		anreksmall.play("stand");
+		anmrok.show;
+	}
+	mscene2	{
+		anslajdy.hide;
+		grsala.eval("anhide");
+		anreksmall.anhide;
+		anmrok.hide;
+		grsc1.nplay(-1);
+	}
+	mslajd	{
+		if( anslajdy.isvisible )	anslajdy.ansetnextact;
+		else anslajdy.show;
+	}
+	mouse_lclick	{
+		//if( igmdebug ) .cactsndstop(true);
+		.cactsndstop(true);
+	}
+	mouse_rclick	{
+		if( igmdebug )	{
+			.mendintro;
+		}
+	}
+}

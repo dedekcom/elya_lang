@@ -1,0 +1,62 @@
+game Komp : Computro	{
+	init	{
+		Computro::init("komp");
+		
+		.imgs = (A, "bg.pyz", "maskiH.pyz", "mask2.Hpyz", "kableH.pyz 100");
+		.sfxs = (A, "getpuz 50", "putpuz 50");
+		new gmimgvec grdev;
+		"grdev" .* "devs.pyz";
+		new DelayMover cmov;
+		new vector vkb;
+		vkb.resize( anmask2.nofactions, 1 );
+		new vector vpt;
+		vpt.resize( anmaski.nofactions, 1 );
+		
+		cmov.unlock;
+		igmstate=1;
+	}
+	cmov_GET	{
+		if( igmstate!=1 ) return;
+		|int x, int y| = mouse.getpos;
+		int id = anmask2.anisin(x,y,0,1);
+		if( id>=0 && vkb.get(id) )	{
+			ankable.setframe( "k"+anmask2.nameofaction(id)->strsubes("_m2"), 0 );
+			ankable.show;
+			.setpobj("ankable");
+			.msmove;
+			fxgetpuz.play;
+		}
+	}
+	cmov_PUT	{
+		_ = .getfree;
+		ankable.hide;
+		@s = ankable.actionname->strsubb(1);
+		anmaski.setframe( s+"_mask", 0 );
+		if( anmaski.isin(mouse.getpos,0,0) )	{
+			vpt.set(anmaski.actionnr(-1), 0);
+			vkb.set( anmask2.actionnr(s+"_m2"), 0);
+			<grdev.getsac(s)>.setframe(-1, 1);
+			fxputpuz.play;
+			if( vkb.vecsum==0 )	{
+				ccs.close( func {
+					ccs.show;
+					sgmlastscene = "Komputer";
+					clsave.set("epizod", "Siec");
+					.gotoadv("adinania","gameadinania0");
+					});
+			}
+		}
+	}
+	mouse_move	{
+		|int x, int y| = mouse.getpos;
+		int id;
+		if( cmov.moving )	{
+			id = anmaski.anisin(x,y,0,0);
+			if( id==3 && vpt.get(3)==0 ) id=4;
+			( id>=0 && vpt.get(id) ) ? bsms.setact : bsms.setstd;
+		} else {
+			id = anmask2.anisin(x,y,0,1);
+			(id>=0 && vkb.get(id) ) ? bsms.setact : bsms.setstd;
+		}
+	}
+}

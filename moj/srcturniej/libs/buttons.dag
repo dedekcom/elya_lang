@@ -1,0 +1,211 @@
+/*****************************************************************/
+class classbutton 	{
+	init()	{
+		new string san = "anbut";
+		new string sbut = "but";
+		new int iilebut = 0;
+		new string sfxmon = null;
+	}
+	_cbuildbutname(string sname)	{	new string _sbutname=sname; }
+	string cgetbutname()	{ return _sbutname; }
+	build(string sfile, int z, string smouse)	{this.build2(sfile,z,smouse,null);	}
+	build2(string sfile, int z, string smouse, string sgrp)	{	// wczytuje animacje i buduje z niej przyciski
+		string smain = "_" + san;
+		new anima <smain>;
+		<smain>.load( sfile );
+		<smain>.setz(z);
+		int ile = <smain>.nofactions();
+		int j;	int k;
+		int iliczans = 0;
+		string sn1, string sn2, string sn3;
+		string spom;
+		for(int i=0; i<ile; i++)	{
+			sn1 = null;	sn2 = null;	sn3 = null;
+			j = <smain>.nofframes(i);
+			for(k=1; k<=j; k++)	{
+				spom = san + iliczans;
+				if(k==1)	{	sn1=spom; } 
+				else if (k==2)	{ sn2 = spom; }
+				else if (k==3)	{ sn3 = spom; }
+				newvars::copyanima( smain, spom );
+				<spom>.setframe( i, k-1 );
+				iliczans++;
+			}
+			if( sgrp!=null && <sgrp>.contains( <smain>.nameofaction(i)) ) {
+				<sn1>.setz(z-1);
+			} else this.addbut(sn1, sn2, sn3, smouse);
+		}
+		<smain>.hide();
+	}
+	/***************************** \/ \/ \/ \/ \/ wewnetrzne \/ \/ \/ \/ \/ *************************************************/
+	_buildfuncclick( string sname )	{	new string _sfunclick = sname; }
+	_stdbutclick()	{	this.<_sfunclick>( this.getbutname() );		}
+	_buildfuncrel( string sname )	{	new string _sfuncrel = sname; }
+	_stdbutrel()	{	this.<_sfuncrel>( this.getbutname() );	}
+	_buildfuncmovon( string sname )	{	new string _sfunmovon = sname; }
+	_stdbutmovon()	{
+		if( sfxmon!=null )	<sfxmon>.play();
+		this.<_sfunmovon>( this.getbutname() );
+	}
+	_buildfuncmovoff( string sname )	{	new string _sfunmovoff = sname; }
+	_stdbutmovoff()	{	this.<_sfunmovoff>( this.getbutname() );	}
+	butsigfun(string sb, string sfunc, string ssig, string sfun1, string sfun2)	{
+		if( sfunc==null )	return;
+		<sb>.addmethod(sfun1, sfun1);
+		<sb>.<sfun1>( sfunc );
+		<sb>.addmethod(ssig, sfun2);
+	}
+	sigfunc(string sfunc, string ssig, string sfun1, string sfun2)	{
+		for(int i=0; i<iilebut; i++)	this.butsigfun(sbut + i, sfunc, ssig, sfun1, sfun2);
+	}
+	print()	{for(int i=0; i<iilebut; i++)	engine.print( <sbut+i>.getbutname() );}
+	setrect()	{
+		string s;
+		for( int i=0; i<iilebut; i++)	{
+			s = <sbut+i>.getimg;
+			<sbut+i>.setrect( <s>.getpx, <s>.getpy, <s>.getex, <s>.getey );
+		}
+	}
+	setflags(bool bvis, bool balph)	{	for(int i=0; i<iilebut; i++)	<sbut+i>.setflags(bvis,balph);	}
+	/***************************** /\ /\ /\ /\ /\ wewnetrzne /\ /\ /\ /\ /\ ************************************************/
+	sfxonmovon(string ssnd)	{	sfxmon=ssnd;	}
+	clickfunc(string sfunc)	{this.sigfunc(sfunc,"onclick", "_buildfuncclick", "_stdbutclick");	}
+	relfunc(string sfunc)	{this.sigfunc(sfunc,"onrel", "_buildfuncrel", "_stdbutrel");	}
+	movonfunc(string sfunc)	{this.sigfunc(sfunc,"onmoveon", "_buildfuncmovon", "_stdbutmovon");	}
+	movofffunc( string sfunc)	{this.sigfunc( sfunc,"onmoveoff", "_buildfuncmovoff", "_stdbutmovoff");}
+	/*****************************************************************/
+	int ilebuts()	{	return iilebut;	}
+	/*****************************************************************/
+	int ifind(string sname)	{return clfindfunc::_stdfindfunc2(sbut, iilebut, sname, "getbutname");	}
+	string sfind(string sname)	{
+		int pos = clfindfunc::_stdfindfunc2(sbut, iilebut, sname, "getbutname");
+		return pos>=0 ? sbut+pos : null;
+	}
+	/*****************************************************************/
+	_cbutfun(string sname, string sfunc)	{
+		clfindfunc::cfindandeval2(sbut, this.ilebuts(), sname, "getbutname", sfunc );
+	}
+	_callbutfunc(string sfunc)	{	for(int i=0; i<iilebut; i++)	<sbut+i>.<sfunc>();	}
+	_cibutfunc(string sfunc, int ile)	{
+		if( ile > iilebut )	ile = iilebut;
+		for(int i=0; i<ile; i++)	<sbut+i>.<sfunc>();
+	}
+	ienable( int ile )	{	this._cibutfunc("enable", ile);	}
+	benableall()	{	this.resumeall();	this.enableall();	}
+	pauseall()	{	this._callbutfunc("pause");	}
+	resumeall()	{	this._callbutfunc("resume");	}
+	enableall()	{	this._callbutfunc("enable");	}
+	disableall()	{	this._callbutfunc("disable");	}
+	disabled	{	<sbut+0>.disabled;	}
+	
+	benable(string sname)	{	this.resume(sname);	this.enable(sname);	}
+	disable(string sname)	{	this._cbutfun( sname, "disable");	}
+	enable(string sname)	{	this._cbutfun( sname, "enable");	}
+	pause(string sname)	{	this._cbutfun( sname, "pause");	}
+	resume(string sname)	{	this._cbutfun( sname, "resume");	}
+	/*****************************************************************/
+	string getimg(string sname)	{
+		string s= this.sfind(sname);
+		return s!=null ? <s>.getimg() : null;	
+	}
+	callimgfun(string sname, string sfun)	{	<.getimg(sname)>.<sfun>;	}
+	/*****************************************************************/
+	newmouse(string sname, string snewmouse)	{
+		string s = this.sfind(sname);
+		if(s!=null)	<s>.setmouse( snewmouse );
+	}
+	addbut(string san1, string san2, string san3, string smouse)	{
+		string spom = sbut + iilebut;
+		newvars::newbutan( spom, san1, san2, san3, smouse);
+		<spom>.addmethod("getbutname","cgetbutname");
+		<spom>._cbuildbutname( <san1>.actionname() );	// nazwa buttonu to nazwa akcji
+		iilebut++;
+	}
+	/*****************************************************************/
+	_addfunc(string s, string sfclick, string sfrel, string sfmvon, string sfmvoff)	{
+		if( s== null)	return;
+		this.butsigfun( s, sfclick, "onclick", "_buildfuncclick", "_stdbutclick");
+		this.butsigfun( s, sfrel, "onrel", "_buildfuncrel", "_stdbutrel");
+		this.butsigfun( s, sfmvon, "onmoveon", "_buildfuncmovon", "_stdbutmovon");
+		this.butsigfun( s, sfmvoff, "onmoveoff", "_buildfuncmovoff", "_stdbutmovoff");
+	}
+	addfuncto(string sname, string sfclick, string sfrel, string sfmvon, string sfmvoff)	{
+		this._addfunc( this.sfind(sname), sfclick, sfrel, sfmvon, sfmvoff);
+	}
+	addfunctolast(string sfclick, string sfrel, string sfmvon, string sfmvoff)	{
+		this._addfunc( sbut + (iilebut-1) , sfclick, sfrel, sfmvon, sfmvoff);
+	}
+	/*****************************************************************/
+	_transmet(string sob, string sfunc, string smet, string s)	{
+		new string <"_sob" + s> = sob;
+		new string <"_sf" + s> = sfunc;
+		this.<smet>( "_trf"+s );
+	}
+	transclickfunc(string sob, string sfunc)	{this._transmet( sob, sfunc, "clickfunc", "cl" );	}
+	transrelfunc(string sob, string sfunc)	{this._transmet( sob, sfunc, "relfunc", "rl" );	}
+	transmovonfunc(string sob, string sfunc){this._transmet( sob, sfunc, "movonfunc", "mn" );	}
+	transmovofffunc(string sob, string sfunc){this._transmet( sob, sfunc, "movofffunc", "mf" );	}
+	_trfcl(string s)	{	<_sobcl>.<_sfcl>(s);		}
+	_trfrl(string s)	{	<_sobrl>.<_sfrl>(s);		}
+	_trfmn(string s)	{
+		if( sfxmon!=null )	<sfxmon>.play();
+		<_sobmn>.<_sfmn>(s);
+	}
+	_trfmf(string s)	{	<_sobmf>.<_sfmf>(s);		}
+}
+
+class classsimplebutton {
+	init()	{
+		new string simgob=null;
+		new gmimgvec grbut;
+	}
+	public stdbuild(string sfile, string smouse, int z)	{this.build(this.getgraphpath()+sfile, smouse, 0, 0, z, 0);	}
+	public getimgfunc(string sfunc)	{	simgob==null ? 0 : <simgob>.<sfunc>();	}
+	public setbutpos(int x, int y)	{	grbut.setpos(x,y);	}
+	public build(string sfile, string smouse, int x, int y, int z, int iact)	{
+		new button but1;
+		but1 (this.getname()) {(string s) new string sbut = s; };
+		but1.addmethod("onclick", func { this.<sbut+"_CLICK">(); });
+		but1.addmethod("onrel", func { this.<sbut+"_REL">(); } );
+		but1.addmethod("onmoveon", func { this.<sbut+"_MOVEON">(); });
+		but1.addmethod("onmoveoff", func { this.<sbut+"_MOVEOFF">(); });
+		
+		if( sfile.contains(".pyz") )	{
+			new anima anbut0;
+			anbut0.load( sfile );
+			anbut0.setpos(x,y);
+			anbut0.setz(z);
+			anbut0.setframe(iact,0);
+			simgob="anbut0";
+			grbut.add(simgob);
+			string s0="anbut0";
+			string s1=null;
+			string s2=null;
+			int ile = anbut0.nofframes(iact);
+			if( ile>1 )	{
+				new anima anbut1;
+				anbut1.copy("anbut0");
+				anbut1.setframe(iact,1);
+				s1 = "anbut1";
+				grbut.add(s1);
+			}
+			if (ile>2)	{
+				new anima anbut2;
+				anbut2.copy("anbut0");
+				anbut2.setframe(iact,2);
+				s1 = "anbut2";
+				grbut.add(s1);
+			}
+			but1.setan(s0,s1,s2);
+		} else {
+			new img imgbut;
+			simgob="imgbut";
+			grbut.add(simgob);
+			imgbut.load(sfile);
+			imgbut.setpos(x,y);
+			imgbut.setz(z);
+			but1.set("imgbut",null,null);
+		}
+		but1.setmouse(smouse);
+	}
+}

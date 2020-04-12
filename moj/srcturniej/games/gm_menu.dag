@@ -1,0 +1,226 @@
+
+new bool PrzygodaMode = false;
+new int PrzygodaNumer = 1;
+
+game Menu : Computro	{
+	init	{
+		clsave.free;
+		clsave.set("game_day", 1);
+		clsave.set("otwarte_31", 0);
+		
+		PrzygodaMode = false;
+		Computro::init("menu");
+		new classfullsave sav("saves/Menu.txt");
+		sav.stdload;
+		//bkg.pyz    kaplica.pyz  napisy_rozpocznij.pyz  ptaki.pyz       tab_przygoda.pyz
+		//gmach.pyz  lekcje.pyz   przygoda.pyz           tab_lekcja.pyz
+		.imgs = (A, "bkg.pyz", "kaplicaH.pyz 5", "gmachH.pyz 5", "napisy_rozpocznijH.pyz 5", "ptaki.pyz 3",
+			/*"tab_przygodaH.pyz 20", "tab_lekcjaH.pyz 20",*/ "tabliceH.pyz 20");
+		
+		.newsnd("sndnowa", "narnew");
+		.newsnd("sndload", "narload");
+		.newsnd("sndraz", "narrestart");
+		.newsnd("sndyes", "naryes");
+		.newsnd("sndno", "narno");
+		
+		new Button butg;
+		
+		new gmimgvec grlek;
+		"grlek" .* "lekcje.pyz";
+		grlek.setz(30);
+		grlek.eval( func {
+			.Button_isin;
+			.addmethod("butmoveon", func {
+				//if( igmstate!=2 ) return;
+				sndakskermovon.play;
+				advmouse.setact;
+				.setframe(-1,1);
+				<"td"+.actionname>.show;
+				} );
+			.addmethod("butmoveoff", func {
+				//if( igmstate!=2 ) return;
+				advmouse.setstd;
+				.setframe(-1,0);
+				<"td"+.actionname>.hide;
+				} );
+			.addmethod("butclick", func {
+				if( igmstate!=2 ) return;
+				PrzygodaMode = false;
+				match( .actionname )	{
+					"sql" => "Sql";
+					"gimp" => "Gimp";
+					"grafa" => "Obrazy";
+					"logo" => "Turtle";
+					? => ;
+				}
+				sGame = _;
+				.mstart;
+				} );
+			} );
+			
+		.lang_db("dblek", "lekcja");
+		@ifont = 16;
+		@sfont = .stdbold(ifont);
+		new gmimgvec grtyt;
+		.mktyt("sql", 0, sfont, ifont);
+		.mktyt("logo", 1, sfont, ifont);
+		.mktyt("grafa", 2, sfont, ifont);
+		.mktyt("gimp", 3, sfont, ifont);
+		
+		new gmimgvec gradv;
+		"gradv" .* "przygoda.pyz";
+		gradv.setz(30);
+		@s[2];
+		for( int i=0; i<gradv.size; i++)	{
+			s0 = gradv.get(i);
+			s1 = <s0>.actionname;
+			if( s1.getb(0,4)=="load" )	{
+				if( !sav.bis("load"+s1.strsubb(4)) ) {
+					gradv.remove(s0);
+					<s0>.hide;
+					i--;
+				}
+			}
+		}
+		gradv.eval( func {
+			.Button_isin;
+			.addmethod("butmoveon", func {
+				sndakskermovon.play;
+				advmouse.setact;
+				.setframe(-1,1);
+				if( .actionname->getb(0,4)=="load" )	.cbselfplay("sndload");
+				else .cbselfplay("sndnowa");
+				} );
+			.addmethod("butmoveoff", func {
+				advmouse.setstd;
+				.setframe(-1,0);
+				} );
+			.addmethod("butclick", func {
+				if( igmstate!=2 ) return;
+				PrzygodaMode = true;
+				@s = .actionname;
+				if( s.getb(0,4)=="load")	{
+					PrzygodaNumer = s.strsubb(4);
+					igmstate = 3;
+					classadvinfo2::advload_game;
+				} else {
+					PrzygodaNumer = s.strsubbs("start");
+					if( sav.bis("load"+PrzygodaNumer) )	{
+						claskexit.ask( "sndraz", "sndyes", "sndno", "mplaynew", null );
+					} else .mplaynew;
+				}
+				} );
+			} );
+		
+		grlek.hide;
+		gradv.hide;
+		
+		ankaplica.mkbut;
+		angmach.mkbut;
+		
+		butg.addgroup("grlek");
+		butg.addgroup("gradv");
+		
+		new string sGame;
+		mus.playstr("main.ogg -v 30 -l");
+		ccs.enter( func { igmstate=1; } );
+	}
+	mplaynew	{
+		sav.bset("load"+PrzygodaNumer);
+		sav.stdsave;
+		sGame = "Intro";
+		.mstart;
+	}
+	mktyt(string styt, int id, string sfont, int ifont)	{
+		@s = "td"+styt;
+		@s2 = grlek.get(id);
+		new TextDb <s>(sfont, ifont, "$row:dblek,"+id, .white, <s2>.getex-5, <s2>.getpy, 2, <s2>.getz+3, "left");
+		<s>.stdshadow(2);
+		<s>.hide;
+		grtyt.add(s);
+	}
+	mkbut	{
+		butg.add(this);
+		.addmethod("isbutin", func { (@x, @y)
+			igmstate==1 && .isin(x,y,0,1);
+			} );
+		.addmethod("butmoveon", func {
+			if( igmstate!=1 ) return;
+			if (.isplaying(1) )	{
+				int id = .framenr;
+				.play(0);
+				.setframe(0,id);
+			} else .play(0);
+			advmouse.setact;
+			annapisy_rozpocznij.show;
+			annapisy_rozpocznij.setframe( (this=="angmach" ? 0 : 1), 0 );
+			} );
+		.addmethod("butmoveoff", func {
+			if( igmstate!=1 ) return;
+			if( .isplaying(0) )	{
+				int id = .framenr;
+				.play(1);
+				.setframe(1,id);
+			} else .play(1);
+			advmouse.setstd;
+			annapisy_rozpocznij.hide;
+			} );
+		.addmethod("butclick", func {
+			if( igmstate!=1 ) return;
+			igmstate = 2;
+			antablice.show;
+			if( this=="angmach" )	{
+				antablice.setframe(0,0);
+				gradv.show;
+			} else {
+				antablice.setframe(1,0);
+				grlek.show;
+			}
+			} );
+	}
+	mstart	{
+		igmstate = 3;
+		mus.fadeout(1000);
+		ccs.close( func { gameapi.play(sGame); } );
+	}
+	game_exit	{	sav.stdsave;	}
+	mouse_lclick	{
+		if( igmstate==2 && !antablice.isin(mouse.getpos,1,1))	{
+			if( antablice.actionnr(-1) == 0 )	{
+				gradv.hide;
+			} else {
+				grlek.hide;
+				grtyt.hide;
+			}
+			antablice.hide;
+			igmstate = 1;
+		}
+	}
+}
+
+
+game Outro : Computro	{
+	init	{
+		Computro::init("outro");
+// 		bkg.pyz  logo.pyz  maskdol.pyz  maskgora.pyz  robo.pyz
+		.imgs = (A, "bkg.pyz", "logoP.pyz 50", "maskdol.pyz 20", "maskgora.pyz 20", "roboP.pyz 40");
+		mus.playstr("bitewna.ogg -v 50 -l");
+		
+		.lang_db("dbend", "napisy");
+		new TextDb tdend( .stdfont(16), 16, "$var:dbend", .white, 100, 600, 2, 5, "left");
+		.cycle = ("timcyk", func {
+			tdend.move(0, -1);
+			if( tdend.getey<0 && igmstate==0 )	.mouse_lclick;
+			else .play;
+			} );
+		timcyk.setcycle(2);
+		timcyk.play;
+	}
+	mouse_lclick	{
+		if( igmstate==0 )	{
+			igmstate = 1;
+			mus.fadeout(1000);
+			ccs.close( func { gameapi.exit; } );
+		}
+	}
+}

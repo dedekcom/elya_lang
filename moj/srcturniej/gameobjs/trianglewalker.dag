@@ -1,0 +1,59 @@
+/*************************************************************************/
+
+class classtriangle	{
+	init()	{
+		new real rdx;
+		new real rdy;
+	}
+	real getdx()	{	return rdx;	}
+	real getdy()	{	return rdy;	}
+	real talesxy(real x, real y, real destx, real desty, real rdistance)	{
+		destx -= x;	desty-=y;
+		if( destx==0 && desty==0 )	{
+			rdx = 0;
+			rdy = 0;
+			return 0;
+		} else {
+			x = x.length( destx, desty );
+			rdx = (destx/x)*rdistance;
+			rdy = (desty/x)*rdistance;
+			return x;
+		}
+	}
+}
+
+class classwalker : classtriangle {
+	init()	{
+		classtriangle::init();
+		new real rodleg;
+		new int _ix;
+		new int _iy;
+	}
+	real countsteps(int x, int y, int destx, int desty, real rstep )	{
+		this.setdest( destx, desty );
+		rodleg = this.talesxy( x, y, destx, desty, rstep );
+		//("pos "+destx+","+desty)->print;
+		return rodleg;
+	}
+	setdest(int x, int y)	{	_ix=x;	_iy=y;	}
+	getdestx()	{	return _ix;	}
+	getdesty()	{	return _iy;	}
+	int reached(int x, int y)	{
+		real r = r.length( x - _ix, y - _iy );
+		if( r >= rodleg )	{
+			return true;
+		} else {
+			rodleg = r;
+			return false;
+		}
+	}
+	int reached2(int x, int y)	{
+		real r = r.length( x - _ix, y - _iy );
+		if( r > rodleg )	{
+			return true;
+		} else {
+			rodleg = r;
+			return false;
+		}
+	}
+}

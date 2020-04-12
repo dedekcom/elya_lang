@@ -1,0 +1,354 @@
+/**************************************************************/
+	// standardowe czynnosci przy grach, popakowane w metody
+class classgame : newvars , classsound {
+	init()	{
+		newvars::init();
+		classsound::init();
+		new int _iconstid;
+	}
+	/**************************************************************/
+	bkg=(@sfile)	{
+		if( sfile.contains(".pyz") ) .newanima("anbkg", sfile, 0);
+		else .newimg("imgbkg",sfile,0);
+	}
+	bgr=(@sfile)	{
+		//this.csndplayloop("sndbgr",sfile);
+		.csndbgr(sfile);
+	}
+	path=(@s)	{	.setgraphpath("scripts/"+s+"/");	}
+	cycle=(@stimer, @sfun)	{	.cnewtimercyclefin(stimer,1,1,sfun);	}
+	timer=(@stimer, @itime, @sfun) { .cnewtimerfin(stimer,itime,1,sfun);	}
+	def _getflags(string s)	{
+		@bloop = false;
+		if( s.contains("L") )	{
+			s.strremove("L");
+			bloop=true;
+		}
+		@bplay = false;
+		if( s.contains("P") )	{
+			s.strremove("P");
+			bplay=true;
+		}
+		@bhide = false;
+		if( s.contains("H") )	{
+			s.strremove("H");
+			bhide=true;
+		}
+		return s,bloop,bplay,bhide;
+	}
+	img=(@sfile)	{
+		|sfile,@bloop,@bplay,@bhide| = ._getflags(sfile);
+		@iz = 0;
+		if( sfile.contains(" ") )	{
+			iz = sfile.strgetfrom(" ");
+			sfile = sfile.strgetto(" ");
+		}
+		string sname = sfile.strsube(4);
+		string s;
+		if( sfile.contains(".pyz") ) {
+			s = "an" + sname;
+			.newanima(s, sfile, iz);
+		} else {
+			s = "img" + sname;
+			.newimg(s, sfile, iz);
+		}
+		if( bloop ) <s>.anloopfin;
+		if( bplay ) <s>.play(-1);
+		if( bhide ) <s>.hide;
+	}
+	imgs=	{	.withlist("img=");	}
+	clone(string sob)	{
+		<gameapi.getgamename> (this, .gettype, sob) { (@sthis, @styp, @sob)
+			new <styp> <sob>;
+			<sob>.copy(sthis);
+		};
+	}
+	clones=	{	.withlist("clone");	}
+	list=(@sname)	{
+		@s=_;
+		new gmobjvec <sname>;
+		while(A!=s)	{
+			<sname>.addbegin(s);
+			s = _;
+		}
+	}
+	list2={
+		@s = .newconst("gmobjvec");
+		.list=(s);
+		s;
+	}
+	debug=(@b)	{	engine.setdebugstate(b);	}
+	sfx=(string s)	{
+		bool bloop2 = s.contains("N");
+		if( bloop2 )	{
+			s.strremove("N");
+		}
+		|s,@bloop,@bplay,_| = ._getflags(s);
+		@ivol = 100;
+		if( s.contains(" ") )	{
+			ivol = s.strgetfrom(" ");
+			s = s.strgetto(" ");
+		}
+		string sf = "fx"+s;
+		//.newsnd(sf, "sfx/"+s+".wav");
+		.newsfx( sf, s+".wav");
+		<sf>.setvol( ivol );
+		if( bloop ) <sf>.addmethod("onfinish","_stdsndloop");
+		if( bplay ) <sf>.play;
+		else if( bloop2 ) <sf>.playloop;
+	}
+	sfxs=	{	.withlist("sfx=");	}
+	tickstart	{
+		if( !.hasvar("__timspeed") )	new TicksCounter __timspeed;
+		__timspeed.start;
+	}
+	tickstop	{	__timspeed.print("ticker: ");	}
+	/**************************************************************/
+	csndplayloop(string ssnd, string sfile)	{
+		this.newsndloop(ssnd,sfile);
+		<ssnd>.play();
+	}
+	csndbgr(string sfile)	{
+		//this.csndplayloop("sndbgr",sfile);
+		.newbgr("sndbgr", sfile );
+		.sndplayloop("sndbgr");
+	}
+	cloadcursor(string sfile)	{
+		if( sfile.contains(".") )	{
+			.newimg("imgkursor", sfile,0);
+			sfile = "imgkursor";
+		}
+		<sfile>.hide();
+		mouse.setcursor(sfile);
+		engine.stdbutcursor(sfile);
+		bsms.setown();
+	}
+	/****************************************************************/
+	newimgarray(string sname, string styp, string sn, int ile)	{
+		new gmimgvec <sname>;
+		<sname>.buildarray(styp,sn,ile);
+	}
+	newfont(string sfnt, string sfile, int isize)	{
+		new font <sfnt>;
+		<sfnt>.load( sfile, isize );
+	}
+	monofont(string sfnt, int isize)	{	.newfont(sfnt, sgmfontmono, isize);	}
+	newfontbold(string sfnt, int isize)	{	.newfont(sfnt, sgmfontbold, isize);	}
+	string snewfont(string sfontfile, int isize)	{
+		string s = .newconst("font");
+		<s>.load( sfontfile, isize );
+		return s;
+	}
+	string stdfont(int isize)	{	.snewfont( sgmfontfile, isize	);	}
+	string stdmono(int isize)	{	.snewfont( sgmfontmono, isize);	}
+	string stdbold(int isize)	{	.snewfont( sgmfontbold, isize);	}
+	int getconstid	{	_iconstid++;	_iconstid-1;	}
+	string newconst(string styp)	{
+		string s = "const"+styp+.getconstid;
+		new <styp> <s>;
+		return s;
+	}
+	string consttext(string stext, int x, int y, int isize, int r, int g, int b)	{
+		string s = this.newconst("text");
+		string sf = .stdfont(isize);
+		<s>.setfont(sf);
+		<s>.set(stext);
+		<s>.createtxt(r,g,b);
+		<s>.setpos(x,y);
+		return s;
+	}
+	newtext(string stxt, string stext, string sfont, int r, int g, int b)	{
+		new text <stxt>;
+		<stxt>.set(stext);
+		<stxt>.setfont(sfont);
+		<stxt>.createtxt(r,g,b);
+	}
+	newtextposz(string stxt, string stext, string sfont, int r, int g, int b, int x, int y, int z)	{
+		.newtext(stxt,stext,sfont,r,g,b);
+		<stxt>.anposz(x,y,z);
+	}
+	/****************************************************************/
+	cfinmethod(string sobj, string sfuncfin)	{	<sobj>.addmethod("onfinish", sfuncfin);	}
+	cnewsndfin(string sname, string sfile, string sfunc)	{
+		this.newsnd(sname,sfile);
+		this.cfinmethod(sname,sfunc);
+	}
+	cnewsndsfin(string sbase, int inamestart, string sfilebase, int ifilefrom, int ifileto, string sfunc)	{
+		this.newsnds(sbase, inamestart, sfilebase, ifilefrom, ifileto);
+		this.caddobjsfunfin(sbase, inamestart, inamestart+( ifileto-ifilefrom), sfunc);
+	}
+	cnewsndfinbplay(string sname, string sfile, string sfunc)	{
+		this.cnewsndfin(sname,sfile,sfunc);
+		this.cbplay(sname);
+	}
+	cnewtimerfin(string sname, int idelay, int iticks, string sfunc)	{
+		this.newtimer(sname,idelay,iticks);
+		this.cfinmethod(sname,sfunc);
+	}
+	cnewtimercyclefin(string sname, int icycle, int iticks, string sfunc)	{
+		this.newtimercycle(sname,icycle,iticks);
+		this.cfinmethod(sname,sfunc);
+	}
+	/****************************************************************/
+	caddobjsfun(string ssnd, int ifrom, int ito, string ssig, string sfunc)	{
+		while( ifrom <= ito )	{
+			<ssnd+ifrom>.addmethod( ssig, sfunc+ifrom );
+			ifrom++;
+		}
+	}
+	caddobjsfunfin(string ssnd, int ifrom, int ito, string sfunc)	{
+		this.caddobjsfun( ssnd, ifrom, ito, "onfinish", sfunc );
+	}
+	/****************************************************************/
+	newancounter(string scounter, string sname, string sfile, int z, int ile)	{
+		this.newanimas( sname, sfile, z, ile);
+		new classancounter <scounter>;
+		<scounter>.set( sname, ile );
+	}
+	newancounterh(string scounter, string sname, string sfile, int z, int ile)	{
+		this.newancounter( scounter, sname, sfile, z , ile );
+		for( int i=0; i<ile; i++)	<sname+i>.hide();
+	}
+	newancounterf(string scounter, string sname, string sfile, int z, int ile, string sfun)	{
+		this.newancounter( scounter, sname, sfile, z , ile );
+		for( int i=0; i<ile; i++)	<sname+i>.addmethod("onfinish", sfun);
+	}
+	newancounterhf(string scounter, string sname, string sfile, int z, int ile, string sfun)	{
+		this.newancounter( scounter, sname, sfile, z , ile );
+		for( int i=0; i<ile; i++)	{
+			<sname+i>.addmethod("onfinish", sfun);
+			<sname+i>.hide();
+		}
+	}
+	cnewanimafin(string sname, string sfile, int z, string sfunc)	{
+		this.newanima(sname, sfile, z);
+		<sname>.addmethod("onfinish", sfunc );
+	}
+	ccopyanimafin(string sname, string snew, string sfunc)	{
+		this.copyanima(sname, snew);
+		<snew>.addmethod("onfinish", sfunc );
+	}
+	/****************************************************************/
+	cloadwavs(string sdb, string sfile)	{
+		this.newdb( sdb, sfile );
+		int id = 0;
+		int ile = <sdb>.getrowsno();
+		int i[6], string s[5];
+		while( id < ile )	{
+			i1 = <sdb>.getcolsno(id);
+			i2 = 0;
+			s1 = <sdb>.get( id, i2 );	i2++;
+			if( s1.getb(0,1)!="#" )	{
+				s3 = <sdb>.get( id, i2 );	i2++;
+				if( s1=="wav" || s1=="sfx" )	{
+					s2 = <sdb>.get( id, i2 );	i2++;
+					if( s1=="sfx")	{
+						this.newsfx( s3, s2 );
+					} else { this.newsnd( s3, s2 ); }
+					if( i2 < i1 )	{
+						s1 = <sdb>.get( id, i2 );	i2++;
+						s2 = <sdb>.get( id, i2 );	i2++;
+						if( s1=="method" )	{
+							<s3>.addmethod("onfinish", s2 );
+						} else if (s1.gete(0,4)=="play")	{
+							this.<"c"+s1.gete(4,10)+"playonfin">(s3, s2);
+						} else if ( s1=="vol" )	{
+							<s3>.setvol( s2 );
+						}
+					}
+				} else if (s1=="group")	{
+					s2 = <sdb>.get( id, i2 );	i2++;
+					i3 = <sdb>.get( id, i2 );	i2++;
+					i4 = <sdb>.get( id, i2 );	i2++;
+					if( i2 < i1 )	{		// jest method
+						s1 = <sdb>.get( id, i2 );	i2++;
+						if( s1=="method" )	{
+							s4 = <sdb>.get( id, i2 );	i2++;
+							this.cnewsndsfin( s3, i3, s2, i3, i4, s4 );
+						}
+					} else {
+						this.newsnds( s3, i3, s2, i3, i4 );
+					}
+				} else if (s1=="bank")	{
+					s2 = <sdb>.get( id, i2 );	i2++;
+					i0 = <sdb>.get( id, i2 );	i2++;
+					i3 = <sdb>.get( id, i2 );	i2++;
+					i4 = <sdb>.get( id, i2 );	i2++;
+					i5 = <sdb>.get( id, i2 );	i2++;
+					new classsndbank <s3>;
+					<s3>.load( s2, i0, i3, i4, i5);
+					if( i2<i1)	{
+						s1 = <sdb>.get( id, i2 );	i2++;
+						if( s1=="method")	{
+							s4 = <sdb>.get( id, i2 );	i2++;
+							<s3>.addmethod( "onfinish", s4 );
+						} else if (s1=="vol")	{
+							<s3>.setvol( <sdb>.get( id, i2 ) );
+						}
+					}
+				} else if ( s1=="method" )	{
+					s2 = <sdb>.get( id, i2 );	i2++;
+					i3 = <sdb>.get( id, i2 );	i2++;
+					i4 = <sdb>.get( id, i2 );	i2++;
+					while( i3<=i4)	{
+						<s2+i3>.addmethod("onfinish", s3);
+						i3++;
+					}
+				} else if ( s1=="singlebank")	{
+					s2 = <sdb>.get( id, i2 );	i2++;
+					i3 = <sdb>.get( id, i2 );	i2++;
+					new classsndbank <s3>;
+					<s3>.loadsingle( s2, i3 );
+				} else if ( s1=="bgr" )	{
+					this.csndbgr( s3 );
+					if( i2 < i1 )	{
+						if( <sdb>.get( id, i2 )=="vol" )	{
+							i2++;
+							sndbgr.setvol( <sdb>.get( id, i2 ) );
+							i2++;
+						}
+					}
+				} else if ( s1=="music" )	{
+					this.playmusic( s3 );
+					if( i2 < i1 )	{
+						if( <sdb>.get( id, i2 )=="vol" )	{
+							i2++;
+							sndbgr.setvol( <sdb>.get( id, i2 ) );
+							i2++;
+						}
+					}
+				}
+			}
+			id++;
+		}
+	}
+	/****************************************************************/
+	crestart()	{	gameapi.play( gameapi.getgamename() );	}
+}
+
+
+/***************************************************************************/
+
+class clfindfunc	{
+	init()	{}
+	int _stdfindfunc(string sobj, int ifirst, int ilast, string sname, string sfunc)	{	
+		while(ifirst<=ilast)	{
+			if( <sobj + ifirst>.<sfunc>() ==sname )	return ifirst;
+			ifirst++;
+		}
+		-1;
+	}
+	int _stdfindfunc2(string sobj, int iile, string sname, string sfunc)	{	
+		._stdfindfunc(sobj, 0, iile-1, sname, sfunc);
+	}
+	/****************************************************************/
+	cfindandeval2(string sobj, int iile, string sname, string sfunc, string seval)	{	
+		.cfindandeval(sobj, 0, iile-1, sname, sfunc, seval);
+	}
+	cfindandeval(string sobj, int ifirst, int ilast, string sname, string sfunc, string seval)	{	
+		int pos = ._stdfindfunc(sobj, ifirst, ilast, sname, sfunc);
+		if(pos>=0)	<sobj+pos>.<seval>();
+	}
+}
+
+

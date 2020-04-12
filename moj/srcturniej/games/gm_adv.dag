@@ -1,0 +1,181 @@
+new db dbplan;
+dbplan.load("lang/PlanLekcji.db");
+new font fntplan;
+fntplan.load( sgmfontfile, 24 );
+new font fntnotes;
+new int ifntnotes = 21;
+new int inoteslimit = 20;
+fntnotes.load( sgmfontitalic, ifntnotes );
+new int inotesx = 45;
+new int inotesy = 50;
+public notescol	{	return 10,20,128;	}
+
+class classadvinfo2 : classadvcontroller	{
+	init	{
+		clbuts.reset;
+		classadvcontroller::init;
+		.advsave_game;
+	}
+	mouse_LCLICK	{
+		match( igmstate )	{
+			1 => .hide_plan;
+			2 =>  if( .hasvar("_annot2") && !_annot2.isplaying(-1))	{	igmstate = 3;	_annot2.play(2);	}
+			? => ;
+		}
+	}
+	hide_plan	{
+		delete _implan;
+		delete _anpusty;
+		delete _anplan;
+		delete _anblysk;
+		igmstate = 0;
+	}
+	show_plan	{
+		igmstate = 1;
+		if( engine.varexist("clwalkq") )	clwalkq.stand;
+		.newanima("_anplan", "$scripts/common/plan.pyz", 3000);
+		new img _implan;
+		_implan.copy("_anplan");
+		.copyanima("_anplan", "_anpusty");
+		_anpusty.setframe(1,0);
+		.copyanima("_anplan", "_anblysk");
+		_anblysk.setframe(2,0);
+		_anplan.hide;
+		@id = dbplan.findbyrow( clsave.get("lesson") );
+		if( id>=0 )	{
+			_anpusty.hide;
+			.newtext( "_txtplan", dbplan.get(0,1), "fntplan", .grey(240) );
+			@x = _implan.getpx + 50;
+			@y = _implan.getpy + 60;
+			_txtplan.setpos(_implan.getcx - _txtplan.getw/2, y);
+			_implan.blit("_txtplan");
+			y+=50;
+			for( int i=1; i<=3; i++)	{
+				_txtplan.txtset( dbplan.get(0,i+1)+dbplan.get(id, i) );
+				_txtplan.setpos(x, y+i*(_txtplan.geth+10));
+				_implan.blit("_txtplan");
+			}
+			delete _txtplan;
+		}
+	}
+	show_notes	{
+		igmstate = 2;
+		if( engine.varexist("clwalkq") )	clwalkq.stand;
+		.newanima("_annotes", "$scripts/common/notes.pyz", 3000);
+		string s = clsave.get("anotes_text");
+		new img _imgnotes;
+		if( s!=null )	{
+			new db dbnotes;
+			_imgnotes.copy("_annotes");
+			dbnotes.load("lang/anotes_"+s+".db");
+			.newtext("_txtnot", "", "fntnotes", .notescol );
+			int x = _annotes.getpx + inotesx;
+			int y = _annotes.getpy + inotesy;
+			for( int i=0; i<dbnotes.getrowsno; i++)	{
+				_txtnot.setpos( x, y+i*(ifntnotes+4) );
+				_txtnot.txtset( dbnotes.get(i,0) );
+				_imgnotes.blit("_txtnot");
+			}
+			delete dbnotes;
+			delete _txtnot;
+			_annotes.hide;
+		}
+		.copyanima("_annotes", "_annot2");
+		_annot2.setframe(1,0);
+		_annot2.show;
+	}
+	_annot2_FINISH {
+		if( .actionnr(-1)==2 )	{
+			<gameapi.getgamename> {
+				if( !.hasvar("_tim_not") )	{
+					.timer = ("_tim_not", 50, "hide_notes");
+				}
+				_tim_not.play;
+			};
+		}
+	}
+	hide_notes	{	<gameapi.getgamename> {
+		delete _imgnotes;
+		delete _annot2;
+		delete _annotes;
+		igmstate = 0;
+	}; }
+	show_kartka	{	<gameapi.getgamename> {
+		// kartka_dbdane, kartka_file, kartka_posx, kartka_posy, kartka_angle
+		new db dbkartka;
+		dbkartka.load("lang/kartka_" + clsave.get("kartka_dbname") + ".db");
+		.newtext("_txtkar", "", "fntnotes", .notescol );
+		.newanima("_ankartka", "$scripts/common/"+clsave.get("kartka_file")+".pyz", 3000);
+		new img _imgkartka;
+		_imgkartka.copy("_ankartka");
+		_ankartka.hide;
+		int x = _ankartka.getpx + clsave.get("kartka_posx");
+		int y = _ankartka.getpy + clsave.get("kartka_posy");
+		int angle = clsave.get("kartka_angle");
+		if( angle )	{
+			new filter ftkar;
+			ftkar.link("_txtkar");
+		}
+		for( int i=0; i<dbkartka.getrowsno; i++)	{
+			_txtkar.setpos( x, y+i*(ifntnotes+4) );
+			_txtkar.txtset( dbkartka.get(i,0) );
+			if( angle )	ftkar.rotate(angle);
+			_imgkartka.blit("_txtkar");
+		}
+		if( angle )	delete ftkar;
+		delete _txtkar;
+		delete dbkartka;
+	}; }
+	hide_kartka	{	<gameapi.getgamename> {
+		delete _imgkartka;
+		delete _ankartka;
+	}; }
+	/*********************************************/
+	advload_game	{	._advload("save"+PrzygodaNumer);	}
+	advsave_game	{	._advsave("save"+PrzygodaNumer);	}
+}
+
+game gameadvdef : classadvinfo2	{
+	init	{
+		classadvinfo2::init;
+	}
+}
+
+game gameadtyl2 : classadvinfo2	{
+	init	{
+		classadvinfo2::init;
+	}
+	feliks_ENDFRAME	{
+		SoundSource::setvol("bgrmachinel", 80, 20, 500, feliks.getcx-(imgbkg.getpx+100));
+	}
+}
+
+game gameadkor3 : classadvinfo2	{
+	init	{
+		classadvinfo2::init;
+	}
+	feliks_ENDFRAME	{
+		//setvol(string ssnd, int srcvol, int outvol, real rad, real length)	{
+		SoundSource::setvol("bgrwiatrak", 90, 5, 500, feliks.getcx-(imgbkg.getpx+100));
+		SoundSource::setvol("alarm", 30, 3, 500, feliks.getcx-(imgbkg.getpx+100));
+	}
+}
+
+game Mapa : Computro	{
+	init	{
+		Computro::init("mapa");
+		clsave.set("mapscene", sgmlastscene);
+		new Buttons butm("mapa.pyz");
+		match( clsave.get("game_day") )	{
+			1,2,3 => 0;
+			4,5 => 2;
+			? => 0;
+		}
+		new string sprzygoda = _;
+	}
+	butm_lclick	{
+		sgmlastscene = "Mapa";
+		.gotoadv("ad"+sobject, "gamead"+sobject+sprzygoda);
+	}
+}
+
