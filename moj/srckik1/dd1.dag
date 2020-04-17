@@ -4,7 +4,7 @@
 new int igmdebug = 0;
 
 /**************************************************************/
-new int igmwinlocal = 0;		// special folder windows
+new int igmwinlocal = 1;		// special folder windows
 
 new int igmpad = 0;
 new int igmmac = 0;
@@ -15,7 +15,7 @@ public bool checktouchpad	{
 
 new string sgmdeveloper = "DDagiel";
 
-new int igmkikpart = 1;  // 0 - twierdza, 1 - mirmilowo, 2 - podstep, 3 - rozprawa
+new int igmkikpart = 0;  // 0 - twierdza, 1 - mirmilowo, 2 - podstep, 3 - rozprawa
 
 match( igmkikpart )	{
 	1 => "KiK_Mirmilowo";
@@ -25,6 +25,8 @@ match( igmkikpart )	{
 }
 
 new string sgmproject = _;
+
+new int igmsubtitle = 0;
 
 /**************************************************************/
 
@@ -1491,7 +1493,6 @@ class gmmaskvec : gmadvvec	{
 
 
 
-
 class Subtitle	{
 	init(string sdbfile, string spath, string sfont, int ifont, int borx, int bory)	{
 		real rwidth = 0.5;
@@ -1610,7 +1611,8 @@ class Subtitle	{
 	}
 }
 
-new int igmsubtitle = 1;
+
+
 if( igmsubtitle )	{
 	new Subtitle subtitle("sub_kik.db", "sounds/", sgmfontbold, 28, 50, 15);
 }

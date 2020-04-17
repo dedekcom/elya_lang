@@ -559,8 +559,16 @@ class newvars		{
 	}
 	_newsnd(string sname, string sfile)	{
 		new snd <sname>;
-		if( !sfile.contains(".") ) sfile += ".wav";
-		<sname>.load( sfile);
+		if( !sfile.contains(".") ) {
+			sfile += ".wav";
+		}
+		if( !engine.fileexist(sfile) )	{
+			sfile = sfile.strsubes("wav") + "ogg";
+		}
+		<sname>.load( sfile );
+		if( igmsubtitle )	{
+			subtitle.register(sname, sfile);
+		}
 	}
 	newsfx(string sname, string sfile)	{	._newsnd(sname, SFXPATH + sfile);	}
 	newbgr(string sname, string sfile)	{	._newsnd(sname, BGRPATH + sfile);	}
@@ -1370,9 +1378,138 @@ class gmmaskvec : gmadvvec	{
 
 
 
+class Subtitle	{
+	init(string sdbfile, string spath, string sfont, int ifont, int borx, int bory)	{
+		real rwidth = 0.5;
+		int col[3];	// kolor fonta
+		col0 = 255;
+		col1 = 255;
+		col2 = 255;
+	
+		new int iborx = borx;
+		new int ibory = bory;
+		
+		new font fnt;
+		fnt.load(sfont, ifont);
+		new int ifontsize = ifont;
+		
+		new db dbl;
+		dbl.load("lang/"+sdbfile);
+		
+		string s;
+		string s2;
+		new vector v1;	v1.type("string");
+		int cols = (iResX-2*borx)/(rwidth*ifont+1);
+		int k, int j;
+		int linie = 0;
+		for( int i=0; i<dbl.getrowsno; i++)	{
+			s = dbl.get(i,0);
+			if( s.gete(0,4)!=".wav" ) s+=".wav";
+			dbl.set( i, 0, spath + s );
+			s = dbl.get(i,1);
+			v1.vecbuildfromstring(s, " ");
+			s2 = "";
+			k = 1;
+			for( j=0; j<v1.size; j++)	{
+				if( s2.length + v1.get(j)->length + 1 <= cols )	s2 += " " + v1.get(j);
+				else {
+					if( k==1 )	dbl.set(i, k, s2);
+					else dbl.add(i, s2);
+					s2 = v1.get(j);
+					k++;
+				}
+			}
+			if( k==1 )	dbl.set(i, k, s2);
+			else dbl.add(i, s2);
+			if( k>linie ) linie = k;
+		}
+		new gmimgvec grtxt;
+		for( int i=0; i<linie; i++)	{
+			s = "txt"+i;
+			s2 = "txts"+i;
+			classgame::newtext(s2,"","fnt",.black);
+			classgame::newtext(s,"","fnt",col0, col1, col2);
+			grtxt.add(s);
+			grtxt.add(s2);
+		}
+		
+		new db dbsnd;
+		new timer timtxt;
+		timtxt.settick(1);
+		timtxt.setcycle(1);
+		timtxt.addmethod("onfinish", func {
+			if( !.cisplaying )	.hidesubs;
+			else .play;
+			} );
+		.setz(12000);
+	}
+	reset	{
+		.stop;
+		dbsnd.free;
+	}
+	hidesubs	{
+		grtxt.hide;
+	}
+	setz(int z)	{
+		grtxt.setz(z);
+	}
+	stop	{
+		.hidesubs;
+		timtxt.stop(false);
+	}
+	register(string ssnd, string sfile)	{
+		@id = dbl.findbyrow(sfile);
+		if( id>=0 )	{
+			@r = dbsnd.findbyrow(ssnd);
+			if( r>=0 )	dbsnd.set(r, 1, id);
+			else {
+				@r = dbsnd.addrow-1;
+				dbsnd.add(r, ssnd);
+				dbsnd.add(r, id);
+			}
+		}
+		("register "+ssnd+" "+sfile+" "+id)->print;
+	}
+	play(string s)	{
+		.stop;
+		@id = dbsnd.findbyrow(s);
+		if( id>=0 )	{
+			//engine.setdebugstate(1);
+			id = dbsnd.get(id, 1);
+			@ile = dbl.getcolsno(id)-1;
+			string s[2], int i2;
+			grtxt.setpos(0,0);
+			int dy = 2;
+			for( int i=0; i<ile; i++)	{
+				i2 = 2*i;
+				s0 = grtxt.get(i2);
+				<s0>.txtset(dbl.get(id, i+1));
+				s1 = grtxt.get(i2+1);
+				<s1>.txtset(<s0>.get);
+				<s0>.setpos( (iResX-<s0>.getw)/2, i*ifontsize + dy );
+				<s0>.show;
+				<s1>.setpos(<s0>.getpx+2, <s0>.getpy+2);
+				<s1>.show;
+			}
+			grtxt.move( 0, iResY - ile*(ifontsize+dy)-ibory );
+			timtxt.play;
+		}
+	}
+}
+
+
+new int igmsubtitle = 1;
+
+if( igmsubtitle )	{
+	new Subtitle subtitle("sub_turniej.db", "sounds/", sgmfontbold, 22, 50, 15);
+}
+
 class classsound {
 	init()	{
 		new string _csplay = null;
+		if( igmsubtitle )	{
+			subtitle.reset;
+		}
 	}
 	creset()	{ _csplay = null; }
 	string cgetactsnd()	{ return _csplay; }
@@ -1386,7 +1523,13 @@ class classsound {
 	cbplay(string ssnd)	{
 		if(this.cisplaying())	<_csplay>.stop(true);
 		_csplay = ssnd;
-		if( ssnd!=null )	<ssnd>.play();
+		if( ssnd!=null )
+			.csubplay(ssnd);
+		//	<ssnd>.play();
+	}
+	cbsplay(string ssnd)	{
+		_csplay = ssnd;
+		if( ssnd!=null)	.csubplay(ssnd);
 	}
 	cbplayfin(string ssnd, string sfun)	{
 		<ssnd>.addmethod("onfinish", sfun);
@@ -1395,14 +1538,26 @@ class classsound {
 	cbplay2(string ssnd)	{
 		if(this.cisplaying())	<_csplay>.stop(false);
 		_csplay = ssnd;
-		if( ssnd!=null )	<ssnd>.play();
+		if( ssnd!=null )
+			.csubplay(ssnd);
+		//	<ssnd>.play();
 	}
 	crplay(string ssnd)	{
 		if(_csplay!=null && <_csplay>.isplaying() )	return;
 		_csplay = ssnd;
-		if( ssnd!=null )	<ssnd>.play();
+		if( ssnd!=null )
+			.csubplay(ssnd);
+		//	<ssnd>.play();
 	}
-	crbgplay(string ssnd)	{	if( ssnd != null && !<ssnd>.isplaying() )	<ssnd>.play();	}
+	cbplayif(string ssnd)	{
+		if(.cisplaying)
+			.cbplay(ssnd);
+	}
+	crbgplay(string ssnd)	{
+		if( ssnd != null && !<ssnd>.isplaying() )
+			.csubplay(ssnd);
+			//<ssnd>.play();
+	}
 	crandplay(string ssnd, int irand, string styp)	{
 		if( irand.rand()==0 )	this.<"c"+styp+"play">( ssnd );
 	}
@@ -1419,6 +1574,12 @@ class classsound {
 			.cactsndstop(b);
 	}
 	bool cisplaying()	{	_csplay!=null ? <_csplay>.isplaying() : false;	}
+	csubplay(string s)	{
+		if( igmsubtitle )	{
+			subtitle.play(s);
+		}
+		<s>.play;
+	}
 }
 
 /***************************************************************************/
@@ -2731,6 +2892,9 @@ class GameController : classlocker {
 		new snd <ssnd>;
 		<ssnd>.setstartstopflag(false,true);
 		<ssnd>.load( .getsndpath+swav );
+		if( igmsubtitle )	{
+			subtitle.register(ssnd, .getsndpath+swav);
+		}
 	}
 	public addsnd(string ssnd, string stxt)	{
 		int id = _dbsnd.addrow()-1;

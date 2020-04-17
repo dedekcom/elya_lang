@@ -4,7 +4,7 @@
 	push 0
 	pop igmdebug
 	new int,igmwinlocal
-	push 0
+	push 1
 	pop igmwinlocal
 	new int,igmpad
 	push 0
@@ -19,7 +19,7 @@
 	push "DDagiel"
 	pop sgmdeveloper
 	new int,igmkikpart
-	push 1
+	push 0
 	pop igmkikpart
 	push igmkikpart
 	spushs
@@ -49,6 +49,9 @@ l4:
 l1:
 	new string,sgmproject
 	pop sgmproject
+	new int,igmsubtitle
+	push 0
+	pop igmsubtitle
 	method getwinpath
 	localstring $1
 	pop $1
@@ -8061,9 +8064,6 @@ l515:
 	end method
 	end class
 
-	new int,igmsubtitle
-	push 1
-	pop igmsubtitle
 	push igmsubtitle
 	cmp0
 	je l521

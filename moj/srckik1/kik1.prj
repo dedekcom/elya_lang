@@ -11,6 +11,7 @@ src:
 	libs/length.dag
 	libs/packs.dag
 	libs/containers.dag
+	libs/subtitle.dag
 	libs/sounds.dag
 	libs/game.dag
 	libs/buttons.dag

@@ -1,0 +1,2 @@
+bash kompilujwin ./srckik1/kik1.prj
+awk -f optimize.awk ./srckik1/kik1.odd | awk -f optimize.awk > /c/projects/dagiel/kik/project/scripts/kik1.odd

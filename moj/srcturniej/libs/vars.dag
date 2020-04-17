@@ -130,8 +130,16 @@ class newvars		{
 	}
 	_newsnd(string sname, string sfile)	{
 		new snd <sname>;
-		if( !sfile.contains(".") ) sfile += ".wav";
-		<sname>.load( sfile);
+		if( !sfile.contains(".") ) {
+			sfile += ".wav";
+		}
+		if( !engine.fileexist(sfile) )	{
+			sfile = sfile.strsubes("wav") + "ogg";
+		}
+		<sname>.load( sfile );
+		if( igmsubtitle )	{
+			subtitle.register(sname, sfile);
+		}
 	}
 	newsfx(string sname, string sfile)	{	._newsnd(sname, SFXPATH + sfile);	}
 	newbgr(string sname, string sfile)	{	._newsnd(sname, BGRPATH + sfile);	}

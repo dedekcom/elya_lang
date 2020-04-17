@@ -1,7 +1,16 @@
 
+new int igmsubtitle = 1;
+
+if( igmsubtitle )	{
+	new Subtitle subtitle("sub_turniej.db", "sounds/", sgmfontbold, 22, 50, 15);
+}
+
 class classsound {
 	init()	{
 		new string _csplay = null;
+		if( igmsubtitle )	{
+			subtitle.reset;
+		}
 	}
 	creset()	{ _csplay = null; }
 	string cgetactsnd()	{ return _csplay; }
@@ -15,7 +24,13 @@ class classsound {
 	cbplay(string ssnd)	{
 		if(this.cisplaying())	<_csplay>.stop(true);
 		_csplay = ssnd;
-		if( ssnd!=null )	<ssnd>.play();
+		if( ssnd!=null )
+			.csubplay(ssnd);
+		//	<ssnd>.play();
+	}
+	cbsplay(string ssnd)	{
+		_csplay = ssnd;
+		if( ssnd!=null)	.csubplay(ssnd);
 	}
 	cbplayfin(string ssnd, string sfun)	{
 		<ssnd>.addmethod("onfinish", sfun);
@@ -24,14 +39,26 @@ class classsound {
 	cbplay2(string ssnd)	{
 		if(this.cisplaying())	<_csplay>.stop(false);
 		_csplay = ssnd;
-		if( ssnd!=null )	<ssnd>.play();
+		if( ssnd!=null )
+			.csubplay(ssnd);
+		//	<ssnd>.play();
 	}
 	crplay(string ssnd)	{
 		if(_csplay!=null && <_csplay>.isplaying() )	return;
 		_csplay = ssnd;
-		if( ssnd!=null )	<ssnd>.play();
+		if( ssnd!=null )
+			.csubplay(ssnd);
+		//	<ssnd>.play();
 	}
-	crbgplay(string ssnd)	{	if( ssnd != null && !<ssnd>.isplaying() )	<ssnd>.play();	}
+	cbplayif(string ssnd)	{
+		if(.cisplaying)
+			.cbplay(ssnd);
+	}
+	crbgplay(string ssnd)	{
+		if( ssnd != null && !<ssnd>.isplaying() )
+			.csubplay(ssnd);
+			//<ssnd>.play();
+	}
 	crandplay(string ssnd, int irand, string styp)	{
 		if( irand.rand()==0 )	this.<"c"+styp+"play">( ssnd );
 	}
@@ -48,6 +75,12 @@ class classsound {
 			.cactsndstop(b);
 	}
 	bool cisplaying()	{	_csplay!=null ? <_csplay>.isplaying() : false;	}
+	csubplay(string s)	{
+		if( igmsubtitle )	{
+			subtitle.play(s);
+		}
+		<s>.play;
+	}
 }
 
 /***************************************************************************/

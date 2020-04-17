@@ -88,6 +88,9 @@ class GameController : classlocker {
 		new snd <ssnd>;
 		<ssnd>.setstartstopflag(false,true);
 		<ssnd>.load( .getsndpath+swav );
+		if( igmsubtitle )	{
+			subtitle.register(ssnd, .getsndpath+swav);
+		}
 	}
 	public addsnd(string ssnd, string stxt)	{
 		int id = _dbsnd.addrow()-1;

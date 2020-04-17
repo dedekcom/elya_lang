@@ -1,0 +1,118 @@
+
+class Subtitle	{
+	init(string sdbfile, string spath, string sfont, int ifont, int borx, int bory)	{
+		real rwidth = 0.5;
+		int col[3];	// kolor fonta
+		col0 = 255;
+		col1 = 255;
+		col2 = 255;
+	
+		new int iborx = borx;
+		new int ibory = bory;
+		
+		new font fnt;
+		fnt.load(sfont, ifont);
+		new int ifontsize = ifont;
+		
+		new db dbl;
+		dbl.load("lang/"+sdbfile);
+		
+		string s;
+		string s2;
+		new vector v1;	v1.type("string");
+		int cols = (iResX-2*borx)/(rwidth*ifont+1);
+		int k, int j;
+		int linie = 0;
+		for( int i=0; i<dbl.getrowsno; i++)	{
+			s = dbl.get(i,0);
+			if( s.gete(0,4)!=".wav" ) s+=".wav";
+			dbl.set( i, 0, spath + s );
+			s = dbl.get(i,1);
+			v1.vecbuildfromstring(s, " ");
+			s2 = "";
+			k = 1;
+			for( j=0; j<v1.size; j++)	{
+				if( s2.length + v1.get(j)->length + 1 <= cols )	s2 += " " + v1.get(j);
+				else {
+					if( k==1 )	dbl.set(i, k, s2);
+					else dbl.add(i, s2);
+					s2 = v1.get(j);
+					k++;
+				}
+			}
+			if( k==1 )	dbl.set(i, k, s2);
+			else dbl.add(i, s2);
+			if( k>linie ) linie = k;
+		}
+		new gmimgvec grtxt;
+		for( int i=0; i<linie; i++)	{
+			s = "txt"+i;
+			s2 = "txts"+i;
+			classgame::newtext(s2,"","fnt",.black);
+			classgame::newtext(s,"","fnt",col0, col1, col2);
+			grtxt.add(s);
+			grtxt.add(s2);
+		}
+		
+		new db dbsnd;
+		new timer timtxt;
+		timtxt.settick(1);
+		timtxt.setcycle(1);
+		timtxt.addmethod("onfinish", func {
+			if( !.cisplaying )	.hidesubs;
+			else .play;
+			} );
+		.setz(12000);
+	}
+	reset	{
+		.stop;
+		dbsnd.free;
+	}
+	hidesubs	{
+		grtxt.hide;
+	}
+	setz(int z)	{
+		grtxt.setz(z);
+	}
+	stop	{
+		.hidesubs;
+		timtxt.stop(false);
+	}
+	register(string ssnd, string sfile)	{
+		@id = dbl.findbyrow(sfile);
+		if( id>=0 )	{
+			@r = dbsnd.findbyrow(ssnd);
+			if( r>=0 )	dbsnd.set(r, 1, id);
+			else {
+				@r = dbsnd.addrow-1;
+				dbsnd.add(r, ssnd);
+				dbsnd.add(r, id);
+			}
+		}
+		//("register "+ssnd+" "+sfile+" "+id)->print;
+	}
+	play(string s)	{
+		.stop;
+		@id = dbsnd.findbyrow(s);
+		if( id>=0 )	{
+			id = dbsnd.get(id, 1);
+			@ile = dbl.getcolsno(id)-1;
+			string s[2], int i2;
+			grtxt.setpos(0,0);
+			int dy = 2;
+			for( int i=0; i<ile; i++)	{
+				i2 = 2*i;
+				s0 = grtxt.get(i2);
+				<s0>.txtset(dbl.get(id, i+1));
+				s1 = grtxt.get(i2+1);
+				<s1>.txtset(<s0>.get);
+				<s0>.setpos( (iResX-<s0>.getw)/2, i*ifontsize + dy );
+				<s0>.show;
+				<s1>.setpos(<s0>.getpx+2, <s0>.getpy+2);
+				<s1>.show;
+			}
+			grtxt.move( 0, iResY - ile*(ifontsize+dy)-ibory );
+			timtxt.play;
+		}
+	}
+}
